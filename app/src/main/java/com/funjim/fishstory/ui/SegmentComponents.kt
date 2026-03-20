@@ -133,13 +133,13 @@ fun SegmentItem(
                         }
                     )
                 }
-                if (fishermenCount > 0 || fishCaught > 0) {
-                    Text(
-                        text = "Fishermen: $fishermenCount | Fish: $fishCaught ($fishKept kept)",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "$fishermenCount Fisherman • $fishCaught Caught • $fishKept Kept",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onEdit != null) {
