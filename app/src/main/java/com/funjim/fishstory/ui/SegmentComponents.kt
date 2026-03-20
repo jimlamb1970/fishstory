@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.SegmentWithDetails
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -59,7 +60,28 @@ fun SegmentDialog(
 
 @Composable
 fun SegmentItem(
-    segment: Segment, 
+    segmentWithDetails: SegmentWithDetails, 
+    onEdit: (() -> Unit)? = null, 
+    onDelete: () -> Unit, 
+    onClick: () -> Unit
+) {
+    SegmentItem(
+        segment = segmentWithDetails.segment,
+        fishermenCount = segmentWithDetails.fishermen.size,
+        fishCaught = segmentWithDetails.fish.size,
+        fishKept = segmentWithDetails.fish.count { !it.isReleased },
+        onEdit = onEdit,
+        onDelete = onDelete,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun SegmentItem(
+    segment: Segment,
+    fishermenCount: Int = 0,
+    fishCaught: Int = 0,
+    fishKept: Int = 0,
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
     onClick: () -> Unit
@@ -85,6 +107,13 @@ fun SegmentItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
+                if (fishermenCount > 0 || fishCaught > 0) {
+                    Text(
+                        text = "Fishermen: $fishermenCount | Fish: $fishCaught ($fishKept kept)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onEdit != null) {

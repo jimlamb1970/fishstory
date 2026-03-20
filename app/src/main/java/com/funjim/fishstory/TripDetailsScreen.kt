@@ -39,6 +39,7 @@ fun TripDetailsScreen(
     navigateBack: () -> Unit
 ) {
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
+    val segmentsWithDetails by viewModel.getSegmentsWithDetailsForTrip(tripId).collectAsState(initial = emptyList())
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
     
     var showFishermenDialog by remember { mutableStateOf(false) }
@@ -124,17 +125,17 @@ fun TripDetailsScreen(
                 }
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(details.segments) { segment ->
+                    items(segmentsWithDetails) { segmentDetails ->
                         SegmentItem(
-                            segment = segment,
-                            onEdit = null, // Set to null to hide edit icon
+                            segmentWithDetails = segmentDetails,
+                            onEdit = null,
                             onDelete = {
                                 scope.launch {
-                                    viewModel.deleteSegment(segment)
+                                    viewModel.deleteSegment(segmentDetails.segment)
                                 }
                             },
                             onClick = {
-                                navigateToSegmentDetails(segment.id)
+                                navigateToSegmentDetails(segmentDetails.segment.id)
                             }
                         )
                     }

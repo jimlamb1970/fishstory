@@ -9,6 +9,10 @@ interface SegmentDao {
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsForTrip(tripId: Int): Flow<List<Segment>>
 
+    @Transaction
+    @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
+    fun getSegmentsWithDetailsForTrip(tripId: Int): Flow<List<SegmentWithDetails>>
+
     @Query("SELECT * FROM segment_table WHERE endTime IS NULL ORDER BY startTime DESC")
     fun getActiveSegments(): Flow<List<Segment>>
 

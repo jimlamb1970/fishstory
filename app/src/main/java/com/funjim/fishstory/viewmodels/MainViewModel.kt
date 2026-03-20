@@ -128,6 +128,14 @@ class MainViewModel(
         segmentDao.deleteSegment(segment)
     }
 
+    fun getSegmentsForTrip(tripId: Int): Flow<List<Segment>> {
+        return segmentDao.getSegmentsForTrip(tripId)
+    }
+
+    fun getSegmentsWithDetailsForTrip(tripId: Int): Flow<List<SegmentWithDetails>> {
+        return segmentDao.getSegmentsWithDetailsForTrip(tripId)
+    }
+
     fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen> {
         return segmentDao.getSegmentWithFishermen(segmentId)
     }
