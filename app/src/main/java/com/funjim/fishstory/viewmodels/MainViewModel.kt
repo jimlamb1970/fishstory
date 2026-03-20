@@ -1,6 +1,5 @@
 package com.funjim.fishstory.viewmodels
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.funjim.fishstory.database.*
