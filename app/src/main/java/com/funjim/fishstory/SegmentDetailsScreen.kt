@@ -7,16 +7,20 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Fish
@@ -51,6 +55,7 @@ fun SegmentDetailsScreen(
     var showAddFishDialog by remember { mutableStateOf(false) }
     var showFishermenDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
+    var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -61,7 +66,7 @@ fun SegmentDetailsScreen(
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         ) {
-            showAddFishDialog = true
+            // Permission granted
         }
     }
 
@@ -72,6 +77,42 @@ fun SegmentDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Set GPS Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        scope.launch {
+                                            val location = viewModel.getCurrentLocation(context)
+                                            if (location != null) {
+                                                segmentWithDetails?.segment?.let { segment ->
+                                                    viewModel.updateSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } else {
+                                        permissionLauncher.launch(
+                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                        )
+                                    }
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+                        }
                     }
                 }
             )
@@ -125,6 +166,25 @@ fun SegmentDetailsScreen(
             HorizontalDivider()
 
             segmentWithDetails?.let { details ->
+                Column(modifier = Modifier.padding(16.dp)) {
+                    if (details.segment.latitude != null && details.segment.longitude != null) {
+                        Text(
+                            text = "Location: ${"%.4f".format(details.segment.latitude)}, ${"%.4f".format(details.segment.longitude)}",
+                            style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable {
+                                val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
+                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                    }
+                }
+
                 // The Boat Concept for Segment
                 BoatSummary(
                     fishermanCount = details.fishermen.size,

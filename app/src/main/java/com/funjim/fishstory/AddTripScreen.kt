@@ -1,5 +1,10 @@
 package com.funjim.fishstory
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,12 +12,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.SegmentDialog
@@ -35,8 +44,10 @@ fun AddTripScreen(
 ) {
     var tripId by remember { mutableIntStateOf(initialTripId) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     
     // For existing trips
     val tripWithDetails by if (tripId != 0) {
@@ -47,11 +58,15 @@ fun AddTripScreen(
 
     var name by remember { mutableStateOf("") }
     var dateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
 
     LaunchedEffect(tripWithDetails) {
         tripWithDetails?.let {
             name = it.trip.name
             dateMillis = it.trip.startDate
+            latitude = it.trip.latitude
+            longitude = it.trip.longitude
         }
     }
 
@@ -62,6 +77,26 @@ fun AddTripScreen(
     val dateFormatter = remember { 
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.entries.all { it.value }
+        if (granted) {
+            scope.launch {
+                val location = viewModel.getCurrentLocation(context)
+                if (location != null) {
+                    latitude = location.latitude
+                    longitude = location.longitude
+                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -81,6 +116,39 @@ fun AddTripScreen(
                     IconButton(onClick = { navigateToBoatLoad(tripId) }) {
                         Icon(Icons.Default.DirectionsBoat, contentDescription = "Load Boat")
                     }
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Set GPS Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        scope.launch {
+                                            val location = viewModel.getCurrentLocation(context)
+                                            if (location != null) {
+                                                latitude = location.latitude
+                                                longitude = location.longitude
+                                                Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } else {
+                                        permissionLauncher.launch(
+                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                        )
+                                    }
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+                        }
+                    }
                 }
             )
         },
@@ -88,7 +156,13 @@ fun AddTripScreen(
             if (name.isNotBlank()) {
                 FloatingActionButton(onClick = {
                     scope.launch {
-                        val trip = Trip(id = tripId, name = name, startDate = dateMillis)
+                        val trip = Trip(
+                            id = tripId, 
+                            name = name, 
+                            startDate = dateMillis,
+                            latitude = latitude,
+                            longitude = longitude
+                        )
                         
                         if (tripId == 0) {
                             val id = viewModel.addTrip(trip)
@@ -132,6 +206,14 @@ fun AddTripScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Date: ${dateFormatter.format(Date(dateMillis))}")
+            }
+
+            if (latitude != null && longitude != null) {
+                Text(
+                    text = "Location: ${"%.4f".format(latitude)}, ${"%.4f".format(longitude)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -187,6 +269,25 @@ fun AddTripScreen(
                             onClick = {
                                 if (tripId != 0) {
                                     navigateToSegmentDetails(segment.id, tripId)
+                                }
+                            },
+                            onSetLocation = {
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                    scope.launch {
+                                        val location = viewModel.getCurrentLocation(context)
+                                        if (location != null) {
+                                            if (tripId == 0) {
+                                                viewModel.updateDraftSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            } else {
+                                                viewModel.updateSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            }
+                                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    permissionLauncher.launch(
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    )
                                 }
                             }
                         )

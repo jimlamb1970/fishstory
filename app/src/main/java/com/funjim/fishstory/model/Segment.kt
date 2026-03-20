@@ -19,7 +19,9 @@ data class Segment(
     val tripId: Int,
     val name: String,
     val startTime: Long = System.currentTimeMillis(),
-    val endTime: Long? = null
+    val endTime: Long? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 data class SegmentWithFishermen(

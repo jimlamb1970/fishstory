@@ -1,16 +1,22 @@
 package com.funjim.fishstory.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.SegmentWithDetails
@@ -63,7 +69,8 @@ fun SegmentItem(
     segmentWithDetails: SegmentWithDetails, 
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSetLocation: (() -> Unit)? = null
 ) {
     SegmentItem(
         segment = segmentWithDetails.segment,
@@ -72,7 +79,8 @@ fun SegmentItem(
         fishKept = segmentWithDetails.fish.count { !it.isReleased },
         onEdit = onEdit,
         onDelete = onDelete,
-        onClick = onClick
+        onClick = onClick,
+        onSetLocation = onSetLocation
     )
 }
 
@@ -84,10 +92,12 @@ fun SegmentItem(
     fishKept: Int = 0,
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSetLocation: (() -> Unit)? = null
 ) {
     val dateTimeFormatter = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
     var menuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     
     Card(
         modifier = Modifier
@@ -107,6 +117,22 @@ fun SegmentItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
+                if (segment.latitude != null && segment.longitude != null) {
+                    Text(
+                        text = "Location: ${"%.4f".format(segment.latitude)}, ${"%.4f".format(segment.longitude)}",
+                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
+                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
                 if (fishermenCount > 0 || fishCaught > 0) {
                     Text(
                         text = "Fishermen: $fishermenCount | Fish: $fishCaught ($fishKept kept)",
@@ -130,6 +156,21 @@ fun SegmentItem(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
+                        if (onSetLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Set GPS Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSetLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text("Delete", color = Color.Red) },
                             onClick = {

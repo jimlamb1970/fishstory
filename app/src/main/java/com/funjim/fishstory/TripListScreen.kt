@@ -1,5 +1,12 @@
 package com.funjim.fishstory
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,13 +14,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -49,6 +60,7 @@ fun TripListScreen(
                     TripItem(
                         trip = trip,
                         details = details,
+                        viewModel = viewModel,
                         onClick = {
                             navigateToTripDetails(trip.id)
                         },
@@ -65,7 +77,13 @@ fun TripListScreen(
 }
 
 @Composable
-fun TripItem(trip: Trip, details: TripWithDetails?, onClick: () -> Unit, onDelete: () -> Unit) {
+fun TripItem(
+    trip: Trip, 
+    details: TripWithDetails?, 
+    viewModel: MainViewModel,
+    onClick: () -> Unit, 
+    onDelete: () -> Unit
+) {
     val dateFormatter = remember { 
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
@@ -73,6 +91,27 @@ fun TripItem(trip: Trip, details: TripWithDetails?, onClick: () -> Unit, onDelet
     }
     val dateString = dateFormatter.format(Date(trip.startDate))
     var showMenu by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.entries.all { it.value }
+        if (granted) {
+            scope.launch {
+                val location = viewModel.getCurrentLocation(context)
+                if (location != null) {
+                    viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onClick() }) {
         Row(
@@ -84,6 +123,23 @@ fun TripItem(trip: Trip, details: TripWithDetails?, onClick: () -> Unit, onDelet
                 Text(trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
                 Text(dateString, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 
+                if (trip.latitude != null && trip.longitude != null) {
+                    Text(
+                        text = "Location: ${"%.4f".format(trip.latitude)}, ${"%.4f".format(trip.longitude)}",
+                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.clickable {
+                            val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.latitude},${trip.longitude}")
+                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
+
                 details?.let {
                     val fishermanCount = it.fishermen.size
                     val caughtCount = it.fish.size
@@ -106,6 +162,28 @@ fun TripItem(trip: Trip, details: TripWithDetails?, onClick: () -> Unit, onDelet
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Set GPS Location") },
+                        onClick = {
+                            showMenu = false
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                scope.launch {
+                                    val location = viewModel.getCurrentLocation(context)
+                                    if (location != null) {
+                                        viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                permissionLauncher.launch(
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                )
+                            }
+                        },
+                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                    )
                     DropdownMenuItem(
                         text = { Text("Delete") },
                         onClick = {

@@ -1,6 +1,14 @@
 package com.funjim.fishstory
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,12 +16,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.ui.BoatSummary
@@ -45,12 +57,34 @@ fun TripDetailsScreen(
     var showFishermenDialog by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
     var showAddSegmentDialog by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val dateFormatter = remember { 
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.entries.all { it.value }
+        if (granted) {
+            scope.launch {
+                val location = viewModel.getCurrentLocation(context)
+                if (location != null) {
+                    tripWithDetails?.trip?.let { trip ->
+                        viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -66,6 +100,40 @@ fun TripDetailsScreen(
                 actions = {
                     IconButton(onClick = { showEditTripDialog = true }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit Trip")
+                    }
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Set GPS Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        scope.launch {
+                                            val location = viewModel.getCurrentLocation(context)
+                                            if (location != null) {
+                                                tripWithDetails?.trip?.let { trip ->
+                                                    viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                                                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } else {
+                                        permissionLauncher.launch(
+                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                        )
+                                    }
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+                        }
                     }
                 }
             )
@@ -83,6 +151,22 @@ fun TripDetailsScreen(
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Gray
                     )
+                    if (details.trip.latitude != null && details.trip.longitude != null) {
+                        Text(
+                            text = "Location: ${"%.4f".format(details.trip.latitude)}, ${"%.4f".format(details.trip.longitude)}",
+                            style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable {
+                                val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
+                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                    }
                 }
 
                 PhotoPickerRow(
@@ -136,6 +220,21 @@ fun TripDetailsScreen(
                             },
                             onClick = {
                                 navigateToSegmentDetails(segmentDetails.segment.id)
+                            },
+                            onSetLocation = {
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                    scope.launch {
+                                        val location = viewModel.getCurrentLocation(context)
+                                        if (location != null) {
+                                            viewModel.updateSegment(segmentDetails.segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    permissionLauncher.launch(
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    )
+                                }
                             }
                         )
                     }

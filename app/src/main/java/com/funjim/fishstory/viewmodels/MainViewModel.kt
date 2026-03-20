@@ -1,13 +1,18 @@
 package com.funjim.fishstory.viewmodels
 
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.tasks.await
 
 class MainViewModel(
     private val tripDao: TripDao,
@@ -38,6 +43,12 @@ class MainViewModel(
         val tempId = (_draftSegments.value.minOfOrNull { it.id } ?: 0) - 1
         val newSegment = Segment(id = tempId, tripId = 0, name = name, startTime = startTime)
         _draftSegments.value = _draftSegments.value + newSegment
+    }
+
+    fun updateDraftSegment(updatedSegment: Segment) {
+        _draftSegments.value = _draftSegments.value.map {
+            if (it.id == updatedSegment.id) updatedSegment else it
+        }
     }
 
     fun removeDraftSegment(segment: Segment) {
@@ -122,6 +133,10 @@ class MainViewModel(
 
     suspend fun addSegment(segment: Segment) {
         segmentDao.insertSegment(segment)
+    }
+
+    suspend fun updateSegment(segment: Segment) {
+        segmentDao.updateSegment(segment)
     }
 
     suspend fun deleteSegment(segment: Segment) {
@@ -234,6 +249,16 @@ class MainViewModel(
     fun getPhotosForLure(lureId: Int): Flow<List<Photo>> = photoDao.getPhotosForLure(lureId)
     fun getPhotosForFisherman(fishermanId: Int): Flow<List<Photo>> = photoDao.getPhotosForFisherman(fishermanId)
     fun getPhotosForFish(fishId: Int): Flow<List<Photo>> = photoDao.getPhotosForFish(fishId)
+
+    @SuppressLint("MissingPermission")
+    suspend fun getCurrentLocation(context: Context): android.location.Location? {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        return try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
 class MainViewModelFactory(

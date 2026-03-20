@@ -27,6 +27,9 @@ interface SegmentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSegment(segment: Segment): Long
 
+    @Update
+    suspend fun updateSegment(segment: Segment)
+
     @Delete
     suspend fun deleteSegment(segment: Segment)
 
