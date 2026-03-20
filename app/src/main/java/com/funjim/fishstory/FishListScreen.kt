@@ -204,8 +204,11 @@ fun FishListScreen(
                         showAddFishDialog = false
                     }
                 },
-                onAddSpecies = { name ->
-                    scope.launch { viewModel.addSpecies(name) }
+                onAddSpecies = { name, onAdded ->
+                    scope.launch {
+                        val newId = viewModel.addSpecies(name)
+                        onAdded(newId.toInt())
+                    }
                 }
             )
         }

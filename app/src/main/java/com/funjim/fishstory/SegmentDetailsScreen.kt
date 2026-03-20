@@ -287,8 +287,11 @@ fun SegmentDetailsScreen(
                                 showAddFishDialog = false
                             }
                         },
-                        onAddSpecies = { name ->
-                            scope.launch { viewModel.addSpecies(name) }
+                        onAddSpecies = { name, onComplete ->
+                            scope.launch {
+                                val newId = viewModel.addSpecies(name)
+                                onComplete(newId.toInt())
+                            }
                         }
                     )
                 }

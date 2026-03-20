@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
@@ -40,7 +41,7 @@ fun AddFishDialog(
     fishermenList: List<Fisherman>,
     onDismiss: () -> Unit,
     onConfirm: (Int, Int, Int?, Double, Boolean) -> Unit,
-    onAddSpecies: (String) -> Unit
+    onAddSpecies: (String, (Int) -> Unit) -> Unit
 ) {
     var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
     var selectedFishermanId by remember { mutableStateOf<Int?>(null) }
@@ -60,6 +61,40 @@ fun AddFishDialog(
     var speciesExpanded by remember { mutableStateOf(false) }
     var fishermanExpanded by remember { mutableStateOf(false) }
     var lureExpanded by remember { mutableStateOf(false) }
+
+    if (showNewSpeciesDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showNewSpeciesDialog = false
+                newSpeciesName = ""
+            },
+            title = { Text("Add New Species") },
+            text = {
+                TextField(
+                    value = newSpeciesName,
+                    onValueChange = { newSpeciesName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (newSpeciesName.isNotBlank()) {
+                        onAddSpecies(newSpeciesName) { newId ->
+                            selectedSpeciesId = newId
+                        }
+                        showNewSpeciesDialog = false
+                        newSpeciesName = ""
+                    }
+                }) { Text("Add") }
+            },
+            dismissButton = {
+                Button(onClick = { 
+                    showNewSpeciesDialog = false
+                    newSpeciesName = ""
+                }) { Text("Cancel") }
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -93,12 +128,14 @@ fun AddFishDialog(
                                 }
                             )
                         }
+                        HorizontalDivider()
                         DropdownMenuItem(
-                            text = { Text("+ Add New Species", color = MaterialTheme.colorScheme.primary) },
+                            text = { Text("Add species...", color = MaterialTheme.colorScheme.primary) },
                             onClick = {
                                 speciesExpanded = false
                                 showNewSpeciesDialog = true
-                            }
+                            },
+                            leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                         )
                     }
                 }
@@ -193,32 +230,6 @@ fun AddFishDialog(
             Button(onClick = onDismiss) { Text("Cancel") }
         }
     )
-
-    if (showNewSpeciesDialog) {
-        AlertDialog(
-            onDismissRequest = { showNewSpeciesDialog = false },
-            title = { Text("New Species") },
-            text = {
-                TextField(
-                    value = newSpeciesName,
-                    onValueChange = { newSpeciesName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (newSpeciesName.isNotBlank()) {
-                        onAddSpecies(newSpeciesName)
-                        showNewSpeciesDialog = false
-                        newSpeciesName = ""
-                    }
-                }) { Text("Add") }
-            },
-            dismissButton = {
-                Button(onClick = { showNewSpeciesDialog = false }) { Text("Cancel") }
-            }
-        )
-    }
 }
 
 @Composable
