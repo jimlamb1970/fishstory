@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "title": "Qwen 32B Coder",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:32b",
+      "apiBase": "http://localhost:11434"
+    },
+    {
+      "title": "DeepSeek Coder 6.7B",
+      "provider": "ollama",
+      "model": "deepseek-coder:6.7b",
+      "apiBase": "http://localhost:11434"
+    }
+  ],
+  "autocompleteModel": "DeepSeek Coder 6.7B",
+  "systemMessage": "You are a senior Android engineer. Use idiomatic Kotlin, Jetpack Compose, MVVM, StateFlow, and clean architecture. Prefer concise, production-ready code. When generating code, include imports and follow best practices."
+}

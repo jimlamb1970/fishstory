@@ -1,0 +1,99 @@
+package com.funjim.fishstory.ui
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.Segment
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+@Composable
+fun SegmentDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, Long) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    val startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Segment") },
+        text = {
+            Column {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Segment Name (e.g. Morning, Spot 1)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(name, startTime)
+                    }
+                }
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun SegmentItem(
+    segment: Segment, 
+    onEdit: (() -> Unit)? = null, 
+    onDelete: () -> Unit, 
+    onClick: () -> Unit
+) {
+    val dateTimeFormatter = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(segment.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Started: ${dateTimeFormatter.format(Date(segment.startTime))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+            Row {
+                if (onEdit != null) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                }
+            }
+        }
+    }
+}
