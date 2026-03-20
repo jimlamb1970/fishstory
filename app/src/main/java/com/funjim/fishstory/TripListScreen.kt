@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Trip
@@ -120,26 +119,30 @@ fun TripItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
+                    if (trip.latitude != null && trip.longitude != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "View on map",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.latitude},${trip.longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                        )
+                    }
+                }
                 Text(dateString, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 
-                if (trip.latitude != null && trip.longitude != null) {
-                    Text(
-                        text = "Location: ${"%.4f".format(trip.latitude)}, ${"%.4f".format(trip.longitude)}",
-                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.clickable {
-                            val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.latitude},${trip.longitude}")
-                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                }
-
                 details?.let {
                     val fishermanCount = it.fishermen.size
                     val caughtCount = it.fish.size

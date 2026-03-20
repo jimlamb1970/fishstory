@@ -20,10 +20,10 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Photo
@@ -142,31 +142,36 @@ fun TripDetailsScreen(
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             tripWithDetails?.let { details ->
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Trip: ${details.trip.name}",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Trip: ${details.trip.name}",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        if (details.trip.latitude != null && details.trip.longitude != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable {
+                                        val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                            )
+                        }
+                    }
                     Text(
                         text = "Date: ${dateFormatter.format(Date(details.trip.startDate))}",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Gray
                     )
-                    if (details.trip.latitude != null && details.trip.longitude != null) {
-                        Text(
-                            text = "Location: ${"%.4f".format(details.trip.latitude)}, ${"%.4f".format(details.trip.longitude)}",
-                            style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable {
-                                val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
-                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    }
                 }
 
                 PhotoPickerRow(

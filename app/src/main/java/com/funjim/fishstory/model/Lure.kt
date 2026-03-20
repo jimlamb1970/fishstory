@@ -19,15 +19,24 @@ data class LureColor(
             parentColumns = ["id"],
             childColumns = ["colorId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = LureColor::class,
+            parentColumns = ["id"],
+            childColumns = ["glowColorId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
-        Index(value = ["colorId"])
+        Index(value = ["colorId"]),
+        Index(value = ["glowColorId"])
     ]
 )
 data class Lure(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val colorId: Int?,
-    val hasSingleHook: Boolean
+    val hasSingleHook: Boolean,
+    val glows: Boolean,
+    val glowColorId: Int?
 )

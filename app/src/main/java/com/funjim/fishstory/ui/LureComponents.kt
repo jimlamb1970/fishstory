@@ -25,15 +25,68 @@ fun LureDialog(
     initialName: String = "",
     initialColorId: Int? = null,
     initialIsSingleHook: Boolean = false,
+    initialGlows: Boolean = false,
+    initialGlowColorId: Int? = null,
     title: String = "New Lure",
     colors: List<LureColor>,
     onDismiss: () -> Unit,
-    onConfirm: (String, Int?, Boolean) -> Unit
+    onConfirm: (String, Int?, Boolean, Boolean, Int?) -> Unit,
+    onAddColor: (String, (Int) -> Unit) -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
     var selectedColorId by remember { mutableStateOf(initialColorId) }
     var isSingleHook by remember { mutableStateOf(initialIsSingleHook) }
-    var expanded by remember { mutableStateOf(false) }
+    var glows by remember { mutableStateOf(initialGlows) }
+    var selectedGlowColorId by remember { mutableStateOf(initialGlowColorId) }
+    
+    var colorExpanded by remember { mutableStateOf(false) }
+    var glowColorExpanded by remember { mutableStateOf(false) }
+    
+    var showAddColorDialogForMain by remember { mutableStateOf(false) }
+    var showAddColorDialogForGlow by remember { mutableStateOf(false) }
+    var newColorName by remember { mutableStateOf("") }
+
+    if (showAddColorDialogForMain || showAddColorDialogForGlow) {
+        AlertDialog(
+            onDismissRequest = { 
+                showAddColorDialogForMain = false
+                showAddColorDialogForGlow = false
+                newColorName = ""
+            },
+            title = { Text("Add New Color") },
+            text = {
+                TextField(
+                    value = newColorName,
+                    onValueChange = { newColorName = it },
+                    placeholder = { Text("Color Name") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (newColorName.isNotBlank()) {
+                        val isGlow = showAddColorDialogForGlow
+                        onAddColor(newColorName) { newId ->
+                            if (isGlow) {
+                                selectedGlowColorId = newId
+                            } else {
+                                selectedColorId = newId
+                            }
+                        }
+                        showAddColorDialogForMain = false
+                        showAddColorDialogForGlow = false
+                        newColorName = ""
+                    }
+                }) { Text("Add") }
+            },
+            dismissButton = {
+                Button(onClick = { 
+                    showAddColorDialogForMain = false
+                    showAddColorDialogForGlow = false
+                    newColorName = ""
+                }) { Text("Cancel") }
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -49,8 +102,8 @@ fun LureDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                    expanded = colorExpanded,
+                    onExpandedChange = { colorExpanded = !colorExpanded }
                 ) {
                     val selectedColorName = colors.find { it.id == selectedColorId }?.name ?: "Select Color"
                     TextField(
@@ -58,22 +111,31 @@ fun LureDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Color") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
                         modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        expanded = colorExpanded,
+                        onDismissRequest = { colorExpanded = false }
                     ) {
                         colors.forEach { color ->
                             DropdownMenuItem(
                                 text = { Text(color.name) },
                                 onClick = {
                                     selectedColorId = color.id
-                                    expanded = false
+                                    colorExpanded = false
                                 }
                             )
                         }
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                colorExpanded = false
+                                showAddColorDialogForMain = true
+                            },
+                            leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                        )
                     }
                 }
                 
@@ -86,12 +148,61 @@ fun LureDialog(
                     )
                     Text("Single Hook")
                 }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = glows,
+                        onCheckedChange = { glows = it }
+                    )
+                    Text("Glows")
+                }
+
+                if (glows) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = glowColorExpanded,
+                        onExpandedChange = { glowColorExpanded = !glowColorExpanded }
+                    ) {
+                        val selectedGlowColorName = colors.find { it.id == selectedGlowColorId }?.name ?: "Select Glow Color"
+                        TextField(
+                            value = selectedGlowColorName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Glow Color") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = glowColorExpanded) },
+                            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = glowColorExpanded,
+                            onDismissRequest = { glowColorExpanded = false }
+                        ) {
+                            colors.forEach { color ->
+                                DropdownMenuItem(
+                                    text = { Text(color.name) },
+                                    onClick = {
+                                        selectedGlowColorId = color.id
+                                        glowColorExpanded = false
+                                    }
+                                )
+                            }
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    glowColorExpanded = false
+                                    showAddColorDialogForGlow = true
+                                },
+                                leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(onClick = {
                 if (name.isNotBlank()) {
-                    onConfirm(name, selectedColorId, isSingleHook)
+                    onConfirm(name, selectedColorId, isSingleHook, glows, selectedGlowColorId)
                 }
             }) { Text("Save") }
         },
@@ -158,6 +269,7 @@ fun ManageColorsDialog(
 fun LureItem(
     lure: Lure, 
     colorName: String, 
+    glowColorName: String?,
     viewModel: MainViewModel,
     onEdit: () -> Unit, 
     onDelete: () -> Unit
@@ -175,6 +287,9 @@ fun LureItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(lure.name, style = MaterialTheme.typography.titleLarge)
                     Text("Color: $colorName", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    if (lure.glows) {
+                        Text("Glow Color: ${glowColorName ?: "None"}", style = MaterialTheme.typography.bodySmall, color = Color.Green.copy(alpha = 0.7f))
+                    }
                     Text(
                         text = if (lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                         style = MaterialTheme.typography.bodySmall,

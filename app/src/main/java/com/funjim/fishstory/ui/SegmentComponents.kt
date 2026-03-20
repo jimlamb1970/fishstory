@@ -111,29 +111,39 @@ fun SegmentItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(segment.name, style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(segment.name, style = MaterialTheme.typography.titleMedium)
+                    if (segment.latitude != null && segment.longitude != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "View on map",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    val mapUri =
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not open map",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        )
+                    }
+                }
                 Text(
                     text = "Started: ${dateTimeFormatter.format(Date(segment.startTime))}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
-                if (segment.latitude != null && segment.longitude != null) {
-                    Text(
-                        text = "Location: ${"%.4f".format(segment.latitude)}, ${"%.4f".format(segment.longitude)}",
-                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
-                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                }
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "$fishermenCount Fisherman • $fishCaught Caught • $fishKept Kept",
