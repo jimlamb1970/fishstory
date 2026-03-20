@@ -173,6 +173,13 @@ class MainViewModel(
         tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
     }
 
+    suspend fun removeLureFromFishermanTackleBox(fishermanId: Int, lureId: Int) {
+        val tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
+        if (tackleBox != null) {
+            tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
+        }
+    }
+
     suspend fun addLureColor(color: LureColor): Long {
         return lureDao.insertLureColor(color)
     }
