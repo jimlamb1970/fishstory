@@ -56,13 +56,21 @@ fun AddFishDialog(
     
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     
-    val lures by if (selectedFishermanId != null) {
+    val rawLures by if (selectedFishermanId != null) {
         viewModel.getLuresForFisherman(selectedFishermanId!!).collectAsState(initial = emptyList())
     } else {
         remember { mutableStateOf(emptyList<Lure>()) }
     }
     
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
+    
+    val luresSorted = remember(rawLures, colors) {
+        rawLures.map { lure ->
+            val colorName = colors.find { it.id == lure.colorId }?.name
+            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+            lure to lure.getDisplayName(colorName, glowColorName)
+        }.sortedBy { it.second }
+    }
     
     var showNewSpeciesDialog by remember { mutableStateOf(false) }
     var newSpeciesName by remember { mutableStateOf("") }
@@ -244,7 +252,7 @@ fun AddFishDialog(
                     expanded = lureExpanded,
                     onExpandedChange = { if (selectedFishermanId != null) lureExpanded = !lureExpanded }
                 ) {
-                    val selectedLure = lures.find { it.id == selectedLureId }
+                    val selectedLure = rawLures.find { it.id == selectedLureId }
                     val selectedLureName = if (selectedLure != null) {
                         val colorName = colors.find { it.id == selectedLure.colorId }?.name
                         val glowColorName = colors.find { it.id == selectedLure.glowColorId }?.name
@@ -266,11 +274,9 @@ fun AddFishDialog(
                         expanded = lureExpanded,
                         onDismissRequest = { lureExpanded = false }
                     ) {
-                        lures.forEach { lure ->
-                            val colorName = colors.find { it.id == lure.colorId }?.name
-                            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+                        luresSorted.forEach { (lure, displayName) ->
                             DropdownMenuItem(
-                                text = { Text(lure.getDisplayName(colorName, glowColorName)) },
+                                text = { Text(displayName) },
                                 onClick = {
                                     selectedLureId = lure.id
                                     lureExpanded = false

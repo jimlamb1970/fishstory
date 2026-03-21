@@ -25,6 +25,7 @@ fun FishermanListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var newFirstName by remember { mutableStateOf("") }
     var newLastName by remember { mutableStateOf("") }
+    var newNickname by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -75,6 +76,12 @@ fun FishermanListScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         TextField(
+                            value = newNickname,
+                            onValueChange = { newNickname = it },
+                            label = { Text("Nickname") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextField(
                             value = newLastName,
                             onValueChange = { newLastName = it },
                             label = { Text("Last Name") }
@@ -86,10 +93,15 @@ fun FishermanListScreen(
                         if (newFirstName.isNotBlank() && newLastName.isNotBlank()) {
                             scope.launch {
                                 viewModel.addFisherman(
-                                    Fisherman(firstName = newFirstName, lastName = newLastName)
+                                    Fisherman(
+                                        firstName = newFirstName,
+                                        lastName = newLastName,
+                                        nickname = newNickname
+                                    )
                                 )
                                 newFirstName = ""
                                 newLastName = ""
+                                newNickname = ""
                                 showAddDialog = false
                             }
                         }
