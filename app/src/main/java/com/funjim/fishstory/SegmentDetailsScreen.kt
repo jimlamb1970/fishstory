@@ -268,7 +268,7 @@ fun SegmentDetailsScreen(
                         // Use segment fishermen if available, otherwise trip fishermen as fallback
                         fishermenList = details.fishermen,
                         onDismiss = { showAddFishDialog = false },
-                        onConfirm = { speciesId, fishermanId, lureId, length, released ->
+                        onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNumber ->
                             scope.launch {
                                 val location = getCurrentLocation(context)
                                 viewModel.addFish(
@@ -280,6 +280,8 @@ fun SegmentDetailsScreen(
                                         lureId = lureId,
                                         length = length,
                                         isReleased = released,
+                                        timestamp = timestamp,
+                                        holeNumber = holeNumber,
                                         latitude = location?.first,
                                         longitude = location?.second
                                     )

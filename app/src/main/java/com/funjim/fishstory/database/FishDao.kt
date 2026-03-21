@@ -27,7 +27,8 @@ interface FishDao {
             fish_table.latitude, 
             fish_table.longitude,
             fish_table.segmentId,
-            fish_table.tripId
+            fish_table.tripId,
+            fish_table.holeNumber
         FROM fish_table
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
@@ -58,7 +59,8 @@ interface FishDao {
             fish_table.latitude, 
             fish_table.longitude,
             fish_table.segmentId,
-            fish_table.tripId
+            fish_table.tripId,
+            fish_table.holeNumber
         FROM fish_table
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id

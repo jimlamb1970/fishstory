@@ -185,7 +185,7 @@ fun FishListScreen(
                 speciesList = allSpecies,
                 fishermenList = tripDetails!!.fishermen,
                 onDismiss = { showAddFishDialog = false },
-                onConfirm = { speciesId, fishermanId, lureId, length, released ->
+                onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
                     scope.launch {
                         val location = getCurrentLocation(context)
                         viewModel.addFish(
@@ -197,6 +197,8 @@ fun FishListScreen(
                                 lureId = lureId,
                                 length = length,
                                 isReleased = released,
+                                timestamp = timestamp,
+                                holeNumber = holeNum,
                                 latitude = location?.first,
                                 longitude = location?.second
                             )

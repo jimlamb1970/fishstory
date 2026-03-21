@@ -67,7 +67,8 @@ data class Fish(
     val isReleased: Boolean = true,
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val holeNumber: Int? = null
 )
 
 data class FishWithDetails(
@@ -84,7 +85,8 @@ data class FishWithDetails(
     val latitude: Double?,
     val longitude: Double?,
     val segmentId: Int,
-    val tripId: Int
+    val tripId: Int,
+    val holeNumber: Int? = null
 ) {
     fun getFullLureName(): String? {
         if (lureName == null) return null

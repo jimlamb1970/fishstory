@@ -6,13 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -20,7 +23,6 @@ import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -41,7 +44,7 @@ fun AddFishDialog(
     speciesList: List<Species>,
     fishermenList: List<Fisherman>,
     onDismiss: () -> Unit,
-    onConfirm: (Int, Int, Int?, Double, Boolean) -> Unit,
+    onConfirm: (Int, Int, Int?, Double, Boolean, Long, Int?) -> Unit,
     onAddSpecies: (String, (Int) -> Unit) -> Unit
 ) {
     var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
@@ -49,6 +52,9 @@ fun AddFishDialog(
     var selectedLureId by remember { mutableStateOf<Int?>(null) }
     var lengthStr by remember { mutableStateOf("") }
     var released by remember { mutableStateOf(true) }
+    var holeNumberStr by remember { mutableStateOf("") }
+    
+    var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     
     val lures by if (selectedFishermanId != null) {
         viewModel.getLuresForFisherman(selectedFishermanId!!).collectAsState(initial = emptyList())
@@ -64,6 +70,65 @@ fun AddFishDialog(
     var speciesExpanded by remember { mutableStateOf(false) }
     var fishermanExpanded by remember { mutableStateOf(false) }
     var lureExpanded by remember { mutableStateOf(false) }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = timestamp)
+    val timePickerState = rememberTimePickerState(
+        initialHour = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.HOUR_OF_DAY),
+        initialMinute = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.MINUTE)
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { dateMillis ->
+                        val calendar = Calendar.getInstance().apply {
+                            timeInMillis = timestamp
+                            val hour = get(Calendar.HOUR_OF_DAY)
+                            val minute = get(Calendar.MINUTE)
+                            timeInMillis = dateMillis
+                            set(Calendar.HOUR_OF_DAY, hour)
+                            set(Calendar.MINUTE, minute)
+                        }
+                        timestamp = calendar.timeInMillis
+                    }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = timestamp
+                        set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                        set(Calendar.MINUTE, timePickerState.minute)
+                    }
+                    timestamp = calendar.timeInMillis
+                    showTimePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+            },
+            text = {
+                TimePicker(state = timePickerState)
+            }
+        )
+    }
 
     if (showNewSpeciesDialog) {
         AlertDialog(
@@ -215,12 +280,43 @@ fun AddFishDialog(
                     }
                 }
 
-                TextField(
-                    value = lengthStr,
-                    onValueChange = { lengthStr = it },
-                    label = { Text("Length (inches)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextField(
+                        value = lengthStr,
+                        onValueChange = { lengthStr = it },
+                        label = { Text("Length (in)") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextField(
+                        value = holeNumberStr,
+                        onValueChange = { holeNumberStr = it },
+                        label = { Text("Hole #") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp)))
+                    }
+                    OutlinedButton(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Schedule, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(timestamp)))
+                    }
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -234,8 +330,9 @@ fun AddFishDialog(
         confirmButton = {
             Button(onClick = {
                 val length = lengthStr.toDoubleOrNull() ?: 0.0
+                val holeNum = holeNumberStr.toIntOrNull()
                 if (selectedSpeciesId != null && selectedFishermanId != null) {
-                    onConfirm(selectedSpeciesId!!, selectedFishermanId!!, selectedLureId, length, released)
+                    onConfirm(selectedSpeciesId!!, selectedFishermanId!!, selectedLureId, length, released, timestamp, holeNum)
                 }
             }) { Text("Log Catch") }
         },
@@ -253,7 +350,7 @@ fun FishItem(
     onShowMap: () -> Unit, 
     onUpdateLocation: () -> Unit
 ) {
-    val dateFormatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
     val fishPhotos by viewModel.getPhotosForFish(fish.id).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     
@@ -269,7 +366,15 @@ fun FishItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("${fish.speciesName} - ${fish.length}\"", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = buildString {
+                            append("${fish.speciesName} - ${fish.length}\"")
+                            if (fish.holeNumber != null) {
+                                append(" (Hole #${fish.holeNumber})")
+                            }
+                        },
+                        style = MaterialTheme.typography.titleLarge
+                    )
                     Text("Caught by: ${fish.fishermanName}", style = MaterialTheme.typography.bodyMedium)
                     val fullLureName = fish.getFullLureName()
                     if (fullLureName != null) {
