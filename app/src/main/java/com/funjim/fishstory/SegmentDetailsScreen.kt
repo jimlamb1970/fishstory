@@ -55,6 +55,7 @@ fun SegmentDetailsScreen(
     var showAddFishDialog by remember { mutableStateOf(false) }
     var showFishermenDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
+    var fishToEdit by remember { mutableStateOf<Fish?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
@@ -205,6 +206,11 @@ fun SegmentDetailsScreen(
                         FishItem(
                             fish = fish,
                             viewModel = viewModel,
+                            onEdit = {
+                                scope.launch {
+                                    fishToEdit = viewModel.getFishById(fish.id)
+                                }
+                            },
                             onDelete = {
                                 scope.launch {
                                     val fishObj = viewModel.getFishById(fish.id)
@@ -293,6 +299,45 @@ fun SegmentDetailsScreen(
                             scope.launch {
                                 val newId = viewModel.addSpecies(name)
                                 onComplete(newId.toInt())
+                            }
+                        }
+                    )
+                }
+
+                fishToEdit?.let { fish ->
+                    AddFishDialog(
+                        viewModel = viewModel,
+                        title = "Edit Catch",
+                        initialSpeciesId = fish.speciesId,
+                        initialFishermanId = fish.fishermanId,
+                        initialLureId = fish.lureId,
+                        initialLength = fish.length,
+                        initialReleased = fish.isReleased,
+                        initialTimestamp = fish.timestamp,
+                        initialHoleNumber = fish.holeNumber,
+                        speciesList = allSpecies,
+                        fishermenList = details.fishermen,
+                        onDismiss = { fishToEdit = null },
+                        onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
+                            scope.launch {
+                                viewModel.updateFish(
+                                    fish.copy(
+                                        speciesId = speciesId,
+                                        fishermanId = fishermanId,
+                                        lureId = lureId,
+                                        length = length,
+                                        isReleased = released,
+                                        timestamp = timestamp,
+                                        holeNumber = holeNum
+                                    )
+                                )
+                                fishToEdit = null
+                            }
+                        },
+                        onAddSpecies = { name, onAdded ->
+                            scope.launch {
+                                val newId = viewModel.addSpecies(name)
+                                onAdded(newId.toInt())
                             }
                         }
                     )
