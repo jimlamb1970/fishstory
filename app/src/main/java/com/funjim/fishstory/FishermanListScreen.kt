@@ -21,7 +21,10 @@ fun FishermanListScreen(
     navigateToFishermanDetails: (Int) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val fishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+    val fishermenList by viewModel.fishermen.collectAsState(initial = emptyList())
+    val fishermen = remember(fishermenList) {
+        fishermenList.sortedBy { it.fullName.lowercase() }
+    }
     var showAddDialog by remember { mutableStateOf(false) }
     var newFirstName by remember { mutableStateOf("") }
     var newLastName by remember { mutableStateOf("") }
