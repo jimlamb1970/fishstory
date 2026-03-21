@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -35,6 +36,8 @@ fun BoatLoadScreen(
 ) {
     val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+
+    var showAddFishermanDialog by remember { mutableStateOf(false) }
 
     // Determine current crew based on whether it's a draft or existing trip
     val inBoat: List<Fisherman>
@@ -73,11 +76,21 @@ fun BoatLoadScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Available Fishermen",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Available Fishermen",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                IconButton(onClick = { showAddFishermanDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Fisherman")
+                }
+            }
             
             LazyColumn(
                 modifier = Modifier
@@ -178,7 +191,77 @@ fun BoatLoadScreen(
                 }
             }
         }
+
+        if (showAddFishermanDialog) {
+            AddFishermanDialog(
+                onDismiss = { showAddFishermanDialog = false },
+                onConfirm = { firstName, lastName, nickname ->
+                    scope.launch {
+                        val newId = viewModel.addFisherman(
+                            Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+                        )
+                        // Automatically add new fisherman to boat
+                        if (tripId == 0) {
+                            viewModel.addDraftFisherman(newId.toInt())
+                        } else {
+                            viewModel.addFishermanToTrip(tripId, newId.toInt())
+                        }
+                    }
+                    showAddFishermanDialog = false
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun AddFishermanDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String) -> Unit
+) {
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var nickname by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Fisherman") },
+        text = {
+            Column {
+                TextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text("Nickname") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") }
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                if (firstName.isNotBlank() && lastName.isNotBlank()) {
+                    onConfirm(firstName, lastName, nickname)
+                }
+            }) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
