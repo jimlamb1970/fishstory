@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.funjim.fishstory"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.funjim.fishstory"
@@ -60,6 +60,9 @@ dependencies {
 
     // Image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("com.patrykandpatrick.vico:compose:3.0.3")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.0.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

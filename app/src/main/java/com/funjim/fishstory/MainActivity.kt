@@ -39,8 +39,8 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels {
         val database = (application as FishstoryApplication).database
         MainViewModelFactory(
-            database.tripDao(), 
-            database.fishermanDao(), 
+            database.tripDao(),
+            database.fishermanDao(),
             database.segmentDao(),
             database.lureDao(),
             database.fishDao(),
@@ -167,9 +167,10 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             }
         }
         composable("reports") {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Reports Screen - Coming Soon")
-            }
+            ReportsScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
         }
         composable(
             route = "tripDetails/{tripId}",
@@ -309,7 +310,7 @@ fun MenuIconOnlyButton(data: MenuButtonData, onClick: () -> Unit, modifier: Modi
             is MenuIcon.Vector -> rememberVectorPainter(icon.imageVector)
             is MenuIcon.Resource -> painterResource(id = icon.resId)
         }
-        
+
         // The icon itself is the interactive button
         IconButton(
             onClick = onClick,
@@ -331,7 +332,7 @@ fun MenuIconOnlyButton(data: MenuButtonData, onClick: () -> Unit, modifier: Modi
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = data.label,
