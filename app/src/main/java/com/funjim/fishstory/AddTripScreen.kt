@@ -56,18 +56,24 @@ fun AddTripScreen(
         remember { mutableStateOf(null) }
     }
 
-    var name by remember { mutableStateOf("") }
-    var dateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
-    var latitude by remember { mutableStateOf<Double?>(null) }
-    var longitude by remember { mutableStateOf<Double?>(null) }
+    // Draft values from ViewModel
+    val draftTripName by viewModel.draftTripName.collectAsState()
+    val draftTripDate by viewModel.draftTripDate.collectAsState()
+    val draftLatitude by viewModel.draftLatitude.collectAsState()
+    val draftLongitude by viewModel.draftLongitude.collectAsState()
 
-    LaunchedEffect(tripWithDetails) {
-        tripWithDetails?.let {
-            name = it.trip.name
-            dateMillis = it.trip.startDate
-            latitude = it.trip.latitude
-            longitude = it.trip.longitude
-        }
+    // Local state initialized from draft or tripWithDetails
+    var name by remember(draftTripName, tripWithDetails) { 
+        mutableStateOf(tripWithDetails?.trip?.name ?: draftTripName) 
+    }
+    var dateMillis by remember(draftTripDate, tripWithDetails) { 
+        mutableLongStateOf(tripWithDetails?.trip?.startDate ?: draftTripDate) 
+    }
+    var latitude by remember(draftLatitude, tripWithDetails) { 
+        mutableStateOf(tripWithDetails?.trip?.latitude ?: draftLatitude) 
+    }
+    var longitude by remember(draftLongitude, tripWithDetails) { 
+        mutableStateOf(tripWithDetails?.trip?.longitude ?: draftLongitude) 
     }
 
     // For new trips (drafts)
@@ -88,8 +94,12 @@ fun AddTripScreen(
             scope.launch {
                 val location = viewModel.getCurrentLocation(context)
                 if (location != null) {
-                    latitude = location.latitude
-                    longitude = location.longitude
+                    if (tripId == 0) {
+                        viewModel.updateDraftLocation(location.latitude, location.longitude)
+                    } else {
+                        latitude = location.latitude
+                        longitude = location.longitude
+                    }
                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -113,7 +123,14 @@ fun AddTripScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navigateToBoatLoad(tripId) }) {
+                    IconButton(onClick = { 
+                        if (tripId == 0) {
+                            viewModel.updateDraftTripName(name)
+                            viewModel.updateDraftTripDate(dateMillis)
+                            viewModel.updateDraftLocation(latitude, longitude)
+                        }
+                        navigateToBoatLoad(tripId) 
+                    }) {
                         Icon(Icons.Default.DirectionsBoat, contentDescription = "Load Boat")
                     }
                     Box {
@@ -132,8 +149,12 @@ fun AddTripScreen(
                                         scope.launch {
                                             val location = viewModel.getCurrentLocation(context)
                                             if (location != null) {
-                                                latitude = location.latitude
-                                                longitude = location.longitude
+                                                if (tripId == 0) {
+                                                    viewModel.updateDraftLocation(location.latitude, location.longitude)
+                                                } else {
+                                                    latitude = location.latitude
+                                                    longitude = location.longitude
+                                                }
                                                 Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                             } else {
                                                 Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -196,7 +217,10 @@ fun AddTripScreen(
         ) {
             TextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { 
+                    name = it
+                    if (tripId == 0) viewModel.updateDraftTripName(it)
+                },
                 label = { Text("Trip Name") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -313,7 +337,10 @@ fun AddTripScreen(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { dateMillis = it }
+                        datePickerState.selectedDateMillis?.let {
+                            dateMillis = it
+                            if (tripId == 0) viewModel.updateDraftTripDate(it)
+                        }
                         showDatePicker = false
                     }) { Text("OK") }
                 },

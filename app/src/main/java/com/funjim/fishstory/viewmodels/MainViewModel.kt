@@ -38,6 +38,31 @@ class MainViewModel(
     private val _draftFishermanIds = MutableStateFlow<Set<Int>>(emptySet())
     val draftFishermanIds = _draftFishermanIds.asStateFlow()
 
+    private val _draftTripName = MutableStateFlow("")
+    val draftTripName = _draftTripName.asStateFlow()
+
+    private val _draftTripDate = MutableStateFlow(System.currentTimeMillis())
+    val draftTripDate = _draftTripDate.asStateFlow()
+
+    private val _draftLatitude = MutableStateFlow<Double?>(null)
+    val draftLatitude = _draftLatitude.asStateFlow()
+
+    private val _draftLongitude = MutableStateFlow<Double?>(null)
+    val draftLongitude = _draftLongitude.asStateFlow()
+
+    fun updateDraftTripName(name: String) {
+        _draftTripName.value = name
+    }
+
+    fun updateDraftTripDate(dateMillis: Long) {
+        _draftTripDate.value = dateMillis
+    }
+
+    fun updateDraftLocation(lat: Double?, lon: Double?) {
+        _draftLatitude.value = lat
+        _draftLongitude.value = lon
+    }
+
     fun addDraftSegment(name: String, startTime: Long) {
         // Use a temporary negative ID for draft segments to ensure they have unique keys in LazyColumn
         val tempId = (_draftSegments.value.minOfOrNull { it.id } ?: 0) - 1
@@ -75,6 +100,10 @@ class MainViewModel(
     fun clearDrafts() {
         _draftSegments.value = emptyList()
         _draftFishermanIds.value = emptySet()
+        _draftTripName.value = ""
+        _draftTripDate.value = System.currentTimeMillis()
+        _draftLatitude.value = null
+        _draftLongitude.value = null
     }
 
     fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen> {
