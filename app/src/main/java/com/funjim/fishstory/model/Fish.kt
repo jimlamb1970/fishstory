@@ -5,7 +5,10 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "species_table")
+@Entity(
+    tableName = "species_table",
+    indices = [Index(value = ["name"], unique = true)]
+)
 data class Species(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String
