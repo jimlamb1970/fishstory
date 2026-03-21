@@ -41,6 +41,10 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
     var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
     var fishermanDropdownExpanded by remember { mutableStateOf(false) }
 
+    val sortedFishermen = remember(fishermen) {
+        fishermen.sortedBy { it.fullName }
+    }
+
     val luresForFisherman by remember(selectedFisherman) {
         if (selectedFisherman != null) {
             viewModel.getLuresForFisherman(selectedFisherman!!.id)
@@ -48,6 +52,16 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
             kotlinx.coroutines.flow.flowOf(emptyList<Lure>())
         }
     }.collectAsState(initial = emptyList())
+
+    // Prepare sorted list for All Lures mode
+    val allLuresSorted = remember(allLures, colors) {
+        allLures.map { lure ->
+            val colorName = colors.find { it.id == lure.colorId }?.name
+            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+            val displayName = lure.getDisplayName(colorName, glowColorName)
+            LureWithDisplay(lure, colorName, glowColorName, displayName)
+        }.sortedBy { it.displayName }
+    }
 
     Scaffold(
         topBar = {
@@ -98,7 +112,7 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                             fishermanDropdownExpanded = false
                         }
                     )
-                    fishermen.forEach { fisherman ->
+                    sortedFishermen.forEach { fisherman ->
                         DropdownMenuItem(
                             text = { Text(fisherman.fullName) },
                             onClick = {
@@ -112,23 +126,21 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
 
             if (selectedFisherman == null) {
                 // All Lures Mode
-                if (allLures.isEmpty()) {
+                if (allLuresSorted.isEmpty()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text("No lures found. Add one!")
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        items(allLures) { lure ->
-                            val colorName = colors.find { it.id == lure.colorId }?.name ?: "Unknown Color"
-                            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+                        items(allLuresSorted, key = { it.lure.id }) { item ->
                             LureItem(
-                                lure = lure,
-                                colorName = colorName,
-                                glowColorName = glowColorName,
+                                lure = item.lure,
+                                colorName = item.colorName,
+                                glowColorName = item.glowColorName,
                                 viewModel = viewModel,
-                                onEdit = { lureToEdit = lure },
+                                onEdit = { lureToEdit = item.lure },
                                 onDelete = {
-                                    scope.launch { viewModel.deleteLure(lure) }
+                                    scope.launch { viewModel.deleteLure(item.lure) }
                                 }
                             )
                         }
@@ -136,7 +148,24 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                 }
             } else {
                 // Specific Fisherman Mode (Tackle Box management)
-                val luresNotInTackleBox = allLures.filter { lure -> luresForFisherman.none { it.id == lure.id } }
+                val luresNotInTackleBoxSorted = remember(allLures, luresForFisherman, colors) {
+                    allLures.filter { lure -> luresForFisherman.none { it.id == lure.id } }
+                        .map { lure ->
+                            val colorName = colors.find { it.id == lure.colorId }?.name
+                            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+                            val displayName = lure.getDisplayName(colorName, glowColorName)
+                            lure to displayName
+                        }.sortedBy { it.second }
+                }
+
+                val luresForFishermanSorted = remember(luresForFisherman, colors) {
+                    luresForFisherman.map { lure ->
+                        val colorName = colors.find { it.id == lure.colorId }?.name
+                        val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+                        val displayName = lure.getDisplayName(colorName, glowColorName)
+                        lure to displayName
+                    }.sortedBy { it.second }
+                }
 
                 Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     Text(
@@ -155,11 +184,9 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
                     ) {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(luresNotInTackleBox) { lure ->
-                                val colorName = colors.find { it.id == lure.colorId }?.name ?: "Unknown Color"
+                            items(luresNotInTackleBoxSorted, key = { it.first.id }) { (lure, displayName) ->
                                 ListItem(
-                                    headlineContent = { Text(lure.name) },
-                                    supportingContent = { Text(colorName) },
+                                    headlineContent = { Text(displayName) },
                                     modifier = Modifier.clickable {
                                         scope.launch {
                                             viewModel.addLureToFishermanTackleBox(selectedFisherman!!.id, lure.id)
@@ -169,7 +196,7 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
                             }
                         }
-                        if (luresNotInTackleBox.isEmpty()) {
+                        if (luresNotInTackleBoxSorted.isEmpty()) {
                             Text(
                                 "All lures assigned",
                                 modifier = Modifier.align(Alignment.Center),
@@ -213,11 +240,9 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
                     ) {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(luresForFisherman) { lure ->
-                                val colorName = colors.find { it.id == lure.colorId }?.name ?: "Unknown Color"
+                            items(luresForFishermanSorted, key = { it.first.id }) { (lure, displayName) ->
                                 ListItem(
-                                    headlineContent = { Text(lure.name) },
-                                    supportingContent = { Text(colorName) },
+                                    headlineContent = { Text(displayName) },
                                     modifier = Modifier.clickable {
                                         scope.launch {
                                             viewModel.removeLureFromFishermanTackleBox(selectedFisherman!!.id, lure.id)
@@ -227,7 +252,7 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
                             }
                         }
-                        if (luresForFisherman.isEmpty()) {
+                        if (luresForFishermanSorted.isEmpty()) {
                             Text(
                                 "Tacklebox is empty",
                                 modifier = Modifier.align(Alignment.Center),
@@ -299,3 +324,10 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
         }
     }
 }
+
+private data class LureWithDisplay(
+    val lure: Lure,
+    val colorName: String?,
+    val glowColorName: String?,
+    val displayName: String
+)

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanWithDetails
 import com.funjim.fishstory.model.FishermanWithTrips
@@ -15,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 interface FishermanDao {
     @Insert
     suspend fun insert(fisherman: Fisherman): Long // Return the inserted fisherman's ID
+
+    @Update
+    suspend fun update(fisherman: Fisherman)
 
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<Fisherman>>

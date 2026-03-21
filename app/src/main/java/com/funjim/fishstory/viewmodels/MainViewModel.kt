@@ -133,6 +133,10 @@ class MainViewModel(
         return fishermanId
     }
 
+    suspend fun updateFisherman(fisherman: Fisherman) {
+        fishermanDao.update(fisherman)
+    }
+
     suspend fun deleteFisherman(fisherman: Fisherman) {
         fishermanDao.deleteFisherman(fisherman)
     }

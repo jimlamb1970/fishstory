@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
@@ -33,6 +34,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsState(initial = emptyList())
 
+    var showEditFishermanDialog by remember { mutableStateOf(false) }
     var showAddTripSelectionDialog by remember { mutableStateOf(false) }
     var showAddTripDialog by remember { mutableStateOf(false) }
     var showLureSelectionDialog by remember { mutableStateOf(false) }
@@ -53,6 +55,9 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showEditFishermanDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Fisherman")
+                    }
                     IconButton(onClick = { showManageColorsDialog = true }) {
                         Icon(Icons.Default.Palette, contentDescription = "Manage Colors")
                     }
@@ -119,7 +124,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                             viewModel = viewModel,
                             onEdit = { lureToEdit = lure },
                             onDelete = {
-                                scope.launch { viewModel.deleteLure(lure) }
+                                scope.launch { viewModel.removeLureFromFishermanTackleBox(fishermanId, lure.id) }
                             }
                         )
                     }
@@ -148,6 +153,20 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
+        }
+
+        // Edit Fisherman Dialog
+        if (showEditFishermanDialog && fishermanWithDetails != null) {
+            EditFishermanDialog(
+                initialFisherman = fishermanWithDetails!!.fisherman,
+                onDismiss = { showEditFishermanDialog = false },
+                onConfirm = { updatedFisherman ->
+                    scope.launch {
+                        viewModel.updateFisherman(updatedFisherman)
+                    }
+                    showEditFishermanDialog = false
+                }
+            )
         }
 
         // Lure Selection Dialog (Similar to LureListScreen)
@@ -179,8 +198,10 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
 
                         LazyColumn {
                             items(luresNotInTackleBox) { lure ->
+                                val colorName = colors.find { it.id == lure.colorId }?.name
+                                val glowColorName = colors.find { it.id == lure.glowColorId }?.name
                                 Text(
-                                    text = lure.name,
+                                    text = lure.getDisplayName(colorName, glowColorName),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
@@ -347,6 +368,57 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
             )
         }
     }
+}
+
+@Composable
+fun EditFishermanDialog(
+    initialFisherman: Fisherman,
+    onDismiss: () -> Unit,
+    onConfirm: (Fisherman) -> Unit
+) {
+    var firstName by remember { mutableStateOf(initialFisherman.firstName) }
+    var lastName by remember { mutableStateOf(initialFisherman.lastName) }
+    var nickname by remember { mutableStateOf(initialFisherman.nickname) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Fisherman") },
+        text = {
+            Column {
+                TextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text("Nickname") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") }
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                if (firstName.isNotBlank() && lastName.isNotBlank()) {
+                    onConfirm(initialFisherman.copy(firstName = firstName, lastName = lastName, nickname = nickname))
+                }
+            }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

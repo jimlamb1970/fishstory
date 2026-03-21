@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
@@ -41,20 +42,28 @@ import java.util.Locale
 @Composable
 fun AddFishDialog(
     viewModel: MainViewModel,
+    initialSpeciesId: Int? = null,
+    initialFishermanId: Int? = null,
+    initialLureId: Int? = null,
+    initialLength: Double? = null,
+    initialReleased: Boolean = true,
+    initialTimestamp: Long = System.currentTimeMillis(),
+    initialHoleNumber: Int? = null,
+    title: String = "Log New Catch",
     speciesList: List<Species>,
     fishermenList: List<Fisherman>,
     onDismiss: () -> Unit,
     onConfirm: (Int, Int, Int?, Double, Boolean, Long, Int?) -> Unit,
     onAddSpecies: (String, (Int) -> Unit) -> Unit
 ) {
-    var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
-    var selectedFishermanId by remember { mutableStateOf<Int?>(null) }
-    var selectedLureId by remember { mutableStateOf<Int?>(null) }
-    var lengthStr by remember { mutableStateOf("") }
-    var released by remember { mutableStateOf(true) }
-    var holeNumberStr by remember { mutableStateOf("") }
+    var selectedSpeciesId by remember { mutableStateOf(initialSpeciesId) }
+    var selectedFishermanId by remember { mutableStateOf(initialFishermanId) }
+    var selectedLureId by remember { mutableStateOf(initialLureId) }
+    var lengthStr by remember { mutableStateOf(initialLength?.toString() ?: "") }
+    var released by remember { mutableStateOf(initialReleased) }
+    var holeNumberStr by remember { mutableStateOf(initialHoleNumber?.toString() ?: "") }
     
-    var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var timestamp by remember { mutableLongStateOf(initialTimestamp) }
     
     val rawLures by if (selectedFishermanId != null) {
         viewModel.getLuresForFisherman(selectedFishermanId!!).collectAsState(initial = emptyList())
@@ -70,6 +79,10 @@ fun AddFishDialog(
             val glowColorName = colors.find { it.id == lure.glowColorId }?.name
             lure to lure.getDisplayName(colorName, glowColorName)
         }.sortedBy { it.second }
+    }
+
+    val fishermenSorted = remember(fishermenList) {
+        fishermenList.sortedBy { it.fullName }
     }
     
     var showNewSpeciesDialog by remember { mutableStateOf(false) }
@@ -174,7 +187,7 @@ fun AddFishDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Log New Catch") },
+        title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Species Dropdown
@@ -234,7 +247,7 @@ fun AddFishDialog(
                         expanded = fishermanExpanded,
                         onDismissRequest = { fishermanExpanded = false }
                     ) {
-                        fishermenList.forEach { fisherman ->
+                        fishermenSorted.forEach { fisherman ->
                             DropdownMenuItem(
                                 text = { Text(fisherman.fullName) },
                                 onClick = {
@@ -340,7 +353,7 @@ fun AddFishDialog(
                 if (selectedSpeciesId != null && selectedFishermanId != null) {
                     onConfirm(selectedSpeciesId!!, selectedFishermanId!!, selectedLureId, length, released, timestamp, holeNum)
                 }
-            }) { Text("Log Catch") }
+            }) { Text(if (title == "Log New Catch") "Log Catch" else "Save Changes") }
         },
         dismissButton = {
             Button(onClick = onDismiss) { Text("Cancel") }
@@ -352,6 +365,7 @@ fun AddFishDialog(
 fun FishItem(
     fish: FishWithDetails, 
     viewModel: MainViewModel,
+    onEdit: () -> Unit,
     onDelete: () -> Unit, 
     onShowMap: () -> Unit, 
     onUpdateLocation: () -> Unit
@@ -398,18 +412,25 @@ fun FishItem(
                         )
                     }
                     
-                    TextButton(
-                        onClick = onUpdateLocation,
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(32.dp)
-                    ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(if (fish.latitude == null) "Set Location" else "Update Location", style = MaterialTheme.typography.labelMedium)
+                    Row {
+                        TextButton(
+                            onClick = onUpdateLocation,
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(if (fish.latitude == null) "Set Location" else "Update Location", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                Row {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                    }
                 }
             }
 

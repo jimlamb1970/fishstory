@@ -46,6 +46,10 @@ fun LureDialog(
     var showAddColorDialogForGlow by remember { mutableStateOf(false) }
     var newColorName by remember { mutableStateOf("") }
 
+    val sortedColors = remember(colors) {
+        colors.sortedBy { it.name }
+    }
+
     if (showAddColorDialogForMain || showAddColorDialogForGlow) {
         AlertDialog(
             onDismissRequest = { 
@@ -105,7 +109,7 @@ fun LureDialog(
                     expanded = colorExpanded,
                     onExpandedChange = { colorExpanded = !colorExpanded }
                 ) {
-                    val selectedColorName = colors.find { it.id == selectedColorId }?.name ?: "Select Color"
+                    val selectedColorName = sortedColors.find { it.id == selectedColorId }?.name ?: "Select Color"
                     TextField(
                         value = selectedColorName,
                         onValueChange = {},
@@ -118,7 +122,7 @@ fun LureDialog(
                         expanded = colorExpanded,
                         onDismissRequest = { colorExpanded = false }
                     ) {
-                        colors.forEach { color ->
+                        sortedColors.forEach { color ->
                             DropdownMenuItem(
                                 text = { Text(color.name) },
                                 onClick = {
@@ -163,7 +167,7 @@ fun LureDialog(
                         expanded = glowColorExpanded,
                         onExpandedChange = { glowColorExpanded = !glowColorExpanded }
                     ) {
-                        val selectedGlowColorName = colors.find { it.id == selectedGlowColorId }?.name ?: "Select Glow Color"
+                        val selectedGlowColorName = sortedColors.find { it.id == selectedGlowColorId }?.name ?: "Select Glow Color"
                         TextField(
                             value = selectedGlowColorName,
                             onValueChange = {},
@@ -176,7 +180,7 @@ fun LureDialog(
                             expanded = glowColorExpanded,
                             onDismissRequest = { glowColorExpanded = false }
                         ) {
-                            colors.forEach { color ->
+                            sortedColors.forEach { color ->
                                 DropdownMenuItem(
                                     text = { Text(color.name) },
                                     onClick = {
@@ -221,6 +225,10 @@ fun ManageColorsDialog(
 ) {
     var newColorName by remember { mutableStateOf("") }
 
+    val sortedColors = remember(colors) {
+        colors.sortedBy { it.name }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Manage Colors") },
@@ -244,7 +252,7 @@ fun ManageColorsDialog(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 LazyColumn {
-                    items(colors) { color ->
+                    items(sortedColors) { color ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,

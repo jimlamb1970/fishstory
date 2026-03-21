@@ -56,6 +56,7 @@ fun FishListScreen(
     }
 
     var showAddFishDialog by remember { mutableStateOf(false) }
+    var fishToEdit by remember { mutableStateOf<Fish?>(null) }
     var segmentExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -156,13 +157,18 @@ fun FishListScreen(
             HorizontalDivider()
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(fishList) { fish ->
+                items(fishList) { fishDetails ->
                     FishItem(
-                        fish = fish,
+                        fish = fishDetails,
                         viewModel = viewModel,
+                        onEdit = {
+                            scope.launch {
+                                fishToEdit = viewModel.getFishById(fishDetails.id)
+                            }
+                        },
                         onDelete = {
                             scope.launch {
-                                val fishObj = viewModel.getFishById(fish.id)
+                                val fishObj = viewModel.getFishById(fishDetails.id)
                                 if (fishObj != null) {
                                     viewModel.deleteFishObject(fishObj)
                                 }
@@ -172,7 +178,7 @@ fun FishListScreen(
                             // Map logic could be moved to shared utility if needed
                         },
                         onUpdateLocation = {
-                            // fishToUpdateLocation = fish
+                            // handled by common logic or could be triggered here
                         }
                     )
                 }
@@ -213,6 +219,47 @@ fun FishListScreen(
                     }
                 }
             )
+        }
+
+        fishToEdit?.let { fish ->
+            if (tripDetails != null) {
+                AddFishDialog(
+                    viewModel = viewModel,
+                    title = "Edit Catch",
+                    initialSpeciesId = fish.speciesId,
+                    initialFishermanId = fish.fishermanId,
+                    initialLureId = fish.lureId,
+                    initialLength = fish.length,
+                    initialReleased = fish.isReleased,
+                    initialTimestamp = fish.timestamp,
+                    initialHoleNumber = fish.holeNumber,
+                    speciesList = allSpecies,
+                    fishermenList = tripDetails!!.fishermen,
+                    onDismiss = { fishToEdit = null },
+                    onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
+                        scope.launch {
+                            viewModel.updateFish(
+                                fish.copy(
+                                    speciesId = speciesId,
+                                    fishermanId = fishermanId,
+                                    lureId = lureId,
+                                    length = length,
+                                    isReleased = released,
+                                    timestamp = timestamp,
+                                    holeNumber = holeNum
+                                )
+                            )
+                            fishToEdit = null
+                        }
+                    },
+                    onAddSpecies = { name, onAdded ->
+                        scope.launch {
+                            val newId = viewModel.addSpecies(name)
+                            onAdded(newId.toInt())
+                        }
+                    }
+                )
+            }
         }
     }
 }
