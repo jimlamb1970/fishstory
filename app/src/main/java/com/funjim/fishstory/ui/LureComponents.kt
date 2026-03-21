@@ -268,7 +268,7 @@ fun ManageColorsDialog(
 @Composable
 fun LureItem(
     lure: Lure, 
-    colorName: String, 
+    colorName: String?, 
     glowColorName: String?,
     viewModel: MainViewModel,
     onEdit: () -> Unit, 
@@ -285,11 +285,7 @@ fun LureItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(lure.name, style = MaterialTheme.typography.titleLarge)
-                    Text("Color: $colorName", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                    if (lure.glows) {
-                        Text("Glow Color: ${glowColorName ?: "None"}", style = MaterialTheme.typography.bodySmall, color = Color.Green.copy(alpha = 0.7f))
-                    }
+                    Text(lure.getDisplayName(colorName, glowColorName), style = MaterialTheme.typography.titleLarge)
                     Text(
                         text = if (lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                         style = MaterialTheme.typography.bodySmall,

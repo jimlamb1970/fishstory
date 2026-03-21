@@ -72,6 +72,9 @@ data class FishWithDetails(
     val speciesName: String,
     val fishermanName: String,
     val lureName: String?,
+    val lureColorName: String?,
+    val lureGlows: Boolean?,
+    val lureGlowColorName: String?,
     val length: Double,
     val isReleased: Boolean,
     val timestamp: Long,
@@ -79,4 +82,19 @@ data class FishWithDetails(
     val longitude: Double?,
     val segmentId: Int,
     val tripId: Int
-)
+) {
+    fun getFullLureName(): String? {
+        if (lureName == null) return null
+        val sb = StringBuilder(lureName)
+        if (!lureColorName.isNullOrBlank()) {
+            sb.append(" : $lureColorName")
+        }
+        if (lureGlows == true) {
+            sb.append(", Glow")
+            if (!lureGlowColorName.isNullOrBlank()) {
+                sb.append(" : $lureGlowColorName")
+            }
+        }
+        return sb.toString()
+    }
+}

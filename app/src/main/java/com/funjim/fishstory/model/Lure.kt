@@ -39,4 +39,18 @@ data class Lure(
     val hasSingleHook: Boolean,
     val glows: Boolean,
     val glowColorId: Int?
-)
+) {
+    fun getDisplayName(colorName: String?, glowColorName: String?): String {
+        val sb = StringBuilder(name)
+        if (!colorName.isNullOrBlank()) {
+            sb.append(" : $colorName")
+        }
+        if (glows) {
+            sb.append(", Glow")
+            if (!glowColorName.isNullOrBlank()) {
+                sb.append(" : $glowColorName")
+            }
+        }
+        return sb.toString()
+    }
+}

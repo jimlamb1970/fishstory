@@ -20,6 +20,7 @@ import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -54,6 +55,8 @@ fun AddFishDialog(
     } else {
         remember { mutableStateOf(emptyList<Lure>()) }
     }
+    
+    val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     
     var showNewSpeciesDialog by remember { mutableStateOf(false) }
     var newSpeciesName by remember { mutableStateOf("") }
@@ -176,7 +179,15 @@ fun AddFishDialog(
                     expanded = lureExpanded,
                     onExpandedChange = { if (selectedFishermanId != null) lureExpanded = !lureExpanded }
                 ) {
-                    val selectedLureName = lures.find { it.id == selectedLureId }?.name ?: "Select Lure"
+                    val selectedLure = lures.find { it.id == selectedLureId }
+                    val selectedLureName = if (selectedLure != null) {
+                        val colorName = colors.find { it.id == selectedLure.colorId }?.name
+                        val glowColorName = colors.find { it.id == selectedLure.glowColorId }?.name
+                        selectedLure.getDisplayName(colorName, glowColorName)
+                    } else {
+                        "Select Lure"
+                    }
+
                     TextField(
                         value = selectedLureName,
                         onValueChange = {},
@@ -191,8 +202,10 @@ fun AddFishDialog(
                         onDismissRequest = { lureExpanded = false }
                     ) {
                         lures.forEach { lure ->
+                            val colorName = colors.find { it.id == lure.colorId }?.name
+                            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
                             DropdownMenuItem(
-                                text = { Text(lure.name) },
+                                text = { Text(lure.getDisplayName(colorName, glowColorName)) },
                                 onClick = {
                                     selectedLureId = lure.id
                                     lureExpanded = false
@@ -258,8 +271,9 @@ fun FishItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("${fish.speciesName} - ${fish.length}\"", style = MaterialTheme.typography.titleLarge)
                     Text("Caught by: ${fish.fishermanName}", style = MaterialTheme.typography.bodyMedium)
-                    if (fish.lureName != null) {
-                        Text("Lure: ${fish.lureName}", style = MaterialTheme.typography.bodySmall)
+                    val fullLureName = fish.getFullLureName()
+                    if (fullLureName != null) {
+                        Text("Lure: $fullLureName", style = MaterialTheme.typography.bodySmall)
                     }
                     Text("Status: ${if (fish.isReleased) "Released" else "Kept"}", style = MaterialTheme.typography.bodySmall)
                     Text("At: ${dateFormatter.format(Date(fish.timestamp))}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
