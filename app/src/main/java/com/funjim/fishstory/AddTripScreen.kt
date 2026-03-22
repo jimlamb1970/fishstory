@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
@@ -26,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.SegmentDialog
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -223,17 +223,6 @@ fun AddTripScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        if (tripId == 0) {
-                            viewModel.updateDraftTripName(name)
-                            viewModel.updateDraftTripStartDate(startDateMillis)
-                            viewModel.updateDraftTripEndDate(endDateMillis)
-                            viewModel.updateDraftLocation(latitude, longitude)
-                        }
-                        navigateToBoatLoad(tripId)
-                    }) {
-                        Icon(Icons.Default.DirectionsBoat, contentDescription = "Load Boat")
-                    }
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More")
@@ -324,31 +313,43 @@ fun AddTripScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text("Start", style = MaterialTheme.typography.labelLarge)
-            DateTimePickerButton(
-                label = "start",
-                millis = startDateMillis,
-                modifier = Modifier.fillMaxWidth()
-            ) { newMillis ->
-                startDateMillis = newMillis
-                if (startDateMillis > endDateMillis) {
-                    endDateMillis = startDateMillis
-                    if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Start", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
+                DateTimePickerButton(
+                    label = "start",
+                    millis = startDateMillis,
+                    modifier = Modifier.weight(1f)
+                ) { newMillis ->
+                    startDateMillis = newMillis
+                    if (startDateMillis > endDateMillis) {
+                        endDateMillis = startDateMillis
+                        if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                    }
+                    if (tripId == 0) viewModel.updateDraftTripStartDate(startDateMillis)
                 }
-                if (tripId == 0) viewModel.updateDraftTripStartDate(startDateMillis)
             }
 
-            Text("End", style = MaterialTheme.typography.labelLarge)
-            DateTimePickerButton(
-                label = "end",
-                millis = endDateMillis,
-                modifier = Modifier.fillMaxWidth()
-            ) { newMillis ->
-                if (newMillis < startDateMillis) {
-                    Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
-                } else {
-                    endDateMillis = newMillis
-                    if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("End", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
+                DateTimePickerButton(
+                    label = "end",
+                    millis = endDateMillis,
+                    modifier = Modifier.weight(1f)
+                ) { newMillis ->
+                    if (newMillis < startDateMillis) {
+                        Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT)
+                            .show()
+                    } else {
+                        endDateMillis = newMillis
+                        if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                    }
                 }
             }
 
@@ -359,6 +360,30 @@ fun AddTripScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            val fishermanCount = if (tripId == 0) draftFishermanIds.size else tripWithDetails?.fishermen?.size ?: 0
+            BoatSummary(
+                fishermanCount = fishermanCount,
+                onBoatClick = {
+                    if (tripId == 0) {
+                        viewModel.updateDraftTripName(name)
+                        viewModel.updateDraftTripStartDate(startDateMillis)
+                        viewModel.updateDraftTripEndDate(endDateMillis)
+                        viewModel.updateDraftLocation(latitude, longitude)
+                    }
+                    navigateToBoatLoad(tripId)
+                },
+                onAddClick = {
+                    if (tripId == 0) {
+                        viewModel.updateDraftTripName(name)
+                        viewModel.updateDraftTripStartDate(startDateMillis)
+                        viewModel.updateDraftTripEndDate(endDateMillis)
+                        viewModel.updateDraftLocation(latitude, longitude)
+                    }
+                    navigateToBoatLoad(tripId)
+                }
+            )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -436,16 +461,6 @@ fun AddTripScreen(
                         )
                     }
                 }
-            }
-
-            val fishermanCount = if (tripId == 0) draftFishermanIds.size else tripWithDetails?.fishermen?.size ?: 0
-            if (fishermanCount > 0) {
-                Text(
-                    "Boat contains $fishermanCount fisherman/men",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
             }
         }
     }
