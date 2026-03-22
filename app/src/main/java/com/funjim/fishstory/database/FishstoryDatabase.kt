@@ -21,7 +21,7 @@ import com.funjim.fishstory.model.*
         TackleBoxLureCrossRef::class,
         SegmentFishermanCrossRef::class
     ], 
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {

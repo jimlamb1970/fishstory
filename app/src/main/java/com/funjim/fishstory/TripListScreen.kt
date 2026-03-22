@@ -83,12 +83,12 @@ fun TripItem(
     onClick: () -> Unit, 
     onDelete: () -> Unit
 ) {
-    val dateFormatter = remember { 
-        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
+    val dateTimeFormatter = remember { 
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
-    val dateString = dateFormatter.format(Date(trip.startDate))
+    val startString = dateTimeFormatter.format(Date(trip.startDate))
+    val endString = dateTimeFormatter.format(Date(trip.endDate))
+    
     var showMenu by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -141,7 +141,8 @@ fun TripItem(
                         )
                     }
                 }
-                Text(dateString, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text("Start: $startString", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text("End:   $endString", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 
                 details?.let {
                     val fishermanCount = it.fishermen.size

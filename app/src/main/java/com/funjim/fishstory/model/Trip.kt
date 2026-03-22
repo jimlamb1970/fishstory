@@ -11,6 +11,7 @@ data class Trip(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val startDate: Long = System.currentTimeMillis(),
+    val endDate: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null
 )

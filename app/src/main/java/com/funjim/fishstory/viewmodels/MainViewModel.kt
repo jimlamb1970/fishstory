@@ -42,8 +42,11 @@ class MainViewModel(
     private val _draftTripName = MutableStateFlow("")
     val draftTripName = _draftTripName.asStateFlow()
 
-    private val _draftTripDate = MutableStateFlow(System.currentTimeMillis())
-    val draftTripDate = _draftTripDate.asStateFlow()
+    private val _draftTripStartDate = MutableStateFlow(System.currentTimeMillis())
+    val draftTripStartDate = _draftTripStartDate.asStateFlow()
+
+    private val _draftTripEndDate = MutableStateFlow(System.currentTimeMillis())
+    val draftTripEndDate = _draftTripEndDate.asStateFlow()
 
     private val _draftLatitude = MutableStateFlow<Double?>(null)
     val draftLatitude = _draftLatitude.asStateFlow()
@@ -55,8 +58,12 @@ class MainViewModel(
         _draftTripName.value = name
     }
 
-    fun updateDraftTripDate(dateMillis: Long) {
-        _draftTripDate.value = dateMillis
+    fun updateDraftTripStartDate(dateMillis: Long) {
+        _draftTripStartDate.value = dateMillis
+    }
+
+    fun updateDraftTripEndDate(dateMillis: Long) {
+        _draftTripEndDate.value = dateMillis
     }
 
     fun updateDraftLocation(lat: Double?, lon: Double?) {
@@ -102,7 +109,9 @@ class MainViewModel(
         _draftSegments.value = emptyList()
         _draftFishermanIds.value = emptySet()
         _draftTripName.value = ""
-        _draftTripDate.value = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        _draftTripStartDate.value = now
+        _draftTripEndDate.value = now
         _draftLatitude.value = null
         _draftLongitude.value = null
     }

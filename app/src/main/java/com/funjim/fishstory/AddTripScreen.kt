@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
@@ -29,9 +31,114 @@ import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateTimePickerButton(
+    label: String,
+    millis: Long,
+    modifier: Modifier = Modifier,
+    onConfirm: (Long) -> Unit
+) {
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy  HH:mm", Locale.getDefault())
+    }
+    var showDateStep by remember { mutableStateOf(false) }
+    var showTimeStep by remember { mutableStateOf(false) }
+    var pendingMillis by remember { mutableLongStateOf(millis) }
+
+    OutlinedButton(onClick = { showDateStep = true }, modifier = modifier) {
+        Text(dateTimeFormatter.format(Date(millis)))
+    }
+
+    if (showDateStep) {
+        val localCal = Calendar.getInstance()
+        localCal.timeInMillis = millis
+        // Strip time in UTC (DatePicker expects UTC midnight for the selected date)
+        val startOfDayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(localCal.get(Calendar.YEAR), localCal.get(Calendar.MONTH), localCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = startOfDayUtc)
+
+        DatePickerDialog(
+            onDismissRequest = { showDateStep = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { newDate ->
+                        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                        utcCal.timeInMillis = newDate
+                        val cal = Calendar.getInstance()
+                        cal.timeInMillis = millis
+                        cal.set(
+                            utcCal.get(Calendar.YEAR),
+                            utcCal.get(Calendar.MONTH),
+                            utcCal.get(Calendar.DAY_OF_MONTH)
+                        )
+                        pendingMillis = cal.timeInMillis
+                    }
+                    showDateStep = false
+                    showTimeStep = true
+                }) { Text("Next") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDateStep = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimeStep) {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = pendingMillis
+        val timePickerState = rememberTimePickerState(
+            initialHour = cal.get(Calendar.HOUR_OF_DAY),
+            initialMinute = cal.get(Calendar.MINUTE),
+            is24Hour = true
+        )
+        Dialog(onDismissRequest = { showTimeStep = false }) {
+            Surface(
+                shape = MaterialTheme.shapes.extraLarge,
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .width(IntrinsicSize.Min)
+                    .height(IntrinsicSize.Min)
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Select $label time",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
+                    )
+                    TimePicker(state = timePickerState)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showTimeStep = false }) { Text("Cancel") }
+                        TextButton(onClick = {
+                            cal.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                            cal.set(Calendar.MINUTE, timePickerState.minute)
+                            cal.set(Calendar.SECOND, 0)
+                            cal.set(Calendar.MILLISECOND, 0)
+                            onConfirm(cal.timeInMillis)
+                            showTimeStep = false
+                        }) { Text("OK") }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,48 +150,41 @@ fun AddTripScreen(
     navigateToSegmentDetails: (Int, Int) -> Unit
 ) {
     var tripId by remember { mutableIntStateOf(initialTripId) }
-    var showDatePicker by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
-    
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    
-    // For existing trips
+
     val tripWithDetails by if (tripId != 0) {
         viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
     } else {
         remember { mutableStateOf(null) }
     }
 
-    // Draft values from ViewModel
     val draftTripName by viewModel.draftTripName.collectAsState()
-    val draftTripDate by viewModel.draftTripDate.collectAsState()
+    val draftTripStartDate by viewModel.draftTripStartDate.collectAsState()
+    val draftTripEndDate by viewModel.draftTripEndDate.collectAsState()
     val draftLatitude by viewModel.draftLatitude.collectAsState()
     val draftLongitude by viewModel.draftLongitude.collectAsState()
 
-    // Local state initialized from draft or tripWithDetails
-    var name by remember(draftTripName, tripWithDetails) { 
-        mutableStateOf(tripWithDetails?.trip?.name ?: draftTripName) 
+    var name by remember(draftTripName, tripWithDetails) {
+        mutableStateOf(tripWithDetails?.trip?.name ?: draftTripName)
     }
-    var dateMillis by remember(draftTripDate, tripWithDetails) { 
-        mutableLongStateOf(tripWithDetails?.trip?.startDate ?: draftTripDate) 
+    var startDateMillis by remember(draftTripStartDate, tripWithDetails) {
+        mutableLongStateOf(tripWithDetails?.trip?.startDate ?: draftTripStartDate)
     }
-    var latitude by remember(draftLatitude, tripWithDetails) { 
-        mutableStateOf(tripWithDetails?.trip?.latitude ?: draftLatitude) 
+    var endDateMillis by remember(draftTripEndDate, tripWithDetails) {
+        mutableLongStateOf(tripWithDetails?.trip?.endDate ?: draftTripEndDate)
     }
-    var longitude by remember(draftLongitude, tripWithDetails) { 
-        mutableStateOf(tripWithDetails?.trip?.longitude ?: draftLongitude) 
+    var latitude by remember(draftLatitude, tripWithDetails) {
+        mutableStateOf(tripWithDetails?.trip?.latitude ?: draftLatitude)
+    }
+    var longitude by remember(draftLongitude, tripWithDetails) {
+        mutableStateOf(tripWithDetails?.trip?.longitude ?: draftLongitude)
     }
 
-    // For new trips (drafts)
     val draftSegments by viewModel.draftSegments.collectAsState()
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
-
-    val dateFormatter = remember { 
-        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -123,13 +223,14 @@ fun AddTripScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { 
+                    IconButton(onClick = {
                         if (tripId == 0) {
                             viewModel.updateDraftTripName(name)
-                            viewModel.updateDraftTripDate(dateMillis)
+                            viewModel.updateDraftTripStartDate(startDateMillis)
+                            viewModel.updateDraftTripEndDate(endDateMillis)
                             viewModel.updateDraftLocation(latitude, longitude)
                         }
-                        navigateToBoatLoad(tripId) 
+                        navigateToBoatLoad(tripId)
                     }) {
                         Icon(Icons.Default.DirectionsBoat, contentDescription = "Load Boat")
                     }
@@ -178,21 +279,19 @@ fun AddTripScreen(
                 FloatingActionButton(onClick = {
                     scope.launch {
                         val trip = Trip(
-                            id = tripId, 
-                            name = name, 
-                            startDate = dateMillis,
+                            id = tripId,
+                            name = name,
+                            startDate = startDateMillis,
+                            endDate = endDateMillis,
                             latitude = latitude,
                             longitude = longitude
                         )
-                        
                         if (tripId == 0) {
                             val id = viewModel.addTrip(trip)
                             val actualTripId = id.toInt()
-                            // Save draft segments
                             draftSegments.forEach { draft ->
                                 viewModel.addSegment(draft.copy(tripId = actualTripId))
                             }
-                            // Save draft fishermen
                             draftFishermanIds.forEach { fishermanId ->
                                 viewModel.addFishermanToTrip(actualTripId, fishermanId)
                             }
@@ -217,7 +316,7 @@ fun AddTripScreen(
         ) {
             TextField(
                 value = name,
-                onValueChange = { 
+                onValueChange = {
                     name = it
                     if (tripId == 0) viewModel.updateDraftTripName(it)
                 },
@@ -225,11 +324,32 @@ fun AddTripScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedButton(
-                onClick = { showDatePicker = true },
+            Text("Start", style = MaterialTheme.typography.labelLarge)
+            DateTimePickerButton(
+                label = "start",
+                millis = startDateMillis,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Date: ${dateFormatter.format(Date(dateMillis))}")
+            ) { newMillis ->
+                startDateMillis = newMillis
+                if (startDateMillis > endDateMillis) {
+                    endDateMillis = startDateMillis
+                    if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                }
+                if (tripId == 0) viewModel.updateDraftTripStartDate(startDateMillis)
+            }
+
+            Text("End", style = MaterialTheme.typography.labelLarge)
+            DateTimePickerButton(
+                label = "end",
+                millis = endDateMillis,
+                modifier = Modifier.fillMaxWidth()
+            ) { newMillis ->
+                if (newMillis < startDateMillis) {
+                    Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                } else {
+                    endDateMillis = newMillis
+                    if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                }
             }
 
             if (latitude != null && longitude != null) {
@@ -241,16 +361,16 @@ fun AddTripScreen(
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Segments", style = MaterialTheme.typography.titleLarge)
-                
+
                 var showAddSegmentDialog by remember { mutableStateOf(false) }
-                
+
                 IconButton(onClick = { showAddSegmentDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Segment")
                 }
@@ -272,7 +392,6 @@ fun AddTripScreen(
                 }
             }
 
-            // Display Segments (either draft or from DB)
             val segmentsToDisplay = if (tripId == 0) draftSegments else tripWithDetails?.segments ?: emptyList()
 
             if (segmentsToDisplay.isEmpty()) {
@@ -318,8 +437,7 @@ fun AddTripScreen(
                     }
                 }
             }
-            
-            // Show boat summary
+
             val fishermanCount = if (tripId == 0) draftFishermanIds.size else tripWithDetails?.fishermen?.size ?: 0
             if (fishermanCount > 0) {
                 Text(
@@ -328,27 +446,6 @@ fun AddTripScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-            }
-        }
-
-        if (showDatePicker) {
-            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dateMillis)
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            dateMillis = it
-                            if (tripId == 0) viewModel.updateDraftTripDate(it)
-                        }
-                        showDatePicker = false
-                    }) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-                }
-            ) {
-                DatePicker(state = datePickerState)
             }
         }
     }

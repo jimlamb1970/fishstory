@@ -1,13 +1,13 @@
 package com.funjim.fishstory
 
 import android.Manifest
-import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.PhotoPickerRow
@@ -35,16 +36,14 @@ import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripDetailsScreen(
-    viewModel: MainViewModel, 
-    tripId: Int, 
+    viewModel: MainViewModel,
+    tripId: Int,
     navigateToSegmentDetails: (Int) -> Unit,
     navigateToFishermanDetails: (Int) -> Unit,
     navigateToBoatLoad: (Int) -> Unit,
@@ -53,18 +52,16 @@ fun TripDetailsScreen(
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
     val segmentsWithDetails by viewModel.getSegmentsWithDetailsForTrip(tripId).collectAsState(initial = emptyList())
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
-    
+
     var showFishermenDialog by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
     var showAddSegmentDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
-    
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val dateFormatter = remember { 
-        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -168,7 +165,12 @@ fun TripDetailsScreen(
                         }
                     }
                     Text(
-                        text = "Date: ${dateFormatter.format(Date(details.trip.startDate))}",
+                        text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Gray
                     )
@@ -247,54 +249,53 @@ fun TripDetailsScreen(
 
                 if (showEditTripDialog) {
                     var tripName by remember { mutableStateOf(details.trip.name) }
-                    var tripDate by remember { mutableLongStateOf(details.trip.startDate) }
-                    
-                    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                        timeInMillis = tripDate
-                    }
-                    
-                    val datePickerDialog = DatePickerDialog(
-                        context,
-                        { _, year, month, dayOfMonth ->
-                            val selectedCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                                set(Calendar.YEAR, year)
-                                set(Calendar.MONTH, month)
-                                set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                                set(Calendar.HOUR_OF_DAY, 0)
-                                set(Calendar.MINUTE, 0)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }
-                            tripDate = selectedCalendar.timeInMillis
-                        },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
-                    )
+                    var startDateMillis by remember { mutableLongStateOf(details.trip.startDate) }
+                    var endDateMillis by remember { mutableLongStateOf(details.trip.endDate) }
 
                     AlertDialog(
                         onDismissRequest = { showEditTripDialog = false },
                         title = { Text("Edit Trip Details") },
                         text = {
-                            Column {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextField(
                                     value = tripName,
                                     onValueChange = { tripName = it },
-                                    label = { Text("Trip Name") }
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Button(
-                                    onClick = { datePickerDialog.show() },
+                                    label = { Text("Trip Name") },
                                     modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("Change Date: ${dateFormatter.format(Date(tripDate))}")
+                                )
+
+                                Text("Start", style = MaterialTheme.typography.labelLarge)
+                                DateTimePickerButton(
+                                    label = "start",
+                                    millis = startDateMillis,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { newMillis ->
+                                    startDateMillis = newMillis
+                                    if (startDateMillis > endDateMillis) endDateMillis = startDateMillis
+                                }
+
+                                Text("End", style = MaterialTheme.typography.labelLarge)
+                                DateTimePickerButton(
+                                    label = "end",
+                                    millis = endDateMillis,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { newMillis ->
+                                    if (newMillis < startDateMillis) {
+                                        Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        endDateMillis = newMillis
+                                    }
                                 }
                             }
                         },
                         confirmButton = {
                             Button(onClick = {
                                 scope.launch {
-                                    viewModel.updateTrip(details.trip.copy(name = tripName, startDate = tripDate))
+                                    viewModel.updateTrip(details.trip.copy(
+                                        name = tripName,
+                                        startDate = startDateMillis,
+                                        endDate = endDateMillis
+                                    ))
                                     showEditTripDialog = false
                                 }
                             }) {
