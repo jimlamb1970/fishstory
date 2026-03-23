@@ -189,8 +189,7 @@ fun SegmentDetailsScreen(
                 // The Boat Concept for Segment
                 BoatSummary(
                     fishermanCount = details.fishermen.size,
-                    onBoatClick = { showFishermenDialog = true },
-                    onAddClick = { navigateToSegmentBoatLoad(segmentId, tripId) }
+                    onBoatClick = { navigateToSegmentBoatLoad(segmentId, tripId) }
                 )
 
                 HorizontalDivider()

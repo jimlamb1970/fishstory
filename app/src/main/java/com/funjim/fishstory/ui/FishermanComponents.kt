@@ -33,7 +33,7 @@ fun FishermanItem(fisherman: Fisherman, onDelete: () -> Unit, onClick: () -> Uni
 }
 
 @Composable
-fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit, onAddClick: () -> Unit) {
+fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -64,9 +64,6 @@ fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit, onAddClick: () -> 
                     color = Color.White.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium
                 )
-            }
-            IconButton(onClick = onAddClick) {
-                Icon(Icons.Default.Add, contentDescription = "Load Boat", tint = Color.White)
             }
         }
     }

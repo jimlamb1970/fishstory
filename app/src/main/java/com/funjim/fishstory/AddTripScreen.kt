@@ -328,7 +328,10 @@ fun AddTripScreen(
                         endDateMillis = startDateMillis
                         if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
                     }
-                    if (tripId == 0) viewModel.updateDraftTripStartDate(startDateMillis)
+                    if (tripId == 0) {
+                        viewModel.updateDraftTripStartDate(startDateMillis)
+                        viewModel.updateDraftSegmentStartDate(startDateMillis)
+                    }
                 }
             }
 
@@ -348,7 +351,10 @@ fun AddTripScreen(
                             .show()
                     } else {
                         endDateMillis = newMillis
-                        if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                        if (tripId == 0) {
+                            viewModel.updateDraftTripEndDate(endDateMillis)
+                            viewModel.updateDraftSegmentEndDate(endDateMillis)
+                        }
                     }
                 }
             }
@@ -368,17 +374,8 @@ fun AddTripScreen(
                 onBoatClick = {
                     if (tripId == 0) {
                         viewModel.updateDraftTripName(name)
-                        viewModel.updateDraftTripStartDate(startDateMillis)
-                        viewModel.updateDraftTripEndDate(endDateMillis)
-                        viewModel.updateDraftLocation(latitude, longitude)
-                    }
-                    navigateToBoatLoad(tripId)
-                },
-                onAddClick = {
-                    if (tripId == 0) {
-                        viewModel.updateDraftTripName(name)
-                        viewModel.updateDraftTripStartDate(startDateMillis)
-                        viewModel.updateDraftTripEndDate(endDateMillis)
+//                        viewModel.updateDraftTripStartDate(startDateMillis)
+//                        viewModel.updateDraftTripEndDate(endDateMillis)
                         viewModel.updateDraftLocation(latitude, longitude)
                     }
                     navigateToBoatLoad(tripId)
@@ -394,7 +391,11 @@ fun AddTripScreen(
             ) {
                 Text("Segments", style = MaterialTheme.typography.titleLarge)
 
-                IconButton(onClick = { navigateToAddSegment(tripId) }) {
+                IconButton(onClick = {
+                    viewModel.updateDraftSegmentStartDate(startDateMillis)
+                    viewModel.updateDraftSegmentEndDate(endDateMillis)
+                    navigateToAddSegment(tripId)
+                }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Segment")
                 }
             }

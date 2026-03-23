@@ -80,13 +80,13 @@ fun AddSegmentScreen(
                 }
             } else {
                 // Pre-populate from draft trip values
-                startDateMillis = draftTripStartDate
-                endDateMillis = draftTripEndDate
-                latitude = draftLatitude
-                longitude = draftLongitude
-                viewModel.updateDraftSegmentStartDate(draftTripStartDate)
-                viewModel.updateDraftSegmentEndDate(draftTripEndDate)
-                viewModel.updateDraftSegmentLocation(draftLatitude, draftLongitude)
+//                startDateMillis = draftTripStartDate
+//                endDateMillis = draftTripEndDate
+//                latitude = draftLatitude
+//                longitude = draftLongitude
+//                viewModel.updateDraftSegmentStartDate(draftTripStartDate)
+//                viewModel.updateDraftSegmentEndDate(draftTripEndDate)
+//                viewModel.updateDraftSegmentLocation(draftLatitude, draftLongitude)
                 initialised = true
             }
         }
@@ -246,11 +246,19 @@ fun AddSegmentScreen(
                     millis = startDateMillis,
                     modifier = Modifier.weight(1f)
                 ) { newMillis ->
-                    startDateMillis = newMillis
-                    viewModel.updateDraftSegmentStartDate(newMillis)
-                    if (startDateMillis > endDateMillis) {
-                        endDateMillis = startDateMillis
-                        viewModel.updateDraftSegmentEndDate(startDateMillis)
+                    if (newMillis < draftTripStartDate) {
+                        Toast.makeText(context, "Start cannot be before trip start", Toast.LENGTH_SHORT)
+                            .show()
+                    } else if (newMillis > draftTripEndDate) {
+                        Toast.makeText(context, "Start cannot be after trip end", Toast.LENGTH_SHORT)
+                            .show()
+                    } else {
+                        startDateMillis = newMillis
+                        viewModel.updateDraftSegmentStartDate(newMillis)
+                        if (startDateMillis > endDateMillis) {
+                            endDateMillis = startDateMillis
+                            viewModel.updateDraftSegmentEndDate(startDateMillis)
+                        }
                     }
                 }
             }
@@ -268,8 +276,13 @@ fun AddSegmentScreen(
                     if (newMillis < startDateMillis) {
                         Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
                     } else {
-                        endDateMillis = newMillis
-                        viewModel.updateDraftSegmentEndDate(newMillis)
+                        if (newMillis > draftTripEndDate) {
+                            Toast.makeText(context, "End cannot be after trip end", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+                            endDateMillis = newMillis
+                            viewModel.updateDraftSegmentEndDate(newMillis)
+                        }
                     }
                 }
             }
@@ -286,8 +299,7 @@ fun AddSegmentScreen(
 
             BoatSummary(
                 fishermanCount = fishermanCount,
-                onBoatClick = { navigateToBoatLoad(tripId, draftSegmentId, eligibleIds) },
-                onAddClick = { navigateToBoatLoad(tripId, draftSegmentId, eligibleIds) }
+                onBoatClick = { navigateToBoatLoad(tripId, draftSegmentId, eligibleIds) }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

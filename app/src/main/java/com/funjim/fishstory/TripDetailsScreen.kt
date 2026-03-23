@@ -193,8 +193,7 @@ fun TripDetailsScreen(
                 // The Boat Concept
                 BoatSummary(
                     fishermanCount = details.fishermen.size,
-                    onBoatClick = { showFishermenDialog = true },
-                    onAddClick = { navigateToBoatLoad(tripId) }
+                    onBoatClick = { navigateToBoatLoad(tripId) }
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
