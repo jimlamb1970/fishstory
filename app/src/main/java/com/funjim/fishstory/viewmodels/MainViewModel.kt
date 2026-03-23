@@ -128,8 +128,10 @@ class MainViewModel(
         longitude: Double? = null
     ) {
         // 1. Calculate the new temp ID based on the current list
+        // If there are no segments, the first segment needs to start at -2
+        // This is because -1 is reserved for set of fishermen to add to the segment
         val currentSegments = _draftSegments.value
-        val tempId = (currentSegments.minOfOrNull { it.id } ?: 0) - 1
+        val tempId = (currentSegments.minOfOrNull { it.id } ?: -1) - 1
 
         val newSegment = Segment(
             id = tempId,

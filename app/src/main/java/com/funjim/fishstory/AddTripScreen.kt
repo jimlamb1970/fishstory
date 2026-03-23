@@ -417,8 +417,15 @@ fun AddTripScreen(
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(segmentsToDisplay) { segment ->
+                        val fishermenCount = if (tripId == 0) {
+                            draftSegmentFishermanIds[segment.id]?.size ?: 0
+                        } else {
+                           0 // Default, will be overriden by database result for existing trips
+                        }
+
                         SegmentItem(
                             segment = segment,
+                            fishermenCount = fishermenCount,
                             onEdit = { /* Edit logic */ },
                             onDelete = {
                                 if (tripId == 0) {
