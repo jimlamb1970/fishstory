@@ -29,11 +29,11 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen>
+    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails>
+    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

@@ -39,6 +39,10 @@ class MainViewModel(
     private val _draftFishermanIds = MutableStateFlow<Set<Int>>(emptySet())
     val draftFishermanIds = _draftFishermanIds.asStateFlow()
 
+    // Maps draft segment tempId -> set of fisherman IDs
+    private val _draftSegmentFishermanIds = MutableStateFlow<Map<Int, Set<Int>>>(emptyMap())
+    val draftSegmentFishermanIds = _draftSegmentFishermanIds.asStateFlow()
+
     private val _draftTripName = MutableStateFlow("")
     val draftTripName = _draftTripName.asStateFlow()
 
@@ -53,6 +57,22 @@ class MainViewModel(
 
     private val _draftLongitude = MutableStateFlow<Double?>(null)
     val draftLongitude = _draftLongitude.asStateFlow()
+
+    // Draft state for segment currently being added
+    private val _draftSegmentName = MutableStateFlow("")
+    val draftSegmentName = _draftSegmentName.asStateFlow()
+
+    private val _draftSegmentStartDate = MutableStateFlow(System.currentTimeMillis())
+    val draftSegmentStartDate = _draftSegmentStartDate.asStateFlow()
+
+    private val _draftSegmentEndDate = MutableStateFlow(System.currentTimeMillis())
+    val draftSegmentEndDate = _draftSegmentEndDate.asStateFlow()
+
+    private val _draftSegmentLatitude = MutableStateFlow<Double?>(null)
+    val draftSegmentLatitude = _draftSegmentLatitude.asStateFlow()
+
+    private val _draftSegmentLongitude = MutableStateFlow<Double?>(null)
+    val draftSegmentLongitude = _draftSegmentLongitude.asStateFlow()
 
     fun updateDraftTripName(name: String) {
         _draftTripName.value = name
@@ -71,11 +91,53 @@ class MainViewModel(
         _draftLongitude.value = lon
     }
 
-    fun addDraftSegment(name: String, startTime: Long) {
-        // Use a temporary negative ID for draft segments to ensure they have unique keys in LazyColumn
+    fun updateDraftSegmentName(name: String) {
+        _draftSegmentName.value = name
+    }
+
+    fun updateDraftSegmentStartDate(dateMillis: Long) {
+        _draftSegmentStartDate.value = dateMillis
+    }
+
+    fun updateDraftSegmentEndDate(dateMillis: Long) {
+        _draftSegmentEndDate.value = dateMillis
+    }
+
+    fun updateDraftSegmentLocation(lat: Double?, lon: Double?) {
+        _draftSegmentLatitude.value = lat
+        _draftSegmentLongitude.value = lon
+    }
+
+    fun clearDraftSegment() {
+        _draftSegmentName.value = ""
+        val now = System.currentTimeMillis()
+        _draftSegmentStartDate.value = now
+        _draftSegmentEndDate.value = now
+        _draftSegmentLatitude.value = null
+        _draftSegmentLongitude.value = null
+    }
+
+    fun addDraftSegment(
+        name: String,
+        startTime: Long,
+        endTime: Long? = null,
+        latitude: Double? = null,
+        longitude: Double? = null
+    ) {
         val tempId = (_draftSegments.value.minOfOrNull { it.id } ?: 0) - 1
-        val newSegment = Segment(id = tempId, tripId = 0, name = name, startTime = startTime)
+        val newSegment = Segment(
+            id = tempId,
+            tripId = 0,
+            name = name,
+            startTime = startTime,
+            endTime = endTime,
+            latitude = latitude,
+            longitude = longitude
+        )
         _draftSegments.value = _draftSegments.value + newSegment
+        // Pre-populate segment fishermen from draft trip fishermen
+        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
+                (tempId to _draftFishermanIds.value.toSet())
     }
 
     fun updateDraftSegment(updatedSegment: Segment) {
@@ -96,6 +158,18 @@ class MainViewModel(
         _draftFishermanIds.value = _draftFishermanIds.value - fishermanId
     }
 
+    fun addDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
+        val current = _draftSegmentFishermanIds.value[segmentId] ?: emptySet()
+        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
+                (segmentId to current + fishermanId)
+    }
+
+    fun removeDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
+        val current = _draftSegmentFishermanIds.value[segmentId] ?: emptySet()
+        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
+                (segmentId to current - fishermanId)
+    }
+
     fun toggleDraftFisherman(fishermanId: Int) {
         val current = _draftFishermanIds.value
         if (current.contains(fishermanId)) {
@@ -107,6 +181,7 @@ class MainViewModel(
 
     fun clearDrafts() {
         _draftSegments.value = emptyList()
+        _draftSegmentFishermanIds.value = emptyMap()
         _draftFishermanIds.value = emptySet()
         _draftTripName.value = ""
         val now = System.currentTimeMillis()
@@ -116,11 +191,11 @@ class MainViewModel(
         _draftLongitude.value = null
     }
 
-    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen> {
+    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen?> {
         return tripDao.getTripWithFishermen(tripId)
     }
 
-    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails> {
+    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
     }
 
@@ -166,11 +241,11 @@ class MainViewModel(
         tripDao.deleteCrossRef(crossRef)
     }
 
-    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips> {
+    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips?> {
         return fishermanDao.getFishermanWithTrips(fishermanId)
     }
 
-    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails> {
+    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails?> {
         return fishermanDao.getFishermanWithDetails(fishermanId)
     }
 
@@ -194,11 +269,11 @@ class MainViewModel(
         return segmentDao.getSegmentsWithDetailsForTrip(tripId)
     }
 
-    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen> {
+    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen?> {
         return segmentDao.getSegmentWithFishermen(segmentId)
     }
 
-    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails> {
+    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails?> {
         return segmentDao.getSegmentWithDetails(segmentId)
     }
 

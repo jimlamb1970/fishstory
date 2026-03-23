@@ -114,14 +114,16 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         composable("addTrip") {
             AddTripScreen(
                 viewModel = viewModel,
-                initialTripId = 0,
-                navigateBack = { navController.popBackStack() },
                 navigateToBoatLoad = { tripId ->
                     navController.navigate("boatLoad/$tripId")
                 },
+                navigateToAddSegment = { id ->
+                    navController.navigate("addSegment/$id")
+                },
                 navigateToSegmentDetails = { segmentId, tripId ->
                     navController.navigate("segmentDetails/$segmentId/$tripId")
-                }
+                },
+                navigateBack = { navController.popBackStack() }
             )
         }
         composable(
@@ -129,6 +131,11 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             arguments = listOf(navArgument("tripId") { type = NavType.IntType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getInt("tripId") ?: return@composable
+            val previousEntry = navController.previousBackStackEntry
+            val eligibleFishermanIds = previousEntry?.savedStateHandle
+                ?.get<Set<Int>>("eligibleFishermanIds")
+            val segmentId = previousEntry?.savedStateHandle
+                ?.get<Int>("segmentId") ?: 0
             BoatLoadScreen(
                 viewModel = viewModel,
                 tripId = tripId,
@@ -137,7 +144,9 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 },
                 navigateBack = {
                     navController.popBackStack()
-                }
+                },
+                eligibleFishermanIds = eligibleFishermanIds,
+                segmentId = segmentId
             )
         }
         composable("fishermen") {
@@ -188,6 +197,31 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 },
                 navigateToBoatLoad = { id ->
                     navController.navigate("boatLoad/$id")
+                },
+                navigateToAddSegment = { id ->
+                    navController.navigate("addSegment/$id")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(
+            route = "addSegment/{tripId}",
+            arguments = listOf(navArgument("tripId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getInt("tripId") ?: return@composable
+            AddSegmentScreen(
+                viewModel = viewModel,
+                tripId = tripId,
+                navigateToBoatLoad = { tId, sId, eligibleIds ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("eligibleFishermanIds", eligibleIds)
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("segmentId", sId)
+                    navController.navigate("boatLoad/$tId")
                 },
                 navigateBack = {
                     navController.popBackStack()

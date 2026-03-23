@@ -18,11 +18,11 @@ interface SegmentDao {
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
-    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen>
+    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen?>
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
-    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails>
+    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSegment(segment: Segment): Long

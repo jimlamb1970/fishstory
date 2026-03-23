@@ -28,11 +28,11 @@ interface FishermanDao {
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips>
+    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips?>
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails>
+    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails?>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

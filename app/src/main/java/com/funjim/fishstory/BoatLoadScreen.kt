@@ -32,31 +32,46 @@ fun BoatLoadScreen(
     viewModel: MainViewModel,
     tripId: Int,
     navigateToManageFishermen: () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    eligibleFishermanIds: Set<Int>? = null,
+    segmentId: Int = 0
 ) {
     val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
+    val isSegmentContext = segmentId != 0 || eligibleFishermanIds != null
     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
-    // Determine current crew based on whether it's a draft or existing trip
+    // Determine current crew based on context
     val inBoat: List<Fisherman>
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
+    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
     val tripWithFishermen by if (tripId != 0) {
         viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
     } else {
         remember { mutableStateOf(null) }
     }
 
-    if (tripId == 0) {
-        inBoat = allFishermen.filter { it.id in draftFishermanIds }
-    } else {
-        inBoat = tripWithFishermen?.fishermen ?: emptyList()
+    inBoat = when {
+        segmentId < 0 -> {
+            // Draft segment — use draftSegmentFishermanIds
+            val ids = draftSegmentFishermanIds[segmentId] ?: emptySet()
+            allFishermen.filter { it.id in ids }
+        }
+        tripId == 0 -> allFishermen.filter { it.id in draftFishermanIds }
+        else -> tripWithFishermen?.fishermen ?: emptyList()
     }
 
-    val available = allFishermen.filter { fisherman -> 
-        inBoat.none { it.id == fisherman.id } 
+    // Filter eligible pool, then remove those already in boat, then sort by name
+    val eligiblePool = if (eligibleFishermanIds != null) {
+        allFishermen.filter { it.id in eligibleFishermanIds }
+    } else {
+        allFishermen
     }
+    val available = eligiblePool
+        .filter { fisherman -> inBoat.none { it.id == fisherman.id } }
+        .sortedBy { it.fullName }
+    val inBoatSorted = inBoat.sortedBy { it.fullName }
 
     Scaffold(
         topBar = {
@@ -86,12 +101,14 @@ fun BoatLoadScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
-                IconButton(onClick = { showAddFishermanDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Fisherman")
+
+                if (!isSegmentContext) {
+                    IconButton(onClick = { showAddFishermanDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Fisherman")
+                    }
                 }
             }
-            
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -103,12 +120,10 @@ fun BoatLoadScreen(
                     DraggableFishermanItem(
                         fisherman = fisherman,
                         onDroppedInBoat = {
-                            if (tripId == 0) {
-                                viewModel.addDraftFisherman(fisherman.id)
-                            } else {
-                                scope.launch {
-                                    viewModel.addFishermanToTrip(tripId, fisherman.id)
-                                }
+                            when {
+                                segmentId < 0 -> viewModel.addDraftSegmentFisherman(segmentId, fisherman.id)
+                                tripId == 0 -> viewModel.addDraftFisherman(fisherman.id)
+                                else -> scope.launch { viewModel.addFishermanToTrip(tripId, fisherman.id) }
                             }
                         }
                     )
@@ -138,11 +153,11 @@ fun BoatLoadScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
-                    
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    
+
                     Text(
-                        "${inBoat.size} Fishermen on board",
+                        "${inBoatSorted.size} Fishermen on board",
                         color = Color.White.copy(alpha = 0.8f)
                     )
                 }
@@ -163,19 +178,17 @@ fun BoatLoadScreen(
                     .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                items(inBoat, key = { it.id }) { fisherman ->
+                items(inBoatSorted, key = { it.id }) { fisherman ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                             .height(50.dp),
                         onClick = {
-                            if (tripId == 0) {
-                                viewModel.removeDraftFisherman(fisherman.id)
-                            } else {
-                                scope.launch {
-                                    viewModel.deleteFishermanFromTrip(tripId, fisherman.id)
-                                }
+                            when {
+                                segmentId < 0 -> viewModel.removeDraftSegmentFisherman(segmentId, fisherman.id)
+                                tripId == 0 -> viewModel.removeDraftFisherman(fisherman.id)
+                                else -> scope.launch { viewModel.deleteFishermanFromTrip(tripId, fisherman.id) }
                             }
                         }
                     ) {
@@ -192,7 +205,7 @@ fun BoatLoadScreen(
             }
         }
 
-        if (showAddFishermanDialog) {
+        if (showAddFishermanDialog && !isSegmentContext) {
             AddFishermanDialog(
                 onDismiss = { showAddFishermanDialog = false },
                 onConfirm = { firstName, lastName, nickname ->
@@ -200,7 +213,6 @@ fun BoatLoadScreen(
                         val newId = viewModel.addFisherman(
                             Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
                         )
-                        // Automatically add new fisherman to boat
                         if (tripId == 0) {
                             viewModel.addDraftFisherman(newId.toInt())
                         } else {

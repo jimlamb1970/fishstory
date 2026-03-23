@@ -26,7 +26,6 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
-import com.funjim.fishstory.ui.SegmentDialog
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -147,6 +146,7 @@ fun AddTripScreen(
     initialTripId: Int = 0,
     navigateBack: () -> Unit,
     navigateToBoatLoad: (Int) -> Unit,
+    navigateToAddSegment: (Int) -> Unit,
     navigateToSegmentDetails: (Int, Int) -> Unit
 ) {
     var tripId by remember { mutableIntStateOf(initialTripId) }
@@ -394,26 +394,8 @@ fun AddTripScreen(
             ) {
                 Text("Segments", style = MaterialTheme.typography.titleLarge)
 
-                var showAddSegmentDialog by remember { mutableStateOf(false) }
-
-                IconButton(onClick = { showAddSegmentDialog = true }) {
+                IconButton(onClick = { navigateToAddSegment(tripId) }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Segment")
-                }
-
-                if (showAddSegmentDialog) {
-                    SegmentDialog(
-                        onDismiss = { showAddSegmentDialog = false },
-                        onConfirm = { segmentName, startTime ->
-                            if (tripId == 0) {
-                                viewModel.addDraftSegment(segmentName, startTime)
-                            } else {
-                                scope.launch {
-                                    viewModel.addSegment(Segment(tripId = tripId, name = segmentName, startTime = startTime))
-                                }
-                            }
-                            showAddSegmentDialog = false
-                        }
-                    )
                 }
             }
 

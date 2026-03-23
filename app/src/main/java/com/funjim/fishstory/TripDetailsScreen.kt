@@ -7,7 +7,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,8 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.PhotoPickerRow
@@ -47,6 +44,7 @@ fun TripDetailsScreen(
     navigateToSegmentDetails: (Int) -> Unit,
     navigateToFishermanDetails: (Int) -> Unit,
     navigateToBoatLoad: (Int) -> Unit,
+    navigateToAddSegment: (Int) -> Unit,
     navigateBack: () -> Unit
 ) {
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
@@ -55,7 +53,6 @@ fun TripDetailsScreen(
 
     var showFishermenDialog by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
-    var showAddSegmentDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -210,7 +207,7 @@ fun TripDetailsScreen(
                         text = "Segments",
                         style = MaterialTheme.typography.titleLarge
                     )
-                    IconButton(onClick = { showAddSegmentDialog = true }) {
+                    IconButton(onClick = { navigateToAddSegment(tripId) }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Segment")
                     }
                 }
@@ -304,44 +301,6 @@ fun TripDetailsScreen(
                         },
                         dismissButton = {
                             TextButton(onClick = { showEditTripDialog = false }) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
-
-                if (showAddSegmentDialog) {
-                    var segmentName by remember { mutableStateOf("") }
-                    AlertDialog(
-                        onDismissRequest = { showAddSegmentDialog = false },
-                        title = { Text("Add New Segment") },
-                        text = {
-                            TextField(
-                                value = segmentName,
-                                onValueChange = { segmentName = it },
-                                label = { Text("Segment Name") }
-                            )
-                        },
-                        confirmButton = {
-                            Button(onClick = {
-                                if (segmentName.isNotBlank()) {
-                                    scope.launch {
-                                        viewModel.addSegment(
-                                            Segment(
-                                                tripId = tripId,
-                                                name = segmentName,
-                                                startTime = System.currentTimeMillis()
-                                            )
-                                        )
-                                        showAddSegmentDialog = false
-                                    }
-                                }
-                            }) {
-                                Text("Add")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showAddSegmentDialog = false }) {
                                 Text("Cancel")
                             }
                         }
