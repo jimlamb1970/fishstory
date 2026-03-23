@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 
 class MainViewModel(
@@ -115,6 +116,8 @@ class MainViewModel(
         _draftSegmentEndDate.value = now
         _draftSegmentLatitude.value = null
         _draftSegmentLongitude.value = null
+        // Clear the specific draft boat load for the "new segment" screen (id = -1)
+        _draftSegmentFishermanIds.update { it - (-1) }
     }
 
     fun addDraftSegment(
@@ -124,7 +127,10 @@ class MainViewModel(
         latitude: Double? = null,
         longitude: Double? = null
     ) {
-        val tempId = (_draftSegments.value.minOfOrNull { it.id } ?: 0) - 1
+        // 1. Calculate the new temp ID based on the current list
+        val currentSegments = _draftSegments.value
+        val tempId = (currentSegments.minOfOrNull { it.id } ?: 0) - 1
+
         val newSegment = Segment(
             id = tempId,
             tripId = 0,
@@ -134,48 +140,57 @@ class MainViewModel(
             latitude = latitude,
             longitude = longitude
         )
-        _draftSegments.value = _draftSegments.value + newSegment
-        // Pre-populate segment fishermen from draft trip fishermen
-        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
-                (tempId to _draftFishermanIds.value.toSet())
+
+        // 2. Use .update for thread-safe state changes
+        _draftSegments.update { it + newSegment }
+
+        // 3. Sync the fisherman IDs to the new segment ID
+        // The fisherman IDs for this specific "new segment" were being tracked in -1
+        val segmentFishermanIds = _draftSegmentFishermanIds.value[-1] ?: _draftFishermanIds.value.toSet()
+
+        _draftSegmentFishermanIds.update { currentMap ->
+            (currentMap - (-1)) + (tempId to segmentFishermanIds)
+        }
     }
 
     fun updateDraftSegment(updatedSegment: Segment) {
-        _draftSegments.value = _draftSegments.value.map {
-            if (it.id == updatedSegment.id) updatedSegment else it
+        _draftSegments.update { currentList ->
+            currentList.map { segment ->
+                if (segment.id == updatedSegment.id) updatedSegment else segment
+            }
         }
     }
 
     fun removeDraftSegment(segment: Segment) {
-        _draftSegments.value = _draftSegments.value - segment
+        _draftSegments.update { it - segment }
+        _draftSegmentFishermanIds.update { it - segment.id }
     }
 
     fun addDraftFisherman(fishermanId: Int) {
-        _draftFishermanIds.value = _draftFishermanIds.value + fishermanId
+        _draftFishermanIds.update { it + fishermanId }
     }
 
     fun removeDraftFisherman(fishermanId: Int) {
-        _draftFishermanIds.value = _draftFishermanIds.value - fishermanId
+        _draftFishermanIds.update { it - fishermanId }
     }
 
     fun addDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
-        val current = _draftSegmentFishermanIds.value[segmentId] ?: emptySet()
-        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
-                (segmentId to current + fishermanId)
+        _draftSegmentFishermanIds.update { currentMap ->
+            val current = currentMap[segmentId] ?: emptySet()
+            currentMap + (segmentId to current + fishermanId)
+        }
     }
 
     fun removeDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
-        val current = _draftSegmentFishermanIds.value[segmentId] ?: emptySet()
-        _draftSegmentFishermanIds.value = _draftSegmentFishermanIds.value +
-                (segmentId to current - fishermanId)
+        _draftSegmentFishermanIds.update { currentMap ->
+            val current = currentMap[segmentId] ?: emptySet()
+            currentMap + (segmentId to current - fishermanId)
+        }
     }
 
     fun toggleDraftFisherman(fishermanId: Int) {
-        val current = _draftFishermanIds.value
-        if (current.contains(fishermanId)) {
-            removeDraftFisherman(fishermanId)
-        } else {
-            addDraftFisherman(fishermanId)
+        _draftFishermanIds.update { current ->
+            if (current.contains(fishermanId)) current - fishermanId else current + fishermanId
         }
     }
 
@@ -249,8 +264,15 @@ class MainViewModel(
         return fishermanDao.getFishermanWithDetails(fishermanId)
     }
 
-    suspend fun addSegment(segment: Segment) {
-        segmentDao.insertSegment(segment)
+    suspend fun addSegment(segment: Segment): Long {
+        return segmentDao.insertSegment(segment)
+    }
+
+    suspend fun addSegmentWithFishermen(segment: Segment, fishermanIds: Collection<Int>) {
+        val segmentId = segmentDao.insertSegment(segment).toInt()
+        fishermanIds.forEach { fid ->
+            segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fid))
+        }
     }
 
     suspend fun updateSegment(segment: Segment) {

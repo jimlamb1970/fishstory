@@ -185,6 +185,7 @@ fun AddTripScreen(
 
     val draftSegments by viewModel.draftSegments.collectAsState()
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
+    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -278,9 +279,17 @@ fun AddTripScreen(
                         if (tripId == 0) {
                             val id = viewModel.addTrip(trip)
                             val actualTripId = id.toInt()
+                            
+                            // Save draft segments and their specific boat loads
                             draftSegments.forEach { draft ->
-                                viewModel.addSegment(draft.copy(tripId = actualTripId))
+                                val segmentFishermanIds = draftSegmentFishermanIds[draft.id] ?: emptySet()
+                                viewModel.addSegmentWithFishermen(
+                                    draft.copy(tripId = actualTripId, id = 0),
+                                    segmentFishermanIds
+                                )
                             }
+                            
+                            // Save trip-level boat load
                             draftFishermanIds.forEach { fishermanId ->
                                 viewModel.addFishermanToTrip(actualTripId, fishermanId)
                             }
@@ -392,6 +401,7 @@ fun AddTripScreen(
                 Text("Segments", style = MaterialTheme.typography.titleLarge)
 
                 IconButton(onClick = {
+                    viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
                     viewModel.updateDraftSegmentStartDate(startDateMillis)
                     viewModel.updateDraftSegmentEndDate(endDateMillis)
                     navigateToAddSegment(tripId)

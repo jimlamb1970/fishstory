@@ -63,48 +63,26 @@ fun AddSegmentScreen(
     var latitude by remember(draftSegmentLatitude) { mutableStateOf(draftSegmentLatitude) }
     var longitude by remember(draftSegmentLongitude) { mutableStateOf(draftSegmentLongitude) }
 
-    // Pre-populate from trip/draft on first load only
-    var initialised by remember { mutableStateOf(false) }
-    LaunchedEffect(tripWithDetails, draftTripStartDate) {
-        if (!initialised) {
-            if (tripId != 0) {
-                tripWithDetails?.trip?.let { trip ->
-                    startDateMillis = trip.startDate
-                    endDateMillis = trip.endDate
-                    latitude = trip.latitude
-                    longitude = trip.longitude
-                    viewModel.updateDraftSegmentStartDate(trip.startDate)
-                    viewModel.updateDraftSegmentEndDate(trip.endDate)
-                    viewModel.updateDraftSegmentLocation(trip.latitude, trip.longitude)
-                    initialised = true
-                }
-            } else {
-                // Pre-populate from draft trip values
-//                startDateMillis = draftTripStartDate
-//                endDateMillis = draftTripEndDate
-//                latitude = draftLatitude
-//                longitude = draftLongitude
-//                viewModel.updateDraftSegmentStartDate(draftTripStartDate)
-//                viewModel.updateDraftSegmentEndDate(draftTripEndDate)
-//                viewModel.updateDraftSegmentLocation(draftLatitude, draftLongitude)
-                initialised = true
-            }
-        }
-    }
-
     // The tempId for the current draft segment — used for fisherman tracking
     // We use -1 as a placeholder until saved; boat load screen uses this
     val draftSegmentId = -1
-
-    val fishermanCount = when {
-        tripId == 0 -> draftSegmentFishermanIds[draftSegmentId]?.size ?: draftFishermanIds.size
-        else -> tripWithDetails?.fishermen?.size ?: 0
-    }
 
     val eligibleIds: Set<Int> = when {
         tripId == 0 -> draftFishermanIds
         else -> tripWithDetails?.fishermen?.map { it.id }?.toSet() ?: emptySet()
     }
+
+    // Pre-populate the boat for this draft segment from trip fishermen (only once)
+    LaunchedEffect(eligibleIds) {
+        if (eligibleIds.isNotEmpty() &&
+            viewModel.draftSegmentFishermanIds.value[draftSegmentId] == null) {
+            eligibleIds.forEach { fishermanId ->
+                viewModel.addDraftSegmentFisherman(draftSegmentId, fishermanId)
+            }
+        }
+    }
+
+    val fishermanCount = draftSegmentFishermanIds[draftSegmentId]?.size ?: 0
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -199,7 +177,8 @@ fun AddSegmentScreen(
                         navigateBack()
                     } else {
                         scope.launch {
-                            viewModel.addSegment(
+                            val currentBoatFishermen = viewModel.draftSegmentFishermanIds.value[draftSegmentId] ?: eligibleIds
+                            viewModel.addSegmentWithFishermen(
                                 Segment(
                                     tripId = tripId,
                                     name = name,
@@ -207,7 +186,8 @@ fun AddSegmentScreen(
                                     endTime = endDateMillis,
                                     latitude = latitude,
                                     longitude = longitude
-                                )
+                                ),
+                                currentBoatFishermen
                             )
                             viewModel.clearDraftSegment()
                             navigateBack()
@@ -246,10 +226,10 @@ fun AddSegmentScreen(
                     millis = startDateMillis,
                     modifier = Modifier.weight(1f)
                 ) { newMillis ->
-                    if (newMillis < draftTripStartDate) {
+                    if (newMillis < draftTripStartDate && tripId == 0) {
                         Toast.makeText(context, "Start cannot be before trip start", Toast.LENGTH_SHORT)
                             .show()
-                    } else if (newMillis > draftTripEndDate) {
+                    } else if (newMillis > draftTripEndDate && tripId == 0) {
                         Toast.makeText(context, "Start cannot be after trip end", Toast.LENGTH_SHORT)
                             .show()
                     } else {
@@ -276,7 +256,7 @@ fun AddSegmentScreen(
                     if (newMillis < startDateMillis) {
                         Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
                     } else {
-                        if (newMillis > draftTripEndDate) {
+                        if (newMillis > draftTripEndDate && tripId == 0) {
                             Toast.makeText(context, "End cannot be after trip end", Toast.LENGTH_SHORT)
                                 .show()
                         } else {
