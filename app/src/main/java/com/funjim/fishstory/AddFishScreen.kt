@@ -39,6 +39,10 @@ fun AddFishScreen(
     val tripDetails by produceState<com.funjim.fishstory.model.TripWithDetails?>(initialValue = null) {
         viewModel.getTripWithDetails(tripId).collect { value = it }
     }
+    val segmentDetails by produceState<com.funjim.fishstory.model.SegmentWithDetails?>(initialValue = null) {
+        viewModel.getSegmentWithDetails(segmentId).collect { value = it }
+    }
+
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
 
     // Form State
@@ -49,6 +53,16 @@ fun AddFishScreen(
     var released by remember { mutableStateOf(true) }
     var holeNumberStr by remember { mutableStateOf("") }
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    val startTime = segmentDetails?.segment?.startTime ?: timestamp
+    val endTime = segmentDetails?.segment?.endTime ?: timestamp
+
+    if (timestamp < startTime) {
+        timestamp = startTime
+    }
+    if (timestamp > endTime) {
+        timestamp = startTime
+    }
 
     // Lure Logic (Filtered by Fisherman)
     val rawLures by if (selectedFishermanId != null) {
@@ -180,7 +194,7 @@ fun AddFishScreen(
                 expanded = fishermanExpanded,
                 onExpandedChange = { fishermanExpanded = !fishermanExpanded }
             ) {
-                val fishermanName = tripDetails?.fishermen?.find { it.id == selectedFishermanId }?.fullName ?: "Select Fisherman"
+                val fishermanName = segmentDetails?.fishermen?.find { it.id == selectedFishermanId }?.fullName ?: "Select Fisherman"
                 OutlinedTextField(
                     value = fishermanName,
                     onValueChange = {},
@@ -190,7 +204,7 @@ fun AddFishScreen(
                     modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 ExposedDropdownMenu(expanded = fishermanExpanded, onDismissRequest = { fishermanExpanded = false }) {
-                    tripDetails?.fishermen?.sortedBy { it.fullName }?.forEach { fisherman ->
+                    segmentDetails?.fishermen?.sortedBy { it.fullName }?.forEach { fisherman ->
                         DropdownMenuItem(
                             text = { Text(fisherman.fullName) },
                             onClick = {

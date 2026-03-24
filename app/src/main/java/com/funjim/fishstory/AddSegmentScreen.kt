@@ -226,10 +226,10 @@ fun AddSegmentScreen(
                     millis = startDateMillis,
                     modifier = Modifier.weight(1f)
                 ) { newMillis ->
-                    if (newMillis < draftTripStartDate && tripId == 0) {
+                    if (newMillis < draftTripStartDate) {
                         Toast.makeText(context, "Start cannot be before trip start", Toast.LENGTH_SHORT)
                             .show()
-                    } else if (newMillis > draftTripEndDate && tripId == 0) {
+                    } else if (newMillis > draftTripEndDate) {
                         Toast.makeText(context, "Start cannot be after trip end", Toast.LENGTH_SHORT)
                             .show()
                     } else {
@@ -256,7 +256,7 @@ fun AddSegmentScreen(
                     if (newMillis < startDateMillis) {
                         Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
                     } else {
-                        if (newMillis > draftTripEndDate && tripId == 0) {
+                        if (newMillis > draftTripEndDate) {
                             Toast.makeText(context, "End cannot be after trip end", Toast.LENGTH_SHORT)
                                 .show()
                         } else {

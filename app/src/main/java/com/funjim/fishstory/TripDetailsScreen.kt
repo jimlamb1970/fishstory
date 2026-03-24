@@ -206,7 +206,15 @@ fun TripDetailsScreen(
                         text = "Segments",
                         style = MaterialTheme.typography.titleLarge
                     )
-                    IconButton(onClick = { navigateToAddSegment(tripId) }) {
+                    IconButton(onClick = {
+                        viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
+                        // Set the start and end dates in the draft for the trip and segment
+                        viewModel.updateDraftSegmentStartDate(details.trip.startDate)
+                        viewModel.updateDraftSegmentEndDate(details.trip.endDate)
+                        viewModel.updateDraftTripStartDate(details.trip.startDate)
+                        viewModel.updateDraftTripEndDate(details.trip.endDate)
+                        navigateToAddSegment(tripId)
+                    }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Segment")
                     }
                 }

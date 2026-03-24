@@ -123,7 +123,7 @@ class MainViewModel(
     fun addDraftSegment(
         name: String,
         startTime: Long,
-        endTime: Long? = null,
+        endTime: Long,
         latitude: Double? = null,
         longitude: Double? = null
     ) {

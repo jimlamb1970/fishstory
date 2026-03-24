@@ -116,7 +116,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                 LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
                     items(fishermanLures) { lure ->
                         val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name ?: "Unknown Color"
-                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name ?: "Unknown Color"
+                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
                         val glowColorName = colors.find { it.id == lure.glowColorId }?.name
                         LureItem(
                             lure = lure,

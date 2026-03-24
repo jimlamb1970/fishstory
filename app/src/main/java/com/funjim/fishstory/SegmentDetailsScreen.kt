@@ -18,7 +18,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,9 @@ import com.funjim.fishstory.ui.getCurrentLocation
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,12 +59,16 @@ fun SegmentDetailsScreen(
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
     var showFishermenDialog by remember { mutableStateOf(false) }
+    var showMapPicker by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var fishToEdit by remember { mutableStateOf<Fish?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -113,6 +122,39 @@ fun SegmentDetailsScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
+
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    showMapPicker = true
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+
+                            if (segmentWithDetails?.segment?.latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        menuExpanded = false
+                                        segmentWithDetails?.segment?.let { segment ->
+                                            scope.launch {
+                                                viewModel.updateSegment(
+                                                    segment.copy(latitude = null, longitude = null)
+                                                )
+                                                Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -149,24 +191,62 @@ fun SegmentDetailsScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            PhotoPickerRow(
-                photos = segmentPhotos,
-                onPhotoSelected = { uri ->
-                    scope.launch {
-                        viewModel.addPhoto(Photo(uri = uri.toString(), segmentId = segmentId))
-                    }
-                },
-                onPhotoDeleted = { photo ->
-                    scope.launch {
-                        viewModel.deletePhoto(photo)
-                    }
-                },
-                modifier = Modifier.padding(8.dp)
-            )
-
-            HorizontalDivider()
-
             segmentWithDetails?.let { details ->
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Segment: ${details.segment.name}",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        if (details.segment.latitude != null && details.segment.longitude != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable {
+                                        val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                            )
+                        }
+                    }
+                    Text(
+                        text = "Start: ${dateTimeFormatter.format(Date(details.segment.startTime))}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "End: ${dateTimeFormatter.format(Date(details.segment.endTime))}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray
+                    )
+                }
+
+                PhotoPickerRow(
+                    photos = segmentPhotos,
+                    onPhotoSelected = { uri ->
+                        scope.launch {
+                            viewModel.addPhoto(Photo(uri = uri.toString(), segmentId = segmentId))
+                        }
+                    },
+                    onPhotoDeleted = { photo ->
+                        scope.launch {
+                            viewModel.deletePhoto(photo)
+                        }
+                    },
+                    modifier = Modifier.padding(8.dp)
+                )
+
+                HorizontalDivider()
+
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (details.segment.latitude != null && details.segment.longitude != null) {
                         Text(
@@ -307,6 +387,29 @@ fun SegmentDetailsScreen(
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
+        }
+
+        if (showMapPicker) {
+            MapPickerSelectionDialog(
+                initialLatLng = segmentWithDetails?.segment?.let {
+                    if (it.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
+                },
+                onDismiss = { showMapPicker = false },
+                onConfirm = { latLng ->
+                    segmentWithDetails?.segment?.let { segment ->
+                        scope.launch {
+                            viewModel.updateSegment(
+                                segment.copy(
+                                    latitude = latLng.latitude,
+                                    longitude = latLng.longitude
+                                )
+                            )
+                            Toast.makeText(context, "Segment location updated", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    showMapPicker = false
+                }
+            )
         }
 
         fishToUpdateLocation?.let { fishDetails ->
