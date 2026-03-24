@@ -16,6 +16,14 @@ interface SegmentDao {
     @Query("SELECT * FROM segment_table WHERE endTime IS NULL ORDER BY startTime DESC")
     fun getActiveSegments(): Flow<List<Segment>>
 
+    @Query("""
+    SELECT * FROM segment_table 
+    WHERE startTime <= :currentTime 
+    AND (endTime IS NULL OR endTime >= :currentTime) 
+    ORDER BY startTime DESC
+""")
+    fun getCurrentActiveSegments(currentTime: Long = System.currentTimeMillis()): Flow<List<Segment>>
+
     @Transaction
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
     fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen?>

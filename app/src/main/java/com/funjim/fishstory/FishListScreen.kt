@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishListScreen(
     viewModel: MainViewModel,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    onAddFish: (tripId: Int, segmentId: Int) -> Unit
 ) {
     val activeSegments by viewModel.activeSegments.collectAsState(initial = emptyList())
     var selectedSegment by remember { mutableStateOf<Segment?>(null) }
@@ -84,9 +85,11 @@ fun FishListScreen(
             )
         },
         floatingActionButton = {
-            if (selectedSegment != null) {
+            selectedSegment?.let { segment ->
                 ExtendedFloatingActionButton(
                     onClick = {
+                        // Keep your permission check logic here
+//                        if (hasLocationPermission(context)) {
                         val fineLocationPermission = ContextCompat.checkSelfPermission(
                             context,
                             Manifest.permission.ACCESS_FINE_LOCATION
@@ -99,7 +102,7 @@ fun FishListScreen(
                         if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
                             coarseLocationPermission == PackageManager.PERMISSION_GRANTED
                         ) {
-                            showAddFishDialog = true
+                            onAddFish(segment.tripId, segment.id)
                         } else {
                             permissionLauncher.launch(
                                 arrayOf(
@@ -113,7 +116,7 @@ fun FishListScreen(
                     text = { Text("Log Fish") }
                 )
             }
-        }
+        },
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             // Segment Selector

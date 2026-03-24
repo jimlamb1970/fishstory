@@ -30,7 +30,7 @@ class MainViewModel(
     val lures: Flow<List<Lure>> = lureDao.getAllLures()
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
-    val activeSegments: Flow<List<Segment>> = segmentDao.getActiveSegments()
+    val activeSegments: Flow<List<Segment>> = segmentDao.getCurrentActiveSegments()
     val allFish: Flow<List<FishWithDetails>> = fishDao.getAllFishWithDetails()
 
     // Draft state for new trip

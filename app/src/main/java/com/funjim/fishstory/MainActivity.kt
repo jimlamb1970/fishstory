@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
@@ -166,9 +167,38 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             }
         }
         composable("fish") {
-            FishListScreen(viewModel) {
-                navController.popBackStack()
-            }
+            FishListScreen(
+                viewModel = viewModel,
+                onAddFish = { tripId, segmentId ->
+                    navController.navigate("addFish/$tripId/$segmentId")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Define the destination with argument placeholders
+        composable(
+            route = "addFish/{tripId}/{segmentId}",
+            arguments = listOf(
+                navArgument("tripId") { type = NavType.IntType },
+                navArgument("segmentId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            // Extract the arguments from the backStackEntry
+            val tripId = backStackEntry.arguments?.getInt("tripId") ?: 0
+            val segmentId = backStackEntry.arguments?.getInt("segmentId") ?: 0
+
+            // Call the screen
+            AddFishScreen(
+                viewModel = viewModel,
+                tripId = tripId,
+                segmentId = segmentId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
         composable("settings") {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -255,6 +285,9 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 },
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fishermanDetails/$fishermanId")
+                },
+                navigateToAddFish = { tId, sId ->
+                    navController.navigate("addFish/$tId/$sId")
                 },
                 navigateBack = {
                     navController.popBackStack()
