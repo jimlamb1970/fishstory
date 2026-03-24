@@ -18,7 +18,8 @@ interface FishDao {
                 ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
             END) AS fishermanName, 
             lure_table.name AS lureName,
-            color_table.name AS lureColorName,
+            primary_color.name AS lurePrimaryColorName, 
+            secondary_color.name AS lureSecondaryColorName,
             lure_table.glows AS lureGlows,
             glow_color_table.name AS lureGlowColorName,
             fish_table.length, 
@@ -33,7 +34,8 @@ interface FishDao {
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS color_table ON lure_table.colorId = color_table.id
+        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
+        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         ORDER BY fish_table.timestamp DESC
     """)
@@ -49,7 +51,8 @@ interface FishDao {
                 ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
             END) AS fishermanName, 
             lure_table.name AS lureName,
-            color_table.name AS lureColorName,
+            primary_color.name AS lurePrimaryColorName, 
+            secondary_color.name AS lureSecondaryColorName,
             lure_table.glows AS lureGlows,
             glow_color_table.name AS lureGlowColorName,
             fish_table.length, 
@@ -64,7 +67,8 @@ interface FishDao {
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS color_table ON lure_table.colorId = color_table.id
+        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
+        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         WHERE fish_table.tripId = :tripId
         ORDER BY fish_table.timestamp DESC
@@ -81,7 +85,8 @@ interface FishDao {
                 ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
             END) AS fishermanName,
             lure_table.name AS lureName,
-            color_table.name AS lureColorName,
+            primary_color.name AS lurePrimaryColorName, 
+            secondary_color.name AS lureSecondaryColorName,
             lure_table.glows AS lureGlows,
             glow_color_table.name AS lureGlowColorName,
             fish_table.length, 
@@ -96,7 +101,8 @@ interface FishDao {
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS color_table ON lure_table.colorId = color_table.id
+        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
+        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         WHERE fish_table.segmentId = :segmentId
         ORDER BY fish_table.timestamp DESC

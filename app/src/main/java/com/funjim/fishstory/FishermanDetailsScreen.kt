@@ -115,11 +115,13 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                 
                 LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
                     items(fishermanLures) { lure ->
-                        val colorName = colors.find { it.id == lure.colorId }?.name ?: "Unknown Color"
+                        val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name ?: "Unknown Color"
+                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name ?: "Unknown Color"
                         val glowColorName = colors.find { it.id == lure.glowColorId }?.name
                         LureItem(
                             lure = lure,
-                            colorName = colorName,
+                            primaryColorName = primaryColorName,
+                            secondaryColorName = secondaryColorName,
                             glowColorName = glowColorName,
                             viewModel = viewModel,
                             onEdit = { lureToEdit = lure },
@@ -198,10 +200,11 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
 
                         LazyColumn {
                             items(luresNotInTackleBox) { lure ->
-                                val colorName = colors.find { it.id == lure.colorId }?.name
+                                val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+                                val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
                                 val glowColorName = colors.find { it.id == lure.glowColorId }?.name
                                 Text(
-                                    text = lure.getDisplayName(colorName, glowColorName),
+                                    text = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
@@ -229,9 +232,9 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
             LureDialog(
                 colors = colors,
                 onDismiss = { showAddLureDialog = false },
-                onConfirm = { name, colorId, isSingleHook, glows, glowColorId ->
+                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
                     scope.launch {
-                        val newLureId = viewModel.addLure(Lure(name = name, colorId = colorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
+                        val newLureId = viewModel.addLure(Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
                         viewModel.addLureToFishermanTackleBox(fishermanId, newLureId.toInt())
                         showAddLureDialog = false
                     }
@@ -249,16 +252,17 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
         lureToEdit?.let { lure ->
             LureDialog(
                 initialName = lure.name,
-                initialColorId = lure.colorId,
+                initialPrimaryColorId = lure.primaryColorId,
+                initialSecondaryColorId = lure.secondaryColorId,
                 initialIsSingleHook = lure.hasSingleHook,
                 initialGlows = lure.glows,
                 initialGlowColorId = lure.glowColorId,
                 title = "Edit Lure",
                 colors = colors,
                 onDismiss = { lureToEdit = null },
-                onConfirm = { name, colorId, isSingleHook, glows, glowColorId ->
+                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
                     scope.launch {
-                        viewModel.addLure(lure.copy(name = name, colorId = colorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
+                        viewModel.addLure(lure.copy(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
                         lureToEdit = null
                     }
                 },

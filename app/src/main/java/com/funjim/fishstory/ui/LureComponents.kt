@@ -23,26 +23,30 @@ import kotlinx.coroutines.launch
 @Composable
 fun LureDialog(
     initialName: String = "",
-    initialColorId: Int? = null,
+    initialPrimaryColorId: Int? = null,
+    initialSecondaryColorId: Int? = null,
     initialIsSingleHook: Boolean = false,
     initialGlows: Boolean = false,
     initialGlowColorId: Int? = null,
     title: String = "New Lure",
     colors: List<LureColor>,
     onDismiss: () -> Unit,
-    onConfirm: (String, Int?, Boolean, Boolean, Int?) -> Unit,
+    onConfirm: (String, Int?, Int?, Boolean, Boolean, Int?) -> Unit,
     onAddColor: (String, (Int) -> Unit) -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
-    var selectedColorId by remember { mutableStateOf(initialColorId) }
+    var selectedPrimaryColorId by remember { mutableStateOf(initialPrimaryColorId) }
+    var selectedSecondaryColorId by remember { mutableStateOf(initialSecondaryColorId) }
     var isSingleHook by remember { mutableStateOf(initialIsSingleHook) }
     var glows by remember { mutableStateOf(initialGlows) }
     var selectedGlowColorId by remember { mutableStateOf(initialGlowColorId) }
     
-    var colorExpanded by remember { mutableStateOf(false) }
+    var primaryColorExpanded by remember { mutableStateOf(false) }
+    var secondaryColorExpanded by remember { mutableStateOf(false) }
     var glowColorExpanded by remember { mutableStateOf(false) }
     
-    var showAddColorDialogForMain by remember { mutableStateOf(false) }
+    var showAddColorDialogForPrimary by remember { mutableStateOf(false) }
+    var showAddColorDialogForSecondary by remember { mutableStateOf(false) }
     var showAddColorDialogForGlow by remember { mutableStateOf(false) }
     var newColorName by remember { mutableStateOf("") }
 
@@ -50,10 +54,11 @@ fun LureDialog(
         colors.sortedBy { it.name }
     }
 
-    if (showAddColorDialogForMain || showAddColorDialogForGlow) {
+    if (showAddColorDialogForPrimary || showAddColorDialogForSecondary || showAddColorDialogForGlow) {
         AlertDialog(
             onDismissRequest = { 
-                showAddColorDialogForMain = false
+                showAddColorDialogForPrimary = false
+                showAddColorDialogForSecondary = false
                 showAddColorDialogForGlow = false
                 newColorName = ""
             },
@@ -68,15 +73,17 @@ fun LureDialog(
             confirmButton = {
                 Button(onClick = {
                     if (newColorName.isNotBlank()) {
-                        val isGlow = showAddColorDialogForGlow
                         onAddColor(newColorName) { newId ->
-                            if (isGlow) {
+                            if (showAddColorDialogForPrimary) {
+                                selectedPrimaryColorId = newId
+                            } else if (showAddColorDialogForSecondary) {
+                                selectedSecondaryColorId = newId
+                            } else if (showAddColorDialogForGlow) {
                                 selectedGlowColorId = newId
-                            } else {
-                                selectedColorId = newId
                             }
                         }
-                        showAddColorDialogForMain = false
+                        showAddColorDialogForPrimary = false
+                        showAddColorDialogForSecondary = false
                         showAddColorDialogForGlow = false
                         newColorName = ""
                     }
@@ -84,7 +91,8 @@ fun LureDialog(
             },
             dismissButton = {
                 Button(onClick = { 
-                    showAddColorDialogForMain = false
+                    showAddColorDialogForPrimary = false
+                    showAddColorDialogForSecondary = false
                     showAddColorDialogForGlow = false
                     newColorName = ""
                 }) { Text("Cancel") }
@@ -105,29 +113,30 @@ fun LureDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
+                // Primary Color Dropdown
                 ExposedDropdownMenuBox(
-                    expanded = colorExpanded,
-                    onExpandedChange = { colorExpanded = !colorExpanded }
+                    expanded = primaryColorExpanded,
+                    onExpandedChange = { primaryColorExpanded = !primaryColorExpanded }
                 ) {
-                    val selectedColorName = sortedColors.find { it.id == selectedColorId }?.name ?: "Select Color"
+                    val selectedColorName = sortedColors.find { it.id == selectedPrimaryColorId }?.name ?: "Select Primary Color"
                     TextField(
                         value = selectedColorName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Color") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = colorExpanded) },
+                        label = { Text("Primary Color") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = primaryColorExpanded) },
                         modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = colorExpanded,
-                        onDismissRequest = { colorExpanded = false }
+                        expanded = primaryColorExpanded,
+                        onDismissRequest = { primaryColorExpanded = false }
                     ) {
                         sortedColors.forEach { color ->
                             DropdownMenuItem(
                                 text = { Text(color.name) },
                                 onClick = {
-                                    selectedColorId = color.id
-                                    colorExpanded = false
+                                    selectedPrimaryColorId = color.id
+                                    primaryColorExpanded = false
                                 }
                             )
                         }
@@ -135,8 +144,49 @@ fun LureDialog(
                         DropdownMenuItem(
                             text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
                             onClick = {
-                                colorExpanded = false
-                                showAddColorDialogForMain = true
+                                primaryColorExpanded = false
+                                showAddColorDialogForPrimary = true
+                            },
+                            leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Secondary Color Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = secondaryColorExpanded,
+                    onExpandedChange = { secondaryColorExpanded = !secondaryColorExpanded }
+                ) {
+                    val selectedColorName = sortedColors.find { it.id == selectedSecondaryColorId }?.name ?: "Select Secondary Color"
+                    TextField(
+                        value = selectedColorName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Secondary Color (Optional)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = secondaryColorExpanded) },
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = secondaryColorExpanded,
+                        onDismissRequest = { secondaryColorExpanded = false }
+                    ) {
+                        sortedColors.forEach { color ->
+                            DropdownMenuItem(
+                                text = { Text(color.name) },
+                                onClick = {
+                                    selectedSecondaryColorId = color.id
+                                    secondaryColorExpanded = false
+                                }
+                            )
+                        }
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                secondaryColorExpanded = false
+                                showAddColorDialogForSecondary = true
                             },
                             leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                         )
@@ -206,7 +256,7 @@ fun LureDialog(
         confirmButton = {
             Button(onClick = {
                 if (name.isNotBlank()) {
-                    onConfirm(name, selectedColorId, isSingleHook, glows, selectedGlowColorId)
+                    onConfirm(name, selectedPrimaryColorId, selectedSecondaryColorId, isSingleHook, glows, selectedGlowColorId)
                 }
             }) { Text("Save") }
         },
@@ -276,7 +326,8 @@ fun ManageColorsDialog(
 @Composable
 fun LureItem(
     lure: Lure, 
-    colorName: String?, 
+    primaryColorName: String?,
+    secondaryColorName: String?,
     glowColorName: String?,
     viewModel: MainViewModel,
     onEdit: () -> Unit, 
@@ -293,7 +344,7 @@ fun LureItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(lure.getDisplayName(colorName, glowColorName), style = MaterialTheme.typography.titleLarge)
+                    Text(lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName), style = MaterialTheme.typography.titleLarge)
                     Text(
                         text = if (lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                         style = MaterialTheme.typography.bodySmall,

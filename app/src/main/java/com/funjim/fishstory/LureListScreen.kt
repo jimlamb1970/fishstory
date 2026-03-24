@@ -56,10 +56,11 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
     // Prepare sorted list for All Lures mode
     val allLuresSorted = remember(allLures, colors) {
         allLures.map { lure ->
-            val colorName = colors.find { it.id == lure.colorId }?.name
+            val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+            val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
             val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-            val displayName = lure.getDisplayName(colorName, glowColorName)
-            LureWithDisplay(lure, colorName, glowColorName, displayName)
+            val displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
+            LureWithDisplay(lure, primaryColorName, secondaryColorName, glowColorName, displayName)
         }.sortedBy { it.displayName }
     }
 
@@ -135,7 +136,8 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                         items(allLuresSorted, key = { it.lure.id }) { item ->
                             LureItem(
                                 lure = item.lure,
-                                colorName = item.colorName,
+                                primaryColorName = item.primaryColorName,
+                                secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
                                 viewModel = viewModel,
                                 onEdit = { lureToEdit = item.lure },
@@ -151,18 +153,20 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                 val luresNotInTackleBoxSorted = remember(allLures, luresForFisherman, colors) {
                     allLures.filter { lure -> luresForFisherman.none { it.id == lure.id } }
                         .map { lure ->
-                            val colorName = colors.find { it.id == lure.colorId }?.name
+                            val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+                            val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
                             val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-                            val displayName = lure.getDisplayName(colorName, glowColorName)
+                            val displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
                             lure to displayName
                         }.sortedBy { it.second }
                 }
 
                 val luresForFishermanSorted = remember(luresForFisherman, colors) {
                     luresForFisherman.map { lure ->
-                        val colorName = colors.find { it.id == lure.colorId }?.name
+                        val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
                         val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-                        val displayName = lure.getDisplayName(colorName, glowColorName)
+                        val displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
                         lure to displayName
                     }.sortedBy { it.second }
                 }
@@ -270,9 +274,9 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
             LureDialog(
                 colors = colors,
                 onDismiss = { showAddLureDialog = false },
-                onConfirm = { name, colorId, isSingleHook, glows, glowColorId ->
+                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
                     scope.launch {
-                        viewModel.addLure(Lure(name = name, colorId = colorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
+                        viewModel.addLure(Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
                         showAddLureDialog = false
                     }
                 },
@@ -288,16 +292,17 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
         lureToEdit?.let { lure ->
             LureDialog(
                 initialName = lure.name,
-                initialColorId = lure.colorId,
+                initialPrimaryColorId = lure.primaryColorId,
+                initialSecondaryColorId = lure.secondaryColorId,
                 initialIsSingleHook = lure.hasSingleHook,
                 initialGlows = lure.glows,
                 initialGlowColorId = lure.glowColorId,
                 title = "Edit Lure",
                 colors = colors,
                 onDismiss = { lureToEdit = null },
-                onConfirm = { name, colorId, isSingleHook, glows, glowColorId ->
+                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
                     scope.launch {
-                        viewModel.addLure(lure.copy(name = name, colorId = colorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
+                        viewModel.addLure(lure.copy(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
                         lureToEdit = null
                     }
                 },
@@ -327,7 +332,8 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
 
 private data class LureWithDisplay(
     val lure: Lure,
-    val colorName: String?,
+    val primaryColorName: String?,
+    val secondaryColorName: String?,
     val glowColorName: String?,
     val displayName: String
 )

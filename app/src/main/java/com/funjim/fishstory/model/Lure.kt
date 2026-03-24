@@ -17,7 +17,13 @@ data class LureColor(
         ForeignKey(
             entity = LureColor::class,
             parentColumns = ["id"],
-            childColumns = ["colorId"],
+            childColumns = ["primaryColorId"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = LureColor::class,
+            parentColumns = ["id"],
+            childColumns = ["secondaryColorId"],
             onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
@@ -28,23 +34,35 @@ data class LureColor(
         )
     ],
     indices = [
-        Index(value = ["colorId"]),
+        Index(value = ["primaryColorId"]),
+        Index(value = ["secondaryColorId"]),
         Index(value = ["glowColorId"])
     ]
 )
 data class Lure(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val colorId: Int?,
+    val primaryColorId: Int?,
+    val secondaryColorId: Int?,
     val hasSingleHook: Boolean,
     val glows: Boolean,
     val glowColorId: Int?
 ) {
-    fun getDisplayName(colorName: String?, glowColorName: String?): String {
+    fun getDisplayName(primaryColorName: String?, secondaryColorName: String?, glowColorName: String?): String {
         val sb = StringBuilder(name)
-        if (!colorName.isNullOrBlank()) {
-            sb.append(" : $colorName")
+        
+        val colors = mutableListOf<String>()
+        if (!primaryColorName.isNullOrBlank()) {
+            colors.add(primaryColorName)
         }
+        if (!secondaryColorName.isNullOrBlank()) {
+            colors.add(secondaryColorName)
+        }
+
+        if (colors.isNotEmpty()) {
+            sb.append(" : ${colors.joinToString("/")}")
+        }
+
         if (glows) {
             sb.append(", Glow")
             if (!glowColorName.isNullOrBlank()) {

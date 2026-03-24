@@ -59,9 +59,10 @@ fun AddFishScreen(
 
     val luresSorted = remember(rawLures, colors) {
         rawLures.map { lure ->
-            val colorName = colors.find { it.id == lure.colorId }?.name
+            val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+            val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
             val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-            lure to lure.getDisplayName(colorName, glowColorName)
+            lure to lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
         }.sortedBy { it.second }
     }
 
