@@ -45,6 +45,7 @@ fun SegmentDetailsScreen(
     tripId: Int,
     navigateToSegmentBoatLoad: (Int, Int) -> Unit,
     navigateToFishermanDetails: (Int) -> Unit,
+    navigateToAddFish: (tripId: Int, segmentId: Int) -> Unit,
     navigateBack: () -> Unit
 ) {
     val segmentWithDetails by viewModel.getSegmentWithDetails(segmentId).collectAsState(initial = null)
@@ -52,7 +53,6 @@ fun SegmentDetailsScreen(
     val allSpecies by viewModel.species.collectAsState(initial = emptyList())
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
-    var showAddFishDialog by remember { mutableStateOf(false) }
     var showFishermenDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var fishToEdit by remember { mutableStateOf<Fish?>(null) }
@@ -133,7 +133,7 @@ fun SegmentDetailsScreen(
                     if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
                         coarseLocationPermission == PackageManager.PERMISSION_GRANTED
                     ) {
-                        showAddFishDialog = true
+                        navigateToAddFish(tripId, segmentId)
                     } else {
                         permissionLauncher.launch(
                             arrayOf(
@@ -261,43 +261,6 @@ fun SegmentDetailsScreen(
                         confirmButton = {
                             TextButton(onClick = { showFishermenDialog = false }) {
                                 Text("Close")
-                            }
-                        }
-                    )
-                }
-
-                if (showAddFishDialog) {
-                    AddFishDialog(
-                        viewModel = viewModel,
-                        speciesList = allSpecies,
-                        // Use segment fishermen if available, otherwise trip fishermen as fallback
-                        fishermenList = details.fishermen,
-                        onDismiss = { showAddFishDialog = false },
-                        onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNumber ->
-                            scope.launch {
-                                val location = getCurrentLocation(context)
-                                viewModel.addFish(
-                                    Fish(
-                                        speciesId = speciesId,
-                                        fishermanId = fishermanId,
-                                        tripId = tripId,
-                                        segmentId = segmentId,
-                                        lureId = lureId,
-                                        length = length,
-                                        isReleased = released,
-                                        timestamp = timestamp,
-                                        holeNumber = holeNumber,
-                                        latitude = location?.first,
-                                        longitude = location?.second
-                                    )
-                                )
-                                showAddFishDialog = false
-                            }
-                        },
-                        onAddSpecies = { name, onComplete ->
-                            scope.launch {
-                                val newId = viewModel.addSpecies(name)
-                                onComplete(newId.toInt())
                             }
                         }
                     )
