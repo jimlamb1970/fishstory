@@ -9,18 +9,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.ui.LureDialog
 import com.funjim.fishstory.ui.LureItem
 import com.funjim.fishstory.ui.ManageColorsDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -28,14 +26,16 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
+fun LureListScreen(
+    viewModel: MainViewModel,
+    onAddLure: (Int?) -> Unit, // Callback for Navigating to Add/Edit screen
+    navigateBack: () -> Unit
+) {
     val allLures by viewModel.lures.collectAsState(initial = emptyList())
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val fishermen by viewModel.fishermen.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
-    var showAddLureDialog by remember { mutableStateOf(false) }
-    var lureToEdit by remember { mutableStateOf<Lure?>(null) }
     var showManageColorsDialog by remember { mutableStateOf(false) }
 
     var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
@@ -53,14 +53,20 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
         }
     }.collectAsState(initial = emptyList())
 
-    // Prepare sorted list for All Lures mode
-    val allLuresSorted = remember(allLures, colors) {
+    // Transform lures into a displayable list with color names pre-resolved
+    val displayLures = remember(allLures, colors) {
         allLures.map { lure ->
             val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
             val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
             val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-            val displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
-            LureWithDisplay(lure, primaryColorName, secondaryColorName, glowColorName, displayName)
+
+            LureWithDisplay(
+                lure = lure,
+                primaryColorName = primaryColorName,
+                secondaryColorName = secondaryColorName,
+                glowColorName = glowColorName,
+                displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
+            )
         }.sortedBy { it.displayName }
     }
 
@@ -75,14 +81,14 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                 },
                 actions = {
                     IconButton(onClick = { showManageColorsDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Manage Colors")
+                        Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Colors")
                     }
                 }
             )
         },
         floatingActionButton = {
             if (selectedFisherman == null) {
-                FloatingActionButton(onClick = { showAddLureDialog = true }) {
+                FloatingActionButton(onClick = { onAddLure(null) }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Lure")
                 }
             }
@@ -127,20 +133,20 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
 
             if (selectedFisherman == null) {
                 // All Lures Mode
-                if (allLuresSorted.isEmpty()) {
+                if (allLures.isEmpty()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text("No lures found. Add one!")
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        items(allLuresSorted, key = { it.lure.id }) { item ->
+                        items(displayLures, key = { it.lure.id }) { item ->
                             LureItem(
                                 lure = item.lure,
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
                                 viewModel = viewModel,
-                                onEdit = { lureToEdit = item.lure },
+                                onEdit = { onAddLure(item.lure.id) }, // Navigate to screen with ID
                                 onDelete = {
                                     scope.launch { viewModel.deleteLure(item.lure) }
                                 }
@@ -178,7 +184,7 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.primary
                     )
-                    
+
                     // Top List Box: Available Lures
                     Box(
                         modifier = Modifier
@@ -270,57 +276,12 @@ fun LureListScreen(viewModel: MainViewModel, navigateBack: () -> Unit) {
             }
         }
 
-        if (showAddLureDialog) {
-            LureDialog(
-                colors = colors,
-                onDismiss = { showAddLureDialog = false },
-                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
-                    scope.launch {
-                        viewModel.addLure(Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
-                        showAddLureDialog = false
-                    }
-                },
-                onAddColor = { colorName, onComplete ->
-                    scope.launch {
-                        val newId = viewModel.addLureColor(LureColor(name = colorName))
-                        onComplete(newId.toInt())
-                    }
-                }
-            )
-        }
-
-        lureToEdit?.let { lure ->
-            LureDialog(
-                initialName = lure.name,
-                initialPrimaryColorId = lure.primaryColorId,
-                initialSecondaryColorId = lure.secondaryColorId,
-                initialIsSingleHook = lure.hasSingleHook,
-                initialGlows = lure.glows,
-                initialGlowColorId = lure.glowColorId,
-                title = "Edit Lure",
-                colors = colors,
-                onDismiss = { lureToEdit = null },
-                onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
-                    scope.launch {
-                        viewModel.addLure(lure.copy(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
-                        lureToEdit = null
-                    }
-                },
-                onAddColor = { colorName, onComplete ->
-                    scope.launch {
-                        val newId = viewModel.addLureColor(LureColor(name = colorName))
-                        onComplete(newId.toInt())
-                    }
-                }
-            )
-        }
-
         if (showManageColorsDialog) {
             ManageColorsDialog(
                 colors = colors,
                 onDismiss = { showManageColorsDialog = false },
                 onAddColor = { colorName ->
-                    scope.launch { viewModel.addLureColor(LureColor(name = colorName)) }
+                    scope.launch { viewModel.addLureColor(com.funjim.fishstory.model.LureColor(name = colorName)) }
                 },
                 onDeleteColor = { color ->
                     scope.launch { viewModel.deleteLureColor(color) }

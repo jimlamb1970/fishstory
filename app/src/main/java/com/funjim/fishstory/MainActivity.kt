@@ -161,11 +161,38 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 }
             )
         }
-        composable("lures") {
-            LureListScreen(viewModel) {
-                navController.popBackStack()
-            }
+        composable(
+            route = "addLure?lureId={lureId}",
+            arguments = listOf(
+                navArgument("lureId") {
+                    type = NavType.StringType // Use String for simplicity, parse to Int inside
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val lureIdStr = backStackEntry.arguments?.getString("lureId")
+            AddLureScreen(
+                viewModel = viewModel,
+                lureId = lureIdStr?.toIntOrNull(),
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
+
+        composable("lures") {
+            LureListScreen(
+                viewModel = viewModel,
+                onAddLure = { lureId, ->
+                    val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
+                    navController.navigate(route)                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable("fish") {
             FishListScreen(
                 viewModel = viewModel,

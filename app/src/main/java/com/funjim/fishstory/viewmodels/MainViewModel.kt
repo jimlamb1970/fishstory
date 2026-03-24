@@ -317,6 +317,10 @@ class MainViewModel(
         lureDao.deleteLure(lure)
     }
 
+    suspend fun getLureById(id: Int): Lure? {
+        return lureDao.getLureById(id)
+    }
+
     fun getLuresForFisherman(fishermanId: Int): Flow<List<Lure>> {
         return tackleBoxDao.getLuresForFisherman(fishermanId)
     }

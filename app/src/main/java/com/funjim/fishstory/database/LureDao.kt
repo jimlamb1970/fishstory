@@ -11,6 +11,9 @@ interface LureDao {
     @Query("SELECT * FROM lure_table")
     fun getAllLures(): Flow<List<Lure>>
 
+    @Query("SELECT * FROM lure_table WHERE id = :id")
+    suspend fun getLureById(id: Int): Lure?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLure(lure: Lure): Long
 
