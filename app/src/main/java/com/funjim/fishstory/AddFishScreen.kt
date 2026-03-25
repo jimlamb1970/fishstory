@@ -18,9 +18,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.ui.DateTimeUtils.toLocalDateTime
+import com.funjim.fishstory.ui.DateTimeUtils.updateDate
+import com.funjim.fishstory.ui.DateTimeUtils.updateTime
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,14 +61,23 @@ fun AddFishScreen(
     var holeNumberStr by remember { mutableStateOf("") }
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
+    // Check for both FINE and COARSE location permissions
+    val hasLocationPermission = remember {
+        context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+    // Default to true only if permission is actually granted
+    var useCurrentLocation by remember { mutableStateOf(hasLocationPermission) }
+
     val startTime = segmentDetails?.segment?.startTime ?: timestamp
     val endTime = segmentDetails?.segment?.endTime ?: timestamp
+
 
     if (timestamp < startTime) {
         timestamp = startTime
     }
     if (timestamp > endTime) {
-        timestamp = startTime
+        timestamp = endTime
     }
 
     // Lure Logic (Filtered by Fisherman)
@@ -89,34 +105,44 @@ fun AddFishScreen(
     var showNewSpeciesDialog by remember { mutableStateOf(false) }
     var newSpeciesName by remember { mutableStateOf("") }
 
-    // Date/Time Picker States
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = timestamp)
+    val localDateTime = remember(timestamp) { timestamp.toLocalDateTime() }
+
+    val datePickerState = key(showDatePicker) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = timestamp.toUtcMidnight(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val startMidnight = startTime.toUtcMidnight()
+                    val endMidnight = endTime.toUtcMidnight()
+                    return utcTimeMillis in startMidnight..endMidnight
+                }
+
+                override fun isSelectableYear(year: Int): Boolean {
+                    val startYear =
+                        Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).year
+                    val endYear = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault()).year
+                    return year in startYear..endYear
+                }
+            }
+        )
+    }
+
     val timePickerState = rememberTimePickerState(
-        initialHour = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.HOUR_OF_DAY),
-        initialMinute = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.MINUTE)
+        initialHour = localDateTime.hour,
+        initialMinute = localDateTime.minute
     )
 
-    // Reuse Dialog logic for Date/Time
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { dateMillis ->
-                        val calendar = Calendar.getInstance().apply {
-                            timeInMillis = timestamp
-                            val hour = get(Calendar.HOUR_OF_DAY)
-                            val minute = get(Calendar.MINUTE)
-                            timeInMillis = dateMillis
-                            set(Calendar.HOUR_OF_DAY, hour)
-                            set(Calendar.MINUTE, minute)
-                        }
-                        timestamp = calendar.timeInMillis
+                    datePickerState.selectedDateMillis?.let {
+                        timestamp = updateDate(timestamp, it)
                     }
                     showDatePicker = false
                 }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
+            }
         ) { DatePicker(state = datePickerState) }
     }
 
@@ -125,17 +151,23 @@ fun AddFishScreen(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    val calendar = Calendar.getInstance().apply {
-                        timeInMillis = timestamp
-                        set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                        set(Calendar.MINUTE, timePickerState.minute)
-                    }
-                    timestamp = calendar.timeInMillis
+                    val candidate = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
+                    // Clamp to the valid range
+                    timestamp = candidate.coerceIn(startTime, endTime)
                     showTimePicker = false
                 }) { Text("OK") }
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } },
-            text = { TimePicker(state = timePickerState) }
+            text = {
+                // Wrapped in a Box for alignment and better tap targets
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TimePicker(state = timePickerState)
+                }
+            }
         )
     }
 
@@ -275,6 +307,16 @@ fun AddFishScreen(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = useCurrentLocation,
+                    onCheckedChange = { useCurrentLocation = it },
+                    // Disable the checkbox if permissions aren't set
+                    enabled = hasLocationPermission
+                )
+                Text("Use current location")
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = released, onCheckedChange = { released = it })
                 Text("Released")
             }
@@ -284,7 +326,12 @@ fun AddFishScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        val location = getCurrentLocation(context)
+                        // Check both the state AND the actual permission
+                        val location = if (useCurrentLocation && hasLocationPermission) {
+                            getCurrentLocation(context)
+                        } else {
+                            null
+                        }
                         viewModel.addFish(
                             Fish(
                                 speciesId = selectedSpeciesId ?: 0,
@@ -339,3 +386,11 @@ fun AddFishScreen(
         )
     }
 }
+
+fun Long.toUtcMidnight(): Long =
+    Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli()
