@@ -76,7 +76,8 @@ data class FishWithDetails(
     val speciesName: String,
     val fishermanName: String,
     val lureName: String?,
-    val lureColorName: String?,
+    val lurePrimaryColorName: String?,
+    val lureSecondaryColorName: String?,
     val lureGlows: Boolean?,
     val lureGlowColorName: String?,
     val length: Double,
@@ -91,8 +92,8 @@ data class FishWithDetails(
     fun getFullLureName(): String? {
         if (lureName == null) return null
         val sb = StringBuilder(lureName)
-        if (!lureColorName.isNullOrBlank()) {
-            sb.append(" : $lureColorName")
+        if (!lurePrimaryColorName.isNullOrBlank()) {
+            sb.append(" : $lurePrimaryColorName")
         }
         if (lureGlows == true) {
             sb.append(", Glow")
