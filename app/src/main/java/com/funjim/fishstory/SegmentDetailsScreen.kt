@@ -28,7 +28,6 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.ui.AddFishDialog
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishItem
 import com.funjim.fishstory.ui.FishermanItem
@@ -61,7 +60,6 @@ fun SegmentDetailsScreen(
     var showFishermenDialog by remember { mutableStateOf(false) }
     var showMapPicker by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
-    var fishToEdit by remember { mutableStateOf<Fish?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
@@ -339,45 +337,6 @@ fun SegmentDetailsScreen(
                         confirmButton = {
                             TextButton(onClick = { showFishermenDialog = false }) {
                                 Text("Close")
-                            }
-                        }
-                    )
-                }
-
-                fishToEdit?.let { fish ->
-                    AddFishDialog(
-                        viewModel = viewModel,
-                        title = "Edit Catch",
-                        initialSpeciesId = fish.speciesId,
-                        initialFishermanId = fish.fishermanId,
-                        initialLureId = fish.lureId,
-                        initialLength = fish.length,
-                        initialReleased = fish.isReleased,
-                        initialTimestamp = fish.timestamp,
-                        initialHoleNumber = fish.holeNumber,
-                        speciesList = allSpecies,
-                        fishermenList = details.fishermen,
-                        onDismiss = { fishToEdit = null },
-                        onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
-                            scope.launch {
-                                viewModel.updateFish(
-                                    fish.copy(
-                                        speciesId = speciesId,
-                                        fishermanId = fishermanId,
-                                        lureId = lureId,
-                                        length = length,
-                                        isReleased = released,
-                                        timestamp = timestamp,
-                                        holeNumber = holeNum
-                                    )
-                                )
-                                fishToEdit = null
-                            }
-                        },
-                        onAddSpecies = { name, onAdded ->
-                            scope.launch {
-                                val newId = viewModel.addSpecies(name)
-                                onAdded(newId.toInt())
                             }
                         }
                     )
