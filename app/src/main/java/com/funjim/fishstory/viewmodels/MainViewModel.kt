@@ -365,6 +365,10 @@ class MainViewModel(
         return fishDao.insertFish(fish)
     }
 
+    suspend fun upsertFish(fish: Fish) {
+        return fishDao.upsertFish(fish)
+    }
+
     suspend fun updateFish(fish: Fish) {
         fishDao.updateFish(fish)
     }

@@ -196,8 +196,9 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         composable("fish") {
             FishListScreen(
                 viewModel = viewModel,
-                onAddFish = { tripId, segmentId ->
-                    navController.navigate("addFish/$tripId/$segmentId")
+                onAddFish = { tripId, segmentId, fishId ->
+                    val route = if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                    navController.navigate(route)
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -207,21 +208,28 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
 
         // Define the destination with argument placeholders
         composable(
-            route = "addFish/{tripId}/{segmentId}",
+            route = "addFish/{tripId}/{segmentId}?fishId={fishId}",
             arguments = listOf(
                 navArgument("tripId") { type = NavType.IntType },
-                navArgument("segmentId") { type = NavType.IntType }
+                navArgument("segmentId") { type = NavType.IntType },
+                navArgument("fishId") {
+                    type = NavType.StringType // Use String for simplicity, parse to Int inside
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             // Extract the arguments from the backStackEntry
             val tripId = backStackEntry.arguments?.getInt("tripId") ?: 0
             val segmentId = backStackEntry.arguments?.getInt("segmentId") ?: 0
+            val fishIdStr = backStackEntry.arguments?.getString("fishId")
 
             // Call the screen
             AddFishScreen(
                 viewModel = viewModel,
                 tripId = tripId,
                 segmentId = segmentId,
+                fishId = fishIdStr?.toIntOrNull(),
                 onNavigateBack = {
                     navController.popBackStack()
                 }
@@ -313,8 +321,9 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fishermanDetails/$fishermanId")
                 },
-                navigateToAddFish = { tId, sId ->
-                    navController.navigate("addFish/$tId/$sId")
+                navigateToAddFish = { tId, sId, fId ->
+                    val route = if (fId != null) "addFish/$tripId/$segmentId?fishId=$fId" else "addFish/$tripId/$segmentId"
+                    navController.navigate(route)
                 },
                 navigateBack = {
                     navController.popBackStack()

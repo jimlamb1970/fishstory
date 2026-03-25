@@ -116,6 +116,9 @@ interface FishDao {
     suspend fun insertFish(fish: Fish): Long
 
     @Update
+    suspend fun upsertFish(fish: Fish)
+
+    @Update
     suspend fun updateFish(fish: Fish)
 
     @Delete

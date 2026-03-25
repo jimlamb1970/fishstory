@@ -50,7 +50,7 @@ fun SegmentDetailsScreen(
     tripId: Int,
     navigateToSegmentBoatLoad: (Int, Int) -> Unit,
     navigateToFishermanDetails: (Int) -> Unit,
-    navigateToAddFish: (tripId: Int, segmentId: Int) -> Unit,
+    navigateToAddFish: (tripId: Int, segmentId: Int, fishId: Int?) -> Unit,
     navigateBack: () -> Unit
 ) {
     val segmentWithDetails by viewModel.getSegmentWithDetails(segmentId).collectAsState(initial = null)
@@ -175,7 +175,7 @@ fun SegmentDetailsScreen(
                     if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
                         coarseLocationPermission == PackageManager.PERMISSION_GRANTED
                     ) {
-                        navigateToAddFish(tripId, segmentId)
+                        navigateToAddFish(tripId, segmentId, null)
                     } else {
                         permissionLauncher.launch(
                             arrayOf(
@@ -286,9 +286,7 @@ fun SegmentDetailsScreen(
                             fish = fish,
                             viewModel = viewModel,
                             onEdit = {
-                                scope.launch {
-                                    fishToEdit = viewModel.getFishById(fish.id)
-                                }
+                                navigateToAddFish(tripId, segmentId, fish.id)
                             },
                             onDelete = {
                                 scope.launch {

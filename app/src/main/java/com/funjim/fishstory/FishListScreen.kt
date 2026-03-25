@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 fun FishListScreen(
     viewModel: MainViewModel,
     navigateBack: () -> Unit,
-    onAddFish: (tripId: Int, segmentId: Int) -> Unit
+    onAddFish: (tripId: Int, segmentId: Int, fishId: Int?) -> Unit
 ) {
     val activeSegments by viewModel.activeSegments.collectAsState(initial = emptyList())
     var selectedSegment by remember { mutableStateOf<Segment?>(null) }
@@ -102,7 +102,7 @@ fun FishListScreen(
                         if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
                             coarseLocationPermission == PackageManager.PERMISSION_GRANTED
                         ) {
-                            onAddFish(segment.tripId, segment.id)
+                            onAddFish(segment.tripId, segment.id, null)
                         } else {
                             permissionLauncher.launch(
                                 arrayOf(

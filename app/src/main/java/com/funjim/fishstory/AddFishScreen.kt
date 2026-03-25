@@ -36,6 +36,7 @@ fun AddFishScreen(
     viewModel: MainViewModel,
     tripId: Int,
     segmentId: Int,
+    fishId: Int? = null, // Pass null for "Add", pass ID for "Edit"
     onNavigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -49,7 +50,6 @@ fun AddFishScreen(
     val segmentDetails by produceState<com.funjim.fishstory.model.SegmentWithDetails?>(initialValue = null) {
         viewModel.getSegmentWithDetails(segmentId).collect { value = it }
     }
-
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
 
     // Form State
@@ -58,8 +58,29 @@ fun AddFishScreen(
     var selectedLureId by remember { mutableStateOf<Int?>(null) }
     var lengthStr by remember { mutableStateOf("") }
     var released by remember { mutableStateOf(true) }
-    var holeNumberStr by remember { mutableStateOf("") }
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
+    var holeNumberStr by remember { mutableStateOf("") }
+
+    // Load data if editing
+    LaunchedEffect(fishId) {
+        if (fishId != null) {
+            val fish = viewModel.getFishById(fishId) // Ensure this exists in your ViewModel
+            fish?.let {
+                selectedSpeciesId = it.speciesId
+                selectedFishermanId = it.fishermanId
+                selectedLureId = it.lureId
+                lengthStr = it.length.toString()
+                released = it.isReleased
+                timestamp = it.timestamp
+                latitude = it.latitude
+                longitude = it.longitude
+                holeNumberStr = it.holeNumber.toString()
+                // TODO - what to do about tripId and segmentId?
+            }
+        }
+    }
 
     // Check for both FINE and COARSE location permissions
     val hasLocationPermission = remember {
@@ -332,8 +353,11 @@ fun AddFishScreen(
                         } else {
                             null
                         }
-                        viewModel.addFish(
+
+//                        viewModel.addFish(
+                          viewModel.upsertFish(
                             Fish(
+                                id = fishId ?: 0,
                                 speciesId = selectedSpeciesId ?: 0,
                                 fishermanId = selectedFishermanId ?: 0,
                                 tripId = tripId,
@@ -343,10 +367,11 @@ fun AddFishScreen(
                                 isReleased = released,
                                 timestamp = timestamp,
                                 holeNumber = holeNumberStr.toIntOrNull(),
-                                latitude = location?.first,
-                                longitude = location?.second
+                                latitude = location?.first ?: latitude,
+                                longitude = location?.second ?: longitude
                             )
                         )
+
                         onNavigateBack()
                     }
                 },
