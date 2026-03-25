@@ -56,12 +56,14 @@ fun AddFishScreen(
     var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
     var selectedFishermanId by remember { mutableStateOf<Int?>(null) }
     var selectedLureId by remember { mutableStateOf<Int?>(null) }
-    var lengthStr by remember { mutableStateOf("") }
     var released by remember { mutableStateOf(true) }
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
-    var holeNumberStr by remember { mutableStateOf("") }
+
+    // Inside AddFishScreen, update these state declarations:
+    var lengthStr by remember { mutableStateOf(if (fishId == null) "10.0" else "") }
+    var holeNumberStr by remember { mutableStateOf(if (fishId == null) "1" else "") }
 
     // Load data if editing
     LaunchedEffect(fishId) {
@@ -296,20 +298,39 @@ fun AddFishScreen(
             }
 
             // Length and Hole Number
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+// Length and Hole Number Steppers
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StepperField(
+                    label = "Length (in)",
                     value = lengthStr,
                     onValueChange = { lengthStr = it },
-                    label = { Text("Length (in)") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    onIncrement = {
+                        val current = lengthStr.toDoubleOrNull() ?: 0.0
+                        lengthStr = (current + 0.25).toString()
+                    },
+                    onDecrement = {
+                        val current = lengthStr.toDoubleOrNull() ?: 0.0
+                        if (current > 0) lengthStr = (current - 0.25).toString()
+                    },
+                    modifier = Modifier.weight(1f)
                 )
-                OutlinedTextField(
+
+                StepperField(
+                    label = "Hole #",
                     value = holeNumberStr,
                     onValueChange = { holeNumberStr = it },
-                    label = { Text("Hole #") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    onIncrement = {
+                        val current = holeNumberStr.toIntOrNull() ?: 0
+                        holeNumberStr = (current + 1).toString()
+                    },
+                    onDecrement = {
+                        val current = holeNumberStr.toIntOrNull() ?: 0
+                        if (current > 1) holeNumberStr = (current - 1).toString()
+                    },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -354,8 +375,8 @@ fun AddFishScreen(
                             null
                         }
 
-//                        viewModel.addFish(
-                          viewModel.upsertFish(
+                        viewModel.addFish(
+//                          viewModel.upsertFish(
                             Fish(
                                 id = fishId ?: 0,
                                 speciesId = selectedSpeciesId ?: 0,
@@ -419,3 +440,47 @@ fun Long.toUtcMidnight(): Long =
         .atStartOfDay(ZoneOffset.UTC)
         .toInstant()
         .toEpochMilli()
+
+@Composable
+fun StepperField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onIncrement: () -> Unit,
+    onDecrement: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(text = label, style = MaterialTheme.typography.labelMedium)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            OutlinedIconButton(
+                onClick = onDecrement,
+                modifier = Modifier.size(48.dp),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text("-", style = MaterialTheme.typography.titleLarge)
+            }
+
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true
+            )
+
+            OutlinedIconButton(
+                onClick = onIncrement,
+                modifier = Modifier.size(48.dp),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text("+", style = MaterialTheme.typography.titleLarge)
+            }
+        }
+    }
+}
