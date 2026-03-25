@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -24,6 +26,7 @@ import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -497,6 +500,63 @@ fun MapPickerSelectionDialog(
             }
         }
     }
+}
+
+@Composable
+fun ManageSpeciesDialog(
+    species: List<Species>,
+    onDismiss: () -> Unit,
+    onAddSpecies: (String) -> Unit,
+    onDeleteSpecies: (Species) -> Unit
+) {
+    var newSpeciesName by remember { mutableStateOf("") }
+
+    val sortedSpecies = remember(species) {
+        species.sortedBy { it.name }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Manage Species") },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = newSpeciesName,
+                        onValueChange = { newSpeciesName = it },
+                        placeholder = { Text("New Species") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = {
+                        if (newSpeciesName.isNotBlank()) {
+                            onAddSpecies(newSpeciesName)
+                            newSpeciesName = ""
+                        }
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn {
+                    items(sortedSpecies) { species ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(species.name)
+                            IconButton(onClick = { onDeleteSpecies(species) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) { Text("Close") }
+        }
+    )
 }
 
 @SuppressLint("MissingPermission")
