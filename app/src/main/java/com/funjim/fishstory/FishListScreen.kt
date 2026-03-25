@@ -1,7 +1,6 @@
 package com.funjim.fishstory
 
 import android.Manifest
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -10,19 +9,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.ui.AddFishDialog
 import com.funjim.fishstory.ui.FishItem
-import com.funjim.fishstory.ui.getCurrentLocation
+import com.funjim.fishstory.ui.ManageSpeciesDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -56,8 +53,7 @@ fun FishListScreen(
         } ?: run { value = null }
     }
 
-    var showAddFishDialog by remember { mutableStateOf(false) }
-    var fishToEdit by remember { mutableStateOf<Fish?>(null) }
+    var permissionGranted by remember { mutableStateOf(false) }
     var segmentExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -66,12 +62,19 @@ fun FishListScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        ) {
-            showAddFishDialog = true
+        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        if (isGranted) {
+            permissionGranted = true
+            // TRIGGER NAVIGATION HERE after permission is granted
+            selectedSegment?.let { segment ->
+                onAddFish(segment.tripId, segment.id, null)
+            }
         }
     }
+
+    var showManageSpeciesDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -81,6 +84,11 @@ fun FishListScreen(
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    IconButton(onClick = { showManageSpeciesDialog = true }) {
+                        Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Species")
+                    }
                 }
             )
         },
@@ -88,20 +96,7 @@ fun FishListScreen(
             selectedSegment?.let { segment ->
                 ExtendedFloatingActionButton(
                     onClick = {
-                        // Keep your permission check logic here
-//                        if (hasLocationPermission(context)) {
-                        val fineLocationPermission = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        )
-                        val coarseLocationPermission = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-
-                        if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
-                            coarseLocationPermission == PackageManager.PERMISSION_GRANTED
-                        ) {
+                        if (permissionGranted) {
                             onAddFish(segment.tripId, segment.id, null)
                         } else {
                             permissionLauncher.launch(
@@ -166,7 +161,7 @@ fun FishListScreen(
                         viewModel = viewModel,
                         onEdit = {
                             scope.launch {
-                                fishToEdit = viewModel.getFishById(fishDetails.id)
+                                onAddFish(selectedSegment?.tripId ?: -1, selectedSegment?.id ?: -1, fishDetails.id)
                             }
                         },
                         onDelete = {
@@ -188,81 +183,17 @@ fun FishListScreen(
             }
         }
 
-        if (showAddFishDialog && tripDetails != null && selectedSegment != null) {
-            AddFishDialog(
-                viewModel = viewModel,
-                speciesList = allSpecies,
-                fishermenList = tripDetails!!.fishermen,
-                onDismiss = { showAddFishDialog = false },
-                onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
-                    scope.launch {
-                        val location = getCurrentLocation(context)
-                        viewModel.addFish(
-                            Fish(
-                                speciesId = speciesId,
-                                fishermanId = fishermanId,
-                                tripId = selectedSegment!!.tripId,
-                                segmentId = selectedSegment!!.id,
-                                lureId = lureId,
-                                length = length,
-                                isReleased = released,
-                                timestamp = timestamp,
-                                holeNumber = holeNum,
-                                latitude = location?.first,
-                                longitude = location?.second
-                            )
-                        )
-                        showAddFishDialog = false
-                    }
+        if (showManageSpeciesDialog) {
+            ManageSpeciesDialog(
+                species = allSpecies,
+                onDismiss = { showManageSpeciesDialog = false },
+                onAddSpecies = { speciesName ->
+                    scope.launch { viewModel.addSpecies(speciesName) }
                 },
-                onAddSpecies = { name, onAdded ->
-                    scope.launch {
-                        val newId = viewModel.addSpecies(name)
-                        onAdded(newId.toInt())
-                    }
+                onDeleteSpecies = { speciesName ->
+                    scope.launch { viewModel.deleteSpecies(speciesName) }
                 }
             )
-        }
-
-        fishToEdit?.let { fish ->
-            if (tripDetails != null) {
-                AddFishDialog(
-                    viewModel = viewModel,
-                    title = "Edit Catch",
-                    initialSpeciesId = fish.speciesId,
-                    initialFishermanId = fish.fishermanId,
-                    initialLureId = fish.lureId,
-                    initialLength = fish.length,
-                    initialReleased = fish.isReleased,
-                    initialTimestamp = fish.timestamp,
-                    initialHoleNumber = fish.holeNumber,
-                    speciesList = allSpecies,
-                    fishermenList = tripDetails!!.fishermen,
-                    onDismiss = { fishToEdit = null },
-                    onConfirm = { speciesId, fishermanId, lureId, length, released, timestamp, holeNum ->
-                        scope.launch {
-                            viewModel.updateFish(
-                                fish.copy(
-                                    speciesId = speciesId,
-                                    fishermanId = fishermanId,
-                                    lureId = lureId,
-                                    length = length,
-                                    isReleased = released,
-                                    timestamp = timestamp,
-                                    holeNumber = holeNum
-                                )
-                            )
-                            fishToEdit = null
-                        }
-                    },
-                    onAddSpecies = { name, onAdded ->
-                        scope.launch {
-                            val newId = viewModel.addSpecies(name)
-                            onAdded(newId.toInt())
-                        }
-                    }
-                )
-            }
         }
     }
 }
