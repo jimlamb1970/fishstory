@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
 import com.google.android.gms.location.LocationServices
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class MainViewModel(
@@ -24,6 +26,30 @@ class MainViewModel(
     private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao
 ) : ViewModel() {
+    // A simple flow to broadcast volume key directions: 1 for Up, -1 for Down
+    private val _volumeKeyEvent = MutableStateFlow(0)
+    val volumeKeyEvent = _volumeKeyEvent.asStateFlow()
+
+
+    fun onVolumeKeyPressed(direction: Int) {
+        viewModelScope.launch {
+            // We update the value to trigger the Collector in the UI.
+            // Even if the direction is the same, we want a "new" event.
+            _volumeKeyEvent.value = direction
+            kotlinx.coroutines.delay(50)
+            // Reset it immediately so the next press (even if same direction) is caught
+            _volumeKeyEvent.value = 0
+        }
+    }
+
+    private val _selectEvent = MutableStateFlow(0)
+    val selectEvent = _selectEvent.asStateFlow()
+
+    fun triggerSelect() {
+        viewModelScope.launch {
+            _selectEvent.value += 1
+        }
+    }
 
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
     val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()

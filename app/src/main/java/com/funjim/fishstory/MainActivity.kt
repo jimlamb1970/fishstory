@@ -1,6 +1,7 @@
 package com.funjim.fishstory
 
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -48,6 +49,20 @@ class MainActivity : ComponentActivity() {
             database.photoDao(),
             database.tackleBoxDao()
         )
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                viewModel.onVolumeKeyPressed(direction = 1) // Move Focus
+                true
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                viewModel.triggerSelect() // Open Dropdown or Select Item
+                true
+            }
+            else -> super.onKeyDown(keyCode, event)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
