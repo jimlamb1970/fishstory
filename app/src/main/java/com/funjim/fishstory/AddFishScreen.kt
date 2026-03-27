@@ -571,6 +571,7 @@ fun AddFishScreen(
             }
 
             // Date & Time Buttons
+            // The Date & Time Buttons do not participate in focus switching with volume keys
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
                     onClick = { showDatePicker = true },

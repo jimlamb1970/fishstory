@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -49,6 +50,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import android.provider.MediaStore
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.funjim.fishstory.model.Photo
@@ -57,6 +59,21 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+fun createPublicImageUri(context: Context): Uri? {
+    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "FishStory_$timestamp.jpg")
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+        // This puts it in DCIM/FishStory so it's easy to find
+        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/FishStory")
+    }
+
+    return context.contentResolver.insert(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        contentValues
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -94,7 +111,7 @@ fun PhotoPickerRow(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val uri = createImageUri(context)
+            val uri = createPublicImageUri(context)
             tempUri = uri
             cameraLauncher.launch(uri)
         } else {
@@ -112,7 +129,7 @@ fun PhotoPickerRow(
             IconButton(onClick = {
                 val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                 if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    val uri = createImageUri(context)
+                    val uri = createPublicImageUri(context)
                     tempUri = uri
                     cameraLauncher.launch(uri)
                 } else {
