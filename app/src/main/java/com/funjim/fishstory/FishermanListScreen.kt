@@ -96,13 +96,14 @@ fun FishermanListScreen(
                     Button(onClick = {
                         if (newFirstName.isNotBlank() && newLastName.isNotBlank()) {
                             scope.launch {
-                                viewModel.addFisherman(
-                                    Fisherman(
-                                        firstName = newFirstName,
-                                        lastName = newLastName,
-                                        nickname = newNickname
-                                    )
+                                val fisherman = Fisherman(
+                                    firstName = newFirstName.trim(),
+                                    lastName = newLastName.trim(),
+                                    nickname = newNickname.trim()
                                 )
+
+                                viewModel.addFisherman(fisherman)
+
                                 newFirstName = ""
                                 newLastName = ""
                                 newNickname = ""

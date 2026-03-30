@@ -267,9 +267,16 @@ class MainViewModel(
     }
 
     suspend fun addFisherman(fisherman: Fisherman) {
-        fishermanDao.insert(fisherman)
-        // Automatically create a tackle box for the new fisherman
-        tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fisherman.id))
+        // Check if the fisherman already exists
+        val fishermanByName = fishermanDao.getFishermanByName(fisherman.firstName, fisherman.lastName, fisherman.nickname)
+
+        // If the fisherman does not exist, add the fisherman and also create
+        // a tacklebox for the fisherman
+        if (fishermanByName == null) {
+            fishermanDao.insert(fisherman)
+            // Automatically create a tackle box for the new fisherman
+            tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fisherman.id))
+        }
     }
 
     suspend fun updateFisherman(fisherman: Fisherman) {
