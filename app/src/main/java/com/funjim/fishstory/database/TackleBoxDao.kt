@@ -2,12 +2,20 @@ package com.funjim.fishstory.database
 
 import androidx.room.*
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.model.SegmentFishermanCrossRef
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
+import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TackleBoxDao {
+    @Query("SELECT * FROM tackle_box_table")
+    fun getAllTackleBoxes(): Flow<List<TackleBox>>
+
+    @Query("SELECT * FROM tackle_box_lure_cross_ref")
+    fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureCrossRef>>
+
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxForFisherman(fishermanId: String): Flow<TackleBox?>
 

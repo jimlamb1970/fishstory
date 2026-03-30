@@ -3,7 +3,9 @@ package com.funjim.fishstory.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     primaryKeys = ["tripId", "fishermanId"],
     tableName = "trip_fisherman_cross_ref",

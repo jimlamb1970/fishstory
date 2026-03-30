@@ -31,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
+import com.funjim.fishstory.ui.SettingsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
@@ -256,9 +257,10 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             )
         }
         composable("settings") {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Settings Screen - Coming Soon")
-            }
+            SettingsScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
         }
         composable("reports") {
             ReportsScreen(

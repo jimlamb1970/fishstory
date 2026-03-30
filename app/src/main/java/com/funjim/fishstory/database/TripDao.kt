@@ -35,6 +35,9 @@ interface TripDao {
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?>
 
+    @Query("SELECT * FROM trip_fisherman_cross_ref")
+    fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanCrossRef>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
 

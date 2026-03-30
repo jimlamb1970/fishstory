@@ -109,6 +109,9 @@ interface FishDao {
     """)
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>>
 
+    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
+    fun getAllFish(): Flow<List<Fish>>
+
     @Query("SELECT * FROM fish_table WHERE id = :id")
     suspend fun getFishById(id: String): Fish?
 

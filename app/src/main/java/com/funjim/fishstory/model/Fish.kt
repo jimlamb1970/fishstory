@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 @Entity(
     tableName = "species_table",
     indices = [Index(value = ["name"], unique = true)]
@@ -16,6 +18,7 @@ data class Species(
     val name: String
 )
 
+@Serializable
 @Entity(
     tableName = "fish_table",
     foreignKeys = [

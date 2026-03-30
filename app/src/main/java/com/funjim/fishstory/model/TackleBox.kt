@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 @Entity(
     tableName = "tackle_box_table",
     foreignKeys = [
@@ -25,6 +27,7 @@ data class TackleBox(
     val name: String = "My Tackle Box"
 )
 
+@Serializable
 @Entity(
     tableName = "tackle_box_lure_cross_ref",
     primaryKeys = ["tackleBoxId", "lureId"],

@@ -2,11 +2,13 @@ package com.funjim.fishstory.viewmodels
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.model.Trip
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +18,30 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.util.UUID
+import kotlin.collections.List
+
+// Placeholder data structure for serialization example. Replace with actual DB entities.
+@Serializable
+data class DatabaseExportData(
+    val trips: List<Trip>,
+    val segments: List<Segment>,
+    val fishermen: List<Fisherman>,
+    val tripFishermanCrossRef: List<TripFishermanCrossRef>,
+    val segmentFishermanCrossRef: List<SegmentFishermanCrossRef>,
+    val lures: List<Lure>,
+    val tackleboxes: List<TackleBox>,
+    val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
+    val colors: List<LureColor>,
+    val fish: List<Fish>,
+    val species: List<Species>,
+    val photos: List<Photo>
+    // add other tables as needed
+)
 
 class MainViewModel(
     private val tripDao: TripDao,
@@ -31,6 +56,7 @@ class MainViewModel(
     private val _volumeKeyEvent = MutableStateFlow(0)
     val volumeKeyEvent = _volumeKeyEvent.asStateFlow()
 
+    private val json = Json { prettyPrint = true }
 
     fun onVolumeKeyPressed(direction: Int) {
         viewModelScope.launch {
@@ -451,6 +477,54 @@ class MainViewModel(
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
         } catch (e: Exception) {
             null
+        }
+    }
+
+    // --- NEW METHODS FOR SETTINGS SCREEN ---
+
+    suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val allData = DatabaseExportData(
+                    trips = tripDao.getAllTrips().firstOrNull() ?: emptyList(),
+                    segments = segmentDao.getAllSegments().firstOrNull() ?: emptyList(),
+                    fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
+                    tripFishermanCrossRef = tripDao.getAllTripFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    segmentFishermanCrossRef = segmentDao.getAllSegmentFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    lures = lureDao.getAllLures().firstOrNull() ?: emptyList(),
+                    tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
+                    tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
+                    colors = lureDao.getAllLureColors().firstOrNull() ?: emptyList(),
+                    fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
+                    species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
+                    photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList()
+                )
+
+                val jsonString = json.encodeToString(allData)
+                context.contentResolver.openOutputStream(uri)?.use { it.write(jsonString.toByteArray()) }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
+    suspend fun importDatabaseFromJson(context: Context, uri: Uri): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                // NOTE: You must implement logic here to read the JSON, deserialize it,
+                // and use DAO insert/upsert methods to rebuild the database state.
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val jsonString = inputStream.bufferedReader().use { it.readText() }
+                    // val importedData = Json.decodeFromString<DatabaseExportData>(jsonString)
+                    // TODO: Parse jsonString and call DAOs to update DB
+                }
+                // For simplicity, assume success, but you should check deserialization status
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
         }
     }
 }

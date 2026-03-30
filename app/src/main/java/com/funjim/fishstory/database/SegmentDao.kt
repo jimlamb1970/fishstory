@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SegmentDao {
+    @Query("SELECT * FROM segment_table ORDER BY startTime DESC")
+    fun getAllSegments(): Flow<List<Segment>>
+
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>>
 
@@ -40,6 +43,9 @@ interface SegmentDao {
 
     @Delete
     suspend fun deleteSegment(segment: Segment)
+
+    @Query("SELECT * FROM segment_fisherman_cross_ref")
+    fun getAllSegmentFishermanCrossRefs(): Flow<List<SegmentFishermanCrossRef>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)

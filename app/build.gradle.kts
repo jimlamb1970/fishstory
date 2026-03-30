@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
 
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.kotlinx.serialization.json)
     
     // MapLibre SDK
     implementation(libs.maplibre.android)

@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 @Entity(
     tableName = "lure_color_table",
     indices = [Index(value = ["name"], unique = true)]
@@ -16,6 +18,7 @@ data class LureColor(
     val name: String
 )
 
+@Serializable
 @Entity(
     tableName = "lure_table",
     foreignKeys = [

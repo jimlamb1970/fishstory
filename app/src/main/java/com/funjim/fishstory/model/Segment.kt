@@ -1,8 +1,10 @@
 package com.funjim.fishstory.model
 
 import androidx.room.*
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 @Entity(
     tableName = "segment_table",
     foreignKeys = [

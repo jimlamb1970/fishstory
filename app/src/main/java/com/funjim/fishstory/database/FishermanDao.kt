@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishermanDao {
+    @Query("SELECT * FROM fisherman_table")
+    fun getAllFishermen(): Flow<List<Fisherman>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(fisherman: Fisherman)
 
@@ -24,9 +27,6 @@ interface FishermanDao {
 
     @Update
     suspend fun update(fisherman: Fisherman)
-
-    @Query("SELECT * FROM fisherman_table")
-    fun getAllFishermen(): Flow<List<Fisherman>>
 
     @Delete
     suspend fun deleteFisherman(fisherman: Fisherman)

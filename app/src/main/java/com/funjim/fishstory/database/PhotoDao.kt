@@ -16,6 +16,9 @@ interface PhotoDao {
     @Delete
     suspend fun deletePhoto(photo: Photo)
 
+    @Query("SELECT * FROM photo_table")
+    fun getAllPhotos(): Flow<List<Photo>>
+
     @Query("SELECT * FROM photo_table WHERE tripId = :tripId")
     fun getPhotosForTrip(tripId: String): Flow<List<Photo>>
 
