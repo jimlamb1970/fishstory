@@ -343,6 +343,7 @@ fun AddFishScreen(
                     if (speciesExpanded) speciesSelectedIndex = 0
                 }
             ) {
+                // TODO look into making the drop down menu filterable
                 val selectedName = speciesList.find { it.id == selectedSpeciesId }?.name ?: "Select Species"
                 OutlinedTextField(
                     value = selectedName,
@@ -421,6 +422,7 @@ fun AddFishScreen(
                     if (fishermanExpanded) fishermanSelectedIndex = 0
                 }
             ) {
+                // TODO look into making the drop down menu filterable
                 val fishermanName = segmentDetails?.fishermen?.find { it.id == selectedFishermanId }?.fullName ?: "Select Fisherman"
                 OutlinedTextField(
                     value = fishermanName,
@@ -480,6 +482,7 @@ fun AddFishScreen(
                     }
                 }
             ) {
+                // TODO look into making the drop down menu filterable
                 val lureName = luresSorted.find { it.first.id == selectedLureId }?.second ?: "Select Lure"
                 OutlinedTextField(
                     value = lureName,
