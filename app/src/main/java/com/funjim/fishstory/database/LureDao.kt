@@ -24,7 +24,7 @@ interface LureDao {
     @Query("SELECT * FROM lure_color_table")
     fun getAllLureColors(): Flow<List<LureColor>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertLureColor(color: LureColor)
 
     @Delete

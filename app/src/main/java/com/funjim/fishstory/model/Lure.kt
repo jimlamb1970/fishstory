@@ -6,7 +6,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "lure_color_table")
+@Entity(
+    tableName = "lure_color_table",
+    indices = [Index(value = ["name"], unique = true)]
+)
 data class LureColor(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
