@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,13 +40,23 @@ import java.util.TimeZone
 fun TripListScreen(
     viewModel: MainViewModel, 
     navigateToTripDetails: (String) -> Unit,
-    navigateToAddTrip: () -> Unit
+    navigateToAddTrip: () -> Unit,
+    navigateBack: () -> Unit
 ) {
     val trips by viewModel.trips.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Fishstory Trips") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Trips") },
+                navigationIcon = {
+                    IconButton(onClick = navigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = navigateToAddTrip) {
                 Icon(Icons.Default.Add, contentDescription = "Add Trip")

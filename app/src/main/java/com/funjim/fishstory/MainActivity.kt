@@ -124,6 +124,9 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 },
                 navigateToAddTrip = {
                     navController.navigate("addTrip")
+                },
+                navigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
