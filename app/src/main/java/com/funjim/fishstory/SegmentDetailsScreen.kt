@@ -97,7 +97,7 @@ fun SegmentDetailsScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Set GPS Location") },
+                                text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {

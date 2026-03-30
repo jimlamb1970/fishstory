@@ -28,10 +28,12 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishermanItem
+import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
+import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,6 +54,7 @@ fun TripDetailsScreen(
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
 
     var showFishermenDialog by remember { mutableStateOf(false) }
+    var showMapPicker by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -104,7 +107,7 @@ fun TripDetailsScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Set GPS Location") },
+                                text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -127,6 +130,39 @@ fun TripDetailsScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
+
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    showMapPicker = true
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+
+                            if (tripWithDetails?.trip?.latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        menuExpanded = false
+                                        tripWithDetails?.trip?.let { trip ->
+                                            scope.launch {
+                                                viewModel.updateTrip(
+                                                    trip.copy(latitude = null, longitude = null)
+                                                )
+                                                Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -138,7 +174,7 @@ fun TripDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Trip: ${details.trip.name}",
+                            text = details.trip.name,
                             style = MaterialTheme.typography.headlineMedium
                         )
                         if (details.trip.latitude != null && details.trip.longitude != null) {
@@ -346,6 +382,23 @@ fun TripDetailsScreen(
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
+        }
+
+        if (showMapPicker) {
+            MapPickerSelectionDialog(
+                initialLatLng = tripWithDetails?.trip.let {
+                    if (it?.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
+                },
+                onDismiss = { showMapPicker = false },
+                onConfirm = { latLng ->
+                    tripWithDetails?.trip?.let { trip ->
+                        scope.launch {
+                            viewModel.updateTrip(trip.copy(latitude = latLng.latitude, longitude = latLng.longitude))
+                        }
+                    }
+                    showMapPicker = false
+                }
+            )
         }
     }
 }

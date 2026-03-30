@@ -28,8 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithDetails
+import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
+import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -102,6 +104,7 @@ fun TripItem(
     val endString = dateTimeFormatter.format(Date(trip.endDate))
     
     var showMenu by remember { mutableStateOf(false) }
+    var showMapPicker by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -179,7 +182,7 @@ fun TripItem(
                     onDismissRequest = { showMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Set GPS Location") },
+                        text = { Text("Use Current Location") },
                         onClick = {
                             showMenu = false
                             if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -200,6 +203,38 @@ fun TripItem(
                         },
                         leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                     )
+
+                    DropdownMenuItem(
+                        text = { Text("Select Location") },
+                        onClick = {
+                            showMenu = false
+                            showMapPicker = true
+                        },
+                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                    )
+
+                    if (trip.latitude != null) {
+                        DropdownMenuItem(
+                            text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                            onClick = {
+                                showMenu = false
+                                scope.launch {
+                                    viewModel.updateTrip(
+                                        trip.copy(latitude = null, longitude = null)
+                                    )
+                                    Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
+                    }
+
                     DropdownMenuItem(
                         text = { Text("Delete") },
                         onClick = {
@@ -212,6 +247,21 @@ fun TripItem(
                     )
                 }
             }
+        }
+
+        if (showMapPicker) {
+            MapPickerSelectionDialog(
+                initialLatLng = trip.let {
+                    if (it.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
+                },
+                onDismiss = { showMapPicker = false },
+                onConfirm = { latLng ->
+                    scope.launch {
+                        viewModel.updateTrip(trip.copy(latitude = latLng.latitude, longitude = latLng.longitude))
+                    }
+                    showMapPicker = false
+                }
+            )
         }
     }
 }
