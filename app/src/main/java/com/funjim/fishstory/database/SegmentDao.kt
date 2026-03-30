@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SegmentDao {
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
-    fun getSegmentsForTrip(tripId: Int): Flow<List<Segment>>
+    fun getSegmentsForTrip(tripId: String): Flow<List<Segment>>
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
-    fun getSegmentsWithDetailsForTrip(tripId: Int): Flow<List<SegmentWithDetails>>
+    fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>>
 
     @Query("SELECT * FROM segment_table WHERE endTime IS NULL ORDER BY startTime DESC")
     fun getActiveSegments(): Flow<List<Segment>>
@@ -26,14 +26,14 @@ interface SegmentDao {
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
-    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen?>
+    fun getSegmentWithFishermen(segmentId: String): Flow<SegmentWithFishermen?>
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
-    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails?>
+    fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSegment(segment: Segment): Long
+    suspend fun insertSegment(segment: Segment)
 
     @Update
     suspend fun updateSegment(segment: Segment)

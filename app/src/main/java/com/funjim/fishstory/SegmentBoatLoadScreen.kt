@@ -23,8 +23,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun SegmentBoatLoadScreen(
     viewModel: MainViewModel,
-    segmentId: Int,
-    tripId: Int,
+    segmentId: String,
+    tripId: String,
     navigateBack: () -> Unit
 ) {
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)

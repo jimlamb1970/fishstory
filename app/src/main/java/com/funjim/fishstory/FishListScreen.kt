@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.FishItem
 import com.funjim.fishstory.ui.ManageSpeciesDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -28,7 +29,7 @@ import kotlinx.coroutines.launch
 fun FishListScreen(
     viewModel: MainViewModel,
     navigateBack: () -> Unit,
-    onAddFish: (tripId: Int, segmentId: Int, fishId: Int?) -> Unit
+    onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit
 ) {
     val activeSegments by viewModel.activeSegments.collectAsState(initial = emptyList())
     var selectedSegment by remember { mutableStateOf<Segment?>(null) }
@@ -161,7 +162,7 @@ fun FishListScreen(
                         viewModel = viewModel,
                         onEdit = {
                             scope.launch {
-                                onAddFish(selectedSegment?.tripId ?: -1, selectedSegment?.id ?: -1, fishDetails.id)
+                                onAddFish(fishDetails.tripId, fishDetails.segmentId, fishDetails.id)
                             }
                         },
                         onDelete = {
@@ -188,10 +189,10 @@ fun FishListScreen(
                 species = allSpecies,
                 onDismiss = { showManageSpeciesDialog = false },
                 onAddSpecies = { speciesName ->
-                    scope.launch { viewModel.addSpecies(speciesName) }
+                    scope.launch { viewModel.addSpecies(Species(name = speciesName)) }
                 },
-                onDeleteSpecies = { speciesName ->
-                    scope.launch { viewModel.deleteSpecies(speciesName) }
+                onDeleteSpecies = { species ->
+                    scope.launch { viewModel.deleteSpecies(species) }
                 }
             )
         }

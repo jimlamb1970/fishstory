@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishermanListScreen(
     viewModel: MainViewModel,
-    navigateToFishermanDetails: (Int) -> Unit,
+    navigateToFishermanDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val fishermenList by viewModel.fishermen.collectAsState(initial = emptyList())

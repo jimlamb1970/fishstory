@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "tackle_box_table",
@@ -18,8 +19,9 @@ import androidx.room.PrimaryKey
     indices = [Index(value = ["fishermanId"])]
 )
 data class TackleBox(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val fishermanId: Int,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val fishermanId: String,
     val name: String = "My Tackle Box"
 )
 
@@ -43,6 +45,6 @@ data class TackleBox(
     indices = [Index(value = ["lureId"])]
 )
 data class TackleBoxLureCrossRef(
-    val tackleBoxId: Int,
-    val lureId: Int
+    val tackleBoxId: String,
+    val lureId: String
 )

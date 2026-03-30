@@ -23,16 +23,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun LureDialog(
     initialName: String = "",
-    initialPrimaryColorId: Int? = null,
-    initialSecondaryColorId: Int? = null,
+    initialPrimaryColorId: String? = null,
+    initialSecondaryColorId: String? = null,
     initialIsSingleHook: Boolean = false,
     initialGlows: Boolean = false,
-    initialGlowColorId: Int? = null,
+    initialGlowColorId: String? = null,
     title: String = "New Lure",
     colors: List<LureColor>,
     onDismiss: () -> Unit,
-    onConfirm: (String, Int?, Int?, Boolean, Boolean, Int?) -> Unit,
-    onAddColor: (String, (Int) -> Unit) -> Unit
+    onConfirm: (String, String?, String?, Boolean, Boolean, String?) -> Unit,
+    onAddColor: (String, (String) -> Unit) -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
     var selectedPrimaryColorId by remember { mutableStateOf(initialPrimaryColorId) }

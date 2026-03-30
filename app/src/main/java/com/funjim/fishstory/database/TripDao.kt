@@ -19,7 +19,7 @@ interface TripDao {
     fun getAllTrips(): Flow<List<Trip>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTrip(trip: Trip): Long
+    suspend fun insertTrip(trip: Trip)
 
     @Update
     suspend fun updateTrip(trip: Trip)
@@ -29,11 +29,11 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen?>
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails?>
+    fun getTripWithDetails(tripId: String): Flow<TripWithDetails?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

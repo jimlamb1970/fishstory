@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import com.funjim.fishstory.model.Species
 
 enum class FishField { Species, Fisherman, Lure, Length, Hole, Location, Released, LogCatch }
 
@@ -60,9 +61,9 @@ private const val TAG = "AddFishScreen"
 @Composable
 fun AddFishScreen(
     viewModel: MainViewModel,
-    tripId: Int,
-    segmentId: Int,
-    fishId: Int? = null, // Pass null for "Add", pass ID for "Edit"
+    tripId: String,
+    segmentId: String,
+    fishId: String? = null, // Pass null for "Add", pass ID for "Edit"
     onNavigateBack: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
@@ -99,9 +100,9 @@ fun AddFishScreen(
     val logCatchRequester = remember { FocusRequester() }
 
     // Form State
-    var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
-    var selectedFishermanId by remember { mutableStateOf<Int?>(null) }
-    var selectedLureId by remember { mutableStateOf<Int?>(null) }
+    var selectedSpeciesId by remember { mutableStateOf<String?>(null) }
+    var selectedFishermanId by remember { mutableStateOf<String?>(null) }
+    var selectedLureId by remember { mutableStateOf<String?>(null) }
     var released by remember { mutableStateOf(true) }
     var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var latitude by remember { mutableStateOf<Double?>(null) }
@@ -628,9 +629,9 @@ fun AddFishScreen(
                         viewModel.addFish(
 //                          viewModel.upsertFish(
                             Fish(
-                                id = fishId ?: 0,
-                                speciesId = selectedSpeciesId ?: 0,
-                                fishermanId = selectedFishermanId ?: 0,
+                                id = fishId ?: UUID.randomUUID().toString(),
+                                speciesId = selectedSpeciesId,
+                                fishermanId = selectedFishermanId,
                                 tripId = tripId,
                                 segmentId = segmentId,
                                 lureId = selectedLureId,
@@ -691,8 +692,9 @@ fun AddFishScreen(
                 Button(onClick = {
                     if (newSpeciesName.isNotBlank()) {
                         scope.launch {
-                            val newId = viewModel.addSpecies(newSpeciesName)
-                            selectedSpeciesId = newId.toInt()
+                            val species = Species(name = newSpeciesName)
+                            viewModel.addSpecies(species)
+                            selectedSpeciesId = species.id
                             showNewSpeciesDialog = false
                             newSpeciesName = ""
                         }

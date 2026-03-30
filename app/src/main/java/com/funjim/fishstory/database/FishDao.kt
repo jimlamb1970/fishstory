@@ -73,7 +73,7 @@ interface FishDao {
         WHERE fish_table.tripId = :tripId
         ORDER BY fish_table.timestamp DESC
     """)
-    fun getFishForTrip(tripId: Int): Flow<List<FishWithDetails>>
+    fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>>
 
     @Query("""
         SELECT 
@@ -107,13 +107,13 @@ interface FishDao {
         WHERE fish_table.segmentId = :segmentId
         ORDER BY fish_table.timestamp DESC
     """)
-    fun getFishForSegment(segmentId: Int): Flow<List<FishWithDetails>>
+    fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>>
 
     @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFishById(id: Int): Fish?
+    suspend fun getFishById(id: String): Fish?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFish(fish: Fish): Long
+    suspend fun insertFish(fish: Fish)
 
     @Update
     suspend fun upsertFish(fish: Fish)
@@ -127,8 +127,8 @@ interface FishDao {
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<Species>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertSpecies(species: Species): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSpecies(species: Species)
 
     @Delete
     suspend fun deleteSpecies(species: Species)

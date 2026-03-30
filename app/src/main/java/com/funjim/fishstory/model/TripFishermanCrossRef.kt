@@ -24,6 +24,6 @@ import androidx.room.Index
     ]
 )
 data class TripFishermanCrossRef(
-    val tripId: Int,
-    val fishermanId: Int
+    val tripId: String,
+    val fishermanId: String
 )

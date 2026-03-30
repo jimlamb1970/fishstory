@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 class MainViewModel(
     private val tripDao: TripDao,
@@ -63,14 +64,18 @@ class MainViewModel(
     private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
 
-    private val _draftFishermanIds = MutableStateFlow<Set<Int>>(emptySet())
+    private val _draftFishermanIds = MutableStateFlow<Set<String>>(emptySet())
     val draftFishermanIds = _draftFishermanIds.asStateFlow()
 
     // Maps draft segment tempId -> set of fisherman IDs
-    private val _draftSegmentFishermanIds = MutableStateFlow<Map<Int, Set<Int>>>(emptyMap())
+    private val _draftSegmentId = UUID.randomUUID().toString()
+    private val _draftSegmentFishermanIds = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val draftSegmentId = _draftSegmentId
     val draftSegmentFishermanIds = _draftSegmentFishermanIds.asStateFlow()
 
+    private val _draftTripId = MutableStateFlow("")
     private val _draftTripName = MutableStateFlow("")
+    val draftTripId = _draftTripId.asStateFlow()
     val draftTripName = _draftTripName.asStateFlow()
 
     private val _draftTripStartDate = MutableStateFlow(System.currentTimeMillis())
@@ -101,6 +106,9 @@ class MainViewModel(
     private val _draftSegmentLongitude = MutableStateFlow<Double?>(null)
     val draftSegmentLongitude = _draftSegmentLongitude.asStateFlow()
 
+    fun updateDraftTripId(id: String) {
+        _draftTripId.value = id
+    }
     fun updateDraftTripName(name: String) {
         _draftTripName.value = name
     }
@@ -143,7 +151,7 @@ class MainViewModel(
         _draftSegmentLatitude.value = null
         _draftSegmentLongitude.value = null
         // Clear the specific draft boat load for the "new segment" screen (id = -1)
-        _draftSegmentFishermanIds.update { it - (-1) }
+        _draftSegmentFishermanIds.update { it - draftSegmentId }
     }
 
     fun addDraftSegment(
@@ -157,11 +165,11 @@ class MainViewModel(
         // If there are no segments, the first segment needs to start at -2
         // This is because -1 is reserved for set of fishermen to add to the segment
         val currentSegments = _draftSegments.value
-        val tempId = (currentSegments.minOfOrNull { it.id } ?: -1) - 1
+        val tempId = UUID.randomUUID().toString()
 
         val newSegment = Segment(
             id = tempId,
-            tripId = 0,
+            tripId = _draftTripId.value,
             name = name,
             startTime = startTime,
             endTime = endTime,
@@ -174,10 +182,10 @@ class MainViewModel(
 
         // 3. Sync the fisherman IDs to the new segment ID
         // The fisherman IDs for this specific "new segment" were being tracked in -1
-        val segmentFishermanIds = _draftSegmentFishermanIds.value[-1] ?: _draftFishermanIds.value.toSet()
+        val segmentFishermanIds = _draftSegmentFishermanIds.value[draftSegmentId] ?: _draftFishermanIds.value.toSet()
 
         _draftSegmentFishermanIds.update { currentMap ->
-            (currentMap - (-1)) + (tempId to segmentFishermanIds)
+            (currentMap - (draftSegmentId)) + (tempId to segmentFishermanIds)
         }
     }
 
@@ -194,56 +202,60 @@ class MainViewModel(
         _draftSegmentFishermanIds.update { it - segment.id }
     }
 
-    fun addDraftFisherman(fishermanId: Int) {
+    fun addDraftFisherman(fishermanId: String) {
         _draftFishermanIds.update { it + fishermanId }
     }
 
-    fun removeDraftFisherman(fishermanId: Int) {
+    fun removeDraftFisherman(fishermanId: String) {
         _draftFishermanIds.update { it - fishermanId }
     }
 
-    fun addDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
+    fun addDraftSegmentFisherman(segmentId: String, fishermanId: String) {
         _draftSegmentFishermanIds.update { currentMap ->
             val current = currentMap[segmentId] ?: emptySet()
             currentMap + (segmentId to current + fishermanId)
         }
     }
 
-    fun removeDraftSegmentFisherman(segmentId: Int, fishermanId: Int) {
+    fun removeDraftSegmentFisherman(segmentId: String, fishermanId: String) {
         _draftSegmentFishermanIds.update { currentMap ->
             val current = currentMap[segmentId] ?: emptySet()
             currentMap + (segmentId to current - fishermanId)
         }
     }
 
-    fun toggleDraftFisherman(fishermanId: Int) {
+    fun toggleDraftFisherman(fishermanId: String) {
         _draftFishermanIds.update { current ->
             if (current.contains(fishermanId)) current - fishermanId else current + fishermanId
         }
     }
 
     fun clearDrafts() {
-        _draftSegments.value = emptyList()
-        _draftSegmentFishermanIds.value = emptyMap()
-        _draftFishermanIds.value = emptySet()
+        _draftTripId.value = ""
         _draftTripName.value = ""
         val now = System.currentTimeMillis()
         _draftTripStartDate.value = now
         _draftTripEndDate.value = now
+
+        _draftSegments.value = emptyList()
+        _draftSegmentFishermanIds.value = emptyMap()
+
+        _draftFishermanIds.value = emptySet()
+
         _draftLatitude.value = null
         _draftLongitude.value = null
     }
 
-    fun getTripWithFishermen(tripId: Int): Flow<TripWithFishermen?> {
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
         return tripDao.getTripWithFishermen(tripId)
     }
 
-    fun getTripWithDetails(tripId: Int): Flow<TripWithDetails?> {
+    fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
     }
 
-    suspend fun addTrip(trip: Trip): Long {
-        return tripDao.insertTrip(trip)
+    suspend fun addTrip(trip: Trip) {
+        tripDao.insertTrip(trip)
     }
 
     suspend fun updateTrip(trip: Trip) {
@@ -254,11 +266,10 @@ class MainViewModel(
         tripDao.deleteTrip(trip)
     }
 
-    suspend fun addFisherman(fisherman: Fisherman): Long {
-        val fishermanId = fishermanDao.insert(fisherman)
+    suspend fun addFisherman(fisherman: Fisherman) {
+        fishermanDao.insert(fisherman)
         // Automatically create a tackle box for the new fisherman
-        tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId.toInt()))
-        return fishermanId
+        tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fisherman.id))
     }
 
     suspend fun updateFisherman(fisherman: Fisherman) {
@@ -269,37 +280,37 @@ class MainViewModel(
         fishermanDao.deleteFisherman(fisherman)
     }
 
-    suspend fun addFishermanToTrip(tripId: Int, fishermanId: Int) {
+    suspend fun addFishermanToTrip(tripId: String, fishermanId: String) {
         val crossRef = TripFishermanCrossRef(tripId, fishermanId)
         tripDao.insertCrossRef(crossRef)
     }
 
-    suspend fun deleteFishermanFromTrip(tripId: Int, fishermanId: Int) {
+    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String) {
         val crossRef = TripFishermanCrossRef(tripId, fishermanId)
         tripDao.deleteCrossRef(crossRef)
     }
 
-    suspend fun deleteTripFromFisherman(tripId: Int, fishermanId: Int) {
+    suspend fun deleteTripFromFisherman(tripId: String, fishermanId: String) {
         val crossRef = TripFishermanCrossRef(tripId, fishermanId)
         tripDao.deleteCrossRef(crossRef)
     }
 
-    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips?> {
+    fun getFishermanWithTrips(fishermanId: String): Flow<FishermanWithTrips?> {
         return fishermanDao.getFishermanWithTrips(fishermanId)
     }
 
-    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails?> {
+    fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?> {
         return fishermanDao.getFishermanWithDetails(fishermanId)
     }
 
-    suspend fun addSegment(segment: Segment): Long {
-        return segmentDao.insertSegment(segment)
+    suspend fun addSegment(segment: Segment) {
+        segmentDao.insertSegment(segment)
     }
 
-    suspend fun addSegmentWithFishermen(segment: Segment, fishermanIds: Collection<Int>) {
-        val segmentId = segmentDao.insertSegment(segment).toInt()
+    suspend fun addSegmentWithFishermen(segment: Segment, fishermanIds: Collection<String>) {
+        segmentDao.insertSegment(segment)
         fishermanIds.forEach { fid ->
-            segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fid))
+            segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segment.id, fid))
         }
     }
 
@@ -311,63 +322,63 @@ class MainViewModel(
         segmentDao.deleteSegment(segment)
     }
 
-    fun getSegmentsForTrip(tripId: Int): Flow<List<Segment>> {
+    fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> {
         return segmentDao.getSegmentsForTrip(tripId)
     }
 
-    fun getSegmentsWithDetailsForTrip(tripId: Int): Flow<List<SegmentWithDetails>> {
+    fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>> {
         return segmentDao.getSegmentsWithDetailsForTrip(tripId)
     }
 
-    fun getSegmentWithFishermen(segmentId: Int): Flow<SegmentWithFishermen?> {
+    fun getSegmentWithFishermen(segmentId: String): Flow<SegmentWithFishermen?> {
         return segmentDao.getSegmentWithFishermen(segmentId)
     }
 
-    fun getSegmentWithDetails(segmentId: Int): Flow<SegmentWithDetails?> {
+    fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?> {
         return segmentDao.getSegmentWithDetails(segmentId)
     }
 
-    suspend fun addFishermanToSegment(segmentId: Int, fishermanId: Int) {
+    suspend fun addFishermanToSegment(segmentId: String, fishermanId: String) {
         segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
     }
 
-    suspend fun deleteFishermanFromSegment(segmentId: Int, fishermanId: Int) {
+    suspend fun deleteFishermanFromSegment(segmentId: String, fishermanId: String) {
         segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
     }
 
-    suspend fun addLure(lure: Lure): Long {
-        return lureDao.insertLure(lure)
+    suspend fun addLure(lure: Lure) {
+        lureDao.insertLure(lure)
     }
 
     suspend fun deleteLure(lure: Lure) {
         lureDao.deleteLure(lure)
     }
 
-    suspend fun getLureById(id: Int): Lure? {
+    suspend fun getLureById(id: String): Lure? {
         return lureDao.getLureById(id)
     }
 
-    fun getLuresForFisherman(fishermanId: Int): Flow<List<Lure>> {
+    fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>> {
         return tackleBoxDao.getLuresForFisherman(fishermanId)
     }
 
-    suspend fun addLureToFishermanTackleBox(fishermanId: Int, lureId: Int) {
+    suspend fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
         var tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
         if (tackleBox == null) {
-            val id = tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId))
-            tackleBox = TackleBox(id = id.toInt(), fishermanId = fishermanId)
+            tackleBox = TackleBox(fishermanId = fishermanId)
+            tackleBoxDao.insertTackleBox(tackleBox)
         }
         tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
     }
 
-    suspend fun removeLureFromFishermanTackleBox(fishermanId: Int, lureId: Int) {
+    suspend fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
         val tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
         if (tackleBox != null) {
             tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
         }
     }
 
-    suspend fun addLureColor(color: LureColor): Long {
+    suspend fun addLureColor(color: LureColor) {
         return lureDao.insertLureColor(color)
     }
 
@@ -375,20 +386,20 @@ class MainViewModel(
         lureDao.deleteLureColor(color)
     }
 
-    fun getFishForTrip(tripId: Int): Flow<List<FishWithDetails>> {
+    fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForTrip(tripId)
     }
 
-    fun getFishForSegment(segmentId: Int): Flow<List<FishWithDetails>> {
+    fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForSegment(segmentId)
     }
 
-    suspend fun getFishById(id: Int): Fish? {
+    suspend fun getFishById(id: String): Fish? {
         return fishDao.getFishById(id)
     }
 
-    suspend fun addFish(fish: Fish): Long {
-        return fishDao.insertFish(fish)
+    suspend fun addFish(fish: Fish) {
+        fishDao.insertFish(fish)
     }
 
     suspend fun upsertFish(fish: Fish) {
@@ -403,8 +414,8 @@ class MainViewModel(
         fishDao.deleteFish(fish)
     }
 
-    suspend fun addSpecies(name: String): Long {
-        return fishDao.insertSpecies(Species(name = name))
+    suspend fun addSpecies(species: Species) {
+        fishDao.insertSpecies(species)
     }
 
     suspend fun deleteSpecies(species: Species) {
@@ -412,19 +423,19 @@ class MainViewModel(
     }
 
     // Photo operations
-    suspend fun addPhoto(photo: Photo): Long {
-        return photoDao.insertPhoto(photo)
+    suspend fun addPhoto(photo: Photo) {
+        photoDao.insertPhoto(photo)
     }
 
     suspend fun deletePhoto(photo: Photo) {
         photoDao.deletePhoto(photo)
     }
 
-    fun getPhotosForTrip(tripId: Int): Flow<List<Photo>> = photoDao.getPhotosForTrip(tripId)
-    fun getPhotosForSegment(segmentId: Int): Flow<List<Photo>> = photoDao.getPhotosForSegment(segmentId)
-    fun getPhotosForLure(lureId: Int): Flow<List<Photo>> = photoDao.getPhotosForLure(lureId)
-    fun getPhotosForFisherman(fishermanId: Int): Flow<List<Photo>> = photoDao.getPhotosForFisherman(fishermanId)
-    fun getPhotosForFish(fishId: Int): Flow<List<Photo>> = photoDao.getPhotosForFish(fishId)
+    fun getPhotosForTrip(tripId: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(tripId)
+    fun getPhotosForSegment(segmentId: String): Flow<List<Photo>> = photoDao.getPhotosForSegment(segmentId)
+    fun getPhotosForLure(lureId: String): Flow<List<Photo>> = photoDao.getPhotosForLure(lureId)
+    fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(fishermanId)
+    fun getPhotosForFish(fishId: String): Flow<List<Photo>> = photoDao.getPhotosForFish(fishId)
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(context: Context): android.location.Location? {

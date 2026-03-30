@@ -4,13 +4,15 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "species_table",
     indices = [Index(value = ["name"], unique = true)]
 )
 data class Species(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val name: String
 )
 
@@ -57,12 +59,13 @@ data class Species(
     ]
 )
 data class Fish(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val speciesId: Int,
-    val fishermanId: Int,
-    val tripId: Int,
-    val segmentId: Int,
-    val lureId: Int? = null,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val speciesId: String?,
+    val fishermanId: String?,
+    val tripId: String,
+    val segmentId: String,
+    val lureId: String? = null,
     val length: Double,
     val isReleased: Boolean = true,
     val timestamp: Long = System.currentTimeMillis(),
@@ -72,7 +75,7 @@ data class Fish(
 )
 
 data class FishWithDetails(
-    val id: Int,
+    val id: String,
     val speciesName: String,
     val fishermanName: String,
     val lureName: String?,
@@ -85,8 +88,8 @@ data class FishWithDetails(
     val timestamp: Long,
     val latitude: Double?,
     val longitude: Double?,
-    val segmentId: Int,
-    val tripId: Int,
+    val segmentId: String,
+    val tripId: String,
     val holeNumber: Int? = null
 ) {
     fun getFullLureName(): String? {

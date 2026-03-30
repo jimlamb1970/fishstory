@@ -40,11 +40,11 @@ import java.util.Locale
 @Composable
 fun TripDetailsScreen(
     viewModel: MainViewModel,
-    tripId: Int,
-    navigateToSegmentDetails: (Int) -> Unit,
-    navigateToFishermanDetails: (Int) -> Unit,
-    navigateToBoatLoad: (Int) -> Unit,
-    navigateToAddSegment: (Int) -> Unit,
+    tripId: String,
+    navigateToSegmentDetails: (String) -> Unit,
+    navigateToFishermanDetails: (String) -> Unit,
+    navigateToBoatLoad: (String) -> Unit,
+    navigateToAddSegment: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)

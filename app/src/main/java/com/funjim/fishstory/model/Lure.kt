@@ -4,10 +4,12 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(tableName = "lure_color_table")
 data class LureColor(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val name: String
 )
 
@@ -40,13 +42,14 @@ data class LureColor(
     ]
 )
 data class Lure(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val primaryColorId: Int?,
-    val secondaryColorId: Int?,
+    val primaryColorId: String?,
+    val secondaryColorId: String?,
     val hasSingleHook: Boolean,
     val glows: Boolean,
-    val glowColorId: Int?
+    val glowColorId: String?
 ) {
     fun getDisplayName(primaryColorName: String?, secondaryColorName: String?, glowColorName: String?): String {
         val sb = StringBuilder(name)

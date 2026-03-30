@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -30,35 +31,50 @@ import kotlin.math.roundToInt
 @Composable
 fun BoatLoadScreen(
     viewModel: MainViewModel,
-    tripId: Int,
+    tripId: String,
+    segmentId: String = "",
     navigateToManageFishermen: () -> Unit,
     navigateBack: () -> Unit,
-    eligibleFishermanIds: Set<Int>? = null,
-    segmentId: Int = 0
+    eligibleFishermanIds: Set<String>? = null
 ) {
     val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
-    val isSegmentContext = segmentId != 0 || eligibleFishermanIds != null
+    val isSegmentContext = segmentId != "" || eligibleFishermanIds != null
     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
     // Determine current crew based on context
     val inBoat: List<Fisherman>
+    val draftTripId by viewModel.draftTripId.collectAsStateWithLifecycle()
+    val draftSegmentId = viewModel.draftSegmentId
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
     val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
-    val tripWithFishermen by if (tripId != 0) {
+    val tripWithFishermen by if (tripId != draftTripId) {
         viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
     } else {
         remember { mutableStateOf(null) }
     }
 
     inBoat = when {
-        segmentId < 0 -> {
-            // Draft segment — use draftSegmentFishermanIds
+        // 1. Check if the current trip is the draft trip
+        tripId == draftTripId -> {
+            if (segmentId == viewModel.draftSegmentId) {
+                // Logic for a specific draft segment
+                val ids = draftSegmentFishermanIds[segmentId] ?: emptySet()
+                allFishermen.filter { it.id in ids }
+            } else {
+                // Logic for the general draft trip
+                allFishermen.filter { it.id in draftFishermanIds }
+            }
+        }
+        /*
+        segmentId == draftSegmentId -> {
+            // Logic specifically for when the segment matches the draft
             val ids = draftSegmentFishermanIds[segmentId] ?: emptySet()
             allFishermen.filter { it.id in ids }
         }
-        tripId == 0 -> allFishermen.filter { it.id in draftFishermanIds }
+*/
+        // 2. Fallback for all other cases (persisted trips)
         else -> tripWithFishermen?.fishermen ?: emptyList()
     }
 
@@ -121,8 +137,17 @@ fun BoatLoadScreen(
                         fisherman = fisherman,
                         onDroppedInBoat = {
                             when {
-                                segmentId < 0 -> viewModel.addDraftSegmentFisherman(segmentId, fisherman.id)
-                                tripId == 0 -> viewModel.addDraftFisherman(fisherman.id)
+                                // 1. Check if the current trip is the draft trip
+                                tripId == draftTripId -> {
+                                    if (segmentId != "") {
+                                        // Logic for a specific draft segment
+                                        viewModel.addDraftSegmentFisherman(segmentId, fisherman.id)
+                                    } else {
+                                        // Logic for the general draft trip
+                                        viewModel.addDraftFisherman(fisherman.id)
+                                    }
+                                }
+                                // 2. Fallback for all other cases (persisted trips)
                                 else -> scope.launch { viewModel.addFishermanToTrip(tripId, fisherman.id) }
                             }
                         }
@@ -186,8 +211,17 @@ fun BoatLoadScreen(
                             .height(50.dp),
                         onClick = {
                             when {
-                                segmentId < 0 -> viewModel.removeDraftSegmentFisherman(segmentId, fisherman.id)
-                                tripId == 0 -> viewModel.removeDraftFisherman(fisherman.id)
+                                // 1. Check if the current trip is the draft trip
+                                tripId == draftTripId -> {
+                                    if (segmentId != "") {
+                                        // Logic for a specific draft segment
+                                        viewModel.removeDraftSegmentFisherman(segmentId, fisherman.id)
+                                    } else {
+                                        // Logic for the general draft trip
+                                        viewModel.removeDraftFisherman(fisherman.id)
+                                    }
+                                }
+                                // 2. Fallback for all other cases (persisted trips)
                                 else -> scope.launch { viewModel.deleteFishermanFromTrip(tripId, fisherman.id) }
                             }
                         }
@@ -210,13 +244,12 @@ fun BoatLoadScreen(
                 onDismiss = { showAddFishermanDialog = false },
                 onConfirm = { firstName, lastName, nickname ->
                     scope.launch {
-                        val newId = viewModel.addFisherman(
-                            Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-                        )
-                        if (tripId == 0) {
-                            viewModel.addDraftFisherman(newId.toInt())
+                        val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+                        viewModel.addFisherman(fisherman)
+                        if (tripId == draftTripId) {
+                            viewModel.addDraftFisherman(fisherman.id)
                         } else {
-                            viewModel.addFishermanToTrip(tripId, newId.toInt())
+                            viewModel.addFishermanToTrip(tripId, fisherman.id)
                         }
                     }
                     showAddFishermanDialog = false

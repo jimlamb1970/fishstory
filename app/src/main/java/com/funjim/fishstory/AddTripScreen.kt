@@ -34,6 +34,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,44 +144,48 @@ fun DateTimePickerButton(
 @Composable
 fun AddTripScreen(
     viewModel: MainViewModel,
-    initialTripId: Int = 0,
     navigateBack: () -> Unit,
-    navigateToBoatLoad: (Int) -> Unit,
-    navigateToAddSegment: (Int) -> Unit,
-    navigateToSegmentDetails: (Int, Int) -> Unit
+    navigateToBoatLoad: (String) -> Unit,
+    navigateToAddSegment: (String) -> Unit,
+    navigateToSegmentDetails: (String, String) -> Unit
 ) {
-    var tripId by remember { mutableIntStateOf(initialTripId) }
+//    var tripId by remember { mutableIntStateOf(initialTripId) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val tripWithDetails by if (tripId != 0) {
-        viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
-    } else {
-        remember { mutableStateOf(null) }
-    }
 
+    val draftTripId by viewModel.draftTripId.collectAsState()
     val draftTripName by viewModel.draftTripName.collectAsState()
     val draftTripStartDate by viewModel.draftTripStartDate.collectAsState()
     val draftTripEndDate by viewModel.draftTripEndDate.collectAsState()
     val draftLatitude by viewModel.draftLatitude.collectAsState()
     val draftLongitude by viewModel.draftLongitude.collectAsState()
 
-    var name by remember(draftTripName, tripWithDetails) {
-        mutableStateOf(tripWithDetails?.trip?.name ?: draftTripName)
+    var tripId by remember(draftTripId) {
+        mutableStateOf(draftTripId)
     }
-    var startDateMillis by remember(draftTripStartDate, tripWithDetails) {
-        mutableLongStateOf(tripWithDetails?.trip?.startDate ?: draftTripStartDate)
+    var name by remember(draftTripName) {
+        mutableStateOf(draftTripName)
     }
-    var endDateMillis by remember(draftTripEndDate, tripWithDetails) {
-        mutableLongStateOf(tripWithDetails?.trip?.endDate ?: draftTripEndDate)
+    var startDateMillis by remember(draftTripStartDate) {
+        mutableLongStateOf( draftTripStartDate)
     }
-    var latitude by remember(draftLatitude, tripWithDetails) {
-        mutableStateOf(tripWithDetails?.trip?.latitude ?: draftLatitude)
+    var endDateMillis by remember(draftTripEndDate) {
+        mutableLongStateOf(draftTripEndDate)
     }
-    var longitude by remember(draftLongitude, tripWithDetails) {
-        mutableStateOf(tripWithDetails?.trip?.longitude ?: draftLongitude)
+    var latitude by remember(draftLatitude) {
+        mutableStateOf(draftLatitude)
+    }
+    var longitude by remember(draftLongitude) {
+        mutableStateOf(draftLongitude)
+    }
+
+    if (tripId == "") {
+        // TODO get the ID from a trip object
+        tripId = UUID.randomUUID().toString()
+        viewModel.updateDraftTripId(tripId)
     }
 
     val draftSegments by viewModel.draftSegments.collectAsState()
@@ -195,12 +200,9 @@ fun AddTripScreen(
             scope.launch {
                 val location = viewModel.getCurrentLocation(context)
                 if (location != null) {
-                    if (tripId == 0) {
-                        viewModel.updateDraftLocation(location.latitude, location.longitude)
-                    } else {
-                        latitude = location.latitude
-                        longitude = location.longitude
-                    }
+                    viewModel.updateDraftLocation(location.latitude, location.longitude)
+                    latitude = location.latitude
+                    longitude = location.longitude
                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -214,7 +216,7 @@ fun AddTripScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (tripId == 0) "Add New Trip" else "Edit Trip") },
+                title = { Text("Add New Trip") },
                 navigationIcon = {
                     IconButton(onClick = {
                         viewModel.clearDrafts()
@@ -240,12 +242,9 @@ fun AddTripScreen(
                                         scope.launch {
                                             val location = viewModel.getCurrentLocation(context)
                                             if (location != null) {
-                                                if (tripId == 0) {
-                                                    viewModel.updateDraftLocation(location.latitude, location.longitude)
-                                                } else {
-                                                    latitude = location.latitude
-                                                    longitude = location.longitude
-                                                }
+                                                viewModel.updateDraftLocation(location.latitude, location.longitude)
+                                                latitude = location.latitude
+                                                longitude = location.longitude
                                                 Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                             } else {
                                                 Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -276,27 +275,23 @@ fun AddTripScreen(
                             latitude = latitude,
                             longitude = longitude
                         )
-                        if (tripId == 0) {
-                            val id = viewModel.addTrip(trip)
-                            val actualTripId = id.toInt()
-                            
-                            // Save draft segments and their specific boat loads
-                            draftSegments.forEach { draft ->
-                                val segmentFishermanIds = draftSegmentFishermanIds[draft.id] ?: emptySet()
-                                viewModel.addSegmentWithFishermen(
-                                    draft.copy(tripId = actualTripId, id = 0),
-                                    segmentFishermanIds
-                                )
-                            }
-                            
-                            // Save trip-level boat load
-                            draftFishermanIds.forEach { fishermanId ->
-                                viewModel.addFishermanToTrip(actualTripId, fishermanId)
-                            }
-                            viewModel.clearDrafts()
-                        } else {
-                            viewModel.updateTrip(trip)
+                        viewModel.addTrip(trip)
+
+                        // Save trip-level boat load
+                        draftFishermanIds.forEach { fishermanId ->
+                            viewModel.addFishermanToTrip(tripId, fishermanId)
                         }
+
+                        // Save draft segments and their specific boat loads
+                        draftSegments.forEach { draft ->
+                            val segmentFishermanIds = draftSegmentFishermanIds[draft.id] ?: emptySet()
+                            viewModel.addSegmentWithFishermen(
+                                draft,
+                                segmentFishermanIds
+                            )
+                        }
+
+                        viewModel.clearDrafts()
                         navigateBack()
                     }
                 }) {
@@ -316,7 +311,7 @@ fun AddTripScreen(
                 value = name,
                 onValueChange = {
                     name = it
-                    if (tripId == 0) viewModel.updateDraftTripName(it)
+                    viewModel.updateDraftTripName(it)
                 },
                 label = { Text("Trip Name") },
                 modifier = Modifier.fillMaxWidth()
@@ -335,12 +330,10 @@ fun AddTripScreen(
                     startDateMillis = newMillis
                     if (startDateMillis > endDateMillis) {
                         endDateMillis = startDateMillis
-                        if (tripId == 0) viewModel.updateDraftTripEndDate(endDateMillis)
+                        viewModel.updateDraftTripEndDate(endDateMillis)
                     }
-                    if (tripId == 0) {
-                        viewModel.updateDraftTripStartDate(startDateMillis)
-                        viewModel.updateDraftSegmentStartDate(startDateMillis)
-                    }
+                    viewModel.updateDraftTripStartDate(startDateMillis)
+                    viewModel.updateDraftSegmentStartDate(startDateMillis)
                 }
             }
 
@@ -360,10 +353,8 @@ fun AddTripScreen(
                             .show()
                     } else {
                         endDateMillis = newMillis
-                        if (tripId == 0) {
-                            viewModel.updateDraftTripEndDate(endDateMillis)
-                            viewModel.updateDraftSegmentEndDate(endDateMillis)
-                        }
+                        viewModel.updateDraftTripEndDate(endDateMillis)
+                        viewModel.updateDraftSegmentEndDate(endDateMillis)
                     }
                 }
             }
@@ -377,16 +368,12 @@ fun AddTripScreen(
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            val fishermanCount = if (tripId == 0) draftFishermanIds.size else tripWithDetails?.fishermen?.size ?: 0
+            val fishermanCount = draftFishermanIds.size
             BoatSummary(
                 fishermanCount = fishermanCount,
                 onBoatClick = {
-                    if (tripId == 0) {
                         viewModel.updateDraftTripName(name)
-//                        viewModel.updateDraftTripStartDate(startDateMillis)
-//                        viewModel.updateDraftTripEndDate(endDateMillis)
                         viewModel.updateDraftLocation(latitude, longitude)
-                    }
                     navigateToBoatLoad(tripId)
                 }
             )
@@ -410,45 +397,29 @@ fun AddTripScreen(
                 }
             }
 
-            val segmentsToDisplay = if (tripId == 0) draftSegments else tripWithDetails?.segments ?: emptyList()
+            val segmentsToDisplay = draftSegments
 
             if (segmentsToDisplay.isEmpty()) {
                 Text("No segments added yet.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(segmentsToDisplay) { segment ->
-                        val fishermenCount = if (tripId == 0) {
-                            draftSegmentFishermanIds[segment.id]?.size ?: 0
-                        } else {
-                           0 // Default, will be overriden by database result for existing trips
-                        }
+                        val fishermenCount = draftSegmentFishermanIds[segment.id]?.size ?: 0
 
                         SegmentItem(
                             segment = segment,
                             fishermenCount = fishermenCount,
                             onEdit = { /* Edit logic */ },
                             onDelete = {
-                                if (tripId == 0) {
-                                    viewModel.removeDraftSegment(segment)
-                                } else {
-                                    scope.launch { viewModel.deleteSegment(segment) }
-                                }
+                                viewModel.removeDraftSegment(segment)
                             },
-                            onClick = {
-                                if (tripId != 0) {
-                                    navigateToSegmentDetails(segment.id, tripId)
-                                }
-                            },
+                            onClick = { /* Edit logic */ },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
                                         val location = viewModel.getCurrentLocation(context)
                                         if (location != null) {
-                                            if (tripId == 0) {
-                                                viewModel.updateDraftSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
-                                            } else {
-                                                viewModel.updateSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
-                                            }
+                                            viewModel.updateDraftSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }

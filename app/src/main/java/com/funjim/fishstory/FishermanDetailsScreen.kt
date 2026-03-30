@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateBack: () -> Unit) {
+fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, navigateBack: () -> Unit) {
     val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsState(initial = null)
     val allTrips by viewModel.trips.collectAsState(initial = emptyList())
     val allLures by viewModel.lures.collectAsState(initial = emptyList())
@@ -234,15 +234,17 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                 onDismiss = { showAddLureDialog = false },
                 onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
                     scope.launch {
-                        val newLureId = viewModel.addLure(Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
-                        viewModel.addLureToFishermanTackleBox(fishermanId, newLureId.toInt())
+                        val newLure = Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId)
+                        viewModel.addLure(newLure)
+                        viewModel.addLureToFishermanTackleBox(fishermanId, newLure.id)
                         showAddLureDialog = false
                     }
                 },
                 onAddColor = { colorName, onComplete ->
                     scope.launch {
-                        val newId = viewModel.addLureColor(LureColor(name = colorName))
-                        onComplete(newId.toInt())
+                        val newColor = LureColor( name = colorName)
+                        viewModel.addLureColor(newColor)
+                        onComplete(newColor.id)
                     }
                 }
             )
@@ -268,8 +270,9 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                 },
                 onAddColor = { colorName, onComplete ->
                     scope.launch {
-                        val newId = viewModel.addLureColor(LureColor(name = colorName))
-                        onComplete(newId.toInt())
+                        val newLure = LureColor(name = colorName)
+                        viewModel.addLureColor(newLure)
+                        onComplete(newLure.id)
                     }
                 }
             )
@@ -358,8 +361,9 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: Int, navigateB
                     Button(onClick = {
                         if (newTripName.isNotBlank()) {
                             scope.launch {
-                                val tripId = viewModel.addTrip(Trip(name = newTripName))
-                                viewModel.addFishermanToTrip(tripId.toInt(), fishermanId)
+                                val newTrip = Trip(name = newTripName)
+                                viewModel.addTrip(newTrip)
+                                viewModel.addFishermanToTrip(newTrip.id, fishermanId)
                                 showAddTripDialog = false
                                 newTripName = ""
                             }

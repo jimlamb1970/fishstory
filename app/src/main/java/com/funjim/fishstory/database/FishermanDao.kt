@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FishermanDao {
     @Insert
-    suspend fun insert(fisherman: Fisherman): Long // Return the inserted fisherman's ID
+    suspend fun insert(fisherman: Fisherman)
 
     @Update
     suspend fun update(fisherman: Fisherman)
@@ -28,11 +28,11 @@ interface FishermanDao {
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithTrips(fishermanId: Int): Flow<FishermanWithTrips?>
+    fun getFishermanWithTrips(fishermanId: String): Flow<FishermanWithTrips?>
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithDetails(fishermanId: Int): Flow<FishermanWithDetails?>
+    fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

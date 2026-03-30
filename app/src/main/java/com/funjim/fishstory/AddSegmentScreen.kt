@@ -13,11 +13,13 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -27,11 +29,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddSegmentScreen(
     viewModel: MainViewModel,
-    tripId: Int,
+    tripId: String,
     navigateBack: () -> Unit,
-    navigateToBoatLoad: (tripId: Int, segmentId: Int, eligibleFishermanIds: Set<Int>) -> Unit
+    navigateToBoatLoad: (tripId: String, segmentId: String, eligibleFishermanIds: Set<String>) -> Unit
 ) {
-    val tripWithDetails by if (tripId != 0) {
+    val draftTripId by viewModel.draftTripId.collectAsStateWithLifecycle()
+
+    val tripWithDetails by if (tripId != draftTripId) {
         viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
     } else {
         remember { mutableStateOf(null) }
@@ -65,10 +69,10 @@ fun AddSegmentScreen(
 
     // The tempId for the current draft segment — used for fisherman tracking
     // We use -1 as a placeholder until saved; boat load screen uses this
-    val draftSegmentId = -1
+    val draftSegmentId = viewModel.draftSegmentId
 
-    val eligibleIds: Set<Int> = when {
-        tripId == 0 -> draftFishermanIds
+    val eligibleIds: Set<String> = when {
+        (tripId == draftTripId) -> draftFishermanIds
         else -> tripWithDetails?.fishermen?.map { it.id }?.toSet() ?: emptySet()
     }
 
@@ -165,7 +169,7 @@ fun AddSegmentScreen(
         floatingActionButton = {
             if (name.isNotBlank()) {
                 FloatingActionButton(onClick = {
-                    if (tripId == 0) {
+                    if (tripId == draftTripId) {
                         viewModel.addDraftSegment(
                             name = name,
                             startTime = startDateMillis,

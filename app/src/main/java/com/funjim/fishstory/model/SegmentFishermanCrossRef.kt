@@ -24,6 +24,6 @@ import androidx.room.Index
     indices = [Index("fishermanId")]
 )
 data class SegmentFishermanCrossRef(
-    val segmentId: Int,
-    val fishermanId: Int
+    val segmentId: String,
+    val fishermanId: String
 )

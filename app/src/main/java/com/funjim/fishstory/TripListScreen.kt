@@ -37,7 +37,7 @@ import java.util.TimeZone
 @Composable
 fun TripListScreen(
     viewModel: MainViewModel, 
-    navigateToTripDetails: (Int) -> Unit,
+    navigateToTripDetails: (String) -> Unit,
     navigateToAddTrip: () -> Unit
 ) {
     val trips by viewModel.trips.collectAsState(initial = emptyList())

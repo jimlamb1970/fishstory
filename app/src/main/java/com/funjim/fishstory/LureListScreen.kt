@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LureListScreen(
     viewModel: MainViewModel,
-    onAddLure: (Int?) -> Unit, // Callback for Navigating to Add/Edit screen
+    onAddLure: (String?) -> Unit, // Callback for Navigating to Add/Edit screen
     navigateBack: () -> Unit
 ) {
     val allLures by viewModel.lures.collectAsState(initial = emptyList())

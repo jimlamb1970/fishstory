@@ -1,6 +1,7 @@
 package com.funjim.fishstory.model
 
 import androidx.room.*
+import java.util.UUID
 
 @Entity(
     tableName = "segment_table",
@@ -15,8 +16,9 @@ import androidx.room.*
     indices = [Index(value = ["tripId"])]
 )
 data class Segment(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val tripId: Int,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val tripId: String,
     val name: String,
     val startTime: Long = System.currentTimeMillis(),
     val endTime: Long = System.currentTimeMillis(),

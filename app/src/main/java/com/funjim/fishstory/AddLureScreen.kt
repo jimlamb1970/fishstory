@@ -15,12 +15,13 @@ import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLureScreen(
     viewModel: MainViewModel,
-    lureId: Int? = null, // Pass null for "Add", pass ID for "Edit"
+    lureId: String? = null, // Pass null for "Add", pass ID for "Edit"
     onNavigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -29,11 +30,11 @@ fun AddLureScreen(
 
     // Form State
     var name by remember { mutableStateOf("") }
-    var selectedPrimaryColorId by remember { mutableStateOf<Int?>(null) }
-    var selectedSecondaryColorId by remember { mutableStateOf<Int?>(null) }
+    var selectedPrimaryColorId by remember { mutableStateOf<String?>(null) }
+    var selectedSecondaryColorId by remember { mutableStateOf<String?>(null) }
     var isSingleHook by remember { mutableStateOf(false) }
     var glows by remember { mutableStateOf(false) }
-    var selectedGlowColorId by remember { mutableStateOf<Int?>(null) }
+    var selectedGlowColorId by remember { mutableStateOf<String?>(null) }
 
     // Load data if editing
     LaunchedEffect(lureId) {
@@ -135,7 +136,7 @@ fun AddLureScreen(
                 onClick = {
                     scope.launch {
                         val newLure = Lure(
-                            id = lureId ?: 0,
+                            id = lureId ?: UUID.randomUUID().toString(),
                             name = name,
                             primaryColorId = selectedPrimaryColorId,
                             secondaryColorId = selectedSecondaryColorId,
@@ -167,7 +168,9 @@ fun AddLureScreen(
                 Button(onClick = {
                     if (newColorName.isNotBlank()) {
                         scope.launch {
-                            val id = viewModel.addLureColor(LureColor(name = newColorName)).toInt()
+                            val newColor = LureColor(name = newColorName)
+                            viewModel.addLureColor(newColor)
+                            val id = newColor.id
                             when (showAddColorDialog) {
                                 ColorTarget.PRIMARY -> selectedPrimaryColorId = id
                                 ColorTarget.SECONDARY -> selectedSecondaryColorId = id
@@ -188,11 +191,11 @@ fun AddLureScreen(
 @Composable
 private fun LureColorDropdown(
     label: String,
-    selectedColorId: Int?,
+    selectedColorId: String?,
     colors: List<LureColor>,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onSelect: (Int) -> Unit,
+    onSelect: (String) -> Unit,
     onAddNew: () -> Unit
 ) {
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpandedChange) {

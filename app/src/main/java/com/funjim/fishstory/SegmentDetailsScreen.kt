@@ -45,11 +45,11 @@ import java.util.Locale
 @Composable
 fun SegmentDetailsScreen(
     viewModel: MainViewModel,
-    segmentId: Int,
-    tripId: Int,
-    navigateToSegmentBoatLoad: (Int, Int) -> Unit,
-    navigateToFishermanDetails: (Int) -> Unit,
-    navigateToAddFish: (tripId: Int, segmentId: Int, fishId: Int?) -> Unit,
+    segmentId: String,
+    tripId: String,
+    navigateToSegmentBoatLoad: (String, String) -> Unit,
+    navigateToFishermanDetails: (String) -> Unit,
+    navigateToAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
     navigateBack: () -> Unit
 ) {
     val segmentWithDetails by viewModel.getSegmentWithDetails(segmentId).collectAsState(initial = null)

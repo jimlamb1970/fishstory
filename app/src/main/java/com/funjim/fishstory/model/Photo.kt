@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "photo_table",
@@ -48,12 +49,13 @@ import androidx.room.PrimaryKey
     ]
 )
 data class Photo(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val uri: String,
-    val tripId: Int? = null,
-    val segmentId: Int? = null,
-    val lureId: Int? = null,
-    val fishermanId: Int? = null,
-    val fishId: Int? = null,
+    val tripId: String? = null,
+    val segmentId: String? = null,
+    val lureId: String? = null,
+    val fishermanId: String? = null,
+    val fishId: String? = null,
     val timestamp: Long = System.currentTimeMillis()
 )

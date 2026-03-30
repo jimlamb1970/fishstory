@@ -11,23 +11,23 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PhotoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPhoto(photo: Photo): Long
+    suspend fun insertPhoto(photo: Photo)
 
     @Delete
     suspend fun deletePhoto(photo: Photo)
 
     @Query("SELECT * FROM photo_table WHERE tripId = :tripId")
-    fun getPhotosForTrip(tripId: Int): Flow<List<Photo>>
+    fun getPhotosForTrip(tripId: String): Flow<List<Photo>>
 
     @Query("SELECT * FROM photo_table WHERE segmentId = :segmentId")
-    fun getPhotosForSegment(segmentId: Int): Flow<List<Photo>>
+    fun getPhotosForSegment(segmentId: String): Flow<List<Photo>>
 
     @Query("SELECT * FROM photo_table WHERE lureId = :lureId")
-    fun getPhotosForLure(lureId: Int): Flow<List<Photo>>
+    fun getPhotosForLure(lureId: String): Flow<List<Photo>>
 
     @Query("SELECT * FROM photo_table WHERE fishermanId = :fishermanId")
-    fun getPhotosForFisherman(fishermanId: Int): Flow<List<Photo>>
+    fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
 
     @Query("SELECT * FROM photo_table WHERE fishId = :fishId")
-    fun getPhotosForFish(fishId: Int): Flow<List<Photo>>
+    fun getPhotosForFish(fishId: String): Flow<List<Photo>>
 }
