@@ -14,10 +14,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,13 +54,14 @@ fun SegmentDetailsScreen(
     navigateToAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
     val segmentWithDetails by viewModel.getSegmentWithDetails(segmentId).collectAsState(initial = null)
     val fishList by viewModel.getFishForSegment(segmentId).collectAsState(initial = emptyList())
-    val allSpecies by viewModel.species.collectAsState(initial = emptyList())
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
     var showFishermenDialog by remember { mutableStateOf(false) }
     var showMapPicker by remember { mutableStateOf(false) }
+    var showEditSegmentDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     
@@ -81,13 +84,16 @@ fun SegmentDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(segmentWithDetails?.segment?.name ?: "Segment Details") },
+                title = { Text("Segment Details") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showEditSegmentDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Segment")
+                    }
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More")
@@ -120,6 +126,27 @@ fun SegmentDetailsScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
+
+                            if (tripWithDetails?.trip?.latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Use Trip Location") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        scope.launch {
+                                            segmentWithDetails?.segment?.let { segment ->
+                                                viewModel.updateSegment(segment.copy(latitude = tripWithDetails?.trip?.latitude, longitude = tripWithDetails?.trip?.longitude))
+                                                Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
 
                             DropdownMenuItem(
                                 text = { Text("Select Location") },
@@ -193,7 +220,7 @@ fun SegmentDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Segment: ${details.segment.name}",
+                            text = details.segment.name,
                             style = MaterialTheme.typography.headlineMedium
                         )
                         if (details.segment.latitude != null && details.segment.longitude != null) {
@@ -245,25 +272,6 @@ fun SegmentDetailsScreen(
 
                 HorizontalDivider()
 
-                Column(modifier = Modifier.padding(16.dp)) {
-                    if (details.segment.latitude != null && details.segment.longitude != null) {
-                        Text(
-                            text = "Location: ${"%.4f".format(details.segment.latitude)}, ${"%.4f".format(details.segment.longitude)}",
-                            style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable {
-                                val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
-                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    }
-                }
-
                 // The Boat Concept for Segment
                 BoatSummary(
                     fishermanCount = details.fishermen.size,
@@ -310,6 +318,83 @@ fun SegmentDetailsScreen(
                             }
                         )
                     }
+                }
+
+                if (showEditSegmentDialog) {
+                    var segmentName by remember { mutableStateOf(details.segment.name) }
+                    var startDateMillis by remember { mutableLongStateOf(details.segment.startTime) }
+                    var endDateMillis by remember { mutableLongStateOf(details.segment.endTime) }
+
+                    var tripStartDateMillis by remember { mutableLongStateOf(tripWithDetails?.trip?.startDate?: 0L) }
+                    var tripEndDateMillis by remember { mutableLongStateOf(tripWithDetails?.trip?.endDate?: 0L) }
+
+                    AlertDialog(
+                        onDismissRequest = { showEditSegmentDialog = false },
+                        title = { Text("Edit Segment Details") },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextField(
+                                    value = segmentName,
+                                    onValueChange = { segmentName = it },
+                                    label = { Text("Segment Name") },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Text("Start", style = MaterialTheme.typography.labelLarge)
+                                DateTimePickerButton(
+                                    label = "start",
+                                    millis = startDateMillis,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { newMillis ->
+                                    if (newMillis < tripStartDateMillis) {
+                                        Toast.makeText(context, "Start cannot be before trip start", Toast.LENGTH_SHORT)
+                                            .show()
+                                    } else if (newMillis > tripEndDateMillis) {
+                                        Toast.makeText(context, "Start cannot be after trip end", Toast.LENGTH_SHORT)
+                                            .show()
+                                    } else {
+                                        startDateMillis = newMillis
+                                        if (startDateMillis > endDateMillis) endDateMillis = startDateMillis
+                                    }
+                                }
+
+                                Text("End", style = MaterialTheme.typography.labelLarge)
+                                DateTimePickerButton(
+                                    label = "end",
+                                    millis = endDateMillis,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { newMillis ->
+                                    if (newMillis < startDateMillis) {
+                                        Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                    } else if (newMillis > tripEndDateMillis) {
+                                        Toast.makeText(context, "End cannot be after trip end", Toast.LENGTH_SHORT)
+                                            .show()
+                                    } else {
+                                        endDateMillis = newMillis
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                scope.launch {
+                                    viewModel.updateSegment(details.segment.copy(
+                                        name = segmentName,
+                                        startTime = startDateMillis,
+                                        endTime = endDateMillis
+                                    ))
+                                    showEditSegmentDialog = false
+                                }
+                            }) {
+                                Text("Save")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showEditSegmentDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
                 }
 
                 if (showFishermenDialog) {
