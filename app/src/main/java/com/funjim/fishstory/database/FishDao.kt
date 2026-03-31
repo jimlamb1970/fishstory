@@ -112,6 +112,9 @@ interface FishDao {
     @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
     fun getAllFish(): Flow<List<Fish>>
 
+    @Query("DELETE FROM fish_table")
+    suspend fun deleteAllFish()
+
     @Query("SELECT * FROM fish_table WHERE id = :id")
     suspend fun getFishById(id: String): Fish?
 
@@ -129,6 +132,9 @@ interface FishDao {
 
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<Species>>
+
+    @Query("DELETE FROM species_table")
+    suspend fun deleteAllSpecies()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSpecies(species: Species)

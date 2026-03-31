@@ -11,6 +11,9 @@ interface LureDao {
     @Query("SELECT * FROM lure_table")
     fun getAllLures(): Flow<List<Lure>>
 
+    @Query("DELETE FROM lure_table")
+    suspend fun deleteAllLures()
+
     @Query("SELECT * FROM lure_table WHERE id = :id")
     suspend fun getLureById(id: String): Lure?
 
@@ -23,6 +26,9 @@ interface LureDao {
     // LureColor queries
     @Query("SELECT * FROM lure_color_table")
     fun getAllLureColors(): Flow<List<LureColor>>
+
+    @Query("DELETE FROM lure_color_table")
+    suspend fun deleteAllLureColors()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertLureColor(color: LureColor)

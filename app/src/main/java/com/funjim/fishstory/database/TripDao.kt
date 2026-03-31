@@ -18,6 +18,9 @@ interface TripDao {
     @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
     fun getAllTrips(): Flow<List<Trip>>
 
+    @Query("DELETE FROM trip_table")
+    suspend fun deleteAllTrips()
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTrip(trip: Trip)
 
@@ -37,6 +40,9 @@ interface TripDao {
 
     @Query("SELECT * FROM trip_fisherman_cross_ref")
     fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanCrossRef>>
+
+    @Query("DELETE FROM trip_fisherman_cross_ref")
+    suspend fun deleteAllTripFishermanCrossRefs()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

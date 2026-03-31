@@ -19,8 +19,14 @@ interface FishermanDao {
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<Fisherman>>
 
+    @Query("DELETE FROM fisherman_table")
+    suspend fun deleteAllFishermen()
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(fisherman: Fisherman)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFisherman(fisherman: Fisherman)
 
     @Upsert
     suspend fun upsert(fisherman: Fisherman)

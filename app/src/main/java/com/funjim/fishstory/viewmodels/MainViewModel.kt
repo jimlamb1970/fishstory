@@ -40,7 +40,6 @@ data class DatabaseExportData(
     val fish: List<Fish>,
     val species: List<Species>,
     val photos: List<Photo>
-    // add other tables as needed
 )
 
 class MainViewModel(
@@ -57,6 +56,7 @@ class MainViewModel(
     val volumeKeyEvent = _volumeKeyEvent.asStateFlow()
 
     private val json = Json { prettyPrint = true }
+    private val json_import = Json { ignoreUnknownKeys = true }
 
     fun onVolumeKeyPressed(direction: Int) {
         viewModelScope.launch {
@@ -512,12 +512,35 @@ class MainViewModel(
     suspend fun importDatabaseFromJson(context: Context, uri: Uri): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                // NOTE: You must implement logic here to read the JSON, deserialize it,
-                // and use DAO insert/upsert methods to rebuild the database state.
                 context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     val jsonString = inputStream.bufferedReader().use { it.readText() }
-                    // val importedData = Json.decodeFromString<DatabaseExportData>(jsonString)
-                    // TODO: Parse jsonString and call DAOs to update DB
+                    val data = json_import.decodeFromString<DatabaseExportData>(jsonString)
+
+                    tripDao.deleteAllTrips()
+                    segmentDao.deleteAllSegments()
+                    fishermanDao.deleteAllFishermen()
+                    tripDao.deleteAllTripFishermanCrossRefs()
+                    segmentDao.deleteAllSegmentFishermanCrossRefs()
+                    lureDao.deleteAllLures()
+                    tackleBoxDao.deleteAllTackleBoxes()
+                    tackleBoxDao.deleteAllTackleBoxLureCrossRefs()
+                    lureDao.deleteAllLureColors()
+                    fishDao.deleteAllFish()
+                    fishDao.deleteAllSpecies()
+                    photoDao.deleteAllPhotos()
+
+                    data.trips.forEach { tripDao.insertTrip(it) }
+                    data.segments.forEach { segmentDao.insertSegment(it) }
+                    data.fishermen.forEach { fishermanDao.insertFisherman(it) }
+                    data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
+                    data.segmentFishermanCrossRef.forEach { segmentDao.insertSegmentFishermanCrossRef(it) }
+                    data.colors.forEach { lureDao.insertLureColor(it) }
+                    data.lures.forEach { lureDao.insertLure(it) }
+                    data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
+                    data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
+                    data.species.forEach { fishDao.insertSpecies(it) }
+                    data.fish.forEach { fishDao.insertFish(it) }
+                    data.photos.forEach { photoDao.insertPhoto(it) }
                 }
                 // For simplicity, assume success, but you should check deserialization status
                 true

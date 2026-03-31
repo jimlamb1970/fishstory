@@ -9,15 +9,15 @@ interface SegmentDao {
     @Query("SELECT * FROM segment_table ORDER BY startTime DESC")
     fun getAllSegments(): Flow<List<Segment>>
 
+    @Query("DELETE FROM segment_table")
+    suspend fun deleteAllSegments()
+
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>>
 
     @Transaction
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>>
-
-    @Query("SELECT * FROM segment_table WHERE endTime IS NULL ORDER BY startTime DESC")
-    fun getActiveSegments(): Flow<List<Segment>>
 
     @Query("""
     SELECT * FROM segment_table 
@@ -46,6 +46,9 @@ interface SegmentDao {
 
     @Query("SELECT * FROM segment_fisherman_cross_ref")
     fun getAllSegmentFishermanCrossRefs(): Flow<List<SegmentFishermanCrossRef>>
+
+    @Query("DELETE FROM segment_fisherman_cross_ref")
+    suspend fun deleteAllSegmentFishermanCrossRefs()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)

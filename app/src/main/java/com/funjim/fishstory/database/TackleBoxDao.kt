@@ -13,8 +13,14 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table")
     fun getAllTackleBoxes(): Flow<List<TackleBox>>
 
+    @Query("DELETE FROM tackle_box_table")
+    suspend fun deleteAllTackleBoxes()
+
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
     fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureCrossRef>>
+
+    @Query("DELETE FROM tackle_box_lure_cross_ref")
+    suspend fun deleteAllTackleBoxLureCrossRefs()
 
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxForFisherman(fishermanId: String): Flow<TackleBox?>
