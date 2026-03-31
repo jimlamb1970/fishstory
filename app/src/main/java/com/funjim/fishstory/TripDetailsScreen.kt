@@ -224,7 +224,7 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider()
 
                 // The Boat Concept
                 BoatSummary(
@@ -232,7 +232,7 @@ fun TripDetailsScreen(
                     onBoatClick = { navigateToBoatLoad(tripId) }
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider()
 
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
