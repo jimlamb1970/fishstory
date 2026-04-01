@@ -121,7 +121,7 @@ interface FishDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFish(fish: Fish)
 
-    @Update
+    @Upsert
     suspend fun upsertFish(fish: Fish)
 
     @Update

@@ -271,10 +271,16 @@ fun AddFishScreen(
         )
     }
 
-    val timePickerState = rememberTimePickerState(
-        initialHour = localDateTime.hour,
-        initialMinute = localDateTime.minute
-    )
+    // Wrap in a key so that when timestamp changes (e.g., after loading an existing fish),
+    // the TimePickerState is completely recreated with the new values.
+    val timePickerState = key(timestamp) {
+        val localDateTime = timestamp.toLocalDateTime()
+        rememberTimePickerState(
+            initialHour = localDateTime.hour,
+            initialMinute = localDateTime.minute,
+            is24Hour = false
+        )
+    }
 
     if (showDatePicker) {
         DatePickerDialog(
@@ -629,8 +635,7 @@ fun AddFishScreen(
                             null
                         }
 
-                        viewModel.addFish(
-//                          viewModel.upsertFish(
+                          viewModel.upsertFish(
                             Fish(
                                 id = fishId ?: UUID.randomUUID().toString(),
                                 speciesId = selectedSpeciesId,
@@ -784,8 +789,7 @@ fun StepperField(
                 value = value,
                 onValueChange = onValueChange,
                 modifier = Modifier
-                    .weight(1f)
-                    .focusProperties { canFocus = false },
+                    .weight(1f),
                 textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true
