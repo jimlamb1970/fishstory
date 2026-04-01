@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.ui.BoatSummary
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -104,6 +105,17 @@ fun AddSegmentScreen(
         }
     }
 
+    val locationPicker = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = latitude,  // Passed from your DB object
+        existingLng = longitude,
+        onLocationConfirmed = { lat, lng ->
+            viewModel.updateDraftSegmentLocation(lat, lng)
+            latitude = lat
+            longitude = lng
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -126,7 +138,7 @@ fun AddSegmentScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Set GPS Location") },
+                                text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
                                     if (ContextCompat.checkSelfPermission(
@@ -156,6 +168,36 @@ fun AddSegmentScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    locationPicker.openPicker()
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+
+                            if (latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        menuExpanded = false
+                                        scope.launch {
+                                            viewModel.updateDraftSegmentLocation(null, null)
+                                            latitude = null
+                                            longitude = null
+                                            Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
