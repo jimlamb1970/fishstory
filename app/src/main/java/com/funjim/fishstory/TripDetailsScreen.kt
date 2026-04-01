@@ -31,6 +31,7 @@ import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
@@ -54,7 +55,6 @@ fun TripDetailsScreen(
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
 
     var showFishermenDialog by remember { mutableStateOf(false) }
-    var showMapPicker by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -84,6 +84,19 @@ fun TripDetailsScreen(
             Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
+    val locationPicker = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = tripWithDetails?.trip?.latitude,  // Passed from your DB object
+        existingLng = tripWithDetails?.trip?.longitude,
+        onLocationConfirmed = { lat, lng ->
+            tripWithDetails?.trip?.let { trip ->
+                scope.launch {
+                    viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
+                }
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -135,7 +148,7 @@ fun TripDetailsScreen(
                                 text = { Text("Select Location") },
                                 onClick = {
                                     menuExpanded = false
-                                    showMapPicker = true
+                                    locationPicker.openPicker()
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
@@ -382,23 +395,6 @@ fun TripDetailsScreen(
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
-        }
-
-        if (showMapPicker) {
-            MapPickerSelectionDialog(
-                initialLatLng = tripWithDetails?.trip.let {
-                    if (it?.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
-                },
-                onDismiss = { showMapPicker = false },
-                onConfirm = { latLng ->
-                    tripWithDetails?.trip?.let { trip ->
-                        scope.launch {
-                            viewModel.updateTrip(trip.copy(latitude = latLng.latitude, longitude = latLng.longitude))
-                        }
-                    }
-                    showMapPicker = false
-                }
-            )
         }
     }
 }

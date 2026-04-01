@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.ui.MapPickerSelectionDialog
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
@@ -104,7 +105,6 @@ fun TripItem(
     val endString = dateTimeFormatter.format(Date(trip.endDate))
     
     var showMenu by remember { mutableStateOf(false) }
-    var showMapPicker by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -126,6 +126,17 @@ fun TripItem(
             Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
+    val locationPicker = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = trip.latitude,  // Passed from your DB object
+        existingLng = trip.longitude,
+        onLocationConfirmed = { lat, lng ->
+            scope.launch {
+                viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
+            }
+        }
+    )
 
     Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onClick() }) {
         Row(
@@ -208,7 +219,7 @@ fun TripItem(
                         text = { Text("Select Location") },
                         onClick = {
                             showMenu = false
-                            showMapPicker = true
+                            locationPicker.openPicker()
                         },
                         leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                     )
@@ -247,21 +258,6 @@ fun TripItem(
                     )
                 }
             }
-        }
-
-        if (showMapPicker) {
-            MapPickerSelectionDialog(
-                initialLatLng = trip.let {
-                    if (it.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
-                },
-                onDismiss = { showMapPicker = false },
-                onConfirm = { latLng ->
-                    scope.launch {
-                        viewModel.updateTrip(trip.copy(latitude = latLng.latitude, longitude = latLng.longitude))
-                    }
-                    showMapPicker = false
-                }
-            )
         }
     }
 }

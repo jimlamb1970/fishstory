@@ -2,6 +2,8 @@ package com.funjim.fishstory.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
+import android.Manifest
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
@@ -134,11 +138,11 @@ fun FishItem(
 
 @Composable
 fun MapPickerSelectionDialog(
-    initialLatLng: LatLng?,
+    initialLatLng: LatLng,
     onDismiss: () -> Unit,
     onConfirm: (LatLng) -> Unit
 ) {
-    var selectedLocation by remember { mutableStateOf(initialLatLng ?: LatLng(45.0, -90.0)) }
+    var selectedLocation by remember { mutableStateOf(initialLatLng) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -176,6 +180,63 @@ fun MapPickerSelectionDialog(
         }
     }
 }
+
+@Composable
+fun rememberLocationPickerState(
+    viewModel: MainViewModel,
+    existingLat: Double?,
+    existingLng: Double?,
+    onLocationConfirmed: (Double, Double) -> Unit
+): LocationPickerResult {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Logic: Determine the "best" initial point
+    // We use 'derivedStateOf' so this recalculates correctly if deviceLocation arrives late
+    val initialLatLng = remember(deviceLocation, existingLat, existingLng) {
+        when {
+            // 1. Priority: If we already have a saved location for this trip/segment
+            existingLat != null && existingLng != null -> LatLng(existingLat, existingLng)
+            // 2. Fallback: Use the device's current location fetched by VM
+            deviceLocation != null -> LatLng(deviceLocation!!.latitude, deviceLocation!!.longitude)
+            // 3. Last Resort: Default center (or null to show a loading state)
+            else -> LatLng(45.0, -90.0)
+        }
+    }
+
+    // Trigger the "Once" fetch when the screen starts
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            viewModel.fetchDeviceLocationOnce(context)
+        }
+    }
+
+    // UI Logic: Show the dialog if the flag is true
+    if (showDialog) {
+        MapPickerSelectionDialog(
+            initialLatLng = initialLatLng,
+            onDismiss = { showDialog = false },
+            onConfirm = { latLng ->
+                scope.launch {
+                    onLocationConfirmed(latLng.latitude, latLng.longitude)
+                }
+                showDialog = false
+            }
+        )
+    }
+
+    return remember {
+        LocationPickerResult(openPicker = { showDialog = true })
+    }
+}
+
+class LocationPickerResult(val openPicker: () -> Unit)
 
 @Composable
 fun ManageSpeciesDialog(

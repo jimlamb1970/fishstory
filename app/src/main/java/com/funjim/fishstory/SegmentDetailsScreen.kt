@@ -36,6 +36,7 @@ import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.getCurrentLocation
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
@@ -60,7 +61,6 @@ fun SegmentDetailsScreen(
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
     var showFishermenDialog by remember { mutableStateOf(false) }
-    var showMapPicker by remember { mutableStateOf(false) }
     var showEditSegmentDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -80,6 +80,41 @@ fun SegmentDetailsScreen(
             // Permission granted
         }
     }
+
+    val locationPicker = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = segmentWithDetails?.segment?.latitude,  // Passed from your DB object
+        existingLng = segmentWithDetails?.segment?.longitude,
+        onLocationConfirmed = { lat, lng ->
+            segmentWithDetails?.segment?.let { segment ->
+                scope.launch {
+                    viewModel.updateSegment(
+                        segment.copy(
+                            latitude = lat,
+                            longitude = lng
+                        )
+                    )
+                    Toast.makeText(context, "Segment location updated", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
+
+    val locationPickerFish = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
+        existingLng = fishToUpdateLocation?.longitude,
+        onLocationConfirmed = { lat, lng ->
+            fishToUpdateLocation?.let { fishDetails ->
+                scope.launch {
+                    val fish = viewModel.getFishById(fishDetails.id)
+                    if (fish != null) {
+                        viewModel.updateFish(fish.copy(latitude = lat, longitude = lng))
+                    }
+                }
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -152,7 +187,7 @@ fun SegmentDetailsScreen(
                                 text = { Text("Select Location") },
                                 onClick = {
                                     menuExpanded = false
-                                    showMapPicker = true
+                                    locationPicker.openPicker()
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
@@ -315,6 +350,7 @@ fun SegmentDetailsScreen(
                             },
                             onUpdateLocation = {
                                 fishToUpdateLocation = fish
+                                locationPickerFish.openPicker()
                             }
                         )
                     }
@@ -429,46 +465,6 @@ fun SegmentDetailsScreen(
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
-        }
-
-        if (showMapPicker) {
-            MapPickerSelectionDialog(
-                initialLatLng = segmentWithDetails?.segment?.let {
-                    if (it.latitude != null && it.longitude != null) LatLng(it.latitude, it.longitude) else null
-                },
-                onDismiss = { showMapPicker = false },
-                onConfirm = { latLng ->
-                    segmentWithDetails?.segment?.let { segment ->
-                        scope.launch {
-                            viewModel.updateSegment(
-                                segment.copy(
-                                    latitude = latLng.latitude,
-                                    longitude = latLng.longitude
-                                )
-                            )
-                            Toast.makeText(context, "Segment location updated", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    showMapPicker = false
-                }
-            )
-        }
-
-        fishToUpdateLocation?.let { fishDetails ->
-            MapPickerSelectionDialog(
-                initialLatLng = if (fishDetails.latitude != null && fishDetails.longitude != null) 
-                    LatLng(fishDetails.latitude, fishDetails.longitude) else null,
-                onDismiss = { fishToUpdateLocation = null },
-                onConfirm = { latLng ->
-                    scope.launch {
-                        val fish = viewModel.getFishById(fishDetails.id)
-                        if (fish != null) {
-                            viewModel.updateFish(fish.copy(latitude = latLng.latitude, longitude = latLng.longitude))
-                        }
-                        fishToUpdateLocation = null
-                    }
-                }
-            )
         }
     }
 }

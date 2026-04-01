@@ -78,6 +78,16 @@ class MainViewModel(
         }
     }
 
+    private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
+    val deviceLocation = _deviceLocation.asStateFlow()
+
+    fun fetchDeviceLocationOnce(context: Context) {
+        if (_deviceLocation.value != null) return // already fetched, do nothing
+        viewModelScope.launch {
+            _deviceLocation.value = getCurrentLocation(context)
+        }
+    }
+
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
     val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
     val lures: Flow<List<Lure>> = lureDao.getAllLures()

@@ -26,9 +26,12 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
+import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.SegmentItem
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
+import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -212,6 +215,17 @@ fun AddTripScreen(
         }
     }
 
+    val locationPicker = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = latitude,  // Passed from your DB object
+        existingLng = longitude,
+        onLocationConfirmed = { lat, lng ->
+            viewModel.updateDraftLocation(lat, lng)
+            latitude = lat
+            longitude = lng
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -234,7 +248,7 @@ fun AddTripScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Set GPS Location") },
+                                text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -257,6 +271,37 @@ fun AddTripScreen(
                                 },
                                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
                             )
+
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    locationPicker.openPicker()
+                                },
+                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                            )
+
+                            if (latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        menuExpanded = false
+                                        scope.launch {
+                                            viewModel.updateDraftLocation(null, null)
+                                            latitude = null
+                                            longitude = null
+                                            Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -358,13 +403,6 @@ fun AddTripScreen(
                 }
             }
 
-            if (latitude != null && longitude != null) {
-                Text(
-                    text = "Location: ${"%.4f".format(latitude)}, ${"%.4f".format(longitude)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             val fishermanCount = draftFishermanIds.size
