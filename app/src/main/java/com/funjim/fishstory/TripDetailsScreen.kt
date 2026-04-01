@@ -45,7 +45,7 @@ fun TripDetailsScreen(
     tripId: String,
     navigateToSegmentDetails: (String) -> Unit,
     navigateToFishermanDetails: (String) -> Unit,
-    navigateToBoatLoad: (String) -> Unit,
+    navigateToLoadBoatForTrip: (String) -> Unit,
     navigateToAddSegment: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -229,7 +229,7 @@ fun TripDetailsScreen(
                 // The Boat Concept
                 BoatSummary(
                     fishermanCount = details.fishermen.size,
-                    onBoatClick = { navigateToBoatLoad(tripId) }
+                    onBoatClick = { navigateToLoadBoatForTrip(tripId) }
                 )
 
                 HorizontalDivider()

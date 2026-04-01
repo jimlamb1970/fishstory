@@ -36,6 +36,7 @@ import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -135,8 +136,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         composable("addTrip") {
             AddTripScreen(
                 viewModel = viewModel,
-                navigateToBoatLoad = { tripId ->
-                    navController.navigate("boatLoad/$tripId")
+                navigateToLoadBoatForTrip = {
+                    navController.navigate("loadBoatForTrip")
                 },
                 navigateToAddSegment = { id ->
                     navController.navigate("addSegment/$id")
@@ -149,28 +150,98 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         }
 
         composable(
-            route = "boatLoad/{tripId}",
+            route = "loadBoatForTrip",
+        ) { backStackEntry ->
+            val scope = rememberCoroutineScope()
+            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+            val draftCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
+
+            BoatLoadScreen(
+                eligibleFishermen = allFishermen,
+                initialCrew = allFishermen.filter { it.id in draftCrew },
+                canAddNewFisherman = true,
+                onSave = { finalCrew ->
+                    val crewIds = finalCrew.map { it.id }.toSet()
+                    viewModel.setDraftFisherman(crewIds)
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    // Rollback or just navigate away
+                    navController.popBackStack()
+                },
+                onAddFisherman = { first, last, nick ->
+                    scope.launch {
+                        viewModel.addFisherman(first, last, nick)
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "loadBoatForTrip/{tripId}",
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            val previousEntry = navController.previousBackStackEntry
-            val segmentId = previousEntry?.savedStateHandle
-                ?.get<String>("segmentId") ?: ""
-            val eligibleFishermanIds = previousEntry?.savedStateHandle
-                ?.get<Set<String>>("eligibleFishermanIds")
+            val scope = rememberCoroutineScope()
+            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+            val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
+            val initialCrew = remember(tripWithFishermen) {
+                tripWithFishermen?.fishermen ?: emptyList()
+            }
+
             BoatLoadScreen(
-                viewModel = viewModel,
-                tripId = tripId,
-                segmentId = segmentId,
-                navigateToManageFishermen = {
-                    navController.navigate("fishermen")
-                },
-                navigateBack = {
+                eligibleFishermen = allFishermen,
+                initialCrew = initialCrew,
+                canAddNewFisherman = true,
+                onSave = { finalCrew ->
+                    val newIdSet = finalCrew.map { it.id }.toSet()
+                    viewModel.syncTripFishermen(tripId, newIdSet)
                     navController.popBackStack()
                 },
-                eligibleFishermanIds = eligibleFishermanIds
+                onCancel = {
+                    // Rollback or just navigate away
+                    navController.popBackStack()
+                },
+                onAddFisherman = { first, last, nick ->
+                    scope.launch {
+                        viewModel.addFisherman(first, last, nick)
+                    }
+                }
             )
         }
+
+        composable(
+            route = "loadBoatForSegment"
+        ) { backStackEntry ->
+            val scope = rememberCoroutineScope()
+            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+            val tripCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
+            val draftSegmentId by viewModel.draftSegmentId.collectAsState()
+            val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
+            val draftCrew = draftSegmentFishermanIds[draftSegmentId] ?: emptySet()
+
+            BoatLoadScreen(
+                eligibleFishermen = allFishermen.filter { it.id in tripCrew },
+                initialCrew = allFishermen.filter { it.id in draftCrew },
+                canAddNewFisherman = false,
+                onSave = { finalCrew ->
+                    // ONLY PERSIST TO DATABASE HERE
+                    val crewIds = finalCrew.map { it.id }.toSet()
+                    viewModel.setDraftSegmentFisherman(crewIds)
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    // Rollback or just navigate away
+                    navController.popBackStack()
+                },
+                onAddFisherman = { first, last, nick ->
+                    scope.launch {
+                        viewModel.addFisherman(first, last, nick)
+                    }
+                }
+            )
+        }
+
         composable("fishermen") {
             FishermanListScreen(
                 viewModel = viewModel,
@@ -182,6 +253,7 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 }
             )
         }
+
         composable(
             route = "addLure?lureId={lureId}",
             arguments = listOf(
@@ -256,18 +328,21 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 }
             )
         }
+
         composable("settings") {
             SettingsScreen(
                 viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )
         }
+
         composable("reports") {
             ReportsScreen(
                 viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )
         }
+
         composable(
             route = "tripDetails/{tripId}",
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
@@ -282,8 +357,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fishermanDetails/$fishermanId")
                 },
-                navigateToBoatLoad = { id ->
-                    navController.navigate("boatLoad/$id")
+                navigateToLoadBoatForTrip = { id ->
+                    navController.navigate("loadBoatForTrip/$id")
                 },
                 navigateToAddSegment = { id ->
                     navController.navigate("addSegment/$id")
@@ -293,6 +368,7 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 }
             )
         }
+
         composable(
             route = "addSegment/{tripId}",
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
@@ -301,14 +377,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             AddSegmentScreen(
                 viewModel = viewModel,
                 tripId = tripId,
-                navigateToBoatLoad = { tId, sId, eligibleIds ->
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("eligibleFishermanIds", eligibleIds)
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("segmentId", sId)
-                    navController.navigate("boatLoad/$tId")
+                navigateToLoadBoatForSegment = {
+                    navController.navigate("loadBoatForSegment")
                 },
                 navigateBack = {
                     navController.popBackStack()

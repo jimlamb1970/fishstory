@@ -31,9 +31,10 @@ fun AddSegmentScreen(
     viewModel: MainViewModel,
     tripId: String,
     navigateBack: () -> Unit,
-    navigateToBoatLoad: (tripId: String, segmentId: String, eligibleFishermanIds: Set<String>) -> Unit
+    navigateToLoadBoatForSegment: () -> Unit
 ) {
     val draftTripId by viewModel.draftTripId.collectAsStateWithLifecycle()
+    val draftSegmentId by viewModel.draftSegmentId.collectAsStateWithLifecycle()
 
     val tripWithDetails by if (tripId != draftTripId) {
         viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
@@ -55,8 +56,6 @@ fun AddSegmentScreen(
     // Draft trip values for pre-populating dates when tripId == 0
     val draftTripStartDate by viewModel.draftTripStartDate.collectAsState()
     val draftTripEndDate by viewModel.draftTripEndDate.collectAsState()
-    val draftLatitude by viewModel.draftLatitude.collectAsState()
-    val draftLongitude by viewModel.draftLongitude.collectAsState()
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
     val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
 
@@ -66,10 +65,6 @@ fun AddSegmentScreen(
     var endDateMillis by remember(draftSegmentEndDate) { mutableLongStateOf(draftSegmentEndDate) }
     var latitude by remember(draftSegmentLatitude) { mutableStateOf(draftSegmentLatitude) }
     var longitude by remember(draftSegmentLongitude) { mutableStateOf(draftSegmentLongitude) }
-
-    // The tempId for the current draft segment — used for fisherman tracking
-    // We use -1 as a placeholder until saved; boat load screen uses this
-    val draftSegmentId = viewModel.draftSegmentId
 
     val eligibleIds: Set<String> = when {
         (tripId == draftTripId) -> draftFishermanIds
@@ -271,19 +266,11 @@ fun AddSegmentScreen(
                 }
             }
 
-            if (latitude != null && longitude != null) {
-                Text(
-                    text = "Location: ${"%.4f".format(latitude)}, ${"%.4f".format(longitude)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             BoatSummary(
                 fishermanCount = fishermanCount,
-                onBoatClick = { navigateToBoatLoad(tripId, draftSegmentId, eligibleIds) }
+                onBoatClick = { navigateToLoadBoatForSegment() }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

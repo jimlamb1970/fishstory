@@ -94,9 +94,9 @@ class MainViewModel(
     val draftFishermanIds = _draftFishermanIds.asStateFlow()
 
     // Maps draft segment tempId -> set of fisherman IDs
-    private val _draftSegmentId = UUID.randomUUID().toString()
+    private val _draftSegmentId = MutableStateFlow("")
     private val _draftSegmentFishermanIds = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
-    val draftSegmentId = _draftSegmentId
+    val draftSegmentId = _draftSegmentId.asStateFlow()
     val draftSegmentFishermanIds = _draftSegmentFishermanIds.asStateFlow()
 
     private val _draftTripId = MutableStateFlow("")
@@ -152,6 +152,10 @@ class MainViewModel(
         _draftLongitude.value = lon
     }
 
+    fun updateDraftSegmentId(id: String) {
+        _draftSegmentId.value = id
+    }
+
     fun updateDraftSegmentName(name: String) {
         _draftSegmentName.value = name
     }
@@ -177,7 +181,7 @@ class MainViewModel(
         _draftSegmentLatitude.value = null
         _draftSegmentLongitude.value = null
         // Clear the specific draft boat load for the "new segment" screen (id = -1)
-        _draftSegmentFishermanIds.update { it - draftSegmentId }
+//        _draftSegmentFishermanIds.update { it - draftSegmentId.value }
     }
 
     fun addDraftSegment(
@@ -187,14 +191,8 @@ class MainViewModel(
         latitude: Double? = null,
         longitude: Double? = null
     ) {
-        // 1. Calculate the new temp ID based on the current list
-        // If there are no segments, the first segment needs to start at -2
-        // This is because -1 is reserved for set of fishermen to add to the segment
-        val currentSegments = _draftSegments.value
-        val tempId = UUID.randomUUID().toString()
-
         val newSegment = Segment(
-            id = tempId,
+            id = _draftSegmentId.value,
             tripId = _draftTripId.value,
             name = name,
             startTime = startTime,
@@ -203,22 +201,22 @@ class MainViewModel(
             longitude = longitude
         )
 
-        // 2. Use .update for thread-safe state changes
-        _draftSegments.update { it + newSegment }
-
-        // 3. Sync the fisherman IDs to the new segment ID
-        // The fisherman IDs for this specific "new segment" were being tracked in -1
-        val segmentFishermanIds = _draftSegmentFishermanIds.value[draftSegmentId] ?: _draftFishermanIds.value.toSet()
-
-        _draftSegmentFishermanIds.update { currentMap ->
-            (currentMap - (draftSegmentId)) + (tempId to segmentFishermanIds)
-        }
+        upsertDraftSegment(newSegment)
     }
 
-    fun updateDraftSegment(updatedSegment: Segment) {
+    fun upsertDraftSegment(updatedSegment: Segment) {
         _draftSegments.update { currentList ->
-            currentList.map { segment ->
-                if (segment.id == updatedSegment.id) updatedSegment else segment
+            // 1. Check if the segment already exists in the list
+            val alreadyExists = currentList.any { it.id == updatedSegment.id }
+
+            if (alreadyExists) {
+                // 2. If it exists, map through and replace the old one
+                currentList.map { segment ->
+                    if (segment.id == updatedSegment.id) updatedSegment else segment
+                }
+            } else {
+                // 3. If it doesn't exist, create a new list with the item added
+                currentList + updatedSegment
             }
         }
     }
@@ -234,6 +232,14 @@ class MainViewModel(
 
     fun removeDraftFisherman(fishermanId: String) {
         _draftFishermanIds.update { it - fishermanId }
+    }
+
+    fun setDraftFisherman(fishermanIds: Set<String>) {
+        _draftFishermanIds.update { fishermanIds }
+    }
+
+    fun setDraftSegmentFisherman(fishermanIds: Set<String>) {
+        _draftSegmentFishermanIds.update { it + (draftSegmentId.value to fishermanIds) }
     }
 
     fun addDraftSegmentFisherman(segmentId: String, fishermanId: String) {
@@ -276,6 +282,29 @@ class MainViewModel(
         return tripDao.getTripWithFishermen(tripId)
     }
 
+    fun syncTripFishermen(tripId: String, newSet: Set<String>) {
+        viewModelScope.launch {
+            // 1. Get the CURRENT state from the DB (one-time fetch)
+            val currentTrip = tripDao.getTripWithFishermen(tripId).firstOrNull()
+            if (currentTrip != null) {
+                val currentSet = currentTrip.fishermen.map { it.id }.toSet()
+
+                // 2. Calculate the Delta
+                val toAdd = newSet - currentSet       // Present in new, missing in DB
+                val toRemove = currentSet - newSet    // Present in DB, missing in new
+
+                // 3. Apply changes (Wrapped in a transaction in the Repository/DAO)
+                toRemove.forEach { id ->
+                    deleteFishermanFromTrip(tripId, id)
+                }
+
+                toAdd.forEach { id ->
+                    addFishermanToTrip(tripId, id)
+                }
+            }
+        }
+    }
+
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
     }
@@ -290,6 +319,20 @@ class MainViewModel(
 
     suspend fun deleteTrip(trip: Trip) {
         tripDao.deleteTrip(trip)
+    }
+
+    suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
+        // Check if the fisherman already exists
+        val fishermanByName = fishermanDao.getFishermanByName(firstName, lastName, nickname)
+
+        // If the fisherman does not exist, add the fisherman and also create
+        // a tacklebox for the fisherman
+        if (fishermanByName == null) {
+            val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+            fishermanDao.insert(fisherman)
+            // Automatically create a tackle box for the new fisherman
+            tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fisherman.id))
+        }
     }
 
     suspend fun addFisherman(fisherman: Fisherman) {

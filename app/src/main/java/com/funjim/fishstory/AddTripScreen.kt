@@ -145,16 +145,14 @@ fun DateTimePickerButton(
 fun AddTripScreen(
     viewModel: MainViewModel,
     navigateBack: () -> Unit,
-    navigateToBoatLoad: (String) -> Unit,
+    navigateToLoadBoatForTrip: () -> Unit,
     navigateToAddSegment: (String) -> Unit,
     navigateToSegmentDetails: (String, String) -> Unit
 ) {
-//    var tripId by remember { mutableIntStateOf(initialTripId) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
 
     val draftTripId by viewModel.draftTripId.collectAsState()
     val draftTripName by viewModel.draftTripName.collectAsState()
@@ -186,6 +184,7 @@ fun AddTripScreen(
         // TODO get the ID from a trip object
         tripId = UUID.randomUUID().toString()
         viewModel.updateDraftTripId(tripId)
+        viewModel.updateDraftSegmentId(UUID.randomUUID().toString())
     }
 
     val draftSegments by viewModel.draftSegments.collectAsState()
@@ -372,9 +371,9 @@ fun AddTripScreen(
             BoatSummary(
                 fishermanCount = fishermanCount,
                 onBoatClick = {
-                        viewModel.updateDraftTripName(name)
-                        viewModel.updateDraftLocation(latitude, longitude)
-                    navigateToBoatLoad(tripId)
+                    viewModel.updateDraftTripName(name)
+                    viewModel.updateDraftLocation(latitude, longitude)
+                    navigateToLoadBoatForTrip()
                 }
             )
 
@@ -391,6 +390,8 @@ fun AddTripScreen(
                     viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
                     viewModel.updateDraftSegmentStartDate(startDateMillis)
                     viewModel.updateDraftSegmentEndDate(endDateMillis)
+                    viewModel.updateDraftSegmentId(UUID.randomUUID().toString())
+                    viewModel.setDraftSegmentFisherman(draftFishermanIds)
                     navigateToAddSegment(tripId)
                 }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Segment")
@@ -409,17 +410,27 @@ fun AddTripScreen(
                         SegmentItem(
                             segment = segment,
                             fishermenCount = fishermenCount,
-                            onEdit = { /* Edit logic */ },
                             onDelete = {
                                 viewModel.removeDraftSegment(segment)
                             },
-                            onClick = { /* Edit logic */ },
+                            onClick = {
+/*
+                                viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
+                                viewModel.updateDraftSegmentId(segment.id)
+                                viewModel.updateDraftSegmentName(segment.name)
+                                viewModel.updateDraftSegmentStartDate(segment.startTime)
+                                viewModel.updateDraftSegmentEndDate(segment.endTime)
+                                viewModel.updateDraftSegmentLocation(segment.latitude, segment.longitude)
+                                navigateToAddSegment(tripId)
+
+ */
+                            },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
                                         val location = viewModel.getCurrentLocation(context)
                                         if (location != null) {
-                                            viewModel.updateDraftSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            viewModel.upsertDraftSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }

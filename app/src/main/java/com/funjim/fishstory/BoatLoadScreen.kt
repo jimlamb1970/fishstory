@@ -9,8 +9,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,84 +22,51 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.viewmodels.MainViewModel
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoatLoadScreen(
-    viewModel: MainViewModel,
-    tripId: String,
-    segmentId: String = "",
-    navigateToManageFishermen: () -> Unit,
-    navigateBack: () -> Unit,
-    eligibleFishermanIds: Set<String>? = null
+    eligibleFishermen: List<Fisherman>,
+    initialCrew: List<Fisherman>,
+    canAddNewFisherman: Boolean, // Controls visibility of the "Add" button
+    onAddFisherman: (String, String, String) -> Unit,
+    onSave: (List<Fisherman>) -> Unit, // Called only when FAB is pressed
+    onCancel: () -> Unit // Called when Back is pressed
 ) {
-    val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
-
-    val isSegmentContext = segmentId != "" || eligibleFishermanIds != null
     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
-    // Determine current crew based on context
-    val inBoat: List<Fisherman>
-    val draftTripId by viewModel.draftTripId.collectAsStateWithLifecycle()
-    val draftSegmentId = viewModel.draftSegmentId
-    val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
-    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
-    val tripWithFishermen by if (tripId != draftTripId) {
-        viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
-    } else {
-        remember { mutableStateOf(null) }
+    val localCrew = remember(initialCrew) { mutableStateListOf<Fisherman>().apply { addAll(initialCrew) } }
+
+    // Derived State: Available = Eligible - Current Crew
+    val available = remember(eligibleFishermen, localCrew.toList()) {
+        eligibleFishermen
+            .filter { person -> localCrew.none { it.id == person.id } }
+            .sortedBy { it.fullName }
     }
 
-    inBoat = when {
-        // 1. Check if the current trip is the draft trip
-        tripId == draftTripId -> {
-            if (segmentId == viewModel.draftSegmentId) {
-                // Logic for a specific draft segment
-                val ids = draftSegmentFishermanIds[segmentId] ?: emptySet()
-                allFishermen.filter { it.id in ids }
-            } else {
-                // Logic for the general draft trip
-                allFishermen.filter { it.id in draftFishermanIds }
-            }
-        }
-        /*
-        segmentId == draftSegmentId -> {
-            // Logic specifically for when the segment matches the draft
-            val ids = draftSegmentFishermanIds[segmentId] ?: emptySet()
-            allFishermen.filter { it.id in ids }
-        }
-*/
-        // 2. Fallback for all other cases (persisted trips)
-        else -> tripWithFishermen?.fishermen ?: emptyList()
+    val inBoatSorted = remember(localCrew.toList()) {
+        localCrew.sortedBy { it.fullName }
     }
-
-    // Filter eligible pool, then remove those already in boat, then sort by name
-    val eligiblePool = if (eligibleFishermanIds != null) {
-        allFishermen.filter { it.id in eligibleFishermanIds }
-    } else {
-        allFishermen
-    }
-    val available = eligiblePool
-        .filter { fisherman -> inBoat.none { it.id == fisherman.id } }
-        .sortedBy { it.fullName }
-    val inBoatSorted = inBoat.sortedBy { it.fullName }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Load Trip Boat") },
+                title = { Text("Load Boat") },
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = onCancel) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
                     }
                 }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { onSave(localCrew.toList()) },
+                icon = { Icon(Icons.Default.Check, "Save") },
+                text = { Text("Confirm Crew") },
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
         }
     ) { padding ->
@@ -107,6 +76,7 @@ fun BoatLoadScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // Header for Available Pool
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,17 +84,17 @@ fun BoatLoadScreen(
             ) {
                 Text(
                     text = "Available Fishermen",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    style = MaterialTheme.typography.titleMedium
                 )
 
-                if (!isSegmentContext) {
+                if (canAddNewFisherman) {
                     IconButton(onClick = { showAddFishermanDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Fisherman")
+                        Icon(Icons.Default.Add, contentDescription = "Create New")
                     }
                 }
             }
 
+            // Available List
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -136,19 +106,8 @@ fun BoatLoadScreen(
                     DraggableFishermanItem(
                         fisherman = fisherman,
                         onDroppedInBoat = {
-                            when {
-                                // 1. Check if the current trip is the draft trip
-                                tripId == draftTripId -> {
-                                    if (segmentId != "") {
-                                        // Logic for a specific draft segment
-                                        viewModel.addDraftSegmentFisherman(segmentId, fisherman.id)
-                                    } else {
-                                        // Logic for the general draft trip
-                                        viewModel.addDraftFisherman(fisherman.id)
-                                    }
-                                }
-                                // 2. Fallback for all other cases (persisted trips)
-                                else -> scope.launch { viewModel.addFishermanToTrip(tripId, fisherman.id) }
+                            if (localCrew.none { it.id == fisherman.id }) {
+                                localCrew.add(fisherman)
                             }
                         }
                     )
@@ -157,43 +116,15 @@ fun BoatLoadScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // The Boat
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .background(Color(0xFF0077B6), RoundedCornerShape(topStart = 100.dp, topEnd = 100.dp, bottomStart = 20.dp, bottomEnd = 20.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.DirectionsBoat,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.White
-                    )
-                    Text(
-                        "THE BOAT",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        "${inBoatSorted.size} Fishermen on board",
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-                }
-            }
+            // The Boat Visual
+            BoatVisual(crewCount = inBoatSorted.size)
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Current Crew List
             Text(
-                text = "Fishermen in Boat (Click to remove)",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = "In Boat (Tap to remove)",
+                style = MaterialTheme.typography.titleMedium
             )
 
             LazyColumn(
@@ -204,54 +135,21 @@ fun BoatLoadScreen(
                     .padding(8.dp)
             ) {
                 items(inBoatSorted, key = { it.id }) { fisherman ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .height(50.dp),
+                    FishermanCard(
+                        fisherman = fisherman,
                         onClick = {
-                            when {
-                                // 1. Check if the current trip is the draft trip
-                                tripId == draftTripId -> {
-                                    if (segmentId != "") {
-                                        // Logic for a specific draft segment
-                                        viewModel.removeDraftSegmentFisherman(segmentId, fisherman.id)
-                                    } else {
-                                        // Logic for the general draft trip
-                                        viewModel.removeDraftFisherman(fisherman.id)
-                                    }
-                                }
-                                // 2. Fallback for all other cases (persisted trips)
-                                else -> scope.launch { viewModel.deleteFishermanFromTrip(tripId, fisherman.id) }
-                            }
+                            localCrew.removeAll { it.id == fisherman.id }
                         }
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Person, contentDescription = null)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(fisherman.fullName)
-                        }
-                    }
+                    )
                 }
             }
         }
 
-        if (showAddFishermanDialog && !isSegmentContext) {
+        if (showAddFishermanDialog) {
             AddFishermanDialog(
                 onDismiss = { showAddFishermanDialog = false },
-                onConfirm = { firstName, lastName, nickname ->
-                    scope.launch {
-                        val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-                        viewModel.addFisherman(fisherman)
-                        if (tripId == draftTripId) {
-                            viewModel.addDraftFisherman(fisherman.id)
-                        } else {
-                            viewModel.addFishermanToTrip(tripId, fisherman.id)
-                        }
-                    }
+                onConfirm = { first, last, nick ->
+                    onAddFisherman(first, last, nick)
                     showAddFishermanDialog = false
                 }
             )
@@ -259,6 +157,83 @@ fun BoatLoadScreen(
     }
 }
 
+@Composable
+private fun BoatVisual(crewCount: Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .background(Color(0xFF0077B6), RoundedCornerShape(topStart = 80.dp, topEnd = 80.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.DirectionsBoat, null, modifier = Modifier.size(48.dp), tint = Color.White)
+            Text("THE BOAT", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("$crewCount Fishermen", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+@Composable
+fun FishermanCard(
+    fisherman: Fisherman,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .height(56.dp), // Slightly taller for better touch targets
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar/Icon Section
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Name Section
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = fisherman.fullName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // Optional: Hint icon to show it's removable
+            Icon(
+                imageVector = Icons.Default.RemoveCircleOutline,
+                contentDescription = "Remove",
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
 @Composable
 fun AddFishermanDialog(
     onDismiss: () -> Unit,
