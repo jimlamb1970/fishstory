@@ -19,13 +19,16 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.SegmentWithDetails
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.MapPickerSelectionDialog
@@ -85,6 +88,8 @@ fun TripDetailsScreen(
         }
     }
 
+    var segmentToUpdateLocation by remember { mutableStateOf<SegmentWithDetails?>(null) }
+
     val locationPicker = rememberLocationPickerState(
         viewModel = viewModel,
         existingLat = tripWithDetails?.trip?.latitude,  // Passed from your DB object
@@ -93,6 +98,19 @@ fun TripDetailsScreen(
             tripWithDetails?.trip?.let { trip ->
                 scope.launch {
                     viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
+                }
+            }
+        }
+    )
+
+    val locationPickerSegment = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = segmentToUpdateLocation?.segment?.latitude,  // Passed from your DB object
+        existingLng = segmentToUpdateLocation?.segment?.longitude,
+        onLocationConfirmed = { lat, lng ->
+            segmentToUpdateLocation?.segment?.let { segment ->
+                scope.launch {
+                    viewModel.updateSegment(segment.copy(latitude = lat, longitude = lng))
                 }
             }
         }
@@ -302,6 +320,15 @@ fun TripDetailsScreen(
                                     permissionLauncher.launch(
                                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                                     )
+                                }
+                            },
+                            onSelectLocation = {
+                                segmentToUpdateLocation = segmentDetails
+                                locationPicker.openPicker()
+                            },
+                            onClearLocation = {
+                                scope.launch {
+                                    viewModel.updateSegment(segmentDetails.segment.copy(latitude = null, longitude = null))
                                 }
                             }
                         )

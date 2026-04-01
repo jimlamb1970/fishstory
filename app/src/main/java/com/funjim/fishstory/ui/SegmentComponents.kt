@@ -70,7 +70,9 @@ fun SegmentItem(
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
     onClick: () -> Unit,
-    onSetLocation: (() -> Unit)? = null
+    onSetLocation: (() -> Unit)? = null,
+    onSelectLocation: (() -> Unit)? = null,
+    onClearLocation: (() -> Unit)? = null
 ) {
     SegmentItem(
         segment = segmentWithDetails.segment,
@@ -80,7 +82,9 @@ fun SegmentItem(
         onEdit = onEdit,
         onDelete = onDelete,
         onClick = onClick,
-        onSetLocation = onSetLocation
+        onSetLocation = onSetLocation,
+        onSelectLocation = onSelectLocation,
+        onClearLocation = onClearLocation
     )
 }
 
@@ -93,7 +97,9 @@ fun SegmentItem(
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
     onClick: () -> Unit,
-    onSetLocation: (() -> Unit)? = null
+    onSetLocation: (() -> Unit)? = null,
+    onSelectLocation: (() -> Unit)? = null,
+    onClearLocation: (() -> Unit)? = null
 ) {
     val dateTimeFormatter = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -168,7 +174,7 @@ fun SegmentItem(
                     ) {
                         if (onSetLocation != null) {
                             DropdownMenuItem(
-                                text = { Text("Set GPS Location") },
+                                text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
                                     onSetLocation()
@@ -176,7 +182,42 @@ fun SegmentItem(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null
+                                        contentDescription = null,
+                                        tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
+
+                        if (onSelectLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSelectLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
+
+                        if (segment.latitude != null && onClearLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Clear Location", color = Color.Red) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onClearLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
                                     )
                                 }
                             )
