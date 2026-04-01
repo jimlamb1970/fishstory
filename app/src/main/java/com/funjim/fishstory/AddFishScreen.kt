@@ -325,7 +325,7 @@ fun AddFishScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log New Catch") },
+                title = { Text( if (fishId == null) "Log Fish" else "Edit Fish" ) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -680,7 +680,7 @@ fun AddFishScreen(
                     )
                     .focusable()
             ) {
-                Text("Log Catch")
+                Text( if (fishId == null) "Add Fish" else "Edit Fish" )
             }
         }
     }
