@@ -113,6 +113,14 @@ fun AddFishScreen(
     var lengthStr by remember { mutableStateOf(if (fishId == null) "10.0" else "") }
     var holeNumberStr by remember { mutableStateOf(if (fishId == null) "1" else "") }
 
+    // Check for both FINE and COARSE location permissions
+    val hasLocationPermission = remember {
+        context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+    // Default to true only if permission is actually granted
+    var useCurrentLocation by remember { mutableStateOf(hasLocationPermission) }
+
     // Load data if editing
     LaunchedEffect(fishId) {
         if (fishId != null) {
@@ -127,18 +135,11 @@ fun AddFishScreen(
                 latitude = it.latitude
                 longitude = it.longitude
                 holeNumberStr = it.holeNumber.toString()
+                useCurrentLocation = false
                 // TODO - what to do about tripId and segmentId?
             }
         }
     }
-
-    // Check for both FINE and COARSE location permissions
-    val hasLocationPermission = remember {
-        context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
-                context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
-    }
-    // Default to true only if permission is actually granted
-    var useCurrentLocation by remember { mutableStateOf(hasLocationPermission) }
 
     val startTime = segmentDetails?.segment?.startTime ?: timestamp
     val endTime = segmentDetails?.segment?.endTime ?: timestamp

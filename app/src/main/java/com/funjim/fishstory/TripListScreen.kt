@@ -212,7 +212,11 @@ fun TripItem(
                                 )
                             }
                         },
-                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                        leadingIcon = {
+                            Icon(Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = if (trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                        }
                     )
 
                     DropdownMenuItem(
@@ -221,7 +225,11 @@ fun TripItem(
                             showMenu = false
                             locationPicker.openPicker()
                         },
-                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                        leadingIcon = {
+                            Icon(Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = if (trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                        }
                     )
 
                     if (trip.latitude != null) {

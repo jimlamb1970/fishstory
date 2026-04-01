@@ -159,7 +159,11 @@ fun SegmentDetailsScreen(
                                         )
                                     }
                                 },
-                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                                leadingIcon = {
+                                    Icon(Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
                             )
 
                             if (tripWithDetails?.trip?.latitude != null) {
@@ -175,10 +179,9 @@ fun SegmentDetailsScreen(
                                         }
                                     },
                                     leadingIcon = {
-                                        Icon(
-                                            Icons.Default.LocationOn,
-                                            contentDescription = null
-                                        )
+                                        Icon(Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                     }
                                 )
                             }
@@ -189,7 +192,11 @@ fun SegmentDetailsScreen(
                                     menuExpanded = false
                                     locationPicker.openPicker()
                                 },
-                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                                leadingIcon = {
+                                    Icon(Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
                             )
 
                             if (segmentWithDetails?.segment?.latitude != null) {

@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -269,7 +270,11 @@ fun AddTripScreen(
                                         )
                                     }
                                 },
-                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                                leadingIcon = {
+                                    Icon(Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
                             )
 
                             DropdownMenuItem(
@@ -278,7 +283,11 @@ fun AddTripScreen(
                                     menuExpanded = false
                                     locationPicker.openPicker()
                                 },
-                                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                                leadingIcon = {
+                                    Icon(Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
                             )
 
                             if (latitude != null) {
