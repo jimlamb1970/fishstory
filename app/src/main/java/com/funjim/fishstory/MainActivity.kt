@@ -295,7 +295,36 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                     val route = if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
+                onNavigateToSegmentFishList = { tripId, segmentId ->
+                    navController.navigate("segmentFishList/$tripId/$segmentId")
+                },
                 navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "segmentFishList/{tripId}/{segmentId}",
+            arguments = listOf(
+                navArgument("tripId") { type = NavType.StringType },
+                navArgument("segmentId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            // Extract the arguments from the backStackEntry
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
+            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: ""
+
+            // Call the screen
+            SegmentFishListScreen(
+                viewModel = viewModel,
+                tripId = tripId,
+                segmentId = segmentId,
+                onAddFish = { tripId, segmentId, fishId ->
+                    val route = if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                    navController.navigate(route)
+                },
+                navigateBack =  {
                     navController.popBackStack()
                 }
             )
