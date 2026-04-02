@@ -12,13 +12,16 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.FishItem
 import com.funjim.fishstory.ui.ManageSpeciesDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -31,32 +34,45 @@ fun FishListScreen(
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit
 ) {
-    val activeSegments by viewModel.activeSegments.collectAsState(initial = emptyList())
-    var selectedSegment by remember { mutableStateOf<Segment?>(null) }
-    
-    // Default to the most recent active segment
-    LaunchedEffect(activeSegments) {
-        if (selectedSegment == null && activeSegments.isNotEmpty()) {
-            selectedSegment = activeSegments.first()
+    val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
+    val selectedTripId by viewModel.selectedTripIdForFilter.collectAsStateWithLifecycle()
+    val selectedSegmentId by viewModel.selectedSegmentIdForFilter.collectAsStateWithLifecycle()
+
+    val selectedTrip = remember(allTrips, selectedTripId) {
+        allTrips.find { it.id == selectedTripId }
+    }
+
+    var tripExpanded by remember { mutableStateOf(false) }
+
+    val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = selectedTrip) {
+        selectedTrip?.let { trip ->
+            viewModel.getSegmentsForTrip(trip.id).collect { value = it }
+        } ?: run { value = emptyList() }
+    }
+
+    val selectedSegment = remember(segmentsForTrip, selectedSegmentId) {
+        segmentsForTrip.find { it.id == selectedSegmentId }
+    }
+
+    var segmentExpanded by remember { mutableStateOf(false) }
+
+    val fishList by produceState<List<FishWithDetails>>(initialValue = emptyList(), key1 = selectedTripId, key2 = selectedSegmentId) {
+        when {
+            selectedSegmentId != null -> {
+                viewModel.getFishForSegment(selectedSegmentId!!).collect { value = it }
+            }
+            selectedTripId != null -> {
+                viewModel.getFishForTrip(selectedTripId!!).collect { value = it }
+            }
+            else -> {
+                value = emptyList()
+            }
         }
     }
 
-    val fishList by produceState<List<FishWithDetails>>(initialValue = emptyList(), key1 = selectedSegment) {
-        selectedSegment?.let { segment ->
-            viewModel.getFishForSegment(segment.id).collect { value = it }
-        } ?: run { value = emptyList() }
-    }
-    
-    val allSpecies by viewModel.species.collectAsState(initial = emptyList())
-    val tripDetails by produceState<com.funjim.fishstory.model.TripWithDetails?>(initialValue = null, key1 = selectedSegment) {
-        selectedSegment?.let { segment ->
-            viewModel.getTripWithDetails(segment.tripId).collect { value = it }
-        } ?: run { value = null }
-    }
+    val allSpecies by viewModel.species.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var permissionGranted by remember { mutableStateOf(false) }
-    var segmentExpanded by remember { mutableStateOf(false) }
-
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -68,7 +84,6 @@ fun FishListScreen(
 
         if (isGranted) {
             permissionGranted = true
-            // TRIGGER NAVIGATION HERE after permission is granted
             selectedSegment?.let { segment ->
                 onAddFish(segment.tripId, segment.id, null)
             }
@@ -94,11 +109,12 @@ fun FishListScreen(
             )
         },
         floatingActionButton = {
-            selectedSegment?.let { segment ->
+            // Log Fish button is only enabled when a segment is selected
+            if (selectedSegment != null) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         if (permissionGranted) {
-                            onAddFish(segment.tripId, segment.id, null)
+                            onAddFish(selectedSegment.tripId, selectedSegment.id, null)
                         } else {
                             permissionLauncher.launch(
                                 arrayOf(
@@ -115,71 +131,106 @@ fun FishListScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // Segment Selector
-            if (activeSegments.isNotEmpty()) {
-                ExposedDropdownMenuBox(
-                    expanded = segmentExpanded,
-                    onExpandedChange = { segmentExpanded = !segmentExpanded },
-                    modifier = Modifier.padding(16.dp).fillMaxWidth()
+            // Trip Selector
+            ExposedDropdownMenuBox(
+                expanded = tripExpanded,
+                onExpandedChange = { tripExpanded = !tripExpanded },
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
+            ) {
+                TextField(
+                    value = selectedTrip?.name ?: "Select Trip",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Trip") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripExpanded) },
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = tripExpanded,
+                    onDismissRequest = { tripExpanded = false }
                 ) {
-                    TextField(
-                        value = selectedSegment?.name ?: "Select Active Segment",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Current Segment") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = segmentExpanded) },
-                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = segmentExpanded,
-                        onDismissRequest = { segmentExpanded = false }
-                    ) {
-                        activeSegments.forEach { segment ->
-                            DropdownMenuItem(
-                                text = { Text(segment.name) },
-                                onClick = {
-                                    selectedSegment = segment
-                                    segmentExpanded = false
-                                }
-                            )
-                        }
+                    allTrips.forEach { trip ->
+                        DropdownMenuItem(
+                            text = { Text(trip.name) },
+                            onClick = {
+                                viewModel.updateSelectedTripIdForFilter(trip.id)
+                                tripExpanded = false
+                            }
+                        )
                     }
                 }
-            } else {
-                Text(
-                    "No active segments found. Please start a segment to log fish.",
-                    modifier = Modifier.padding(16.dp),
-                    color = Color.Red
+            }
+
+            // Segment Selector - Populate based on selected trip
+            ExposedDropdownMenuBox(
+                expanded = segmentExpanded,
+                onExpandedChange = { 
+                    if (selectedTrip != null) segmentExpanded = !segmentExpanded 
+                },
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp).fillMaxWidth()
+            ) {
+                TextField(
+                    value = selectedSegment?.name ?: "Select Segment",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = selectedTrip != null,
+                    label = { Text("Segment") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = segmentExpanded) },
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
                 )
+                ExposedDropdownMenu(
+                    expanded = segmentExpanded,
+                    onDismissRequest = { segmentExpanded = false }
+                ) {
+                    segmentsForTrip.forEach { segment ->
+                        DropdownMenuItem(
+                            text = { Text(segment.name) },
+                            onClick = {
+                                viewModel.updateSelectedSegmentIdForFilter(segment.id)
+                                segmentExpanded = false
+                            }
+                        )
+                    }
+                }
             }
 
             HorizontalDivider()
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(fishList) { fishDetails ->
-                    FishItem(
-                        fish = fishDetails,
-                        viewModel = viewModel,
-                        onEdit = {
-                            scope.launch {
-                                onAddFish(fishDetails.tripId, fishDetails.segmentId, fishDetails.id)
-                            }
-                        },
-                        onDelete = {
-                            scope.launch {
-                                val fishObj = viewModel.getFishById(fishDetails.id)
-                                if (fishObj != null) {
-                                    viewModel.deleteFishObject(fishObj)
+            if (selectedTrip == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Select a trip to see fish caught.")
+                }
+            } else if (fishList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(if (selectedSegment == null) "No fish caught on this trip." else "No fish caught in this segment.")
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(fishList) { fishDetails ->
+                        FishItem(
+                            fish = fishDetails,
+                            viewModel = viewModel,
+                            onEdit = {
+                                scope.launch {
+                                    onAddFish(fishDetails.tripId, fishDetails.segmentId, fishDetails.id)
                                 }
+                            },
+                            onDelete = {
+                                scope.launch {
+                                    val fishObj = viewModel.getFishById(fishDetails.id)
+                                    if (fishObj != null) {
+                                        viewModel.deleteFishObject(fishObj)
+                                    }
+                                }
+                            },
+                            onShowMap = {
+                                // Map logic
+                            },
+                            onUpdateLocation = {
+                                // Update location logic
                             }
-                        },
-                        onShowMap = {
-                            // Map logic could be moved to shared utility if needed
-                        },
-                        onUpdateLocation = {
-                            // handled by common logic or could be triggered here
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }

@@ -14,6 +14,7 @@ import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -95,6 +96,22 @@ class MainViewModel(
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
     val activeSegments: Flow<List<Segment>> = segmentDao.getCurrentActiveSegments()
     val allFish: Flow<List<FishWithDetails>> = fishDao.getAllFishWithDetails()
+
+    // Filter state for FishListScreen
+    private val _selectedTripIdForFilter = MutableStateFlow<String?>(null)
+    val selectedTripIdForFilter = _selectedTripIdForFilter.asStateFlow()
+
+    private val _selectedSegmentIdForFilter = MutableStateFlow<String?>(null)
+    val selectedSegmentIdForFilter = _selectedSegmentIdForFilter.asStateFlow()
+
+    fun updateSelectedTripIdForFilter(id: String?) {
+        _selectedTripIdForFilter.value = id
+        _selectedSegmentIdForFilter.value = null // Reset segment when trip changes
+    }
+
+    fun updateSelectedSegmentIdForFilter(id: String?) {
+        _selectedSegmentIdForFilter.value = id
+    }
 
     // Draft state for new trip
     private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
