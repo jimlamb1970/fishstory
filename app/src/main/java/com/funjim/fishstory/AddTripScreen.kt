@@ -184,11 +184,8 @@ fun AddTripScreen(
         mutableStateOf(draftLongitude)
     }
 
-    if (tripId == "") {
-        // TODO get the ID from a trip object
-        tripId = UUID.randomUUID().toString()
-        viewModel.updateDraftTripId(tripId)
-        viewModel.updateDraftSegmentId(UUID.randomUUID().toString())
+    LaunchedEffect(Unit) {
+        viewModel.prepareNewTrip()
     }
 
     val draftSegments by viewModel.draftSegments.collectAsState()
@@ -317,7 +314,7 @@ fun AddTripScreen(
             )
         },
         floatingActionButton = {
-            if (name.isNotBlank()) {
+            if (name.isNotBlank() && tripId.isNotEmpty()) {
                 FloatingActionButton(onClick = {
                     scope.launch {
                         val trip = Trip(
@@ -440,7 +437,9 @@ fun AddTripScreen(
                     viewModel.updateDraftSegmentId(UUID.randomUUID().toString())
                     viewModel.setDraftSegmentFisherman(draftFishermanIds)
                     navigateToAddSegment(tripId)
-                }) {
+                },
+                    enabled = tripId.isNotEmpty()
+                ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Segment")
                 }
             }

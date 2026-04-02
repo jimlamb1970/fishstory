@@ -290,6 +290,7 @@ fun TripDetailsScreen(
                         viewModel.updateDraftTripEndDate(details.trip.endDate)
                         viewModel.setDraftFisherman(details.fishermen.map { it.id }.toSet())
                         viewModel.setDraftSegmentFisherman(details.fishermen.map { it.id }.toSet())
+                        viewModel.updateDraftLocation(details.trip.latitude, details.trip.longitude)
                         navigateToAddSegment(tripId)
                     }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Segment")

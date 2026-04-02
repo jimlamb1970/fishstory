@@ -141,7 +141,10 @@ fun SegmentDetailsScreen(
                                 text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                    ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
                                             val location = viewModel.getCurrentLocation(context)
                                             if (location != null) {
@@ -155,7 +158,9 @@ fun SegmentDetailsScreen(
                                         }
                                     } else {
                                         permissionLauncher.launch(
-                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION)
                                         )
                                     }
                                 },

@@ -288,6 +288,17 @@ class MainViewModel(
         _draftLongitude.value = null
     }
 
+    fun prepareNewTrip() {
+        clearDrafts()
+        clearDraftSegment()
+
+        val newTripId = UUID.randomUUID().toString()
+        val newSegmentId = UUID.randomUUID().toString()
+
+        updateDraftTripId(newTripId)
+        updateDraftSegmentId(newSegmentId)
+    }
+
     fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
         return tripDao.getTripWithFishermen(tripId)
     }

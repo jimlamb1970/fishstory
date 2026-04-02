@@ -48,12 +48,14 @@ fun AddSegmentScreen(
     val draftSegmentEndDate by viewModel.draftSegmentEndDate.collectAsState()
     val draftSegmentLatitude by viewModel.draftSegmentLatitude.collectAsState()
     val draftSegmentLongitude by viewModel.draftSegmentLongitude.collectAsState()
+    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
 
     // Draft trip values for pre-populating dates when tripId == 0
     val draftTripStartDate by viewModel.draftTripStartDate.collectAsState()
     val draftTripEndDate by viewModel.draftTripEndDate.collectAsState()
+    val draftLatitude by viewModel.draftLatitude.collectAsState()
+    val draftLongitude by viewModel.draftLongitude.collectAsState()
     val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
-    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
 
     // Local state backed by ViewModel draft — survives navigation
     var name by remember(draftSegmentName) { mutableStateOf(draftSegmentName) }
@@ -164,6 +166,25 @@ fun AddSegmentScreen(
                                         tint = if (latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
+
+                            if (draftLatitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Use Trip Location") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        latitude = draftLatitude
+                                        longitude = draftLongitude
+                                        viewModel.updateDraftSegmentLocation(draftLatitude, draftLongitude)
+                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = if (latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                    }
+                                )
+                            }
+
                             DropdownMenuItem(
                                 text = { Text("Select Location") },
                                 onClick = {
