@@ -36,6 +36,8 @@ import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
 import kotlinx.coroutines.delay
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -374,6 +376,7 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            val scope = rememberCoroutineScope()
             AddSegmentScreen(
                 viewModel = viewModel,
                 tripId = tripId,
@@ -382,6 +385,25 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 },
                 navigateBack = {
                     navController.popBackStack()
+                },
+                onSave = { segment, fishermen ->
+                    if (tripId == viewModel.draftTripId.value) {
+                        viewModel.addDraftSegment(
+                            name = segment.name,
+                            startTime = segment.startTime,
+                            endTime = segment.endTime,
+                            latitude = segment.latitude,
+                            longitude = segment.longitude
+                        )
+                        viewModel.clearDraftSegment()
+                        navController.popBackStack()
+                    } else {
+                        scope.launch {
+                            viewModel.addSegmentWithFishermen(segment, fishermen)
+                            viewModel.clearDraftSegment()
+                            navController.popBackStack()
+                        }
+                    }
                 }
             )
         }

@@ -33,16 +33,10 @@ fun AddSegmentScreen(
     viewModel: MainViewModel,
     tripId: String,
     navigateBack: () -> Unit,
-    navigateToLoadBoatForSegment: () -> Unit
+    navigateToLoadBoatForSegment: () -> Unit,
+    onSave: (Segment, Set<String>) -> Unit
 ) {
-    val draftTripId by viewModel.draftTripId.collectAsStateWithLifecycle()
     val draftSegmentId by viewModel.draftSegmentId.collectAsStateWithLifecycle()
-
-    val tripWithDetails by if (tripId != draftTripId) {
-        viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
-    } else {
-        remember { mutableStateOf(null) }
-    }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -68,10 +62,7 @@ fun AddSegmentScreen(
     var latitude by remember(draftSegmentLatitude) { mutableStateOf(draftSegmentLatitude) }
     var longitude by remember(draftSegmentLongitude) { mutableStateOf(draftSegmentLongitude) }
 
-    val eligibleIds: Set<String> = when {
-        (tripId == draftTripId) -> draftFishermanIds
-        else -> tripWithDetails?.fishermen?.map { it.id }?.toSet() ?: emptySet()
-    }
+    val eligibleIds: Set<String> =  draftFishermanIds
 
     // Pre-populate the boat for this draft segment from trip fishermen (only once)
     LaunchedEffect(eligibleIds) {
@@ -215,34 +206,17 @@ fun AddSegmentScreen(
         floatingActionButton = {
             if (name.isNotBlank()) {
                 FloatingActionButton(onClick = {
-                    if (tripId == draftTripId) {
-                        viewModel.addDraftSegment(
-                            name = name,
-                            startTime = startDateMillis,
-                            endTime = endDateMillis,
-                            latitude = latitude,
-                            longitude = longitude
-                        )
-                        viewModel.clearDraftSegment()
-                        navigateBack()
-                    } else {
-                        scope.launch {
-                            val currentBoatFishermen = viewModel.draftSegmentFishermanIds.value[draftSegmentId] ?: eligibleIds
-                            viewModel.addSegmentWithFishermen(
-                                Segment(
-                                    tripId = tripId,
-                                    name = name,
-                                    startTime = startDateMillis,
-                                    endTime = endDateMillis,
-                                    latitude = latitude,
-                                    longitude = longitude
-                                ),
-                                currentBoatFishermen
-                            )
-                            viewModel.clearDraftSegment()
-                            navigateBack()
-                        }
-                    }
+                    val segment = Segment(
+                        tripId = tripId,
+                        name = name,
+                        startTime = startDateMillis,
+                        endTime = endDateMillis,
+                        latitude = latitude,
+                        longitude = longitude
+                    )
+                    val fishermen = viewModel.draftSegmentFishermanIds.value[draftSegmentId] ?: eligibleIds
+                    
+                    onSave(segment, fishermen)
                 }) {
                     Icon(Icons.Default.Save, contentDescription = "Save Segment")
                 }
