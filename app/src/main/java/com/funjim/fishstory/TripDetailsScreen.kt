@@ -26,18 +26,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentWithDetails
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.FishermanItem
-import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
-import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -327,8 +324,20 @@ fun TripDetailsScreen(
                             },
                             onSelectLocation = {
                                 segmentToUpdateLocation = segmentDetails
-                                locationPicker.openPicker()
+                                locationPickerSegment.openPicker()
                             },
+                            onUseTripLocation = if (details.trip.latitude != null) {
+                                {
+                                    scope.launch {
+                                        viewModel.updateSegment(
+                                            segmentDetails.segment.copy(
+                                                latitude = details.trip.latitude,
+                                                longitude = details.trip.longitude
+                                            )
+                                        )
+                                    }
+                                }
+                            } else null,
                             onClearLocation = {
                                 scope.launch {
                                     viewModel.updateSegment(segmentDetails.segment.copy(latitude = null, longitude = null))

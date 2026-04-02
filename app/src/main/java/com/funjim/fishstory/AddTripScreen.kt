@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,14 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.SegmentWithDetails
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
-import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
-import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -185,7 +185,9 @@ fun AddTripScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.prepareNewTrip()
+        if (tripId.isEmpty()) {
+            viewModel.prepareNewTrip()
+        }
     }
 
     val draftSegments by viewModel.draftSegments.collectAsState()
@@ -221,6 +223,21 @@ fun AddTripScreen(
             viewModel.updateDraftLocation(lat, lng)
             latitude = lat
             longitude = lng
+        }
+    )
+
+    var segmentToUpdateLocation by remember { mutableStateOf<Segment?>(null) }
+
+    val locationPickerSegment = rememberLocationPickerState(
+        viewModel = viewModel,
+        existingLat = segmentToUpdateLocation?.latitude,  // Passed from your DB object
+        existingLng = segmentToUpdateLocation?.longitude,
+        onLocationConfirmed = { lat, lng ->
+            segmentToUpdateLocation?.let { segment ->
+                scope.launch {
+                    viewModel.upsertDraftSegment(segment.copy(latitude = lat, longitude = lng))
+                }
+            }
         }
     )
 
@@ -484,6 +501,27 @@ fun AddTripScreen(
                                     permissionLauncher.launch(
                                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                                     )
+                                }
+                            },
+                            onSelectLocation = {
+                                segmentToUpdateLocation = segment
+                                locationPickerSegment.openPicker()
+                            },
+                            onUseTripLocation = if (latitude != null) {
+                                {
+                                    scope.launch {
+                                        viewModel.upsertDraftSegment(
+                                            segment.copy(
+                                                latitude = latitude,
+                                                longitude = longitude
+                                            )
+                                        )
+                                    }
+                                }
+                            } else null,
+                            onClearLocation = {
+                                scope.launch {
+                                    viewModel.upsertDraftSegment(segment.copy(latitude = null, longitude = null))
                                 }
                             }
                         )

@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui
 
 import android.content.Intent
+import android.location.Location
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.SegmentWithDetails
@@ -72,6 +72,7 @@ fun SegmentItem(
     onClick: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
+    onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
     SegmentItem(
@@ -84,6 +85,7 @@ fun SegmentItem(
         onClick = onClick,
         onSetLocation = onSetLocation,
         onSelectLocation = onSelectLocation,
+        onUseTripLocation = onUseTripLocation,
         onClearLocation = onClearLocation
     )
 }
@@ -99,6 +101,7 @@ fun SegmentItem(
     onClick: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
+    onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
     val dateTimeFormatter = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
@@ -195,6 +198,23 @@ fun SegmentItem(
                                 onClick = {
                                     menuExpanded = false
                                     onSelectLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
+
+                        if (onUseTripLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Use Trip Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onUseTripLocation()
                                 },
                                 leadingIcon = {
                                     Icon(
