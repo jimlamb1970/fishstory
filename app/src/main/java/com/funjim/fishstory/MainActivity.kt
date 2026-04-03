@@ -144,8 +144,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 navigateToAddSegment = { id ->
                     navController.navigate("addSegment/$id")
                 },
-                navigateToSegmentDetails = { segmentId, tripId ->
-                    navController.navigate("segmentDetails/$segmentId/$tripId")
+                navigateToDraftSegmentDetails = { segmentId ->
+                    navController.navigate("draftSegmentDetails/$segmentId")
                 },
                 navigateBack = { navController.popBackStack() }
             )
@@ -473,6 +473,26 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 }
             )
         }
+
+        composable(
+            route = "draftSegmentDetails/{segmentId}",
+            arguments = listOf(
+                navArgument("segmentId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
+            DraftSegmentDetailsScreen(
+                viewModel = viewModel,
+                segmentId = segmentId,
+                navigateToLoadBoatForSegment = {
+                    navController.navigate("loadBoatForSegment")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable(
             route = "segmentBoatLoad/{segmentId}/{tripId}",
             arguments = listOf(

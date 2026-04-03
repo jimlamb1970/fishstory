@@ -1,9 +1,13 @@
 package com.funjim.fishstory
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -268,6 +272,8 @@ private fun FishVisual(
     keptCount: Int,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
     val startDate = segment?.startTime ?: trip.startDate
@@ -277,6 +283,9 @@ private fun FishVisual(
     } else {
         trip.latitude != null && trip.longitude != null
     }
+
+    val latitude = segment?.latitude ?: trip.latitude
+    val longitude = segment?.longitude ?: trip.longitude
 
     val label = if (segment != null) segment.name else trip.name
 
@@ -307,12 +316,38 @@ private fun FishVisual(
                     tint = Color.Unspecified
                 )
 
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    if (hasLocation) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "View on map",
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    val mapUri =
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not open map",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        )
+                    }
+                }
 
                 // Dates
                 Text(
@@ -320,26 +355,6 @@ private fun FishVisual(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.8f)
                 )
-
-                // Location indicator
-                if (hasLocation) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.LocationOn,
-                            contentDescription = "Has location",
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Location set",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF4CAF50)
-                        )
-                    }
-                }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp),

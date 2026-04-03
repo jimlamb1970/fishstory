@@ -151,7 +151,7 @@ fun AddTripScreen(
     navigateBack: () -> Unit,
     navigateToLoadBoatForTrip: () -> Unit,
     navigateToAddSegment: (String) -> Unit,
-    navigateToSegmentDetails: (String, String) -> Unit
+    navigateToDraftSegmentDetails: (String) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -477,16 +477,7 @@ fun AddTripScreen(
                                 viewModel.removeDraftSegment(segment)
                             },
                             onClick = {
-/*
-                                viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
-                                viewModel.updateDraftSegmentId(segment.id)
-                                viewModel.updateDraftSegmentName(segment.name)
-                                viewModel.updateDraftSegmentStartDate(segment.startTime)
-                                viewModel.updateDraftSegmentEndDate(segment.endTime)
-                                viewModel.updateDraftSegmentLocation(segment.latitude, segment.longitude)
-                                navigateToAddSegment(tripId)
-
- */
+                                navigateToDraftSegmentDetails(segment.id)
                             },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
