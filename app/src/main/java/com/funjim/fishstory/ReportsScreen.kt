@@ -23,7 +23,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.viewmodels.MainViewModel
 
 // --- Vico 3.x imports ---
@@ -47,6 +49,7 @@ import java.time.ZoneId
 
 import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 enum class ReportType(val label: String) {
@@ -64,20 +67,83 @@ fun ReportsScreen(
     viewModel: MainViewModel,
     navigateBack: () -> Unit
 ) {
-    val fishList by viewModel.allFish.collectAsState(initial = emptyList())
+    val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    // Selected trip/segment IDs — local to this screen, not shared with FishListScreen
+    var selectedTripId by remember { mutableStateOf<String?>(null) }
+    var selectedSegmentId by remember { mutableStateOf<String?>(null) }
+
+    val selectedTrip = remember(allTrips, selectedTripId) {
+        allTrips.find { it.id == selectedTripId }
+    }
+
+    val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = selectedTripId) {
+        selectedTrip?.let { trip ->
+            viewModel.getSegmentsForTrip(trip.id).collect { value = it }
+        } ?: run { value = emptyList() }
+    }
+
+    val selectedSegment = remember(segmentsForTrip, selectedSegmentId) {
+        segmentsForTrip.find { it.id == selectedSegmentId }
+    }
+
+    // Fish scoped to the current selection
+    val fishList by produceState<List<FishWithDetails>>(
+        initialValue = emptyList(),
+        key1 = selectedTripId,
+        key2 = selectedSegmentId
+    ) {
+        when {
+            selectedSegmentId != null ->
+                viewModel.getFishForSegment(selectedSegmentId!!).collect { value = it }
+            selectedTripId != null ->
+                viewModel.getFishForTrip(selectedTripId!!).collect { value = it }
+            else ->
+                viewModel.allFish.collect { value = it }
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopBar(navigateBack)
+            TopAppBar(
+                title = { Text("Catch Reports") },
+                navigationIcon = {
+                    IconButton(onClick = navigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
         }
     ) { padding ->
-        if (fishList.isEmpty()) {
-            EmptyState(padding)
+        if (fishList.isEmpty() && selectedTripId == null) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text("No fish logged yet. Log some fish to see reports!")
+            }
         } else {
-            ReportsList(fishList, padding)
+            ReportsList(
+                fishList = fishList,
+                padding = padding,
+                allTrips = allTrips.map { it.id to it.name },
+                segmentsForTrip = segmentsForTrip.map { it.id to it.name },
+                selectedTripId = selectedTripId,
+                selectedSegmentId = selectedSegmentId,
+                selectedTripName = selectedTrip?.name,
+                selectedSegmentName = selectedSegment?.name,
+                onTripSelected = { tripId ->
+                    selectedTripId = tripId
+                    selectedSegmentId = null  // reset segment when trip changes
+                },
+                onSegmentSelected = { segmentId ->
+                    selectedSegmentId = segmentId
+                }
+            )
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,42 +172,68 @@ private fun EmptyState(padding: PaddingValues) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReportsList(fishList: List<FishWithDetails>, padding: PaddingValues) {
+private fun ReportsList(
+    fishList: List<FishWithDetails>,
+    padding: PaddingValues,
+    allTrips: List<Pair<String, String>>,
+    segmentsForTrip: List<Pair<String, String>>,
+    selectedTripId: String?,
+    selectedSegmentId: String?,
+    selectedTripName: String?,
+    selectedSegmentName: String?,
+    onTripSelected: (String?) -> Unit,
+    onSegmentSelected: (String?) -> Unit
+) {
+    var reportExpanded by remember { mutableStateOf(false) }
+    var tripExpanded by remember { mutableStateOf(false) }
+    var segmentExpanded by remember { mutableStateOf(false) }
     var selectedReport by remember { mutableStateOf(ReportType.SPECIES) }
-    var expanded by remember { mutableStateOf(false) }
+
+    // Scope label shown above the chart
+    val scopeLabel = when {
+        selectedSegmentName != null -> "Segment: $selectedSegmentName"
+        selectedTripName != null -> "Trip: $selectedTripName"
+        else -> "All Fish"
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Trip dropdown
         item {
             ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                expanded = tripExpanded,
+                onExpandedChange = { tripExpanded = !tripExpanded }
             ) {
                 OutlinedTextField(
-                    value = selectedReport.label,
+                    value = selectedTripName ?: "All Trips",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Report Type") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
+                    label = { Text("Trip") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    expanded = tripExpanded,
+                    onDismissRequest = { tripExpanded = false }
                 ) {
-                    ReportType.entries.forEach { report ->
+                    DropdownMenuItem(
+                        text = { Text("All Trips") },
+                        onClick = {
+                            onTripSelected(null)
+                            tripExpanded = false
+                        }
+                    )
+                    allTrips.forEach { (id, name) ->
                         DropdownMenuItem(
-                            text = { Text(report.label) },
+                            text = { Text(name) },
                             onClick = {
-                                selectedReport = report
-                                expanded = false
+                                onTripSelected(id)
+                                tripExpanded = false
                             }
                         )
                     }
@@ -149,16 +241,101 @@ private fun ReportsList(fishList: List<FishWithDetails>, padding: PaddingValues)
             }
         }
 
+        // Segment dropdown — only enabled when a trip is selected
         item {
-            Text(selectedReport.label, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            when (selectedReport) {
-                ReportType.SPECIES -> SpeciesBarChart(fishList)
-                ReportType.FISHERMAN -> FishermanBarChart(fishList)
-                ReportType.FISHERMAN_PIE -> FishermanPieChart(fishList)
-                ReportType.FISHERMAN_SPECIES -> FishermanStackedBarChart(fishList)
-                ReportType.CATCHES_BY_HOUR -> CatchesByHourLineChart(fishList)
-                ReportType.CATCHES_BY_SIZE -> CatchesBySizeBarChart(fishList)
+            ExposedDropdownMenuBox(
+                expanded = segmentExpanded,
+                onExpandedChange = {
+                    if (selectedTripId != null) segmentExpanded = !segmentExpanded
+                }
+            ) {
+                OutlinedTextField(
+                    value = selectedSegmentName ?: "All Segments",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = selectedTripId != null,
+                    label = { Text("Segment") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = segmentExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    expanded = segmentExpanded,
+                    onDismissRequest = { segmentExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("All Segments") },
+                        onClick = {
+                            onSegmentSelected(null)
+                            segmentExpanded = false
+                        }
+                    )
+                    segmentsForTrip.forEach { (id, name) ->
+                        DropdownMenuItem(
+                            text = { Text(name) },
+                            onClick = {
+                                onSegmentSelected(id)
+                                segmentExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Report type dropdown
+        item {
+            ExposedDropdownMenuBox(
+                expanded = reportExpanded,
+                onExpandedChange = { reportExpanded = !reportExpanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedReport.label,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Report Type") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = reportExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    expanded = reportExpanded,
+                    onDismissRequest = { reportExpanded = false }
+                ) {
+                    ReportType.entries.forEach { report ->
+                        DropdownMenuItem(
+                            text = { Text(report.label) },
+                            onClick = {
+                                selectedReport = report
+                                reportExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Chart
+        item {
+            if (fishList.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(200.dp),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    Text("No fish logged for $scopeLabel.")
+                }
+            } else {
+                Text(
+                    text = "${selectedReport.label} — $scopeLabel",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                when (selectedReport) {
+                    ReportType.SPECIES -> SpeciesBarChart(fishList)
+                    ReportType.FISHERMAN -> FishermanBarChart(fishList)
+                    ReportType.FISHERMAN_PIE -> FishermanPieChart(fishList)
+                    ReportType.FISHERMAN_SPECIES -> FishermanStackedBarChart(fishList)
+                    ReportType.CATCHES_BY_HOUR -> CatchesByHourLineChart(fishList)
+                    ReportType.CATCHES_BY_SIZE -> CatchesBySizeBarChart(fishList)
+                }
             }
         }
     }
@@ -175,29 +352,41 @@ fun SpeciesBarChart(fishList: List<FishWithDetails>) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
+    var isSyncing by remember(fishList) { mutableStateOf(true) }
+
     LaunchedEffect(values) {
+        isSyncing = true
         modelProducer.runTransaction {
             columnSeries { series(values) }
         }
+        isSyncing = false
     }
 
-    val bottomAxisFormatter = CartesianValueFormatter { _, x, _ ->
-        labels.getOrElse(x.toInt()) { "" }
+    val bottomAxisFormatter = remember(labels) {
+        CartesianValueFormatter { _, x, _ ->
+            labels.getOrNull(x.toInt()) ?: ""
+        }
     }
 
-    CartesianChartHost(
-        rememberCartesianChart(
-            rememberColumnCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
-        ),
-        modelProducer,
-        modifier = Modifier.height(200.dp),
-    )
+    if (isSyncing) {
+
+    } else {
+        CartesianChartHost(
+            rememberCartesianChart(
+                rememberColumnCartesianLayer(),
+                startAxis = VerticalAxis.rememberStart(),
+                bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
+            ),
+            modelProducer,
+            modifier = Modifier.height(200.dp),
+        )
+    }
 }
 
 @Composable
-fun FishermanBarChart(fishList: List<FishWithDetails>) {
+fun FishermanBarChart(
+    fishList: List<FishWithDetails>
+) {
     val fishermanCounts = remember(fishList) {
         fishList.groupingBy { it.fishermanName }.eachCount()
     }
@@ -206,25 +395,39 @@ fun FishermanBarChart(fishList: List<FishWithDetails>) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
+    var isSyncing by remember(fishList) { mutableStateOf(true) }
+
     LaunchedEffect(values) {
+        isSyncing = true
         modelProducer.runTransaction {
             columnSeries { series(values) }
         }
+        isSyncing = false
     }
 
-    val bottomAxisFormatter = CartesianValueFormatter { _, x, _ ->
-        labels.getOrElse(x.toInt()) { "" }
+    val bottomAxisFormatter = remember(labels) {
+        CartesianValueFormatter { _, x, _ ->
+            labels.getOrNull(x.roundToInt()) ?: " "
+        }
     }
 
-    CartesianChartHost(
-        rememberCartesianChart(
-            rememberColumnCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
-        ),
-        modelProducer,
-        modifier = Modifier.height(200.dp),
-    )
+    if (isSyncing) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        }
+    } else {
+        key(labels.size) {
+            CartesianChartHost(
+                chart = rememberCartesianChart(
+                    rememberColumnCartesianLayer(),
+                    startAxis = VerticalAxis.rememberStart(),
+                    bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
+                ),
+                modelProducer = modelProducer,
+                modifier = Modifier.height(200.dp),
+            )
+        }
+    }
 }
 
 @Composable
@@ -352,16 +555,22 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
+    var isSyncing by remember(fishList) { mutableStateOf(true) }
+
     LaunchedEffect(seriesData) {
+        isSyncing = true
         modelProducer.runTransaction {
             columnSeries {
                 seriesData.forEach { counts -> series(counts) }
             }
         }
+        isSyncing = false
     }
 
-    val bottomAxisFormatter = CartesianValueFormatter { _, x, _ ->
-        allFishermen.getOrElse(x.toInt()) { "" }
+    val bottomAxisFormatter = remember(allFishermen) {
+        CartesianValueFormatter { _, x, _ ->
+            allFishermen.getOrNull(x.toInt()) ?: ""
+        }
     }
 
     // One colored column component per species
@@ -372,35 +581,41 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
         )
     }
 
-    CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberColumnCartesianLayer(
-                columnProvider = ColumnCartesianLayer.ColumnProvider.series(columnComponents),
-                mergeMode = { ColumnCartesianLayer.MergeMode.Stacked },
+    if (isSyncing) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        }
+    } else {
+        CartesianChartHost(
+            chart = rememberCartesianChart(
+                rememberColumnCartesianLayer(
+                    columnProvider = ColumnCartesianLayer.ColumnProvider.series(columnComponents),
+                    mergeMode = { ColumnCartesianLayer.MergeMode.Stacked },
+                ),
+                startAxis = VerticalAxis.rememberStart(),
+                bottomAxis = HorizontalAxis.rememberBottom(
+                    valueFormatter = bottomAxisFormatter
+                ),
             ),
-            startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(
-                valueFormatter = bottomAxisFormatter
-            ),
-        ),
-        modelProducer = modelProducer,
-        modifier = Modifier.height(250.dp),
-    )
+            modelProducer = modelProducer,
+            modifier = Modifier.height(250.dp),
+        )
 
-    // Legend
-    Spacer(modifier = Modifier.height(12.dp))
-    allSpecies.forEachIndexed { index, species ->
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 2.dp)
-        ) {
-            Surface(
-                modifier = Modifier.size(12.dp),
-                shape = CircleShape,
-                color = SPECIES_COLORS[index % SPECIES_COLORS.size]
-            ) {}
-            Text(species, style = MaterialTheme.typography.bodySmall)
+        // Legend
+        Spacer(modifier = Modifier.height(12.dp))
+        allSpecies.forEachIndexed { index, species ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 2.dp)
+            ) {
+                Surface(
+                    modifier = Modifier.size(12.dp),
+                    shape = CircleShape,
+                    color = SPECIES_COLORS[index % SPECIES_COLORS.size]
+                ) {}
+                Text(species, style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
@@ -439,21 +654,29 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
+    var isSyncing by remember(fishList) { mutableStateOf(true) }
+
     LaunchedEffect(trimmedCounts) {
+        isSyncing = true
         if (trimmedCounts.isNotEmpty()) {
             modelProducer.runTransaction {
                 lineSeries { series(trimmedCounts) }
             }
         }
+        isSyncing = false
     }
 
-    val bottomAxisFormatter = CartesianValueFormatter { _, x, _ ->
-        val hour = (startHour + x.toInt()).coerceIn(0, 23)
-        when {
-            hour == 0 -> "12a"
-            hour < 12 -> "${hour}a"
-            hour == 12 -> "12p"
-            else -> "${hour - 12}p"
+    val bottomAxisFormatter = remember(startHour) {
+        CartesianValueFormatter { _, x, _ ->
+            val hour = (startHour + x.toInt())
+            if (hour in 0..23) {
+                when {
+                    hour == 0 -> "12a"
+                    hour < 12 -> "${hour}a"
+                    hour == 12 -> "12p"
+                    else -> "${hour - 12}p"
+                }
+            } else ""
         }
     }
 
@@ -465,6 +688,10 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
         Box(modifier = Modifier.fillMaxWidth().height(250.dp),
             contentAlignment = androidx.compose.ui.Alignment.Center) {
             Text("No catch times recorded.")
+        }
+    } else if (isSyncing) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {
         CartesianChartHost(
@@ -533,16 +760,22 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
+    var isSyncing by remember(fishList) { mutableStateOf(true) }
+
     LaunchedEffect(trimmedCounts) {
+        isSyncing = true
         if (trimmedCounts.isNotEmpty()) {
             modelProducer.runTransaction {
                 columnSeries { series(trimmedCounts) }
             }
         }
+        isSyncing = false
     }
 
-    val bottomAxisFormatter = CartesianValueFormatter { _, x, _ ->
-        sizeBuckets.getOrElse(startIndex + x.toInt()) { "" }
+    val bottomAxisFormatter = remember(sizeBuckets) {
+        CartesianValueFormatter { _, x, _ ->
+            sizeBuckets.getOrNull(startIndex + x.toInt()) ?: ""
+        }
     }
 
     if (trimmedCounts.isEmpty()) {
@@ -551,6 +784,10 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
             contentAlignment = androidx.compose.ui.Alignment.Center
         ) {
             Text("No size data recorded.")
+        }
+    } else if (isSyncing) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {
         CartesianChartHost(
