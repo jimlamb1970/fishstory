@@ -32,11 +32,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.SettingsScreen
+import com.funjim.fishstory.ui.screens.FishListScreen
 import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.FishermanListScreen
+import com.funjim.fishstory.ui.screens.SegmentFishListScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -295,7 +297,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             FishListScreen(
                 viewModel = viewModel,
                 onAddFish = { tripId, segmentId, fishId ->
-                    val route = if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                    val route =
+                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
                 onNavigateToSegmentFishList = { tripId, segmentId ->
@@ -324,10 +327,11 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                 tripId = tripId,
                 segmentId = segmentId,
                 onAddFish = { tripId, segmentId, fishId ->
-                    val route = if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                    val route =
+                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
-                navigateBack =  {
+                navigateBack = {
                     navController.popBackStack()
                 }
             )

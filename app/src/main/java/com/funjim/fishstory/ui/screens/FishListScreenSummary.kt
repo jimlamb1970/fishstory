@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -25,6 +25,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.R
+import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
@@ -66,7 +68,7 @@ fun FishListScreen(
     var segmentExpanded by remember { mutableStateOf(false) }
 
     // Fish counts — trip-level or segment-level depending on selection
-    val fishForScope by produceState(initialValue = emptyList<com.funjim.fishstory.model.FishWithDetails>(), key1 = selectedTripId, key2 = selectedSegmentId) {
+    val fishForScope by produceState(initialValue = emptyList<FishWithDetails>(), key1 = selectedTripId, key2 = selectedSegmentId) {
         when {
             selectedSegmentId != null -> viewModel.getFishForSegment(selectedSegmentId!!).collect { value = it }
             selectedTripId != null -> viewModel.getFishForTrip(selectedTripId!!).collect { value = it }
