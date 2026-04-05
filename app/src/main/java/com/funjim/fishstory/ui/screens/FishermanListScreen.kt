@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.horizontalScroll
@@ -20,13 +20,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.FishermanListViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FishermanListScreen(
-    viewModel: MainViewModel,
+    viewModel: FishermanListViewModel,
     navigateToFishermanDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -66,7 +66,13 @@ fun FishermanListScreen(
                 SortChip("Most Catches", currentOrder == FishermanSortOrder.MOST_CATCHES) {
                     viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
                 }
-                // Add more chips here...
+                SortChip("Most Released", currentOrder == FishermanSortOrder.MOST_RELEASED) {
+                    viewModel.updateSortOrder(FishermanSortOrder.MOST_RELEASED)
+                }
+                SortChip("Most Trips", currentOrder == FishermanSortOrder.MOST_TRIPS) {
+                    viewModel.updateSortOrder(FishermanSortOrder.MOST_TRIPS)
+                }
+                
                 Spacer(Modifier.weight(1f))
 
                 IconButton(onClick = { viewModel.toggleReverse() }) {
@@ -82,11 +88,8 @@ fun FishermanListScreen(
                 items(fishermanSummaries) { fisherman ->
                     FishermanItem(
                         fisherman = fisherman,
-                        viewModel = viewModel,
                         onDelete = {
-                            scope.launch {
-                                viewModel.deleteFisherman(fisherman.fisherman)
-                            }
+                            viewModel.deleteFisherman(fisherman.fisherman)
                         },
                         onClick = {
                             navigateToFishermanDetails(fisherman.fisherman.id)

@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
@@ -22,17 +23,17 @@ import com.funjim.fishstory.ui.LureItem
 import com.funjim.fishstory.ui.LureDialog
 import com.funjim.fishstory.ui.ManageColorsDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, navigateBack: () -> Unit) {
-    val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsState(initial = null)
-    val allTrips by viewModel.trips.collectAsState(initial = emptyList())
-    val allLures by viewModel.lures.collectAsState(initial = emptyList())
-    val colors by viewModel.lureColors.collectAsState(initial = emptyList())
-    val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsState(initial = emptyList())
+fun FishermanDetailsScreen(viewModel: FishermanDetailsViewModel, fishermanId: String, navigateBack: () -> Unit) {
+    val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsStateWithLifecycle(initialValue = null)
+    val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
+    val allLures by viewModel.lures.collectAsStateWithLifecycle(initialValue = emptyList())
+    val colors by viewModel.lureColors.collectAsStateWithLifecycle(initialValue = emptyList())
+    val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsStateWithLifecycle(initialValue = emptyList())
 
     var showEditFishermanDialog by remember { mutableStateOf(false) }
     var showAddTripSelectionDialog by remember { mutableStateOf(false) }
@@ -91,14 +92,10 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 PhotoPickerRow(
                     photos = fishermanPhotos,
                     onPhotoSelected = { uri ->
-                        scope.launch {
-                            viewModel.addPhoto(Photo(uri = uri.toString(), fishermanId = fishermanId))
-                        }
+                        viewModel.addPhoto(Photo(uri = uri.toString(), fishermanId = fishermanId))
                     },
                     onPhotoDeleted = { photo ->
-                        scope.launch {
-                            viewModel.deletePhoto(photo)
-                        }
+                        viewModel.deletePhoto(photo)
                     },
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
@@ -112,21 +109,29 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 )
 
                 val fishermanLures = details.tackleBoxWithLures?.lures ?: emptyList()
-                
+                val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
+
                 LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
                     items(fishermanLures) { lure ->
                         val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name ?: "Unknown Color"
                         val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
                         val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+                        val photos = allPhotos[lure.id] ?: emptyList()
                         LureItem(
                             lure = lure,
                             primaryColorName = primaryColorName,
                             secondaryColorName = secondaryColorName,
                             glowColorName = glowColorName,
-                            viewModel = viewModel,
+                            photos = photos, // Needs photos flow per lure if wanted
+                            onAddPhoto = { photo ->
+                                viewModel.addPhoto(photo)
+                            },
+                            onDeletePhoto = { photo ->
+                                viewModel.deletePhoto(photo)
+                            },
                             onEdit = { lureToEdit = lure },
                             onDelete = {
-                                scope.launch { viewModel.removeLureFromFishermanTackleBox(fishermanId, lure.id) }
+                                viewModel.removeLureFromFishermanTackleBox(fishermanId, lure.id)
                             }
                         )
                     }
@@ -145,9 +150,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                         TripDetailItem(
                             trip = trip,
                             onDelete = {
-                                scope.launch {
-                                    viewModel.deleteTripFromFisherman(trip.id, fishermanId)
-                                }
+                                viewModel.deleteTripFromFisherman(trip.id, fishermanId)
                             }
                         )
                     }
@@ -163,9 +166,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 initialFisherman = fishermanWithDetails!!.fisherman,
                 onDismiss = { showEditFishermanDialog = false },
                 onConfirm = { updatedFisherman ->
-                    scope.launch {
-                        viewModel.updateFisherman(updatedFisherman)
-                    }
+                    viewModel.updateFisherman(updatedFisherman)
                     showEditFishermanDialog = false
                 }
             )
@@ -208,9 +209,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            scope.launch {
-                                                viewModel.addLureToFishermanTackleBox(fishermanId, lure.id)
-                                            }
+                                            viewModel.addLureToFishermanTackleBox(fishermanId, lure.id)
                                             showLureSelectionDialog = false
                                         }
                                         .padding(16.dp),
@@ -233,19 +232,14 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 colors = colors,
                 onDismiss = { showAddLureDialog = false },
                 onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
-                    scope.launch {
-                        val newLure = Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId)
-                        viewModel.addLure(newLure)
-                        viewModel.addLureToFishermanTackleBox(fishermanId, newLure.id)
-                        showAddLureDialog = false
-                    }
+                    val newLure = Lure(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId)
+                    viewModel.addLure(newLure)
+                    viewModel.addLureToFishermanTackleBox(fishermanId, newLure.id)
+                    showAddLureDialog = false
                 },
                 onAddColor = { colorName, onComplete ->
-                    scope.launch {
-                        val newColor = LureColor( name = colorName)
-                        viewModel.addLureColor(newColor)
-                        onComplete(newColor.id)
-                    }
+                    val newColor = LureColor( name = colorName)
+                    viewModel.addLureColor(newColor, onComplete)
                 }
             )
         }
@@ -263,17 +257,12 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 colors = colors,
                 onDismiss = { lureToEdit = null },
                 onConfirm = { name, primaryColorId, secondaryColorId, isSingleHook, glows, glowColorId ->
-                    scope.launch {
-                        viewModel.addLure(lure.copy(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
-                        lureToEdit = null
-                    }
+                    viewModel.addLure(lure.copy(name = name, primaryColorId = primaryColorId, secondaryColorId = secondaryColorId, hasSingleHook = isSingleHook, glows = glows, glowColorId = glowColorId))
+                    lureToEdit = null
                 },
                 onAddColor = { colorName, onComplete ->
-                    scope.launch {
-                        val newLure = LureColor(name = colorName)
-                        viewModel.addLureColor(newLure)
-                        onComplete(newLure.id)
-                    }
+                    val newLure = LureColor(name = colorName)
+                    viewModel.addLureColor(newLure, onComplete)
                 }
             )
         }
@@ -284,10 +273,10 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 colors = colors,
                 onDismiss = { showManageColorsDialog = false },
                 onAddColor = { colorName ->
-                    scope.launch { viewModel.addLureColor(LureColor(name = colorName)) }
+                    viewModel.addLureColor(LureColor(name = colorName))
                 },
                 onDeleteColor = { color ->
-                    scope.launch { viewModel.deleteLureColor(color) }
+                    viewModel.deleteLureColor(color)
                 }
             )
         }
@@ -330,9 +319,7 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            scope.launch {
-                                                viewModel.addFishermanToTrip(trip.id, fishermanId)
-                                            }
+                                            viewModel.addFishermanToTrip(trip.id, fishermanId)
                                             showAddTripSelectionDialog = false
                                         }
                                         .padding(16.dp),
@@ -360,13 +347,11 @@ fun FishermanDetailsScreen(viewModel: MainViewModel, fishermanId: String, naviga
                 confirmButton = {
                     Button(onClick = {
                         if (newTripName.isNotBlank()) {
-                            scope.launch {
-                                val newTrip = Trip(name = newTripName)
-                                viewModel.addTrip(newTrip)
-                                viewModel.addFishermanToTrip(newTrip.id, fishermanId)
-                                showAddTripDialog = false
-                                newTripName = ""
-                            }
+                            val newTrip = Trip(name = newTripName)
+                            viewModel.addTrip(newTrip)
+                            viewModel.addFishermanToTrip(newTrip.id, fishermanId)
+                            showAddTripDialog = false
+                            newTripName = ""
                         }
                     }) { Text("Add") }
                 },

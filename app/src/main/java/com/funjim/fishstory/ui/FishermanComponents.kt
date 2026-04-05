@@ -16,12 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.viewmodels.MainViewModel
 
 @Composable
 fun FishermanItem(
     fisherman: FishermanSummary,
-    viewModel: MainViewModel,
     onDelete: () -> Unit,
     onClick: () -> Unit
 ) {

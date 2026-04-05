@@ -17,8 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.LureItem
 import com.funjim.fishstory.ui.ManageColorsDialog
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -138,15 +140,24 @@ fun LureListScreen(
                         Text("No lures found. Add one!")
                     }
                 } else {
+                    val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
                     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                         items(displayLures, key = { it.lure.id }) { item ->
+                            val photos = allPhotos[item.lure.id] ?: emptyList()
+
                             LureItem(
                                 lure = item.lure,
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
-                                viewModel = viewModel,
+                                photos = photos, // Needs photos flow per lure if wanted
                                 onEdit = { onAddLure(item.lure.id) }, // Navigate to screen with ID
+                                onAddPhoto = { photo ->
+                                    scope.launch { viewModel.addPhoto(photo) }
+                                },
+                                onDeletePhoto = { photo ->
+                                    scope.launch { viewModel.deletePhoto(photo) }
+                                },
                                 onDelete = {
                                     scope.launch { viewModel.deleteLure(item.lure) }
                                 }

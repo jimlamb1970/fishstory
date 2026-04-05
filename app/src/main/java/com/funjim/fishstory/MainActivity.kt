@@ -32,12 +32,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.SettingsScreen
+import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
-import com.funjim.fishstory.viewmodels.MainViewModel
-import com.funjim.fishstory.viewmodels.MainViewModelFactory
+import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.funjim.fishstory.ui.screens.FishermanListScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -245,8 +244,12 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         }
 
         composable("fishermen") {
+            val database = (navController.context.applicationContext as FishstoryApplication).database
+            val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = FishermanListViewModelFactory(database.fishermanDao())
+            )
             FishermanListScreen(
-                viewModel = viewModel,
+                viewModel = listViewModel,
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fishermanDetails/$fishermanId")
                 },
@@ -441,7 +444,17 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
-            FishermanDetailsScreen(viewModel, fishermanId) {
+            val database = (navController.context.applicationContext as FishstoryApplication).database
+            val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = FishermanDetailsViewModelFactory(
+                    database.fishermanDao(),
+                    database.tripDao(),
+                    database.lureDao(),
+                    database.photoDao(),
+                    database.tackleBoxDao()
+                )
+            )
+            FishermanDetailsScreen(detailsViewModel, fishermanId) {
                 navController.popBackStack()
             }
         }

@@ -16,8 +16,6 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.viewmodels.MainViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -318,7 +316,7 @@ fun ManageColorsDialog(
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) { Text("Close") }
+            Button(onClick = { onAddColor(newColorName); onDismiss() }) { Text("Close") }
         }
     )
 }
@@ -329,13 +327,12 @@ fun LureItem(
     primaryColorName: String?,
     secondaryColorName: String?,
     glowColorName: String?,
-    viewModel: MainViewModel,
+    photos: List<Photo>,
+    onAddPhoto: (Photo) -> Unit,
+    onDeletePhoto: (Photo) -> Unit,
     onEdit: () -> Unit, 
     onDelete: () -> Unit
 ) {
-    val lurePhotos by viewModel.getPhotosForLure(lure.id).collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
-
     Card(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -362,16 +359,12 @@ fun LureItem(
             }
 
             PhotoPickerRow(
-                photos = lurePhotos,
+                photos = photos,
                 onPhotoSelected = { uri ->
-                    scope.launch {
-                        viewModel.addPhoto(Photo(uri = uri.toString(), lureId = lure.id))
-                    }
+                    onAddPhoto(Photo(uri = uri.toString(), lureId = lure.id))
                 },
                 onPhotoDeleted = { photo ->
-                    scope.launch {
-                        viewModel.deletePhoto(photo)
-                    }
+                    onDeletePhoto(photo)
                 },
                 modifier = Modifier.padding(top = 8.dp)
             )

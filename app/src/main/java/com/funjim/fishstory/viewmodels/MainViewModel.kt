@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -95,43 +96,6 @@ class MainViewModel(
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
 
     val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
-    // 1. The Raw Data from the Database (Unsorted)
-    private val _rawSummaries = fishermanDao.getFishermanSummaries()
-
-    // 2. The Current User Selection
-    private val _sortOrder = MutableStateFlow(FishermanSortOrder.NAME_AZ)
-    val sortOrder = _sortOrder.asStateFlow()
-    private val _isReversed = MutableStateFlow(false)
-    val isReversed = _isReversed.asStateFlow()
-
-    // 3. The Combined Flow (Logic happens here)
-    val fishermanSummaries: StateFlow<List<FishermanSummary>> = combine(
-        _rawSummaries,
-        _sortOrder,
-        _isReversed
-    ) { summaries, order, reversed ->
-        val sorted = when (order) {
-            FishermanSortOrder.NAME_AZ -> summaries.sortedBy { it.fisherman.fullName.lowercase() }
-            FishermanSortOrder.MOST_CATCHES -> summaries.sortedByDescending { it.totalCatches }
-            FishermanSortOrder.MOST_RELEASED -> summaries.sortedByDescending { it.totalReleased }
-            FishermanSortOrder.MOST_TRIPS -> summaries.sortedByDescending { it.totalTrips }
-        }
-
-        if (reversed) sorted.reversed() else sorted
-    }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    fun toggleReverse() {
-        _isReversed.value = !_isReversed.value
-    }
-
-    fun updateSortOrder(newOrder: FishermanSortOrder) {
-        _sortOrder.value = newOrder
-    }
 
     val lures: Flow<List<Lure>> = lureDao.getAllLures()
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
@@ -592,6 +556,16 @@ class MainViewModel(
     fun getPhotosForLure(lureId: String): Flow<List<Photo>> = photoDao.getPhotosForLure(lureId)
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(fishermanId)
     fun getPhotosForFish(fishId: String): Flow<List<Photo>> = photoDao.getPhotosForFish(fishId)
+
+    val lurePhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
+        .map { photos ->
+            photos.filter { it.lureId != null }
+                .groupBy { it.lureId!! } // The !! is safe here because of the filter
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(context: Context): android.location.Location? {
