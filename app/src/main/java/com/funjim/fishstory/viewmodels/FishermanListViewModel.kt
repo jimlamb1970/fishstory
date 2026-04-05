@@ -34,6 +34,7 @@ class FishermanListViewModel(
         val sorted = when (order) {
             FishermanSortOrder.NAME_AZ -> summaries.sortedBy { it.fisherman.fullName.lowercase() }
             FishermanSortOrder.MOST_CATCHES -> summaries.sortedByDescending { it.totalCatches }
+            else -> summaries.sortedBy { it.fisherman.fullName.lowercase() }
 /* -- save these for later
             FishermanSortOrder.MOST_RELEASED -> summaries.sortedByDescending { it.totalReleased }
             FishermanSortOrder.MOST_TRIPS -> summaries.sortedByDescending { it.totalTrips }
