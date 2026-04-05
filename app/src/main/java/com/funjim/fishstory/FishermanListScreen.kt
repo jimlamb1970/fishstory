@@ -1,17 +1,25 @@
 package com.funjim.fishstory
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.ui.FishermanItem
+import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -22,10 +30,10 @@ fun FishermanListScreen(
     navigateToFishermanDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val fishermenList by viewModel.fishermen.collectAsState(initial = emptyList())
-    val fishermen = remember(fishermenList) {
-        fishermenList.sortedBy { it.fullName.lowercase() }
-    }
+    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
+    val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var newFirstName by remember { mutableStateOf("") }
     var newLastName by remember { mutableStateOf("") }
@@ -50,17 +58,38 @@ fun FishermanListScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // Sort Buttons
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp)) {
+                SortChip("Name", currentOrder == FishermanSortOrder.NAME_AZ) {
+                    viewModel.updateSortOrder(FishermanSortOrder.NAME_AZ)
+                }
+                SortChip("Most Catches", currentOrder == FishermanSortOrder.MOST_CATCHES) {
+                    viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
+                }
+                // Add more chips here...
+                Spacer(Modifier.weight(1f))
+
+                IconButton(onClick = { viewModel.toggleReverse() }) {
+                    Icon(
+                        imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                        contentDescription = "Reverse Sort",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
             LazyColumn {
-                items(fishermen) { fisherman ->
+                items(fishermanSummaries) { fisherman ->
                     FishermanItem(
                         fisherman = fisherman,
+                        viewModel = viewModel,
                         onDelete = {
                             scope.launch {
-                                viewModel.deleteFisherman(fisherman)
+                                viewModel.deleteFisherman(fisherman.fisherman)
                             }
                         },
                         onClick = {
-                            navigateToFishermanDetails(fisherman.id)
+                            navigateToFishermanDetails(fisherman.fisherman.id)
                         }
                     )
                 }
@@ -121,5 +150,36 @@ fun FishermanListScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        modifier = Modifier.padding(end = 4.dp)
+    )
+}
+
+@Composable
+fun SortingArrow(
+    isReversed: Boolean,
+    onClick: () -> Unit
+) {
+    // 1. Calculate the rotation angle based on the boolean state
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isReversed) 180f else 0f,
+        label = "ArrowRotation"
+    )
+
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Default.ArrowDownward, // Use a single base icon
+            contentDescription = "Toggle Sort Direction",
+            modifier = Modifier.rotate(rotationAngle), // 2. Apply the rotation
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }

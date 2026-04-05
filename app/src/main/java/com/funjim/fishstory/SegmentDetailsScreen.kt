@@ -62,7 +62,6 @@ fun SegmentDetailsScreen(
     val fishList by viewModel.getFishForSegment(segmentId).collectAsState(initial = emptyList())
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
-    var showFishermenDialog by remember { mutableStateOf(false) }
     var showEditSegmentDialog by remember { mutableStateOf(false) }
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -442,36 +441,6 @@ fun SegmentDetailsScreen(
                         dismissButton = {
                             TextButton(onClick = { showEditSegmentDialog = false }) {
                                 Text("Cancel")
-                            }
-                        }
-                    )
-                }
-
-                if (showFishermenDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showFishermenDialog = false },
-                        title = { Text("Fishermen in Segment Boat") },
-                        text = {
-                            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                                items(details.fishermen) { fisherman ->
-                                    FishermanItem(
-                                        fisherman = fisherman,
-                                        onDelete = {
-                                            scope.launch {
-                                                viewModel.deleteFishermanFromSegment(segmentId, fisherman.id)
-                                            }
-                                        },
-                                        onClick = {
-                                            showFishermenDialog = false
-                                            navigateToFishermanDetails(fisherman.id)
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { showFishermenDialog = false }) {
-                                Text("Close")
                             }
                         }
                     )

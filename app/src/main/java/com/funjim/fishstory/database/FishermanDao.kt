@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithDetails
 import com.funjim.fishstory.model.FishermanWithTrips
 import com.funjim.fishstory.model.TripFishermanCrossRef
@@ -47,6 +48,18 @@ interface FishermanDao {
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?>
+
+    @Transaction
+    @Query("""
+    SELECT 
+        f.*, 
+        (SELECT COUNT(*) FROM fish_table WHERE fishermanId = f.id) AS totalCatches,
+        (SELECT COUNT(*) FROM fish_table WHERE fishermanId = f.id AND isReleased = 1) AS totalReleased,
+        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips
+    FROM fisherman_table AS f
+    GROUP BY f.id
+""")
+    fun getFishermanSummaries(): Flow<List<FishermanSummary>>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

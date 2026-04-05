@@ -54,7 +54,6 @@ fun TripDetailsScreen(
     val segmentsWithDetails by viewModel.getSegmentsWithDetailsForTrip(tripId).collectAsState(initial = emptyList())
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
 
-    var showFishermenDialog by remember { mutableStateOf(false) }
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -405,36 +404,6 @@ fun TripDetailsScreen(
                         dismissButton = {
                             TextButton(onClick = { showEditTripDialog = false }) {
                                 Text("Cancel")
-                            }
-                        }
-                    )
-                }
-
-                if (showFishermenDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showFishermenDialog = false },
-                        title = { Text("Fishermen in Boat") },
-                        text = {
-                            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                                items(details.fishermen) { fisherman ->
-                                    FishermanItem(
-                                        fisherman = fisherman,
-                                        onDelete = {
-                                            scope.launch {
-                                                viewModel.deleteFishermanFromTrip(tripId, fisherman.id)
-                                            }
-                                        },
-                                        onClick = {
-                                            showFishermenDialog = false
-                                            navigateToFishermanDetails(fisherman.id)
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { showFishermenDialog = false }) {
-                                Text("Close")
                             }
                         }
                     )
