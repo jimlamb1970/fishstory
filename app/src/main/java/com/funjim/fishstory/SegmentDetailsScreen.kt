@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
@@ -45,6 +47,7 @@ import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -334,11 +337,26 @@ fun SegmentDetailsScreen(
                     modifier = Modifier.padding(16.dp)
                 )
 
+                val allPhotos by viewModel.fishPhotos.collectAsStateWithLifecycle()
+
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(fishList) { fish ->
+                        val photos = allPhotos[fish.id] ?: emptyList()
+
                         FishItem(
                             fish = fish,
-                            viewModel = viewModel,
+                            photos = photos,
+                            onAddPhoto = null,
+                            onDeletePhoto = null,
+                            onClick = null,
+/* TODO - need to decide if I want photos on the fish card
+                            onAddPhoto = { photo ->
+                                scope.launch { viewModel.addPhoto(photo) }
+                            },
+                            onDeletePhoto = { photo ->
+                                scope.launch { viewModel.deletePhoto(photo) }
+                            },
+ */
                             onEdit = {
                                 navigateToAddFish(tripId, segmentId, fish.id)
                             },

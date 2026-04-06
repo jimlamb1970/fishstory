@@ -38,6 +38,13 @@ interface PhotoDao {
 """)
     fun getAllLurePhotos(): Flow<List<Photo>>
 
+    @Query("""
+    SELECT * FROM photo_table 
+    WHERE fishId IS NOT NULL 
+    AND fishId != ''
+""")
+    fun getAllFishPhotos(): Flow<List<Photo>>
+
     @Query("SELECT * FROM photo_table WHERE fishermanId = :fishermanId")
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
 

@@ -122,7 +122,7 @@ fun FishermanDetailsScreen(viewModel: FishermanDetailsViewModel, fishermanId: St
                             primaryColorName = primaryColorName,
                             secondaryColorName = secondaryColorName,
                             glowColorName = glowColorName,
-                            photos = photos, // Needs photos flow per lure if wanted
+                            photos = photos,
                             onAddPhoto = { photo ->
                                 viewModel.addPhoto(photo)
                             },

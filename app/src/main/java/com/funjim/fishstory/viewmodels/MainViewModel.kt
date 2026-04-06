@@ -103,22 +103,6 @@ class MainViewModel(
     val activeSegments: Flow<List<Segment>> = segmentDao.getCurrentActiveSegments()
     val allFish: Flow<List<FishWithDetails>> = fishDao.getAllFishWithDetails()
 
-    // Filter state for FishListScreen
-    private val _selectedTripIdForFilter = MutableStateFlow<String?>(null)
-    val selectedTripIdForFilter = _selectedTripIdForFilter.asStateFlow()
-
-    private val _selectedSegmentIdForFilter = MutableStateFlow<String?>(null)
-    val selectedSegmentIdForFilter = _selectedSegmentIdForFilter.asStateFlow()
-
-    fun updateSelectedTripIdForFilter(id: String?) {
-        _selectedTripIdForFilter.value = id
-        _selectedSegmentIdForFilter.value = null // Reset segment when trip changes
-    }
-
-    fun updateSelectedSegmentIdForFilter(id: String?) {
-        _selectedSegmentIdForFilter.value = id
-    }
-
     // Draft state for new trip
     private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
@@ -561,6 +545,16 @@ class MainViewModel(
         .map { photos ->
             photos.filter { it.lureId != null }
                 .groupBy { it.lureId!! } // The !! is safe here because of the filter
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
+
+    val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
+        .map { photos ->
+            photos.filter { it.fishId != null }
+                .groupBy { it.fishId!! } // The !! is safe here because of the filter
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

@@ -31,7 +31,7 @@ import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.ManageSpeciesDialog
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -39,11 +39,11 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FishListScreen(
-    viewModel: MainViewModel,
+fun FishListScreenSummary(
+    viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
-    onNavigateToSegmentFishList: (tripId: String, segmentId: String) -> Unit
+    onNavigateToFishList: (tripId: String, segmentId: String) -> Unit
 ) {
     val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTripId by viewModel.selectedTripIdForFilter.collectAsStateWithLifecycle()
@@ -68,13 +68,7 @@ fun FishListScreen(
     var segmentExpanded by remember { mutableStateOf(false) }
 
     // Fish counts — trip-level or segment-level depending on selection
-    val fishForScope by produceState(initialValue = emptyList<FishWithDetails>(), key1 = selectedTripId, key2 = selectedSegmentId) {
-        when {
-            selectedSegmentId != null -> viewModel.getFishForSegment(selectedSegmentId!!).collect { value = it }
-            selectedTripId != null -> viewModel.getFishForTrip(selectedTripId!!).collect { value = it }
-            else -> value = emptyList()
-        }
-    }
+    val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
 
     val caughtCount = fishForScope.size
     val keptCount = fishForScope.count { !it.isReleased }
@@ -241,7 +235,7 @@ fun FishListScreen(
                     onClick = {
                         val tripId = selectedSegment?.tripId ?: selectedTrip.id
                         val segId = selectedSegment?.id ?: ""
-                        onNavigateToSegmentFishList(tripId, segId)
+                        onNavigateToFishList(tripId, segId)
                     }
                 )
             } else {

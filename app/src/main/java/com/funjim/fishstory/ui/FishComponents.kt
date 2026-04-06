@@ -1,68 +1,60 @@
 package com.funjim.fishstory.ui
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
-import android.Manifest
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
-import com.funjim.fishstory.viewmodels.MainViewModel
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+//import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 @Composable
 fun FishItem(
     fish: FishWithDetails, 
-    viewModel: MainViewModel,
+    photos: List<Photo>,
+    onAddPhoto: ((Photo) -> Unit)? = null,
+    onDeletePhoto: ((Photo) -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
     onEdit: () -> Unit,
-    onDelete: () -> Unit, 
+    onDelete: () -> Unit,
     onShowMap: () -> Unit, 
     onUpdateLocation: () -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
-    val fishPhotos by viewModel.getPhotosForFish(fish.id).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-    ) {
+            .then(
+                // Only add clickable if the lambda isn't null
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            )    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,9 +65,11 @@ fun FishItem(
                     Text(
                         text = buildString {
                             append("${fish.speciesName} - ${fish.length}\"")
+/*
                             if (fish.holeNumber != null) {
                                 append(" (Hole #${fish.holeNumber})")
                             }
+ */
                         },
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -86,27 +80,6 @@ fun FishItem(
                     }
                     Text("Status: ${if (fish.isReleased) "Released" else "Kept"}", style = MaterialTheme.typography.bodySmall)
                     Text("At: ${dateFormatter.format(Date(fish.timestamp))}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-                    
-                    if (fish.latitude != null && fish.longitude != null) {
-                        Text(
-                            text = "GPS: ${fish.latitude}, ${fish.longitude}", 
-                            style = MaterialTheme.typography.bodySmall, 
-                            color = Color.Blue,
-                            modifier = Modifier.clickable { onShowMap() }
-                        )
-                    }
-                    
-                    Row {
-                        TextButton(
-                            onClick = onUpdateLocation,
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.height(32.dp)
-                        ) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(if (fish.latitude == null) "Set Location" else "Update Location", style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
                 }
                 Row {
                     IconButton(onClick = onEdit) {
@@ -118,20 +91,22 @@ fun FishItem(
                 }
             }
 
-            PhotoPickerRow(
-                photos = fishPhotos,
-                onPhotoSelected = { uri ->
-                    scope.launch {
-                        viewModel.addPhoto(Photo(uri = uri.toString(), fishId = fish.id))
-                    }
-                },
-                onPhotoDeleted = { photo ->
-                    scope.launch {
-                        viewModel.deletePhoto(photo)
-                    }
-                },
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            if (onAddPhoto != null && onDeletePhoto != null) {
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri ->
+                        scope.launch {
+                            onAddPhoto(Photo(uri = uri.toString(), fishId = fish.id))
+                        }
+                    },
+                    onPhotoDeleted = { photo ->
+                        scope.launch {
+                            onDeletePhoto(photo)
+                        }
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 }
@@ -180,63 +155,6 @@ fun MapPickerSelectionDialog(
         }
     }
 }
-
-@Composable
-fun rememberLocationPickerState(
-    viewModel: MainViewModel,
-    existingLat: Double?,
-    existingLng: Double?,
-    onLocationConfirmed: (Double, Double) -> Unit
-): LocationPickerResult {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
-    var showDialog by remember { mutableStateOf(false) }
-
-    // Logic: Determine the "best" initial point
-    // We use 'derivedStateOf' so this recalculates correctly if deviceLocation arrives late
-    val initialLatLng = remember(deviceLocation, existingLat, existingLng) {
-        when {
-            // 1. Priority: If we already have a saved location for this trip/segment
-            existingLat != null && existingLng != null -> LatLng(existingLat, existingLng)
-            // 2. Fallback: Use the device's current location fetched by VM
-            deviceLocation != null -> LatLng(deviceLocation!!.latitude, deviceLocation!!.longitude)
-            // 3. Last Resort: Default center (or null to show a loading state)
-            else -> LatLng(45.0, -90.0)
-        }
-    }
-
-    // Trigger the "Once" fetch when the screen starts
-    LaunchedEffect(Unit) {
-        val hasPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (hasPermission) {
-            viewModel.fetchDeviceLocationOnce(context)
-        }
-    }
-
-    // UI Logic: Show the dialog if the flag is true
-    if (showDialog) {
-        MapPickerSelectionDialog(
-            initialLatLng = initialLatLng,
-            onDismiss = { showDialog = false },
-            onConfirm = { latLng ->
-                scope.launch {
-                    onLocationConfirmed(latLng.latitude, latLng.longitude)
-                }
-                showDialog = false
-            }
-        )
-    }
-
-    return remember {
-        LocationPickerResult(openPicker = { showDialog = true })
-    }
-}
-
-class LocationPickerResult(val openPicker: () -> Unit)
 
 @Composable
 fun ManageSpeciesDialog(
@@ -293,18 +211,4 @@ fun ManageSpeciesDialog(
             Button(onClick = onDismiss) { Text("Close") }
         }
     )
-}
-
-@SuppressLint("MissingPermission")
-suspend fun getCurrentLocation(context: Context): Pair<Double, Double>? {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    return try {
-        val location = fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            CancellationTokenSource().token
-        ).await()
-        location?.let { it.latitude to it.longitude }
-    } catch (e: Exception) {
-        null
-    }
 }

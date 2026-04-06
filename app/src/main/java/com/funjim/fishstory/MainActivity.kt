@@ -32,13 +32,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.SettingsScreen
+import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
+import com.funjim.fishstory.ui.screens.FishListScreenSummary
 import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.FishermanListScreen
-import com.funjim.fishstory.ui.screens.SegmentFishListScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -53,6 +54,16 @@ class MainActivity : ComponentActivity() {
             database.fishDao(),
             database.photoDao(),
             database.tackleBoxDao()
+        )
+    }
+
+    private val fishViewModel: FishViewModel by viewModels {
+        val database = (application as FishstoryApplication).database
+        FishViewModelFactory(
+            database.fishDao(),
+            database.tripDao(),
+            database.segmentDao(),
+            database.photoDao()
         )
     }
 
@@ -90,7 +101,7 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel)
+                        AppNavigation(navController, viewModel, fishViewModel)
                     }
                 }
             }
@@ -116,7 +127,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
+fun AppNavigation(
+    navController: NavHostController,
+    viewModel: MainViewModel,
+    fishViewModel: FishViewModel
+) {
     NavHost(navController = navController, startDestination = "main_menu") {
         composable("main_menu") {
             MainMenuScreen(navController)
@@ -294,15 +309,15 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         }
 
         composable("fish") {
-            FishListScreen(
-                viewModel = viewModel,
+            FishListScreenSummary(
+                viewModel = fishViewModel,
                 onAddFish = { tripId, segmentId, fishId ->
                     val route =
                         if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
-                onNavigateToSegmentFishList = { tripId, segmentId ->
-                    navController.navigate("segmentFishList/$tripId/$segmentId")
+                onNavigateToFishList = { tripId, segmentId ->
+                    navController.navigate("FishList/$tripId/$segmentId")
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -311,7 +326,7 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
         }
 
         composable(
-            route = "segmentFishList/{tripId}/{segmentId}",
+            route = "FishList/{tripId}/{segmentId}",
             arguments = listOf(
                 navArgument("tripId") { type = NavType.StringType },
                 navArgument("segmentId") { type = NavType.StringType }
@@ -322,8 +337,8 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: ""
 
             // Call the screen
-            SegmentFishListScreen(
-                viewModel = viewModel,
+            FishListScreen(
+                viewModel = fishViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
                 onAddFish = { tripId, segmentId, fishId ->
@@ -331,9 +346,24 @@ fun AppNavigation(navController: NavHostController, viewModel: MainViewModel) {
                         if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
+                navigateToFishDetails = { fishId ->
+                    navController.navigate("fishDetails/$fishId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(
+            route = "fishDetails/{fishId}",
+            arguments = listOf(navArgument("fishId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val fishId = backStackEntry.arguments?.getString("fishId") ?: return@composable
+            FishDetailScreen(
+                viewModel = fishViewModel,
+                initialFishId = fishId,
+                navigateBack = { navController.popBackStack() }
             )
         }
 
