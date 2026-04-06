@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.SettingsScreen
+import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
 import com.funjim.fishstory.ui.screens.FishSummaryScreen
@@ -40,6 +41,7 @@ import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.FishermanListScreen
+import com.funjim.fishstory.ui.screens.LureListScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -63,6 +65,16 @@ class MainActivity : ComponentActivity() {
             database.fishDao(),
             database.tripDao(),
             database.segmentDao(),
+            database.photoDao()
+        )
+    }
+
+    private val lureViewModel: LureViewModel by viewModels {
+        val database = (application as FishstoryApplication).database
+        LureViewModelFactory(
+            database.lureDao(),
+            database.fishermanDao(),
+            database.tackleBoxDao(),
             database.photoDao()
         )
     }
@@ -101,7 +113,7 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel, fishViewModel)
+                        AppNavigation(navController, viewModel, fishViewModel, lureViewModel)
                     }
                 }
             }
@@ -130,7 +142,8 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(
     navController: NavHostController,
     viewModel: MainViewModel,
-    fishViewModel: FishViewModel
+    fishViewModel: FishViewModel,
+    lureViewModel: LureViewModel
 ) {
     NavHost(navController = navController, startDestination = "main_menu") {
         composable("main_menu") {
@@ -288,7 +301,7 @@ fun AppNavigation(
         ) { backStackEntry ->
             val lureIdStr = backStackEntry.arguments?.getString("lureId")
             AddLureScreen(
-                viewModel = viewModel,
+                viewModel = lureViewModel,
                 lureId = lureIdStr,
                 onNavigateBack = {
                     navController.popBackStack()
@@ -298,10 +311,11 @@ fun AppNavigation(
 
         composable("lures") {
             LureListScreen(
-                viewModel = viewModel,
+                viewModel = lureViewModel,
                 onAddLure = { lureId, ->
                     val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
-                    navController.navigate(route)                },
+                    navController.navigate(route)
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }

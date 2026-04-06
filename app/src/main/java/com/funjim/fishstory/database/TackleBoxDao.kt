@@ -22,6 +22,9 @@ interface TackleBoxDao {
     @Query("DELETE FROM tackle_box_lure_cross_ref")
     suspend fun deleteAllTackleBoxLureCrossRefs()
 
+    @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
+    suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBox?
+
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxForFisherman(fishermanId: String): Flow<TackleBox?>
 

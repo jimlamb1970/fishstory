@@ -97,7 +97,6 @@ class MainViewModel(
 
     val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
 
-    val lures: Flow<List<Lure>> = lureDao.getAllLures()
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
     val activeSegments: Flow<List<Segment>> = segmentDao.getCurrentActiveSegments()
@@ -450,44 +449,8 @@ class MainViewModel(
         segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
     }
 
-    suspend fun addLure(lure: Lure) {
-        lureDao.insertLure(lure)
-    }
-
-    suspend fun deleteLure(lure: Lure) {
-        lureDao.deleteLure(lure)
-    }
-
-    suspend fun getLureById(id: String): Lure? {
-        return lureDao.getLureById(id)
-    }
-
     fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>> {
         return tackleBoxDao.getLuresForFisherman(fishermanId)
-    }
-
-    suspend fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
-        var tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
-        if (tackleBox == null) {
-            tackleBox = TackleBox(fishermanId = fishermanId)
-            tackleBoxDao.insertTackleBox(tackleBox)
-        }
-        tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
-    }
-
-    suspend fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
-        val tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
-        if (tackleBox != null) {
-            tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
-        }
-    }
-
-    suspend fun addLureColor(color: LureColor) {
-        return lureDao.insertLureColor(color)
-    }
-
-    suspend fun deleteLureColor(color: LureColor) {
-        lureDao.deleteLureColor(color)
     }
 
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
@@ -537,19 +500,6 @@ class MainViewModel(
 
     fun getPhotosForTrip(tripId: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(tripId)
     fun getPhotosForSegment(segmentId: String): Flow<List<Photo>> = photoDao.getPhotosForSegment(segmentId)
-    fun getPhotosForLure(lureId: String): Flow<List<Photo>> = photoDao.getPhotosForLure(lureId)
-    fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(fishermanId)
-    fun getPhotosForFish(fishId: String): Flow<List<Photo>> = photoDao.getPhotosForFish(fishId)
-
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
-        .map { photos ->
-            photos.filter { it.lureId != null }
-                .groupBy { it.lureId!! } // The !! is safe here because of the filter
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
 
     val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
         .map { photos ->

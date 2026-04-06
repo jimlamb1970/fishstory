@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,16 +20,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.LureItem
 import com.funjim.fishstory.ui.ManageColorsDialog
+import com.funjim.fishstory.viewmodels.LureViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LureListScreen(
-    viewModel: MainViewModel,
+    viewModel: LureViewModel,
     onAddLure: (String?) -> Unit, // Callback for Navigating to Add/Edit screen
     navigateBack: () -> Unit
 ) {
@@ -51,7 +53,7 @@ fun LureListScreen(
         if (selectedFisherman != null) {
             viewModel.getLuresForFisherman(selectedFisherman!!.id)
         } else {
-            kotlinx.coroutines.flow.flowOf(emptyList<Lure>())
+            flowOf(emptyList<Lure>())
         }
     }.collectAsState(initial = emptyList())
 
@@ -292,7 +294,7 @@ fun LureListScreen(
                 colors = colors,
                 onDismiss = { showManageColorsDialog = false },
                 onAddColor = { colorName ->
-                    scope.launch { viewModel.addLureColor(com.funjim.fishstory.model.LureColor(name = colorName)) }
+                    scope.launch { viewModel.addLureColor(LureColor(name = colorName)) }
                 },
                 onDeleteColor = { color ->
                     scope.launch { viewModel.deleteLureColor(color) }

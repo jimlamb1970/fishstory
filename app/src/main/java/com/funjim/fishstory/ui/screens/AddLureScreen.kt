@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,14 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLureScreen(
-    viewModel: MainViewModel,
+    viewModel: LureViewModel,
     lureId: String? = null, // Pass null for "Add", pass ID for "Edit"
     onNavigateBack: () -> Unit
 ) {
