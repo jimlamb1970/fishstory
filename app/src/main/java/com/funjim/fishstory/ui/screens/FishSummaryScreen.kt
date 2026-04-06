@@ -26,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.R
-import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
@@ -39,7 +38,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FishListScreenSummary(
+fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,

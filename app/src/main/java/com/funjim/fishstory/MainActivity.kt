@@ -34,7 +34,7 @@ import com.funjim.fishstory.ui.AddFishScreen
 import com.funjim.fishstory.ui.SettingsScreen
 import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
-import com.funjim.fishstory.ui.screens.FishListScreenSummary
+import com.funjim.fishstory.ui.screens.FishSummaryScreen
 import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
@@ -309,7 +309,7 @@ fun AppNavigation(
         }
 
         composable("fish") {
-            FishListScreenSummary(
+            FishSummaryScreen(
                 viewModel = fishViewModel,
                 onAddFish = { tripId, segmentId, fishId ->
                     val route =
