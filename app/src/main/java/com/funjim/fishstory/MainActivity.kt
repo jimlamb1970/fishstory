@@ -515,6 +515,10 @@ fun AppNavigation(
                     val route = if (fId != null) "addFish/$tripId/$segmentId?fishId=$fId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
+                fishViewModel = fishViewModel,
+                navigateToFishDetails = { fishId ->
+                    navController.navigate("fishDetails/$fishId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }

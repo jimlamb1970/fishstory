@@ -41,6 +41,7 @@ import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.getCurrentLocation
 import com.funjim.fishstory.ui.rememberLocationPickerState
+import com.funjim.fishstory.viewmodels.FishViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
@@ -58,6 +59,8 @@ fun SegmentDetailsScreen(
     navigateToSegmentBoatLoad: (String, String) -> Unit,
     navigateToFishermanDetails: (String) -> Unit,
     navigateToAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
+    fishViewModel: FishViewModel,
+    navigateToFishDetails: (fishId: String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
@@ -266,7 +269,9 @@ fun SegmentDetailsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()) {
             segmentWithDetails?.let { details ->
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -283,12 +288,17 @@ fun SegmentDetailsScreen(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clickable {
-                                        val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
+                                        val mapUri =
+                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
                                         val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                         try {
                                             context.startActivity(intent)
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Could not open map",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
                             )
@@ -348,7 +358,11 @@ fun SegmentDetailsScreen(
                             photos = photos,
                             onAddPhoto = null,
                             onDeletePhoto = null,
-                            onClick = null,
+                            onClick = {
+                                fishViewModel.updateSelectedTripIdForFilter(tripId)
+                                fishViewModel.updateSelectedSegmentIdForFilter(segmentId)
+                                navigateToFishDetails(fish.id)
+                            },
 /* TODO - need to decide if I want photos on the fish card
                             onAddPhoto = { photo ->
                                 scope.launch { viewModel.addPhoto(photo) }
@@ -637,7 +651,9 @@ fun DraftSegmentDetailsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()) {
             if (segment != null) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -654,12 +670,17 @@ fun DraftSegmentDetailsScreen(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clickable {
-                                        val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
+                                        val mapUri =
+                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
                                         val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                         try {
                                             context.startActivity(intent)
                                         } catch (e: Exception) {
-                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Could not open map",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
                             )
