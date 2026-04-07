@@ -62,7 +62,7 @@ fun FishDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (fish != null) fish.speciesName else "Fish Detail",
+                        text = fish?.speciesName ?: "Fish Detail",
                         style = MaterialTheme.typography.titleLarge
                     )
                 },

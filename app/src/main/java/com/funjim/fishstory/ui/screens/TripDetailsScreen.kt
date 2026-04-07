@@ -295,6 +295,7 @@ fun TripDetailsScreen(
 
                         HorizontalDivider()
 
+                        // TODO -- add more information to summaries so that more information can be displayed
                         TripHighlightCard(
                             tripSummary = details,
                             onClick = { navigateToFishList() }

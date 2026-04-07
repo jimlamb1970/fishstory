@@ -325,6 +325,7 @@ fun SegmentDetailsScreen(
 
                         HorizontalDivider()
 
+                        // TODO -- add more information to summaries so that more information can be displayed
                         SegmentHighlightCard(
                             summary = details,
                             onClick = {

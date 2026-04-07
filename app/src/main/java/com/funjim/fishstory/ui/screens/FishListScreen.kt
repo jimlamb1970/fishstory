@@ -60,7 +60,7 @@ fun FishListScreen(
     val tripWithDetails by viewModel.currentTrip.collectAsStateWithLifecycle()
     val segmentWithDetails by viewModel.currentSegment.collectAsStateWithLifecycle()
 
-    val screenTitle = segmentWithDetails?.segment?.name ?: tripWithDetails?.trip?.name ?: "Fish Caught"
+    val screenTitle = "Fish Log"
 
     // Load fish for the appropriate scope
     val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
@@ -109,6 +109,16 @@ fun FishListScreen(
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    if (fishForScope.size > 1) {
+                        Text(
+                            text = "${fishForScope.size} Fish",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                    }
                 }
             )
         },
@@ -144,6 +154,28 @@ fun FishListScreen(
             }
         } else {
             Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = tripWithDetails?.trip?.name ?: "All Trips",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+                // TODO - make this a drop down menu for all the segments in the trip
+                if (segmentId.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically)
+                    {
+                        Text(
+                            text = segmentWithDetails?.segment?.name ?: "All Segments",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                }
+
                 // Sort Buttons
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp)) {
                     SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {

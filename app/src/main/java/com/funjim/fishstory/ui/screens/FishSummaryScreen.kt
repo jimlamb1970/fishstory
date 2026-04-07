@@ -110,12 +110,10 @@ fun FishSummaryScreen(
         },
         floatingActionButton = {
             // Log Fish button is only enabled when a segment is selected
+            // TODO - enable all time (allow fish to just be associated with a trip or no trip at all
             if (selectedSegment != null) {
-//            if (selectedTrip != null) {
                 ExtendedFloatingActionButton(
                     onClick = {
-//                        val tripId = selectedSegment?.tripId ?: selectedTrip.id
-//                      val segId = selectedSegment?.id ?: ""
                         val tripId = selectedSegment.tripId
                         val segId = selectedSegment.id
                         if (permissionGranted) {
@@ -224,6 +222,7 @@ fun FishSummaryScreen(
             HorizontalDivider()
 
             // Fish Visual — only shown when a trip is selected
+            // TODO -- add more information to summaries so that more information can be displayed
             if (selectedTrip != null) {
                 Spacer(modifier = Modifier.height(24.dp))
                 FishVisual(
@@ -282,7 +281,7 @@ private fun FishVisual(
     val latitude = segment?.latitude ?: trip.latitude
     val longitude = segment?.longitude ?: trip.longitude
 
-    val label = if (segment != null) segment.name else trip.name
+    val label = segment?.name ?: trip.name
 
     Card(
         onClick = onClick,
