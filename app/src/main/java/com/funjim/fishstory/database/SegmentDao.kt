@@ -44,6 +44,42 @@ interface SegmentDao {
     @Delete
     suspend fun deleteSegment(segment: Segment)
 
+    @Query("""
+    SELECT 
+        s.*,
+        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
+        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
+        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
+(
+            SELECT 
+                CASE 
+                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
+                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
+                    ELSE fm.firstName || ' ' || fm.lastName 
+                END
+            FROM fish_table f 
+            JOIN fisherman_table fm ON f.fishermanId = fm.id 
+            WHERE f.segmentId = s.id 
+            ORDER BY f.length DESC LIMIT 1
+        ) as biggestFish,
+        (
+            SELECT 
+                CASE 
+                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
+                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
+                    ELSE fm.firstName || ' ' || fm.lastName 
+                END
+            FROM fish_table f 
+            JOIN fisherman_table fm ON f.fishermanId = fm.id 
+            WHERE f.segmentId = s.id 
+            GROUP BY f.fishermanId 
+            ORDER BY COUNT(f.id) DESC LIMIT 1
+        ) as mostFish    FROM segment_table s
+    WHERE s.tripId = :tripId
+    ORDER BY s.startTime DESC
+""")
+    fun getSegmentSummaries(tripId: String): Flow<List<SegmentSummary>>
+
     @Query("SELECT * FROM segment_fisherman_cross_ref")
     fun getAllSegmentFishermanCrossRefs(): Flow<List<SegmentFishermanCrossRef>>
 

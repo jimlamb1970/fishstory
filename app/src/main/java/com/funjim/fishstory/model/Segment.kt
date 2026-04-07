@@ -60,3 +60,12 @@ data class SegmentWithDetails(
     )
     val fish: List<Fish>
 )
+
+data class SegmentSummary(
+    @Embedded val segment: Segment,
+    val fishermanCount: Int,
+    val fishCaught: Int,
+    val fishKept: Int,
+    val biggestFish: String?,
+    val mostFish: String?
+)

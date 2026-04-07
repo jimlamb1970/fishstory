@@ -34,7 +34,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.DateTimePickerButton
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.SegmentWithDetails
+import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.PhotoPickerRow
@@ -51,15 +51,19 @@ import java.util.Locale
 fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
+    navigateToFishList: () -> Unit,
     navigateToSegmentDetails: (String) -> Unit,
     navigateToLoadBoatForTrip: (String) -> Unit,
     navigateToAddSegment: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    viewModel.selectTrip(tripId)
-    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    LaunchedEffect(tripId) {
+        viewModel.selectTrip(tripId)
+    }
 
-    val segmentsWithDetails by viewModel.getSegmentsWithDetailsForTrip(tripId).collectAsState(initial = emptyList())
+    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val segmentSummaries by viewModel.segmentSummaries.collectAsStateWithLifecycle()
+
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
 
     var showEditTripDialog by remember { mutableStateOf(false) }
@@ -92,7 +96,7 @@ fun TripDetailsScreen(
         }
     }
 
-    var segmentToUpdateLocation by remember { mutableStateOf<SegmentWithDetails?>(null) }
+    var segmentToUpdateLocation by remember { mutableStateOf<SegmentSummary?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -216,7 +220,9 @@ fun TripDetailsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize(), horizontalAlignment = Alignment.Start) {
+        Column(
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            horizontalAlignment = Alignment.Start) {
             tripSummary?.let { details ->
                 LazyColumn(horizontalAlignment = Alignment.Start) {
                     item {
@@ -289,7 +295,10 @@ fun TripDetailsScreen(
 
                         HorizontalDivider()
 
-                        TripHighlightCard(tripSummary = details)
+                        TripHighlightCard(
+                            tripSummary = details,
+                            onClick = { navigateToFishList() }
+                        )
 
                         HorizontalDivider()
 
@@ -321,24 +330,24 @@ fun TripDetailsScreen(
                         }
                     }
 
-                    items(segmentsWithDetails) { segmentDetails ->
+                    items(segmentSummaries) { segmentSummary ->
                         SegmentItem(
-                            segmentWithDetails = segmentDetails,
+                            segmentSummary = segmentSummary,
                             onEdit = null,
                             onDelete = {
                                 scope.launch {
-                                    viewModel.deleteSegment(segmentDetails.segment)
+                                    viewModel.deleteSegment(segmentSummary.segment)
                                 }
                             },
                             onClick = {
-                                navigateToSegmentDetails(segmentDetails.segment.id)
+                                navigateToSegmentDetails(segmentSummary.segment.id)
                             },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
                                         val location = viewModel.getTripCurrentLocation(context)
                                         if (location != null) {
-                                            viewModel.updateSegment(segmentDetails.segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            viewModel.updateSegment(segmentSummary.segment.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }
@@ -349,14 +358,14 @@ fun TripDetailsScreen(
                                 }
                             },
                             onSelectLocation = {
-                                segmentToUpdateLocation = segmentDetails
+                                segmentToUpdateLocation = segmentSummary
                                 locationPickerSegment.openPicker()
                             },
                             onUseTripLocation = if (details.trip.latitude != null) {
                                 {
                                     scope.launch {
                                         viewModel.updateSegment(
-                                            segmentDetails.segment.copy(
+                                            segmentSummary.segment.copy(
                                                 latitude = details.trip.latitude,
                                                 longitude = details.trip.longitude
                                             )
@@ -366,7 +375,7 @@ fun TripDetailsScreen(
                             } else null,
                             onClearLocation = {
                                 scope.launch {
-                                    viewModel.updateSegment(segmentDetails.segment.copy(latitude = null, longitude = null))
+                                    viewModel.updateSegment(segmentSummary.segment.copy(latitude = null, longitude = null))
                                 }
                             }
                         )
@@ -448,8 +457,12 @@ fun TripDetailsScreen(
 }
 
 @Composable
-fun TripHighlightCard(tripSummary: TripSummary) {
+fun TripHighlightCard(
+    tripSummary: TripSummary,
+    onClick: () -> Unit
+) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

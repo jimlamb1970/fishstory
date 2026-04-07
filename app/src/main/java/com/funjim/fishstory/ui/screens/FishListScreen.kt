@@ -1,6 +1,8 @@
 package com.funjim.fishstory.ui.screens
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
@@ -15,14 +17,18 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.ui.FishItem
+import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.FishViewModel
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
@@ -38,31 +44,25 @@ fun FishListScreen(
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
+    LaunchedEffect(tripId) {
+        viewModel.updateSelectedTripIdForFilter(tripId)
+        viewModel.updateSelectedSegmentIdForFilter(segmentId)
+    }
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Resolve title from segment name or trip name
-    val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
-    val trip = remember(allTrips, tripId) { allTrips.find { it.id == tripId } }
+    /*
+     TODO - need to look into location behavior for when trip and/or segment
+      is not specified for location selection.  If they are not specified, those
+      options can not be picked.
+     */
+    val tripWithDetails by viewModel.currentTrip.collectAsStateWithLifecycle()
+    val segmentWithDetails by viewModel.currentSegment.collectAsStateWithLifecycle()
 
-    val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = tripId) {
-        viewModel.getSegmentsForTrip(tripId).collect { value = it }
-    }
-    val segment = remember(segmentsForTrip, segmentId) {
-        segmentsForTrip.find { it.id == segmentId }
-    }
-
-    val screenTitle = segment?.name ?: trip?.name ?: "Fish Caught"
+    val screenTitle = segmentWithDetails?.segment?.name ?: tripWithDetails?.trip?.name ?: "Fish Caught"
 
     // Load fish for the appropriate scope
-/*
-    val fishList by produceState<List<FishWithDetails>>(initialValue = emptyList(), key1 = tripId, key2 = segmentId) {
-        when {
-            segmentId.isNotEmpty() -> viewModel.getFishForSegment(segmentId).collect { value = it }
-            else -> viewModel.getFishForTrip(tripId).collect { value = it }
-        }
-    }
-*/
     val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
@@ -79,6 +79,27 @@ fun FishListScreen(
             onAddFish(tripId, segmentId, null)
         }
     }
+
+    var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
+
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
+    val locationPickerFish = rememberLocationPickerState(
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
+        existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
+        existingLng = fishToUpdateLocation?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onLocationConfirmed = { lat, lng ->
+            fishToUpdateLocation?.let { fishDetails ->
+                scope.launch {
+                    val fish = viewModel.getFishById(fishDetails.id)
+                    if (fish != null) {
+                        viewModel.upsertFish(fish.copy(latitude = lat, longitude = lng))
+                    }
+                }
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -165,14 +186,14 @@ fun FishListScreen(
                             photos = photos,
                             onAddPhoto = null,
                             onDeletePhoto = null,
-                            /*
+                            /* TODO - enable photos for fish cards
                             onAddPhoto = { photo ->
                                 viewModel.addPhoto(photo)
                             },
                             onDeletePhoto = { photo ->
                                 viewModel.deletePhoto(photo)
                             },
-     */
+                            */
                             onClick = {
                                 navigateToFishDetails(fishDetails.id)
                             },
@@ -193,11 +214,66 @@ fun FishListScreen(
                                     }
                                 }
                             },
-                            onShowMap = {
-                                // Map logic
+                            onSetLocation = {
+                                if (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                    scope.launch {
+                                        val location = viewModel.getFishCurrentLocation(context)
+                                        if (location != null) {
+                                            val fish = viewModel.getFishById(fishDetails.id)
+                                            if (fish != null) {
+                                                viewModel.upsertFish(fish.copy(
+                                                    latitude = location.latitude,
+                                                    longitude = location.longitude))
+                                            }
+                                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    permissionLauncher.launch(
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    )
+                                }
                             },
-                            onUpdateLocation = {
-                                // Update location logic
+                            onUseTripLocation = if (tripWithDetails?.trip?.latitude != null) {
+                                {
+                                    scope.launch {
+                                        val fish = viewModel.getFishById(fishDetails.id)
+                                        if (fish != null) {
+                                            viewModel.upsertFish(fish.copy(
+                                                latitude = tripWithDetails?.trip?.latitude,
+                                                longitude = tripWithDetails?.trip?.longitude))
+                                        }
+                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else null,
+                            onUseSegmentLocation = if (segmentWithDetails?.segment?.latitude != null) {
+                                {
+                                    scope.launch {
+                                        val fish = viewModel.getFishById(fishDetails.id)
+                                        if (fish != null) {
+                                            viewModel.upsertFish(fish.copy(
+                                                latitude = segmentWithDetails?.segment?.latitude,
+                                                longitude = segmentWithDetails?.segment?.longitude))
+                                        }
+                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else null,
+                            onSelectLocation = {
+                                fishToUpdateLocation = fishDetails
+                                locationPickerFish.openPicker()
+                            },
+                            onClearLocation = {
+                                scope.launch {
+                                    val fish = viewModel.getFishById(fishDetails.id)
+                                    if (fish != null) {
+                                        viewModel.upsertFish(fish.copy(latitude = null, longitude = null))
+                                    }
+                                }
                             }
                         )
                     }

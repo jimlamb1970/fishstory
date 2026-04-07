@@ -448,6 +448,9 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
+                navigateToFishList = {
+                    navController.navigate("FishList/$tripId/")
+                },
                 navigateToSegmentDetails = { segmentId ->
                     navController.navigate("segmentDetails/$segmentId/$tripId")
                 },
@@ -530,21 +533,14 @@ fun AppNavigation(
             SegmentDetailsScreen(
                 viewModel = tripViewModel,
                 segmentId = segmentId,
-                tripId = tripId,
-                navigateToSegmentBoatLoad = { sId, tId ->
-                    navController.navigate("segmentBoatLoad/$sId/$tId")
+                navigateToSegmentBoatLoad = {  ->
+                    navController.navigate("segmentBoatLoad/$segmentId/$tripId")
                 },
-                navigateToFishermanDetails = { fishermanId ->
-                    navController.navigate("fishermanDetails/$fishermanId")
+                navigateToFishList = {
+                    navController.navigate("FishList/$tripId/$segmentId")
                 },
-                navigateToAddFish = { tId, sId, fId ->
-                    val route =
-                        if (fId != null) "addFish/$tripId/$segmentId?fishId=$fId" else "addFish/$tripId/$segmentId"
-                    navController.navigate(route)
-                },
-                fishViewModel = fishViewModel,
-                navigateToFishDetails = { fishId ->
-                    navController.navigate("fishDetails/$fishId")
+                navigateToAddFish = {
+                    navController.navigate("addFish/$tripId/$segmentId")
                 },
                 navigateBack = {
                     navController.popBackStack()

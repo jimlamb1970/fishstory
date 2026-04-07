@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,9 @@ import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.SegmentDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.*
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +19,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class FishViewModel(
     private val fishDao: FishDao,
@@ -36,6 +42,20 @@ class FishViewModel(
 
     private val _selectedSegmentIdForFilter = MutableStateFlow<String?>(null)
     val selectedSegmentIdForFilter = _selectedSegmentIdForFilter.asStateFlow()
+
+    // Observe the Trip Details reactively
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentTrip = _selectedTripIdForFilter
+        .filterNotNull()
+        .flatMapLatest { id -> tripDao.getTripWithDetails(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Observe the Segment Details reactively
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentSegment = _selectedSegmentIdForFilter
+        .filterNotNull()
+        .flatMapLatest { id -> segmentDao.getSegmentWithDetails(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun updateSelectedTripIdForFilter(id: String?) {
         _selectedTripIdForFilter.value = id
@@ -115,6 +135,12 @@ class FishViewModel(
         _sortOrder.value = newOrder
     }
 
+    fun upsertFish(fish: Fish) {
+        viewModelScope.launch {
+            fishDao.upsertFish(fish)
+        }
+    }
+
     fun deleteFishObject(fish: Fish) {
         viewModelScope.launch {
             fishDao.deleteFish(fish)
@@ -153,6 +179,50 @@ class FishViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
         )
+
+    private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
+    val deviceLocation = _deviceLocation.asStateFlow()
+
+    @androidx.annotation.RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
+    suspend fun getFishCurrentLocation(context: Context): android.location.Location? {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        return try {
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                CancellationTokenSource().token
+            ).await()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun fetchDeviceLocationOnce(context: Context) {
+        if (_deviceLocation.value != null) return
+
+        // 1. Explicitly check if permissions are granted
+        val hasFineLocation = androidx.core.content.ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        val hasCoarseLocation = androidx.core.content.ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        // 2. Only launch the coroutine if at least one is granted
+        if (hasFineLocation || hasCoarseLocation) {
+            viewModelScope.launch {
+                try {
+                    _deviceLocation.value = getFishCurrentLocation(context)
+                } catch (e: SecurityException) {
+                    // Handle the case where permission was revoked mid-flight
+                    _deviceLocation.value = null
+                }
+            }
+        } else {
+            // 3. Optional: Trigger a UI event to ask the user for permission
+            println("Location permission not granted")
+        }
+    }
 }
 
 class FishViewModelFactory(

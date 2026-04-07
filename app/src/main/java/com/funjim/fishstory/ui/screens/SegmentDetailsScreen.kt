@@ -10,13 +10,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -25,17 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.DateTimePickerButton
-import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.ui.BoatSummary
-import com.funjim.fishstory.ui.FishItem
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.FishViewModel
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -48,21 +49,21 @@ import kotlin.collections.emptyList
 fun SegmentDetailsScreen(
     viewModel: TripViewModel,
     segmentId: String,
-    tripId: String,
-    navigateToSegmentBoatLoad: (String, String) -> Unit,
-    navigateToFishermanDetails: (String) -> Unit,
-    navigateToAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
-    fishViewModel: FishViewModel,
-    navigateToFishDetails: (fishId: String) -> Unit,
+    navigateToSegmentBoatLoad: () -> Unit,
+    navigateToAddFish: () -> Unit,
+    navigateToFishList: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
-    val segmentWithDetails by viewModel.getSegmentWithDetails(segmentId).collectAsState(initial = null)
-    val fishList by viewModel.getFishForSegment(segmentId).collectAsState(initial = emptyList())
+    LaunchedEffect(segmentId) {
+        viewModel.selectSegment(segmentId)
+    }
+
+    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val segmentSummary by viewModel.selectedSegmentSummary.collectAsStateWithLifecycle()
+
     val segmentPhotos by viewModel.getPhotosForSegment(segmentId).collectAsState(initial = emptyList())
     
     var showEditSegmentDialog by remember { mutableStateOf(false) }
-    var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
@@ -84,11 +85,11 @@ fun SegmentDetailsScreen(
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentWithDetails?.segment?.latitude,  // Passed from your DB object
-        existingLng = segmentWithDetails?.segment?.longitude,
+        existingLat = segmentSummary?.segment?.latitude,  // Passed from your DB object
+        existingLng = segmentSummary?.segment?.longitude,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            segmentWithDetails?.segment?.let { segment ->
+            segmentSummary?.segment?.let { segment ->
                 scope.launch {
                     viewModel.updateSegment(
                         segment.copy(
@@ -97,23 +98,6 @@ fun SegmentDetailsScreen(
                         )
                     )
                     Toast.makeText(context, "Segment location updated", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    )
-
-    val locationPickerFish = rememberLocationPickerState(
-        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
-        existingLng = fishToUpdateLocation?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
-        onLocationConfirmed = { lat, lng ->
-            fishToUpdateLocation?.let { fishDetails ->
-                scope.launch {
-                    val fish = viewModel.getFishById(fishDetails.id)
-                    if (fish != null) {
-                        viewModel.updateFish(fish.copy(latitude = lat, longitude = lng))
-                    }
                 }
             }
         }
@@ -151,7 +135,7 @@ fun SegmentDetailsScreen(
                                         scope.launch {
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
-                                                segmentWithDetails?.segment?.let { segment ->
+                                                segmentSummary?.segment?.let { segment ->
                                                     viewModel.updateSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
                                                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                                 }
@@ -170,18 +154,18 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
 
-                            if (tripWithDetails?.trip?.latitude != null) {
+                            if (tripSummary?.trip?.latitude != null) {
                                 DropdownMenuItem(
                                     text = { Text("Use Trip Location") },
                                     onClick = {
                                         menuExpanded = false
                                         scope.launch {
-                                            segmentWithDetails?.segment?.let { segment ->
-                                                viewModel.updateSegment(segment.copy(latitude = tripWithDetails?.trip?.latitude, longitude = tripWithDetails?.trip?.longitude))
+                                            segmentSummary?.segment?.let { segment ->
+                                                viewModel.updateSegment(segment.copy(latitude = tripSummary?.trip?.latitude, longitude = tripSummary?.trip?.longitude))
                                                 Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                             }
                                         }
@@ -189,7 +173,7 @@ fun SegmentDetailsScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                            tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                     }
                                 )
                             }
@@ -203,16 +187,16 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (segmentWithDetails?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
 
-                            if (segmentWithDetails?.segment?.latitude != null) {
+                            if (segmentSummary?.segment?.latitude != null) {
                                 DropdownMenuItem(
                                     text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
                                     onClick = {
                                         menuExpanded = false
-                                        segmentWithDetails?.segment?.let { segment ->
+                                        segmentSummary?.segment?.let { segment ->
                                             scope.launch {
                                                 viewModel.updateSegment(
                                                     segment.copy(latitude = null, longitude = null)
@@ -250,7 +234,7 @@ fun SegmentDetailsScreen(
                     if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
                         coarseLocationPermission == PackageManager.PERMISSION_GRANTED
                     ) {
-                        navigateToAddFish(tripId, segmentId, null)
+                        navigateToAddFish()
                     } else {
                         permissionLauncher.launch(
                             arrayOf(
@@ -265,133 +249,86 @@ fun SegmentDetailsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()) {
-            segmentWithDetails?.let { details ->
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = details.segment.name,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                        if (details.segment.latitude != null && details.segment.longitude != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "View on map",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clickable {
-                                        val mapUri =
-                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
-                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                        try {
-                                            context.startActivity(intent)
-                                        } catch (e: Exception) {
-                                            Toast.makeText(
-                                                context,
-                                                "Could not open map",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
+        Column(
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            horizontalAlignment = Alignment.Start) {
+            segmentSummary?.let { details ->
+                LazyColumn(horizontalAlignment = Alignment.Start) {
+                    item {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = details.segment.name,
+                                style = MaterialTheme.typography.headlineMedium
                             )
+                            if (details.segment.latitude != null && details.segment.longitude != null) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "View on map",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clickable {
+                                            val mapUri =
+                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
+                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Could not open map",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                )
+                            }
                         }
-                    }
-                    Text(
-                        text = "Start: ${dateTimeFormatter.format(Date(details.segment.startTime))}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = "End: ${dateTimeFormatter.format(Date(details.segment.endTime))}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-                }
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "Start: ${dateTimeFormatter.format(Date(details.segment.startTime))}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray
+                        )
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "End: ${dateTimeFormatter.format(Date(details.segment.endTime))}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray
+                        )
 
-                PhotoPickerRow(
-                    photos = segmentPhotos,
-                    onPhotoSelected = { uri ->
-                        scope.launch {
-                            viewModel.addPhoto(Photo(uri = uri.toString(), segmentId = segmentId))
-                        }
-                    },
-                    onPhotoDeleted = { photo ->
-                        scope.launch {
-                            viewModel.deletePhoto(photo)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-
-                HorizontalDivider()
-
-                // The Boat Concept for Segment
-                BoatSummary(
-                    fishermanCount = details.fishermen.size,
-                    onBoatClick = { navigateToSegmentBoatLoad(segmentId, tripId) }
-                )
-
-                HorizontalDivider()
-
-                Text(
-                    text = "Fish Caught:",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-
-                val allPhotos by viewModel.fishPhotos.collectAsStateWithLifecycle()
-
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(fishList) { fish ->
-                        val photos = allPhotos[fish.id] ?: emptyList()
-
-                        FishItem(
-                            fish = fish,
-                            photos = photos,
-                            onAddPhoto = null,
-                            onDeletePhoto = null,
-                            onClick = {
-                                fishViewModel.updateSelectedTripIdForFilter(tripId)
-                                fishViewModel.updateSelectedSegmentIdForFilter(segmentId)
-                                navigateToFishDetails(fish.id)
-                            },
-/* TODO - need to decide if I want photos on the fish card
-                            onAddPhoto = { photo ->
-                                scope.launch { viewModel.addPhoto(photo) }
-                            },
-                            onDeletePhoto = { photo ->
-                                scope.launch { viewModel.deletePhoto(photo) }
-                            },
- */
-                            onEdit = {
-                                navigateToAddFish(tripId, segmentId, fish.id)
-                            },
-                            onDelete = {
+                        PhotoPickerRow(
+                            photos = segmentPhotos,
+                            onPhotoSelected = { uri ->
                                 scope.launch {
-                                    val fishObj = viewModel.getFishById(fish.id)
-                                    if (fishObj != null) {
-                                        viewModel.deleteFishObject(fishObj)
-                                    }
+                                    viewModel.addPhoto(Photo(uri = uri.toString(), segmentId = segmentId))
                                 }
                             },
-                            onShowMap = {
-                                if (fish.latitude != null && fish.longitude != null) {
-                                    val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${fish.latitude},${fish.longitude}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                    }
+                            onPhotoDeleted = { photo ->
+                                scope.launch {
+                                    viewModel.deletePhoto(photo)
                                 }
-                            },
-                            onUpdateLocation = {
-                                fishToUpdateLocation = fish
-                                locationPickerFish.openPicker()
+                            }
+                        )
+
+                        HorizontalDivider()
+
+                        // The Boat Concept for Segment
+                        BoatSummary(
+                            fishermanCount = details.fishermanCount,
+                            onBoatClick = { navigateToSegmentBoatLoad() }
+                        )
+
+                        HorizontalDivider()
+
+                        SegmentHighlightCard(
+                            summary = details,
+                            onClick = {
+                                navigateToFishList()
                             }
                         )
                     }
@@ -402,8 +339,8 @@ fun SegmentDetailsScreen(
                     var startDateMillis by remember { mutableLongStateOf(details.segment.startTime) }
                     var endDateMillis by remember { mutableLongStateOf(details.segment.endTime) }
 
-                    var tripStartDateMillis by remember { mutableLongStateOf(tripWithDetails?.trip?.startDate?: 0L) }
-                    var tripEndDateMillis by remember { mutableLongStateOf(tripWithDetails?.trip?.endDate?: 0L) }
+                    var tripStartDateMillis by remember { mutableLongStateOf(tripSummary?.trip?.startDate?: 0L) }
+                    var tripEndDateMillis by remember { mutableLongStateOf(tripSummary?.trip?.endDate?: 0L) }
 
                     AlertDialog(
                         onDismissRequest = { showEditSegmentDialog = false },
@@ -492,6 +429,42 @@ fun SegmentDetailsScreen(
                 }
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
+            }
+        }
+    }
+}
+@Composable
+fun SegmentHighlightCard(
+    summary: SegmentSummary,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Fish Summary",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            )
+
+            // Top Row: The Numbers
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem(label = "CAUGHT", value = "${summary.fishCaught}", color = MaterialTheme.colorScheme.primary)
+                StatItem(label = "KEPT", value = "${summary.fishKept}", color = Color(0xFF4CAF50)) // Harvest Green
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+
+            // Bottom Row: The Achievements
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = summary.mostFish)
+                AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = summary.biggestFish)
             }
         }
     }

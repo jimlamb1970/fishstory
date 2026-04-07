@@ -19,54 +19,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentWithDetails
+import com.funjim.fishstory.model.SegmentSummary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun SegmentDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String, Long) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    val startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add Segment") },
-        text = {
-            Column {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Segment Name (e.g. Morning, Spot 1)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onConfirm(name, startTime)
-                    }
-                }
-            ) {
-                Text("Add")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
 fun SegmentItem(
-    segmentWithDetails: SegmentWithDetails, 
+    segmentSummary: SegmentSummary,
     onEdit: (() -> Unit)? = null, 
     onDelete: () -> Unit, 
     onClick: () -> Unit,
@@ -76,10 +36,10 @@ fun SegmentItem(
     onClearLocation: (() -> Unit)? = null
 ) {
     SegmentItem(
-        segment = segmentWithDetails.segment,
-        fishermenCount = segmentWithDetails.fishermen.size,
-        fishCaught = segmentWithDetails.fish.size,
-        fishKept = segmentWithDetails.fish.count { !it.isReleased },
+        segment = segmentSummary.segment,
+        fishermenCount = segmentSummary.fishermanCount,
+        fishCaught = segmentSummary.fishCaught,
+        fishKept = segmentSummary.fishKept,
         onEdit = onEdit,
         onDelete = onDelete,
         onClick = onClick,

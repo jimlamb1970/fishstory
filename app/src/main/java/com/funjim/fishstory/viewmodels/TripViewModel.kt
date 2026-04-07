@@ -42,10 +42,10 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    // 1. The "Trigger" - holds the ID of the trip the user clicked
+    // The "Trigger" - holds the ID of the trip the user clicked
     private val _selectedTripId = MutableStateFlow<String?>(null)
 
-    // 2. The "Reactive Selection" - always stays in sync with the list
+    // The "Reactive Selection" - always stays in sync with the list
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTripSummary: StateFlow<TripSummary?> = _selectedTripId
         .flatMapLatest { id ->
@@ -64,12 +64,52 @@ class TripViewModel(
             initialValue = null
         )
 
-    // 3. The Function called by your Click Listener
+    // The Function called by your Click Listener
     fun selectTrip(id: String) {
         _selectedTripId.value = id
     }
 
-    val trips: Flow<List<Trip>> = tripDao.getAllTrips()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val segmentSummaries: StateFlow<List<SegmentSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                // This query only runs for the currently selected trip
+                segmentDao.getSegmentSummaries(id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    // The "Trigger" - holds the ID of the segment the user clicked
+    private val _selectedSegmentId = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedSegmentSummary: StateFlow<SegmentSummary?> = _selectedSegmentId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                // We watch the master list and filter for the matching ID
+                segmentSummaries.map { list ->
+                    list.find { it.segment.id == id }
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    // 3. The Function called by your Click Listener
+    fun selectSegment(id: String) {
+        _selectedSegmentId.value = id
+    }
 
     private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
     val deviceLocation = _deviceLocation.asStateFlow()
