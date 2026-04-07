@@ -26,14 +26,14 @@ class LocationUtils
 
 @Composable
 fun rememberLocationPickerState(
-    viewModel: MainViewModel,
+    deviceLocation: Pair<Double, Double>?,
     existingLat: Double?,
     existingLng: Double?,
+    onFetchLocation: () -> Unit,
     onLocationConfirmed: (Double, Double) -> Unit
 ): LocationPickerResult {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 
     // Logic: Determine the "best" initial point
@@ -43,7 +43,7 @@ fun rememberLocationPickerState(
             // 1. Priority: If we already have a saved location for this trip/segment
             existingLat != null && existingLng != null -> LatLng(existingLat, existingLng)
             // 2. Fallback: Use the device's current location fetched by VM
-            deviceLocation != null -> LatLng(deviceLocation!!.latitude, deviceLocation!!.longitude)
+            deviceLocation != null -> LatLng(deviceLocation.first, deviceLocation.second)
             // 3. Last Resort: Default center (or null to show a loading state)
             else -> LatLng(45.0, -90.0)
         }
@@ -56,7 +56,7 @@ fun rememberLocationPickerState(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (hasPermission) {
-            viewModel.fetchDeviceLocationOnce(context)
+            onFetchLocation()
         }
     }
 

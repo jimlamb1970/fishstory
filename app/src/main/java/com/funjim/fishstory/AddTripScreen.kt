@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.SegmentWithDetails
 import com.funjim.fishstory.model.Trip
@@ -215,10 +217,13 @@ fun AddTripScreen(
         }
     }
 
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = latitude,  // Passed from your DB object
         existingLng = longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             viewModel.updateDraftLocation(lat, lng)
             latitude = lat
@@ -229,9 +234,10 @@ fun AddTripScreen(
     var segmentToUpdateLocation by remember { mutableStateOf<Segment?>(null) }
 
     val locationPickerSegment = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = segmentToUpdateLocation?.latitude,  // Passed from your DB object
         existingLng = segmentToUpdateLocation?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             segmentToUpdateLocation?.let { segment ->
                 scope.launch {

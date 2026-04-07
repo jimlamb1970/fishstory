@@ -42,6 +42,9 @@ import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
+import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
+import com.funjim.fishstory.ui.screens.TripDetailsScreen
+import com.funjim.fishstory.ui.screens.TripListScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -79,6 +82,17 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private val tripViewModel: TripViewModel by viewModels {
+        val database = (application as FishstoryApplication).database
+        TripViewModelFactory(
+            database.tripDao(),
+            database.segmentDao(),
+            database.photoDao(),
+            database.fishermanDao(),
+            database.fishDao()
+        )
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
@@ -113,7 +127,7 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel, fishViewModel, lureViewModel)
+                        AppNavigation(navController, viewModel, tripViewModel, fishViewModel, lureViewModel)
                     }
                 }
             }
@@ -142,6 +156,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(
     navController: NavHostController,
     viewModel: MainViewModel,
+    tripViewModel: TripViewModel,
     fishViewModel: FishViewModel,
     lureViewModel: LureViewModel
 ) {
@@ -151,7 +166,7 @@ fun AppNavigation(
         }
         composable("trips") {
             TripListScreen(
-                viewModel = viewModel,
+                viewModel = tripViewModel,
                 navigateToTripDetails = { tripId ->
                     navController.navigate("tripDetails/$tripId")
                 },
@@ -431,13 +446,10 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             TripDetailsScreen(
-                viewModel = viewModel,
+                viewModel = tripViewModel,
                 tripId = tripId,
                 navigateToSegmentDetails = { segmentId ->
                     navController.navigate("segmentDetails/$segmentId/$tripId")
-                },
-                navigateToFishermanDetails = { fishermanId ->
-                    navController.navigate("fishermanDetails/$fishermanId")
                 },
                 navigateToLoadBoatForTrip = { id ->
                     navController.navigate("loadBoatForTrip/$id")
@@ -516,7 +528,7 @@ fun AppNavigation(
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             SegmentDetailsScreen(
-                viewModel = viewModel,
+                viewModel = tripViewModel,
                 segmentId = segmentId,
                 tripId = tripId,
                 navigateToSegmentBoatLoad = { sId, tId ->
@@ -526,7 +538,8 @@ fun AppNavigation(
                     navController.navigate("fishermanDetails/$fishermanId")
                 },
                 navigateToAddFish = { tId, sId, fId ->
-                    val route = if (fId != null) "addFish/$tripId/$segmentId?fishId=$fId" else "addFish/$tripId/$segmentId"
+                    val route =
+                        if (fId != null) "addFish/$tripId/$segmentId?fishId=$fId" else "addFish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
                 fishViewModel = fishViewModel,

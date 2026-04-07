@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,27 +25,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.funjim.fishstory.model.Trip
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripWithDetails
-import com.funjim.fishstory.ui.MapPickerSelectionDialog
 import com.funjim.fishstory.ui.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
-import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripListScreen(
-    viewModel: MainViewModel, 
+    viewModel: TripViewModel,
     navigateToTripDetails: (String) -> Unit,
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val trips by viewModel.trips.collectAsState(initial = emptyList())
+    val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -68,19 +66,19 @@ fun TripListScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             LazyColumn {
-                items(trips) { trip ->
-                    val details by viewModel.getTripWithDetails(trip.id).collectAsState(initial = null)
+                items(tripSummaries) { trip ->
+                    val details by viewModel.getTripWithDetails(trip.trip.id).collectAsState(initial = null)
                     
                     TripItem(
                         trip = trip,
                         details = details,
                         viewModel = viewModel,
                         onClick = {
-                            navigateToTripDetails(trip.id)
+                            navigateToTripDetails(trip.trip.id)
                         },
                         onDelete = {
                             scope.launch {
-                                viewModel.deleteTrip(trip)
+                                viewModel.deleteTrip(trip.trip)
                             }
                         }
                     )
@@ -92,17 +90,17 @@ fun TripListScreen(
 
 @Composable
 fun TripItem(
-    trip: Trip, 
+    trip: TripSummary,
     details: TripWithDetails?, 
-    viewModel: MainViewModel,
+    viewModel: TripViewModel,
     onClick: () -> Unit, 
     onDelete: () -> Unit
 ) {
     val dateTimeFormatter = remember { 
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
-    val startString = dateTimeFormatter.format(Date(trip.startDate))
-    val endString = dateTimeFormatter.format(Date(trip.endDate))
+    val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
+    val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
     
     var showMenu by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -114,9 +112,9 @@ fun TripItem(
         val granted = permissions.entries.all { it.value }
         if (granted) {
             scope.launch {
-                val location = viewModel.getCurrentLocation(context)
+                val location = viewModel.getTripCurrentLocation(context)
                 if (location != null) {
-                    viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                    viewModel.updateTrip(trip.trip.copy(latitude = location.latitude, longitude = location.longitude))
                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -127,13 +125,16 @@ fun TripItem(
         }
     }
 
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
-        existingLat = trip.latitude,  // Passed from your DB object
-        existingLng = trip.longitude,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
+        existingLat = trip.trip.latitude,  // Passed from your DB object
+        existingLng = trip.trip.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             scope.launch {
-                viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
+                viewModel.updateTrip(trip.trip.copy(latitude = lat, longitude = lng))
             }
         }
     )
@@ -146,8 +147,8 @@ fun TripItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
-                    if (trip.latitude != null && trip.longitude != null) {
+                    Text(trip.trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
+                    if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -156,7 +157,7 @@ fun TripItem(
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
-                                    val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.latitude},${trip.longitude}")
+                                    val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.trip.latitude},${trip.trip.longitude}")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
@@ -198,9 +199,9 @@ fun TripItem(
                             showMenu = false
                             if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                 scope.launch {
-                                    val location = viewModel.getCurrentLocation(context)
+                                    val location = viewModel.getTripCurrentLocation(context)
                                     if (location != null) {
-                                        viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                                        viewModel.updateTrip(trip.trip.copy(latitude = location.latitude, longitude = location.longitude))
                                         Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                     } else {
                                         Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -215,7 +216,7 @@ fun TripItem(
                         leadingIcon = {
                             Icon(Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = if (trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                         }
                     )
 
@@ -228,18 +229,18 @@ fun TripItem(
                         leadingIcon = {
                             Icon(Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = if (trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                         }
                     )
 
-                    if (trip.latitude != null) {
+                    if (trip.trip.latitude != null) {
                         DropdownMenuItem(
                             text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
                             onClick = {
                                 showMenu = false
                                 scope.launch {
                                     viewModel.updateTrip(
-                                        trip.copy(latitude = null, longitude = null)
+                                        trip.trip.copy(latitude = null, longitude = null)
                                     )
                                     Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
                                 }

@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -13,27 +13,34 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.DateTimePickerButton
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentWithDetails
+import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.BoatSummary
-import com.funjim.fishstory.ui.FishermanItem
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -42,15 +49,16 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripDetailsScreen(
-    viewModel: MainViewModel,
+    viewModel: TripViewModel,
     tripId: String,
     navigateToSegmentDetails: (String) -> Unit,
-    navigateToFishermanDetails: (String) -> Unit,
     navigateToLoadBoatForTrip: (String) -> Unit,
     navigateToAddSegment: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
+    viewModel.selectTrip(tripId)
+    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+
     val segmentsWithDetails by viewModel.getSegmentsWithDetailsForTrip(tripId).collectAsState(initial = emptyList())
     val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
 
@@ -69,9 +77,9 @@ fun TripDetailsScreen(
         val granted = permissions.entries.all { it.value }
         if (granted) {
             scope.launch {
-                val location = viewModel.getCurrentLocation(context)
+                val location = viewModel.getTripCurrentLocation(context)
                 if (location != null) {
-                    tripWithDetails?.trip?.let { trip ->
+                    tripSummary?.trip?.let { trip ->
                         viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
                         Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                     }
@@ -86,12 +94,15 @@ fun TripDetailsScreen(
 
     var segmentToUpdateLocation by remember { mutableStateOf<SegmentWithDetails?>(null) }
 
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
-        existingLat = tripWithDetails?.trip?.latitude,  // Passed from your DB object
-        existingLng = tripWithDetails?.trip?.longitude,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
+        existingLat = tripSummary?.trip?.latitude,  // Passed from your DB object
+        existingLng = tripSummary?.trip?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            tripWithDetails?.trip?.let { trip ->
+            tripSummary?.trip?.let { trip ->
                 scope.launch {
                     viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
                 }
@@ -100,9 +111,10 @@ fun TripDetailsScreen(
     )
 
     val locationPickerSegment = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = segmentToUpdateLocation?.segment?.latitude,  // Passed from your DB object
         existingLng = segmentToUpdateLocation?.segment?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             segmentToUpdateLocation?.segment?.let { segment ->
                 scope.launch {
@@ -139,9 +151,9 @@ fun TripDetailsScreen(
                                     menuExpanded = false
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = viewModel.getCurrentLocation(context)
+                                            val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
-                                                tripWithDetails?.trip?.let { trip ->
+                                                tripSummary?.trip?.let { trip ->
                                                     viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
                                                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                                 }
@@ -158,7 +170,7 @@ fun TripDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (tripWithDetails?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (tripSummary?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
 
@@ -171,16 +183,16 @@ fun TripDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (tripWithDetails?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (tripSummary?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
 
-                            if (tripWithDetails?.trip?.latitude != null) {
+                            if (tripSummary?.trip?.latitude != null) {
                                 DropdownMenuItem(
                                     text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
                                     onClick = {
                                         menuExpanded = false
-                                        tripWithDetails?.trip?.let { trip ->
+                                        tripSummary?.trip?.let { trip ->
                                             scope.launch {
                                                 viewModel.updateTrip(
                                                     trip.copy(latitude = null, longitude = null)
@@ -204,79 +216,93 @@ fun TripDetailsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            tripWithDetails?.let { details ->
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = details.trip.name,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                        if (details.trip.latitude != null && details.trip.longitude != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "View on map",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clickable {
-                                        val mapUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
-                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                        try {
-                                            context.startActivity(intent)
-                                        } catch (e: Exception) {
-                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+        Column(modifier = Modifier.padding(padding).fillMaxSize(), horizontalAlignment = Alignment.Start) {
+            tripSummary?.let { details ->
+                LazyColumn(horizontalAlignment = Alignment.Start) {
+                    item {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = details.trip.name,
+                                style = MaterialTheme.typography.headlineMedium
                             )
+                            if (details.trip.latitude != null && details.trip.longitude != null) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "View on map",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clickable {
+                                            val mapUri =
+                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
+                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Could not open map",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                )
+                            }
                         }
-                    }
-                    Text(
-                        text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-                }
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray
+                        )
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray
+                        )
 
-                PhotoPickerRow(
-                    photos = tripPhotos,
-                    onPhotoSelected = { uri ->
-                        scope.launch {
-                            viewModel.addPhoto(Photo(uri = uri.toString(), tripId = tripId))
-                        }
-                    },
-                    onPhotoDeleted = { photo ->
-                        scope.launch {
-                            viewModel.deletePhoto(photo)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
+                        PhotoPickerRow(
+                            photos = tripPhotos,
+                            onPhotoSelected = { uri ->
+                                scope.launch {
+                                    viewModel.addPhoto(Photo(uri = uri.toString(), tripId = tripId))
+                                }
+                            },
+                            onPhotoDeleted = { photo ->
+                                scope.launch {
+                                    viewModel.deletePhoto(photo)
+                                }
+                            }
+                        )
 
-                HorizontalDivider()
+                        HorizontalDivider()
 
-                // The Boat Concept
-                BoatSummary(
-                    fishermanCount = details.fishermen.size,
-                    onBoatClick = { navigateToLoadBoatForTrip(tripId) }
-                )
+                        // The Boat Concept
+                        BoatSummary(
+                            fishermanCount = details.fishermanCount,
+                            onBoatClick = { navigateToLoadBoatForTrip(tripId) }
+                        )
 
-                HorizontalDivider()
+                        HorizontalDivider()
 
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Segments",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                        TripHighlightCard(tripSummary = details)
+
+                        HorizontalDivider()
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Segments",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            // TODO -- enable adding a segment to an existing trip
+                            /*
                     IconButton(onClick = {
                         viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
                         // Set the start and end dates in the draft for the trip and segment
@@ -291,9 +317,10 @@ fun TripDetailsScreen(
                     }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Segment")
                     }
-                }
+                    */
+                        }
+                    }
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(segmentsWithDetails) { segmentDetails ->
                         SegmentItem(
                             segmentWithDetails = segmentDetails,
@@ -309,7 +336,7 @@ fun TripDetailsScreen(
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
-                                        val location = viewModel.getCurrentLocation(context)
+                                        val location = viewModel.getTripCurrentLocation(context)
                                         if (location != null) {
                                             viewModel.updateSegment(segmentDetails.segment.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
@@ -370,7 +397,8 @@ fun TripDetailsScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) { newMillis ->
                                     startDateMillis = newMillis
-                                    if (startDateMillis > endDateMillis) endDateMillis = startDateMillis
+                                    if (startDateMillis > endDateMillis) endDateMillis =
+                                        startDateMillis
                                 }
 
                                 Text("End", style = MaterialTheme.typography.labelLarge)
@@ -380,7 +408,11 @@ fun TripDetailsScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) { newMillis ->
                                     if (newMillis < startDateMillis) {
-                                        Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "End must be after start",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     } else {
                                         endDateMillis = newMillis
                                     }
@@ -411,6 +443,88 @@ fun TripDetailsScreen(
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun TripHighlightCard(tripSummary: TripSummary) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Fish Summary",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            )
+
+            // Top Row: The Numbers
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem(label = "CAUGHT", value = "${tripSummary.totalCaught}", color = MaterialTheme.colorScheme.primary)
+                StatItem(label = "KEPT", value = "${tripSummary.totalKept}", color = Color(0xFF4CAF50)) // Harvest Green
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+
+            // Bottom Row: The Achievements
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = tripSummary.topRodName)
+                AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = tripSummary.bigFishWinner)
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(
+    label: String,
+    value: String,
+    color: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            color = color
+        )
+    }
+}
+
+@Composable
+fun AchievementItem(
+    icon: ImageVector,
+    label: String,
+    name: String?
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = name ?: "No data",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

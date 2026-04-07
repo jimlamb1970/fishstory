@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
@@ -104,10 +105,13 @@ fun DraftSegmentDetailsScreen(
         }
     }
 
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = segment?.latitude,  // Passed from your DB object
         existingLng = segment?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             segment?.let {
                 viewModel.upsertDraftSegment(it.copy(latitude = lat, longitude = lng))

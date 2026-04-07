@@ -57,3 +57,12 @@ data class TripWithDetails(
     )
     val fish: List<Fish>
 )
+
+data class TripSummary(
+    @Embedded val trip: Trip,
+    val totalCaught: Int,
+    val totalKept: Int,
+    val fishermanCount: Int,
+    val bigFishWinner: String?,
+    val topRodName: String?
+)

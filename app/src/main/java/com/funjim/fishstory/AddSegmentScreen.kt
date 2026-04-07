@@ -99,10 +99,13 @@ fun AddSegmentScreen(
         }
     }
 
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = latitude,  // Passed from your DB object
         existingLng = longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             viewModel.updateDraftSegmentLocation(lat, lng)
             latitude = lat

@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.DateTimePickerButton
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.BoatSummary
@@ -35,7 +36,7 @@ import com.funjim.fishstory.ui.FishItem
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishViewModel
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,7 +46,7 @@ import kotlin.collections.emptyList
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SegmentDetailsScreen(
-    viewModel: MainViewModel,
+    viewModel: TripViewModel,
     segmentId: String,
     tripId: String,
     navigateToSegmentBoatLoad: (String, String) -> Unit,
@@ -79,11 +80,13 @@ fun SegmentDetailsScreen(
             // Permission granted
         }
     }
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = segmentWithDetails?.segment?.latitude,  // Passed from your DB object
         existingLng = segmentWithDetails?.segment?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             segmentWithDetails?.segment?.let { segment ->
                 scope.launch {
@@ -100,9 +103,10 @@ fun SegmentDetailsScreen(
     )
 
     val locationPickerFish = rememberLocationPickerState(
-        viewModel = viewModel,
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
         existingLng = fishToUpdateLocation?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             fishToUpdateLocation?.let { fishDetails ->
                 scope.launch {
@@ -145,7 +149,7 @@ fun SegmentDetailsScreen(
                                             Manifest.permission.ACCESS_FINE_LOCATION
                                     ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = viewModel.getCurrentLocation(context)
+                                            val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
                                                 segmentWithDetails?.segment?.let { segment ->
                                                     viewModel.updateSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
@@ -420,14 +424,23 @@ fun SegmentDetailsScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) { newMillis ->
                                     if (newMillis < tripStartDateMillis) {
-                                        Toast.makeText(context, "Start cannot be before trip start", Toast.LENGTH_SHORT)
+                                        Toast.makeText(
+                                            context,
+                                            "Start cannot be before trip start",
+                                            Toast.LENGTH_SHORT
+                                        )
                                             .show()
                                     } else if (newMillis > tripEndDateMillis) {
-                                        Toast.makeText(context, "Start cannot be after trip end", Toast.LENGTH_SHORT)
+                                        Toast.makeText(
+                                            context,
+                                            "Start cannot be after trip end",
+                                            Toast.LENGTH_SHORT
+                                        )
                                             .show()
                                     } else {
                                         startDateMillis = newMillis
-                                        if (startDateMillis > endDateMillis) endDateMillis = startDateMillis
+                                        if (startDateMillis > endDateMillis) endDateMillis =
+                                            startDateMillis
                                     }
                                 }
 
@@ -438,9 +451,17 @@ fun SegmentDetailsScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) { newMillis ->
                                     if (newMillis < startDateMillis) {
-                                        Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "End must be after start",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     } else if (newMillis > tripEndDateMillis) {
-                                        Toast.makeText(context, "End cannot be after trip end", Toast.LENGTH_SHORT)
+                                        Toast.makeText(
+                                            context,
+                                            "End cannot be after trip end",
+                                            Toast.LENGTH_SHORT
+                                        )
                                             .show()
                                     } else {
                                         endDateMillis = newMillis

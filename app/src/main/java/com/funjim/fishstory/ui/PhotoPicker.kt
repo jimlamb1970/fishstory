@@ -119,11 +119,8 @@ fun PhotoPickerRow(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
-        ) {
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "Photos", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = {
