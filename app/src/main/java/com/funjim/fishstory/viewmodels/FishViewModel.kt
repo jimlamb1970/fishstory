@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.FishDao
+import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.SegmentDao
 import com.funjim.fishstory.database.TripDao
@@ -31,6 +32,7 @@ class FishViewModel(
     private val fishDao: FishDao,
     private val tripDao: TripDao,
     private val segmentDao: SegmentDao,
+    private val fishermanDao: FishermanDao,
     private val photoDao: PhotoDao
 ) : ViewModel() {
 
@@ -42,6 +44,9 @@ class FishViewModel(
 
     private val _selectedSegmentIdForFilter = MutableStateFlow<String?>(null)
     val selectedSegmentIdForFilter = _selectedSegmentIdForFilter.asStateFlow()
+
+    private val _fishermanIdForFilter = MutableStateFlow<String?>(null)
+    val fishermanIdForFilter = _fishermanIdForFilter.asStateFlow()
 
     // Observe the Trip Details reactively
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,6 +62,12 @@ class FishViewModel(
         .flatMapLatest { id -> segmentDao.getSegmentWithDetails(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentFisherman = _fishermanIdForFilter
+        .filterNotNull()
+        .flatMapLatest { id -> fishermanDao.getFishermanWithDetails(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun updateSelectedTripIdForFilter(id: String?) {
         _selectedTripIdForFilter.value = id
         _selectedSegmentIdForFilter.value = null
@@ -64,6 +75,10 @@ class FishViewModel(
 
     fun updateSelectedSegmentIdForFilter(id: String?) {
         _selectedSegmentIdForFilter.value = id
+    }
+
+    fun updateFishermanIdForFilter(id: String?) {
+        _fishermanIdForFilter.value = id
     }
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> {
@@ -76,6 +91,10 @@ class FishViewModel(
 
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForSegment(segmentId)
+    }
+
+    fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>> {
+        return fishDao.getFishForFisherman(fishermanId)
     }
 
     suspend fun getFishById(id: String): Fish? {
@@ -91,6 +110,7 @@ class FishViewModel(
     private data class FishFilterParams(
         val tripId: String?,
         val segmentId: String?,
+        val fishermanId: String?,
         val sortOrder: FishSortOrder,
         val isReversed: Boolean
     )
@@ -98,19 +118,23 @@ class FishViewModel(
     val fishForScope: StateFlow<List<FishWithDetails>> = combine(
         selectedTripIdForFilter,
         selectedSegmentIdForFilter,
+        fishermanIdForFilter,
         _sortOrder,
         _isReversed
-    ) { tripId, segId, sortOrder, isReversed ->
-        FishFilterParams(tripId, segId, sortOrder, isReversed)
+    ) { tripId, segId, fishermanId, sortOrder, isReversed ->
+        FishFilterParams(tripId, segId, fishermanId, sortOrder, isReversed)
     }.flatMapLatest { params ->
         val baseFlow = when {
             !params.segmentId.isNullOrBlank() -> getFishForSegment(params.segmentId)
             !params.tripId.isNullOrBlank() -> getFishForTrip(params.tripId)
+            !params.fishermanId.isNullOrBlank() -> getFishForFisherman(params.fishermanId)
             else -> flowOf(emptyList())
         }
         baseFlow.map { list ->
             val sortedList = when (params.sortOrder) {
                 FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.timestamp }
+                FishSortOrder.TRIP_AZ -> list.sortedBy { it.tripName }
+                FishSortOrder.SEGMENT_AZ -> list.sortedBy { it.segmentName }
                 FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fishermanName }
                 FishSortOrder.SPECIES_AZ -> list.sortedBy { it.speciesName }
                 FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.length }
@@ -229,12 +253,13 @@ class FishViewModelFactory(
     private val fishDao: FishDao,
     private val tripDao: TripDao,
     private val segmentDao: SegmentDao,
+    private val fishermanDao: FishermanDao,
     private val photoDao: PhotoDao
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishViewModel(fishDao, tripDao, segmentDao, photoDao) as T
+            return FishViewModel(fishDao, tripDao, segmentDao, fishermanDao, photoDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

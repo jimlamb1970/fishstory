@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
             database.fishDao(),
             database.tripDao(),
             database.segmentDao(),
+            database.fishermanDao(),
             database.photoDao()
         )
     }
@@ -381,6 +382,48 @@ fun AppNavigation(
                 viewModel = fishViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
+                fishermanId = null,
+                onAddFish = { tripId, segmentId, fishId ->
+                    val route =
+                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                    navController.navigate(route)
+                },
+                navigateToFishDetails = { fishId ->
+                    navController.navigate("fishDetails/$fishId")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "FishermanFishList/{fishermanId}?tripId={tripId}&segmentId={segmentId}",
+            arguments = listOf(
+                navArgument("fishermanId") { type = NavType.StringType },
+                navArgument("tripId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("segmentId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            // Extract the arguments from the backStackEntry
+            val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: ""
+            val tripId = backStackEntry.arguments?.getString("tripId")
+            val segmentId = backStackEntry.arguments?.getString("segmentId")
+
+            // Call the screen
+            FishListScreen(
+                viewModel = fishViewModel,
+                tripId = tripId,
+                segmentId = segmentId,
+                fishermanId = fishermanId,
                 onAddFish = { tripId, segmentId, fishId ->
                     val route =
                         if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
@@ -533,6 +576,9 @@ fun AppNavigation(
                 fishermanId = fishermanId,
                 navigateToTripDetails = { id ->
                     navController.navigate("tripDetails/$id")
+                },
+                navigateToFishList = { id ->
+                    navController.navigate("FishermanFishList/$id")
                 },
                 navigateToLureList = { id ->
                     navController.navigate("lures?fishermanId=$id")

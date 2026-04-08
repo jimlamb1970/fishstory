@@ -35,7 +35,10 @@ import java.util.Locale
 
 @Composable
 fun FishItem(
-    fish: FishWithDetails, 
+    fish: FishWithDetails,
+    includeTrip: Boolean = false,
+    includeSegment: Boolean = false,
+    includeFisherman: Boolean = false,
     photos: List<Photo>,
     onAddPhoto: ((Photo) -> Unit)? = null,
     onDeletePhoto: ((Photo) -> Unit)? = null,
@@ -76,7 +79,7 @@ fun FishItem(
                     Text(
                         text = buildString {
                             append("${fish.speciesName} - ${fish.length}\"")
-/*
+                            /*
                     if (fish.holeNumber != null) {
                         append(" (Hole #${fish.holeNumber})")
                     }
@@ -110,10 +113,17 @@ fun FishItem(
                     }
                 }
 
-                Text(
-                    "Caught by: ${fish.fishermanName}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                if (includeTrip)
+                    Text("Trip: ${fish.tripName}", style = MaterialTheme.typography.bodyMedium)
+
+                if (includeSegment)
+                    Text("Segment: ${fish.segmentName}", style = MaterialTheme.typography.bodyMedium)
+
+                if (includeFisherman)
+                    Text(
+                        "Caught by: ${fish.fishermanName}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
                 val fullLureName = fish.getFullLureName()
                 if (fullLureName != null) {

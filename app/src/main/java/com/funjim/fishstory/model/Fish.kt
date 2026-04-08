@@ -92,7 +92,9 @@ data class FishWithDetails(
     val latitude: Double?,
     val longitude: Double?,
     val segmentId: String,
+    val segmentName: String,
     val tripId: String,
+    val tripName: String,
     val holeNumber: Int? = null
 ) {
     fun getFullLureName(): String? {

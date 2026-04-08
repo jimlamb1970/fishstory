@@ -38,8 +38,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishListScreen(
     viewModel: FishViewModel,
-    tripId: String,
-    segmentId: String,   // empty string means trip-level (no segment selected)
+    tripId: String?,
+    segmentId: String?,   // empty string means trip-level (no segment selected)
+    fishermanId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
@@ -47,6 +48,7 @@ fun FishListScreen(
     LaunchedEffect(tripId) {
         viewModel.updateSelectedTripIdForFilter(tripId)
         viewModel.updateSelectedSegmentIdForFilter(segmentId)
+        viewModel.updateFishermanIdForFilter(fishermanId)
     }
 
     val scope = rememberCoroutineScope()
@@ -59,6 +61,7 @@ fun FishListScreen(
      */
     val tripWithDetails by viewModel.currentTrip.collectAsStateWithLifecycle()
     val segmentWithDetails by viewModel.currentSegment.collectAsStateWithLifecycle()
+    val fishermanDetails by viewModel.currentFisherman.collectAsStateWithLifecycle()
 
     val screenTitle = "Fish Log"
 
@@ -76,7 +79,9 @@ fun FishListScreen(
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (isGranted) {
             permissionGranted = true
-            onAddFish(tripId, segmentId, null)
+            if (tripId != null && segmentId != null) {
+                onAddFish(tripId, segmentId, null)
+            }
         }
     }
 
@@ -123,11 +128,13 @@ fun FishListScreen(
             )
         },
         floatingActionButton = {
-            if (segmentId.isNotEmpty()) {
+            if (!segmentId.isNullOrEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         if (permissionGranted) {
-                            onAddFish(tripId, segmentId, null)
+                            if (tripId != null && segmentId != null) {
+                                onAddFish(tripId, segmentId, null)
+                            }
                         } else {
                             permissionLauncher.launch(
                                 arrayOf(
@@ -158,13 +165,20 @@ fun FishListScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = tripWithDetails?.trip?.name ?: "All Trips",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
+                    if (!fishermanId.isNullOrEmpty()) {
+                        Text(
+                            text = fishermanDetails?.fisherman?.fullName ?: "All Fishermen",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    } else {
+                        Text(
+                            text = tripWithDetails?.trip?.name ?: "All Trips",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    }
                 }
-                // TODO - make this a drop down menu for all the segments in the trip
-                if (segmentId.isNotEmpty()) {
+                // TODO - make this a drop down menu for all the segments in the trip?
+                if (!segmentId.isNullOrEmpty()) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically)
@@ -181,8 +195,20 @@ fun FishListScreen(
                     SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
                         viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                     }
-                    SortChip("Fisherman", currentOrder == FishSortOrder.FISHERMAN_AZ) {
-                        viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
+                    if (tripId.isNullOrEmpty()) {
+                        SortChip("Trip", currentOrder == FishSortOrder.TRIP_AZ) {
+                            viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
+                        }
+                    }
+                    if (segmentId.isNullOrEmpty()) {
+                        SortChip("Segment", currentOrder == FishSortOrder.SEGMENT_AZ) {
+                            viewModel.updateSortOrder(FishSortOrder.SEGMENT_AZ)
+                        }
+                    }
+                    if (fishermanId.isNullOrEmpty()) {
+                        SortChip("Fisherman", currentOrder == FishSortOrder.FISHERMAN_AZ) {
+                            viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
+                        }
                     }
                     SortChip("Species", currentOrder == FishSortOrder.SPECIES_AZ) {
                         viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
@@ -215,6 +241,9 @@ fun FishListScreen(
                         val photos = allPhotos[fishDetails.id] ?: emptyList()
                         FishItem(
                             fish = fishDetails,
+                            includeTrip = tripId.isNullOrEmpty(),
+                            includeSegment = segmentId.isNullOrEmpty(),
+                            includeFisherman = fishermanId.isNullOrEmpty(),
                             photos = photos,
                             onAddPhoto = null,
                             onDeletePhoto = null,

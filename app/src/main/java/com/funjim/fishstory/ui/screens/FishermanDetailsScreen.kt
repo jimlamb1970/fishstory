@@ -51,6 +51,7 @@ fun FishermanDetailsScreen(
     viewModel: FishermanDetailsViewModel,
     fishermanId: String,
     navigateToTripDetails: (String) -> Unit,
+    navigateToFishList: (String) -> Unit,
     navigateToLureList: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -58,7 +59,6 @@ fun FishermanDetailsScreen(
         viewModel.selectFisherman(fishermanId)
     }
 
-//    val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsStateWithLifecycle(initialValue = null)
     val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsStateWithLifecycle(initialValue = emptyList())
 
     var showEditFishermanDialog by remember { mutableStateOf(false) }
@@ -116,13 +116,15 @@ fun FishermanDetailsScreen(
 
                             HorizontalDivider()
 
-                            LureSummary(details.tackleBoxWithLures?.lures?.size ?: 0) {
-                                navigateToLureList(fishermanId)
+                            FishermanHighlightCard(stats!!) {
+                                navigateToFishList(fishermanId)
                             }
 
                             HorizontalDivider()
 
-                            FishermanHighlightCard(stats!!)
+                            LureSummary(details.tackleBoxWithLures?.lures?.size ?: 0) {
+                                navigateToLureList(fishermanId)
+                            }
 
                             HorizontalDivider()
 
@@ -385,14 +387,16 @@ fun LureSummary(lureCount: Int, onClick: () -> Unit) {
 
 @Composable
 fun FishermanHighlightCard(
-    stats: FishermanFullStatistics
+    stats: FishermanFullStatistics,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -455,24 +459,3 @@ fun FishermanHighlightCard(
         }
     }
 }
-/*
-@Composable
-fun StatItem(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(text = value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = color)
-    }
-}
-
-@Composable
-fun AchievementItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, name: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF00274C), modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(text = label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        }
-    }
-}
-*/
