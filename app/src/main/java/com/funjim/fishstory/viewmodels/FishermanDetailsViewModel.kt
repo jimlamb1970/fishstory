@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -44,6 +45,22 @@ class FishermanDetailsViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tripSummaries: StateFlow<List<FishermanTripSummary>> = _selectedFishermanId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                // This query only runs for the currently selected trip
+                fishermanDao.getTripSummariesForFisherman(id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?> {
         return fishermanDao.getFishermanWithDetails(fishermanId)

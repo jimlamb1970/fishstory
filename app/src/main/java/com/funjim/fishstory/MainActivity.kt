@@ -531,6 +531,9 @@ fun AppNavigation(
             FishermanDetailsScreen(
                 viewModel = detailsViewModel,
                 fishermanId = fishermanId,
+                navigateToTripDetails = { id ->
+                    navController.navigate("tripDetails/$id")
+                },
                 navigateToLureList = { id ->
                     navController.navigate("lures?fishermanId=$id")
                 },

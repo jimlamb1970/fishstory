@@ -95,9 +95,19 @@ data class FishermanSummary(
     val totalTrips: Int
 )
 
+data class FishermanTripSummary(
+    @Embedded val trip: Trip,
+    val totalCaught: Int,
+    val totalKept: Int,
+)
 data class FishermanFullStatistics(
     @Embedded val fisherman: Fisherman,
-    val fishermanId: Long,
+    @Relation(
+        entity = TackleBox::class,
+        parentColumn = "id",
+        entityColumn = "fishermanId"
+    )
+    val tackleBoxWithLures: TackleBoxWithLures?,
 
     // Fish Extremes
     val largestFishLength: Double?,

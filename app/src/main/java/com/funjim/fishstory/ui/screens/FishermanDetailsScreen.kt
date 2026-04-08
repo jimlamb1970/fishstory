@@ -1,5 +1,8 @@
 package com.funjim.fishstory.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,17 +35,22 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
+import com.funjim.fishstory.model.FishermanTripSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FishermanDetailsScreen(
     viewModel: FishermanDetailsViewModel,
     fishermanId: String,
+    navigateToTripDetails: (String) -> Unit,
     navigateToLureList: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -49,12 +58,14 @@ fun FishermanDetailsScreen(
         viewModel.selectFisherman(fishermanId)
     }
 
-    val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsStateWithLifecycle(initialValue = null)
+//    val fishermanWithDetails by viewModel.getFishermanWithDetails(fishermanId).collectAsStateWithLifecycle(initialValue = null)
     val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsStateWithLifecycle(initialValue = emptyList())
 
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
     val stats by viewModel.statistics.collectAsState()
+    val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+
 
     if (stats == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -79,7 +90,7 @@ fun FishermanDetailsScreen(
             }
         ) { padding ->
             Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-                fishermanWithDetails?.let { details ->
+                stats?.let { details ->
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
                             Text(
@@ -122,11 +133,11 @@ fun FishermanDetailsScreen(
                             )
                         }
 
-                        items(details.trips) { trip ->
+                        items(tripSummaries) { trip ->
                             TripDetailItem(
                                 trip = trip,
-                                onDelete = {
-                                    viewModel.deleteTripFromFisherman(trip.id, fishermanId)
+                                onClick = {
+                                    navigateToTripDetails(trip.trip.id)
                                 }
                             )
                         }
@@ -137,15 +148,17 @@ fun FishermanDetailsScreen(
             }
 
             // Edit Fisherman Dialog
-            if (showEditFishermanDialog && fishermanWithDetails != null) {
-                EditFishermanDialog(
-                    initialFisherman = fishermanWithDetails!!.fisherman,
-                    onDismiss = { showEditFishermanDialog = false },
-                    onConfirm = { updatedFisherman ->
-                        viewModel.updateFisherman(updatedFisherman)
-                        showEditFishermanDialog = false
-                    }
-                )
+            stats?.let { details ->
+                if (showEditFishermanDialog) {
+                    EditFishermanDialog(
+                        initialFisherman = details.fisherman,
+                        onDismiss = { showEditFishermanDialog = false },
+                        onConfirm = { updatedFisherman ->
+                            viewModel.updateFisherman(updatedFisherman)
+                            showEditFishermanDialog = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -203,16 +216,72 @@ fun EditFishermanDialog(
 }
 
 @Composable
-fun TripDetailItem(trip: Trip, onDelete: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+fun TripDetailItem(
+    trip: FishermanTripSummary,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable(enabled = true, onClick = onClick)
+    ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(trip.name, style = MaterialTheme.typography.titleMedium)
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Remove from Fisherman", tint = Color.Red)
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(trip.trip.name, style = MaterialTheme.typography.titleMedium)
+                    if (trip.trip.latitude != null && trip.trip.longitude != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "View on map",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    val mapUri =
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.trip.latitude},${trip.trip.longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not open map",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        )
+                    }
+                }
+                Text(
+                    text = "Start: ${dateTimeFormatter.format(Date(trip.trip.startDate))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "End: ${dateTimeFormatter.format(Date(trip.trip.endDate))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Fish • ${trip.totalCaught} Caught • ${trip.totalKept} Kept",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
