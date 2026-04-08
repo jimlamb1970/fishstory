@@ -324,10 +324,21 @@ fun AppNavigation(
             )
         }
 
-        composable("lures") {
+        composable(
+            route = "lures?fishermanId={fishermanId}",
+            arguments = listOf(
+                navArgument("fishermanId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val fishermanId = backStackEntry.arguments?.getString("fishermanId")
             LureListScreen(
                 viewModel = lureViewModel,
-                onAddLure = { lureId, ->
+                initialFishermanId = fishermanId,
+                onAddLure = { lureId ->
                     val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
                     navController.navigate(route)
                 },
@@ -517,9 +528,16 @@ fun AppNavigation(
                     database.tackleBoxDao()
                 )
             )
-            FishermanDetailsScreen(detailsViewModel, fishermanId) {
-                navController.popBackStack()
-            }
+            FishermanDetailsScreen(
+                viewModel = detailsViewModel,
+                fishermanId = fishermanId,
+                navigateToLureList = { id ->
+                    navController.navigate("lures?fishermanId=$id")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
         composable(
             route = "segmentDetails/{segmentId}/{tripId}",

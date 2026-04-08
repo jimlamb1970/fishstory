@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithDetails
 import com.funjim.fishstory.model.FishermanWithTrips
@@ -60,6 +61,106 @@ interface FishermanDao {
     GROUP BY f.id
 """)
     fun getFishermanSummaries(): Flow<List<FishermanSummary>>
+
+    @Transaction
+    @Query("""
+    SELECT 
+        f.*,
+        f.id AS fishermanId,
+
+        -- FISH EXTREMES
+        (SELECT MAX(length) FROM fish_table WHERE fishermanId = :fId) AS largestFishLength,
+        (SELECT timestamp FROM fish_table WHERE fishermanId = :fId 
+         ORDER BY length DESC, timestamp DESC LIMIT 1) AS largestFishTimestamp,
+
+        (SELECT MIN(length) FROM fish_table WHERE fishermanId = :fId AND length > 0) AS smallestFishLength,
+        (SELECT timestamp FROM fish_table WHERE fishermanId = :fId AND length > 0 
+         ORDER BY length ASC, timestamp DESC LIMIT 1) AS smallestFishTimestamp,
+
+        -- BEST TRIP
+        (SELECT COUNT(f.id) as c 
+         FROM trip_fisherman_cross_ref tref
+         LEFT JOIN fish_table f ON tref.tripId = f.tripId AND f.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY tref.tripId ORDER BY c DESC LIMIT 1) AS mostTripCatches,
+        (SELECT t.name FROM trip_fisherman_cross_ref tref
+         JOIN trip_table t ON tref.tripId = t.id
+         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY t.id ORDER BY COUNT(fish.id) DESC, t.id DESC LIMIT 1) AS bestTripName,
+        (SELECT t.startDate FROM trip_fisherman_cross_ref tref
+         JOIN trip_table t ON tref.tripId = t.id
+         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY t.id ORDER BY COUNT(fish.id) DESC, t.id DESC LIMIT 1) AS bestTripTime,
+
+        -- BEST SEGMENT & ITS PARENT TRIP
+        (SELECT COUNT(f.id) as c 
+         FROM segment_fisherman_cross_ref sref
+         LEFT JOIN fish_table f ON sref.segmentId = f.segmentId AND f.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY sref.segmentId ORDER BY c DESC LIMIT 1) AS mostSegmentCatches,
+        (SELECT s.name FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentName,
+        (SELECT t.name FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         JOIN trip_table t ON s.tripId = t.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentTripName,
+        (SELECT s.startTime FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentTime,
+
+        -- WORST TRIP (The "Skunk" Trip)
+        (SELECT COUNT(f.id) as c 
+         FROM trip_fisherman_cross_ref tref
+         LEFT JOIN fish_table f ON tref.tripId = f.tripId AND f.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY tref.tripId ORDER BY c ASC LIMIT 1) AS fewestTripCatches,
+        (SELECT t.name FROM trip_fisherman_cross_ref tref
+         JOIN trip_table t ON tref.tripId = t.id
+         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY t.id ORDER BY COUNT(fish.id) ASC, t.id DESC LIMIT 1) AS worstTripName, 
+        (SELECT t.startDate FROM trip_fisherman_cross_ref tref
+         JOIN trip_table t ON tref.tripId = t.id
+         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+         WHERE tref.fishermanId = :fId
+         GROUP BY t.id ORDER BY COUNT(fish.id) ASC, t.id DESC LIMIT 1) AS worstTripTime,
+
+        -- WORST SEGMENT (The "Skunk" Segment)
+        (SELECT COUNT(f.id) as c 
+         FROM segment_fisherman_cross_ref sref
+         LEFT JOIN fish_table f ON sref.segmentId = f.segmentId AND f.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY sref.segmentId ORDER BY c ASC LIMIT 1) AS fewestSegmentCatches,
+        (SELECT s.name FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentName,
+        (SELECT t.name FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         JOIN trip_table t ON s.tripId = t.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentTripName,
+        (SELECT s.startTime FROM segment_fisherman_cross_ref sref
+         JOIN segment_table s ON sref.segmentId = s.id
+         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+         WHERE sref.fishermanId = :fId
+         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentTime
+
+    FROM fisherman_table AS f
+    WHERE f.id = :fId
+""")
+    fun getFishermanFullStatistics(fId: String): Flow<FishermanFullStatistics?>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

@@ -5,10 +5,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,6 +29,22 @@ class FishermanDetailsViewModel(
     val lures: Flow<List<Lure>> = lureDao.getAllLures()
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
 
+    private val _selectedFishermanId = MutableStateFlow<String?>(null)
+    fun selectFisherman(id: String) {
+        _selectedFishermanId.value = id
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val statistics: StateFlow<FishermanFullStatistics?> = _selectedFishermanId
+        .filterNotNull() // Only query if we have an ID
+        .flatMapLatest { id ->
+            fishermanDao.getFishermanFullStatistics(id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?> {
         return fishermanDao.getFishermanWithDetails(fishermanId)
     }

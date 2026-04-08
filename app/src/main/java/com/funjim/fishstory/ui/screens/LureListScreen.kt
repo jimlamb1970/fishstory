@@ -24,7 +24,6 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.LureItem
 import com.funjim.fishstory.ui.ManageColorsDialog
 import com.funjim.fishstory.viewmodels.LureViewModel
-import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
@@ -32,6 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LureListScreen(
     viewModel: LureViewModel,
+    initialFishermanId: String? = null,
     onAddLure: (String?) -> Unit, // Callback for Navigating to Add/Edit screen
     navigateBack: () -> Unit
 ) {
@@ -47,6 +47,13 @@ fun LureListScreen(
 
     val sortedFishermen = remember(fishermen) {
         fishermen.sortedBy { it.fullName }
+    }
+
+    // Set initial fisherman if provided
+    LaunchedEffect(fishermen, initialFishermanId) {
+        if (initialFishermanId != null && selectedFisherman == null) {
+            selectedFisherman = fishermen.find { it.id == initialFishermanId }
+        }
     }
 
     val luresForFisherman by remember(selectedFisherman) {
@@ -152,8 +159,8 @@ fun LureListScreen(
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
-                                photos = photos, // Needs photos flow per lure if wanted
-                                onEdit = { onAddLure(item.lure.id) }, // Navigate to screen with ID
+                                photos = photos,
+                                onEdit = { onAddLure(item.lure.id) },
                                 onAddPhoto = { photo ->
                                     scope.launch { viewModel.addPhoto(photo) }
                                 },

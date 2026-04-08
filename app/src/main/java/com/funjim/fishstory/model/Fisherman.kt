@@ -94,3 +94,36 @@ data class FishermanSummary(
     val totalReleased: Int,
     val totalTrips: Int
 )
+
+data class FishermanFullStatistics(
+    @Embedded val fisherman: Fisherman,
+    val fishermanId: Long,
+
+    // Fish Extremes
+    val largestFishLength: Double?,
+    val largestFishTimestamp: Long?,
+    val smallestFishLength: Double?,
+    val smallestFishTimestamp: Long?,
+
+    // Best Trip
+    val mostTripCatches: Int,
+    val bestTripName: String?,
+    val bestTripTime: Long?,
+
+    // Best Segment & Its Parent Trip
+    val mostSegmentCatches: Int,
+    val bestSegmentName: String?,
+    val bestSegmentTripName: String?,
+    val bestSegmentTime: Long?,
+
+    // Worst Trip
+    val fewestTripCatches: Int,
+    val worstTripName: String?,
+    val worstTripTime: Long?,
+
+    // Worst Segment
+    val fewestSegmentCatches: Int,
+    val worstSegmentName: String?,
+    val worstSegmentTripName: String?,
+    val worstSegmentTime: Long?
+)
