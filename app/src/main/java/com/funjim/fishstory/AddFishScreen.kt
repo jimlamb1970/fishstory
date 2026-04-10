@@ -57,6 +57,7 @@ enum class FishField { Species, Fisherman, Lure, Length, Hole, Location, Release
 
 private const val TAG = "AddFishScreen"
 
+// TODO - move this to its own view model
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFishScreen(
@@ -153,7 +154,7 @@ fun AddFishScreen(
 
     // Lure Logic (Filtered by Fisherman)
     val rawLures by if (selectedFishermanId != null) {
-        viewModel.getLuresForFisherman(selectedFishermanId!!).collectAsState(initial = emptyList())
+        viewModel.getLuresForFisherman(selectedFishermanId!!, segmentId).collectAsState(initial = emptyList())
     } else {
         remember { mutableStateOf(emptyList<Lure>()) }
     }
