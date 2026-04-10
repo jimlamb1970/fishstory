@@ -50,7 +50,8 @@ interface SegmentDao {
         (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
         (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
         (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
-(
+        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+        (
             SELECT 
                 CASE 
                     WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
@@ -88,6 +89,12 @@ interface SegmentDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)
+
+    @Query("SELECT tackleBoxId FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId = :fishermanId")
+    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?>
+
+    @Update
+    suspend fun updateSegmentFishermanTackleBox(crossRef: SegmentFishermanCrossRef)
 
     @Delete
     suspend fun deleteSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)

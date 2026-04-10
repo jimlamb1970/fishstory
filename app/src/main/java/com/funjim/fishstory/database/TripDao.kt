@@ -46,7 +46,7 @@ interface TripDao {
         (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id AND f.isReleased = 0) as totalKept,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-(
+        (
             SELECT 
                 CASE 
                     WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 

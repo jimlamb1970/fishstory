@@ -52,11 +52,11 @@ import java.util.Locale
 fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
-    navigateToFishList: () -> Unit,
-    navigateToSegmentDetails: (String) -> Unit,
     navigateToLoadBoatForTrip: (String) -> Unit,
-    navigateToAddSegment: (String) -> Unit,
     navigateToTackleBoxes: (String) -> Unit,
+    navigateToFishList: () -> Unit,
+    navigateToAddSegment: (String) -> Unit,
+    navigateToSegmentDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(tripId) {
@@ -297,7 +297,7 @@ fun TripDetailsScreen(
 
                         HorizontalDivider()
 
-                        // The Boat Concept
+                        // The Gear Summary
                         TackleBoxSummary(
                             fishermanCount = details.tackleBoxCount,
                             onClick = { navigateToTackleBoxes(tripId) }

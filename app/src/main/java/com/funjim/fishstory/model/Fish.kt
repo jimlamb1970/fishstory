@@ -18,6 +18,7 @@ data class Species(
     val name: String
 )
 
+// TODO -- add the ability to add fish without a trip and/or segment
 @Serializable
 @Entity(
     tableName = "fish_table",
@@ -97,6 +98,7 @@ data class FishWithDetails(
     val tripName: String,
     val holeNumber: Int? = null
 ) {
+    // TODO -- need to fix the name -- not really correct
     fun getFullLureName(): String? {
         if (lureName == null) return null
         val sb = StringBuilder(lureName)

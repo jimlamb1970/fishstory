@@ -61,9 +61,11 @@ data class SegmentWithDetails(
     val fish: List<Fish>
 )
 
+// TODO - rename values to better match TripSummary
 data class SegmentSummary(
     @Embedded val segment: Segment,
     val fishermanCount: Int,
+    val tackleBoxCount: Int,
     val fishCaught: Int,
     val fishKept: Int,
     val biggestFish: String?,

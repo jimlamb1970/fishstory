@@ -3,6 +3,8 @@ package com.funjim.fishstory.viewmodels
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -21,8 +23,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
@@ -449,8 +454,20 @@ class MainViewModel(
         segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
     }
 
-    fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>> {
-        return tackleBoxDao.getLuresForFisherman(fishermanId)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getLuresForFisherman(fishermanId: String, segmentId: String): Flow<List<Lure>> {
+        // 1. Create a flow that emits the tackleBoxId
+        // Note: This assumes segmentDao returns a Flow.
+        // If it's a suspend function, we wrap it in a flow { ... }
+        return segmentDao.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
+            .flatMapLatest { tackleBoxId ->
+                if (tackleBoxId != null) {
+                    tackleBoxDao.getLuresInTackleBox(tackleBoxId)
+                } else {
+                    // If no box is found, return an empty list stream
+                    flowOf(emptyList())
+                }
+            }
     }
 
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {

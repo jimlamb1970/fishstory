@@ -36,6 +36,7 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.PhotoPickerRow
+import com.funjim.fishstory.ui.TackleBoxSummary
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -50,6 +51,7 @@ fun SegmentDetailsScreen(
     viewModel: TripViewModel,
     segmentId: String,
     navigateToSegmentBoatLoad: () -> Unit,
+    navigateToTackleBoxes: (String) -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: () -> Unit,
     navigateBack: () -> Unit
@@ -321,6 +323,14 @@ fun SegmentDetailsScreen(
                         BoatSummary(
                             fishermanCount = details.fishermanCount,
                             onBoatClick = { navigateToSegmentBoatLoad() }
+                        )
+
+                        HorizontalDivider()
+
+                        // The Gear Summary
+                        TackleBoxSummary(
+                            fishermanCount = details.tackleBoxCount,
+                            onClick = { navigateToTackleBoxes(segmentId) }
                         )
 
                         HorizontalDivider()

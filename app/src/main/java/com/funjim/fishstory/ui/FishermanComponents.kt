@@ -112,6 +112,8 @@ fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit) {
     }
 }
 
+// TODO -- allow card to be clickable to view tackle boxes
+// TODO -- give an option to go to screen to add lures
 @Composable
 fun TackleBoxSummary(fishermanCount: Int, onClick: () -> Unit) {
     Card(

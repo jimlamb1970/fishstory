@@ -20,16 +20,16 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripTackleBoxScreen(
+fun SegmentTackleBoxScreen(
     viewModel: TripViewModel,
-    tripId: String,
+    segmentId: String,
     navigateBack: () -> Unit
 ) {
-    LaunchedEffect(tripId) {
-        viewModel.selectTrip(tripId)
+    LaunchedEffect(segmentId) {
+        viewModel.selectSegment(segmentId)
     }
 
-    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val segmentSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -44,15 +44,15 @@ fun TripTackleBoxScreen(
             )
         }
     ) { padding ->
-        val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
-        val fishermen = tripWithFishermen?.fishermen ?: emptyList()
+        val segmentWithFishermen by viewModel.getSegmentWithFishermen(segmentId).collectAsState(initial = null)
+        val fishermen = segmentWithFishermen?.fishermen ?: emptyList()
 
         if (fishermen.isEmpty()) {
             Box(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No fishermen on this trip.")
+                Text("No fishermen on this segment.")
             }
         } else {
             LazyColumn(
@@ -61,14 +61,14 @@ fun TripTackleBoxScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(fishermen) { fisherman ->
-                    FishermanTackleBoxCard(
+                    SegmentFishermanTackleBoxCard(
                         fisherman = fisherman,
-                        tripId = tripId,
+                        segmentId = segmentId,
                         viewModel = viewModel,
                         onTackleBoxChanged = { newTackleBoxId ->
                             scope.launch {
-                                viewModel.updateTripFishermanTackleBox(
-                                    tripId = tripId,
+                                viewModel.updateSegmentFishermanTackleBox(
+                                    segmentId = segmentId,
                                     fishermanId = fisherman.id,
                                     tackleBoxId = newTackleBoxId
                                 )
@@ -76,9 +76,9 @@ fun TripTackleBoxScreen(
                         },
                         onCreateNewTackleBox = { name ->
                             scope.launch {
-                                viewModel.createAndAssignTackleBox(
+                                viewModel.createAndAssignSegmentTackleBox(
                                     fishermanId = fisherman.id,
-                                    tripId = tripId,
+                                    segmentId = segmentId,
                                     name = name
                                 )
                             }
@@ -93,15 +93,15 @@ fun TripTackleBoxScreen(
 // TODO - update tackle box card to be expandable and editable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FishermanTackleBoxCard(
+fun SegmentFishermanTackleBoxCard(
     fisherman: Fisherman,
-    tripId: String,
+    segmentId: String,
     viewModel: TripViewModel,
     onTackleBoxChanged: (String) -> Unit,
     onCreateNewTackleBox: (String) -> Unit
 ) {
     // The tackle box currently assigned to this fisherman for this trip
-    val assignedTackleBoxId by viewModel.getTripFishermanTackleBoxId(tripId, fisherman.id)
+    val assignedTackleBoxId by viewModel.getSegmentFishermanTackleBoxId(segmentId, fisherman.id)
         .collectAsState(initial = null)
 
     // All tackle boxes belonging to this fisherman

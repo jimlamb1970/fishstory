@@ -44,6 +44,7 @@ import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
+import com.funjim.fishstory.ui.screens.SegmentTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
@@ -526,20 +527,20 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
-                navigateToFishList = {
-                    navController.navigate("FishList/$tripId/")
-                },
-                navigateToSegmentDetails = { segmentId ->
-                    navController.navigate("segmentDetails/$segmentId/$tripId")
-                },
                 navigateToLoadBoatForTrip = { id ->
                     navController.navigate("loadBoatForTrip/$id")
+                },
+                navigateToTackleBoxes = { id ->
+                    navController.navigate("tripTackleBoxes/$id")
+                },
+                navigateToFishList = {
+                    navController.navigate("FishList/$tripId/")
                 },
                 navigateToAddSegment = { id ->
                     navController.navigate("addSegment/$id")
                 },
-                navigateToTackleBoxes = { id ->
-                    navController.navigate("tripTackleBoxes/$id")
+                navigateToSegmentDetails = { segmentId ->
+                    navController.navigate("segmentDetails/$segmentId/$tripId")
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -555,6 +556,18 @@ fun AppNavigation(
             TripTackleBoxScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "segmentTackleBoxes/{segmentId}",
+            arguments = listOf(navArgument("segmentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
+            SegmentTackleBoxScreen(
+                viewModel = tripViewModel,
+                segmentId = segmentId,
                 navigateBack = { navController.popBackStack() }
             )
         }
@@ -641,6 +654,9 @@ fun AppNavigation(
                 segmentId = segmentId,
                 navigateToSegmentBoatLoad = {  ->
                     navController.navigate("segmentBoatLoad/$segmentId/$tripId")
+                },
+                navigateToTackleBoxes = { id ->
+                    navController.navigate("segmentTackleBoxes/$id")
                 },
                 navigateToFishList = {
                     navController.navigate("FishList/$tripId/$segmentId")

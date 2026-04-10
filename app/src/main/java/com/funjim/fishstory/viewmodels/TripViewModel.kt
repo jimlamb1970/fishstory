@@ -164,6 +164,10 @@ class TripViewModel(
         return tripDao.getTripWithDetails(tripId)
     }
 
+    fun getSegmentWithFishermen(segmentId: String): Flow<SegmentWithFishermen?> {
+        return segmentDao.getSegmentWithFishermen(segmentId)
+    }
+
     fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>> {
         return segmentDao.getSegmentsWithDetailsForTrip(tripId)
     }
@@ -234,6 +238,12 @@ class TripViewModel(
         }
     }
 
+    fun updateSegmentFishermanTackleBox(segmentId: String, fishermanId: String, tackleBoxId: String) {
+        viewModelScope.launch {
+            segmentDao.updateSegmentFishermanTackleBox(SegmentFishermanCrossRef(segmentId, fishermanId, tackleBoxId))
+        }
+    }
+
     fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
@@ -248,8 +258,26 @@ class TripViewModel(
         }
     }
 
+    fun createAndAssignSegmentTackleBox(fishermanId: String, segmentId: String, name: String) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            tackleBoxDao.insertTackleBox(tackleBox)
+            segmentDao.updateSegmentFishermanTackleBox(
+                SegmentFishermanCrossRef(
+                    segmentId,
+                    fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
+    }
+
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> {
         return tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
+    }
+
+    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> {
+        return segmentDao.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
     }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
