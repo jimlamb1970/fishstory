@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -14,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,10 +39,9 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanTripSummary
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,7 +53,7 @@ fun FishermanDetailsScreen(
     fishermanId: String,
     navigateToTripDetails: (String) -> Unit,
     navigateToFishList: (String) -> Unit,
-    navigateToLureList: (String) -> Unit,
+    navigateToLureList: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(fishermanId) {
@@ -66,6 +67,8 @@ fun FishermanDetailsScreen(
     val stats by viewModel.statistics.collectAsState()
     val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
 
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var newTackleBoxName by remember { mutableStateOf("") }
 
     if (stats == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -119,19 +122,62 @@ fun FishermanDetailsScreen(
                             FishermanHighlightCard(stats!!) {
                                 navigateToFishList(fishermanId)
                             }
-
                             HorizontalDivider()
 
-                            LureSummary(details.tackleBoxWithLures?.lures?.size ?: 0) {
-                                navigateToLureList(fishermanId)
-                            }
+                            // Use a Row to align the title and the '+' button
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Tackle Boxes",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
 
+                                // The new '+' button
+                                IconButton(
+                                    onClick = {
+                                        newTackleBoxName = ""
+                                        showAddTackleBoxDialog = true
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = Color(0xFFFFCB05), // Michigan Maize
+                                        contentColor = Color(0xFF00274C)    // Michigan Blue
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = "Add Tackle Box")
+                                }
+                            }
+                        }
+
+                        itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
+                            if (tackleBoxWithLures != null) {
+                                TackleBoxCard(
+                                    viewModel,
+                                    tackleBoxWithLures,
+                                    modifier = Modifier.padding(
+                                        bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
+                                    ),
+                                    onEdit = {
+                                        navigateToLureList(fishermanId, tackleBoxWithLures.tackleBox.id)
+                                    },
+                                    onDelete = {
+                                        viewModel.deleteTackleBox(tackleBoxWithLures.tackleBox)
+                                    }
+                                )
+                            }
+                        }
+
+                        item {
                             HorizontalDivider()
 
                             Text(
                                 text = "Trips",
                                 style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(16.dp)
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
 
@@ -147,6 +193,40 @@ fun FishermanDetailsScreen(
                 } ?: run {
                     Text("Loading...", modifier = Modifier.padding(16.dp))
                 }
+            }
+            // Create new tackle box dialog
+            if (showAddTackleBoxDialog) {
+                AlertDialog(
+                    onDismissRequest = { showAddTackleBoxDialog = false },
+                    title = { Text("New Tackle Box") },
+                    text = {
+                        OutlinedTextField(
+                            value = newTackleBoxName,
+                            onValueChange = { newTackleBoxName = it },
+                            label = { Text("Name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                if (newTackleBoxName.isNotBlank()) {
+                                    viewModel.createTackleBox(fishermanId, newTackleBoxName.trim())
+                                    showAddTackleBoxDialog = false
+                                }
+                            },
+                            enabled = newTackleBoxName.isNotBlank()
+                        ) {
+                            Text("Create")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showAddTackleBoxDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
 
             // Edit Fisherman Dialog
@@ -349,37 +429,105 @@ fun FishermanLoadingView() {
 }
 
 @Composable
-fun LureSummary(lureCount: Int, onClick: () -> Unit) {
+fun TackleBoxCard(
+    viewModel: FishermanDetailsViewModel,
+    tackleBoxWithLures: TackleBoxWithLures,
+    modifier: Modifier,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6))
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6)),
+        elevation = CardDefaults.cardElevation()
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.ShoppingBag,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "TACKLEBOX",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.ShoppingBag,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = Color.White
                 )
-                Text(
-                    "$lureCount Lures",
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        tackleBoxWithLures.tackleBox.name,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        "${tackleBoxWithLures.lures.size} Lures",
+                        color = Color.White.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = Color.White
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            }
+                        )
+                    }
+                }
+            }
+            // Expandable lure list
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    tackleBoxWithLures.lures.forEach { lure ->
+                        val colors by viewModel.lureColors.collectAsState(initial = emptyList())
+
+                        val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
+                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
+                        val glowColorName = colors.find { it.id == lure.glowColorId }?.name
+
+                        Text(
+                            text = "• ${lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)}",
+                            color = Color.White.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
+                }
             }
         }
     }

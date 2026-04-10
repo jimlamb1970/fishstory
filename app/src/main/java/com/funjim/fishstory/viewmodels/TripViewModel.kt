@@ -29,6 +29,7 @@ class TripViewModel(
     private val segmentDao: SegmentDao,
     private val photoDao: PhotoDao,
     private val fishermanDao: FishermanDao,
+    private val tackleBoxDao: TackleBoxDao,
     private val fishDao: FishDao
 ) : ViewModel() {
 
@@ -155,6 +156,10 @@ class TripViewModel(
         }
     }
 
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
+        return tripDao.getTripWithFishermen(tripId)
+    }
+
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
     }
@@ -223,6 +228,39 @@ class TripViewModel(
         }
     }
 
+    fun updateTripFishermanTackleBox(tripId: String, fishermanId: String, tackleBoxId: String) {
+        viewModelScope.launch {
+            tripDao.updateTripFishermanTackleBox(TripFishermanCrossRef(tripId, fishermanId, tackleBoxId))
+        }
+    }
+
+    fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            tackleBoxDao.insertTackleBox(tackleBox)
+            tripDao.updateTripFishermanTackleBox(
+                TripFishermanCrossRef(
+                    tripId,
+                    fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
+    }
+
+    fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> {
+        return tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
+    }
+
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
+        return tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
+    }
+
+    fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
+        return tackleBoxDao.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
+    }
+
+
     val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
         .map { photos ->
             photos.filter { it.fishId != null }
@@ -261,12 +299,13 @@ class TripViewModelFactory(
     private val segmentDao: SegmentDao,
     private val photoDao: PhotoDao,
     private val fishermanDao: FishermanDao,
+    private val tackleBoxDao: TackleBoxDao,
     private val fishDao: FishDao
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripViewModel(tripDao, segmentDao, photoDao, fishermanDao, fishDao) as T
+            return TripViewModel(tripDao, segmentDao, photoDao, fishermanDao, tackleBoxDao, fishDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

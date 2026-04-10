@@ -328,8 +328,8 @@ fun LureItem(
     secondaryColorName: String?,
     glowColorName: String?,
     photos: List<Photo>,
-    onAddPhoto: (Photo) -> Unit,
-    onDeletePhoto: (Photo) -> Unit,
+    onAddPhoto: ((Photo) -> Unit)? = null,
+    onDeletePhoto: ((Photo) -> Unit)? = null,
     onEdit: () -> Unit, 
     onDelete: () -> Unit
 ) {
@@ -341,13 +341,43 @@ fun LureItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName), style = MaterialTheme.typography.titleLarge)
+                    /*
+                    Text(lure.getDisplayName(
+                        primaryColorName,
+                        secondaryColorName,
+                        glowColorName),
+                        style = MaterialTheme.typography.titleLarge)
+                     */
+                    Text(lure.name, style = MaterialTheme.typography.titleLarge)
+
+                    val sb = StringBuilder("Colors: ")
+                    val colors = mutableListOf<String>()
+                    if (!primaryColorName.isNullOrBlank()) {
+                        colors.add(primaryColorName)
+                    }
+                    if (!secondaryColorName.isNullOrBlank()) {
+                        colors.add(secondaryColorName)
+                    }
+                    if (colors.isNotEmpty()) {
+                        sb.append(" ${colors.joinToString("/")}")
+                        Text(sb.toString(), style = MaterialTheme.typography.bodyMedium)
+                    }
+
+                    if (lure.glows) {
+                        val sb = StringBuilder("Glows")
+                        if (!glowColorName.isNullOrBlank()) {
+                            sb.append(" : $glowColorName")
+                        }
+                        Text(sb.toString(), style = MaterialTheme.typography.bodyMedium)
+                    }
+
                     Text(
                         text = if (lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
+                // TODO - put these into a kebab menu
                 Row {
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
@@ -358,16 +388,18 @@ fun LureItem(
                 }
             }
 
-            PhotoPickerRow(
-                photos = photos,
-                onPhotoSelected = { uri ->
-                    onAddPhoto(Photo(uri = uri.toString(), lureId = lure.id))
-                },
-                onPhotoDeleted = { photo ->
-                    onDeletePhoto(photo)
-                },
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            if (onAddPhoto != null && onDeletePhoto != null) {
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri ->
+                        onAddPhoto(Photo(uri = uri.toString(), lureId = lure.id))
+                    },
+                    onPhotoDeleted = { photo ->
+                        onDeletePhoto(photo)
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 }

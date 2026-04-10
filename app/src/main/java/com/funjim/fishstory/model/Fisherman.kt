@@ -102,12 +102,13 @@ data class FishermanTripSummary(
 )
 data class FishermanFullStatistics(
     @Embedded val fisherman: Fisherman,
+
     @Relation(
         entity = TackleBox::class,
         parentColumn = "id",
         entityColumn = "fishermanId"
     )
-    val tackleBoxWithLures: TackleBoxWithLures?,
+    val tackleBoxesWithLures: List<TackleBoxWithLures?>,
 
     // Fish Extremes
     val largestFishLength: Double?,

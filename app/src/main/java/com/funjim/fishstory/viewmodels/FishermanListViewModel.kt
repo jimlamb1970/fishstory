@@ -59,6 +59,8 @@ class FishermanListViewModel(
 
     suspend fun addFisherman(fisherman: Fisherman) {
         fishermanDao.insert(fisherman)
+
+        // TODO - why isn't this creating the tacklebox too?
     }
 
     fun deleteFisherman(fisherman: Fisherman) {

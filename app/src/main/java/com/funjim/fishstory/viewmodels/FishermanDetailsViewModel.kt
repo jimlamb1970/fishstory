@@ -27,8 +27,7 @@ class FishermanDetailsViewModel(
 ) : ViewModel() {
 
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
-    val lures: Flow<List<Lure>> = lureDao.getAllLures()
-    val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
+    var lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     fun selectFisherman(id: String) {
@@ -62,9 +61,6 @@ class FishermanDetailsViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-    fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?> {
-        return fishermanDao.getFishermanWithDetails(fishermanId)
-    }
 
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>> {
         return photoDao.getPhotosForFisherman(fishermanId)
@@ -86,55 +82,22 @@ class FishermanDetailsViewModel(
         }
     }
 
-    fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
-        viewModelScope.launch {
-            val tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
-            if (tackleBox != null) {
-                tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
-            }
-        }
-    }
-
-    fun deleteTripFromFisherman(tripId: String, fishermanId: String) {
-        viewModelScope.launch {
-            val crossRef = TripFishermanCrossRef(tripId, fishermanId)
-            tripDao.deleteCrossRef(crossRef)
-        }
-    }
-
     fun updateFisherman(fisherman: Fisherman) {
         viewModelScope.launch {
             fishermanDao.update(fisherman)
         }
     }
 
-    fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
+    fun createTackleBox(fishermanId: String, name: String) {
         viewModelScope.launch {
-            var tackleBox = tackleBoxDao.getTackleBoxForFisherman(fishermanId).firstOrNull()
-            if (tackleBox == null) {
-                tackleBox = TackleBox(fishermanId = fishermanId)
-                tackleBoxDao.insertTackleBox(tackleBox)
-            }
-            tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            tackleBoxDao.insertTackleBox(tackleBox)
         }
     }
 
-    fun addLure(lure: Lure) {
+    fun deleteTackleBox(tackleBox: TackleBox) {
         viewModelScope.launch {
-            lureDao.insertLure(lure)
-        }
-    }
-
-    fun addLureColor(color: LureColor, onComplete: (String) -> Unit = {}) {
-        viewModelScope.launch {
-            lureDao.insertLureColor(color)
-            onComplete(color.id)
-        }
-    }
-
-    fun deleteLureColor(color: LureColor) {
-        viewModelScope.launch {
-            lureDao.deleteLureColor(color)
+            tackleBoxDao.deleteTackleBox(tackleBox)
         }
     }
 
@@ -147,19 +110,6 @@ class FishermanDetailsViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
         )
-
-    fun addFishermanToTrip(tripId: String, fishermanId: String) {
-        viewModelScope.launch {
-            val crossRef = TripFishermanCrossRef(tripId, fishermanId)
-            tripDao.insertCrossRef(crossRef)
-        }
-    }
-
-    fun addTrip(trip: Trip) {
-        viewModelScope.launch {
-            tripDao.insertTrip(trip)
-        }
-    }
 }
 
 class FishermanDetailsViewModelFactory(

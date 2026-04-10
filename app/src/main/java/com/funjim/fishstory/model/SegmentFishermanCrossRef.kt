@@ -9,6 +9,10 @@ import kotlinx.serialization.Serializable
 @Entity(
     tableName = "segment_fisherman_cross_ref",
     primaryKeys = ["segmentId", "fishermanId"],
+    indices = [
+        Index(value = ["fishermanId"]),
+        Index(value = ["tackleBoxId"])
+    ],
     foreignKeys = [
         ForeignKey(
             entity = Segment::class,
@@ -21,11 +25,17 @@ import kotlinx.serialization.Serializable
             parentColumns = ["id"],
             childColumns = ["fishermanId"],
             onDelete = ForeignKey.CASCADE
+        ),
+            ForeignKey(
+            entity = TackleBox::class,
+            parentColumns = ["id"],
+            childColumns = ["tackleBoxId"],
+            onDelete = ForeignKey.SET_NULL
         )
-    ],
-    indices = [Index("fishermanId")]
+    ]
 )
 data class SegmentFishermanCrossRef(
     val segmentId: String,
-    val fishermanId: String
+    val fishermanId: String,
+    val tackleBoxId: String? = null
 )

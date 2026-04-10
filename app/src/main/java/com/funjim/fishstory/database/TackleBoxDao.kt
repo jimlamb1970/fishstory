@@ -22,14 +22,19 @@ interface TackleBoxDao {
     @Query("DELETE FROM tackle_box_lure_cross_ref")
     suspend fun deleteAllTackleBoxLureCrossRefs()
 
+    // TODO -- need to rework this logic
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
     suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBox?
 
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
-    fun getTackleBoxForFisherman(fishermanId: String): Flow<TackleBox?>
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTackleBox(tackleBox: TackleBox)
+
+    @Delete
+    suspend fun deleteTackleBox(tackleBox: TackleBox)
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLureToTackleBox(crossRef: TackleBoxLureCrossRef)

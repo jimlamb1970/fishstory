@@ -41,9 +41,11 @@ import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.FishermanListScreen
+import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
+import com.funjim.fishstory.ui.screens.TripTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 import kotlinx.coroutines.launch
 
@@ -90,6 +92,7 @@ class MainActivity : ComponentActivity() {
             database.segmentDao(),
             database.photoDao(),
             database.fishermanDao(),
+            database.tackleBoxDao(),
             database.fishDao()
         )
     }
@@ -198,7 +201,7 @@ fun AppNavigation(
 
         composable(
             route = "loadBoatForTrip",
-        ) { backStackEntry ->
+        ) {
             val scope = rememberCoroutineScope()
             val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
             val draftCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
@@ -259,7 +262,7 @@ fun AppNavigation(
 
         composable(
             route = "loadBoatForSegment"
-        ) { backStackEntry ->
+        ) {
             val scope = rememberCoroutineScope()
             val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
             val tripCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
@@ -343,6 +346,27 @@ fun AppNavigation(
                     val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
                     navController.navigate(route)
                 },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "lureList/{fishermanId}/{tackleBoxId}",
+            arguments = listOf(
+                navArgument("tackleBoxId") { type = NavType.StringType },
+                navArgument("fishermanId") { type = NavType.StringType },
+                )
+
+        ) { backStackEntry ->
+            val tackleBoxId = backStackEntry.arguments?.getString("tackleBoxId")
+            val fishermanId = backStackEntry.arguments?.getString("fishermanId")
+
+            FishermanTackleBoxScreen(
+                viewModel = lureViewModel,
+                fishermanId = fishermanId ?: "",
+                tackleBoxId = tackleBoxId ?: "",
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -514,9 +538,24 @@ fun AppNavigation(
                 navigateToAddSegment = { id ->
                     navController.navigate("addSegment/$id")
                 },
+                navigateToTackleBoxes = { id ->
+                    navController.navigate("tripTackleBoxes/$id")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(
+            route = "tripTackleBoxes/{tripId}",
+            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            TripTackleBoxScreen(
+                viewModel = tripViewModel,
+                tripId = tripId,
+                navigateBack = { navController.popBackStack() }
             )
         }
 
@@ -580,8 +619,8 @@ fun AppNavigation(
                 navigateToFishList = { id ->
                     navController.navigate("FishermanFishList/$id")
                 },
-                navigateToLureList = { id ->
-                    navController.navigate("lures?fishermanId=$id")
+                navigateToLureList = { fishermanId, tackleBoxid ->
+                    navController.navigate("lureList/$fishermanId/$tackleBoxid")
                 },
                 navigateBack = {
                     navController.popBackStack()

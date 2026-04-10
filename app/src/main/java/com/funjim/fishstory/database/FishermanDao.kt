@@ -22,6 +22,9 @@ interface FishermanDao {
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<Fisherman>>
 
+    @Query("SELECT * FROM fisherman_table WHERE id = :id")
+    suspend fun getFishermanById(id: String): Fisherman?
+
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
 
@@ -67,7 +70,6 @@ interface FishermanDao {
     @Query("""
     SELECT 
         f.*,
-        f.id AS fishermanId,
 
         -- FISH EXTREMES
         (SELECT MAX(length) FROM fish_table WHERE fishermanId = :fId) AS largestFishLength,

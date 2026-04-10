@@ -26,7 +26,6 @@ import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
-//import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
@@ -79,10 +78,11 @@ fun FishItem(
                     Text(
                         text = buildString {
                             append("${fish.speciesName} - ${fish.length}\"")
-                            /*
-                    if (fish.holeNumber != null) {
-                        append(" (Hole #${fish.holeNumber})")
-                    }
+                            // TODO show hole number
+/*
+                            if (fish.holeNumber != null) {
+                                append(" (Hole #${fish.holeNumber})")
+                            }
 */
                         },
                         style = MaterialTheme.typography.titleLarge

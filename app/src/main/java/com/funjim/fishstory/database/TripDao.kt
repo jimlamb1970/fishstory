@@ -45,6 +45,7 @@ interface TripDao {
         (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id) as totalCaught,
         (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id AND f.isReleased = 0) as totalKept,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
+        (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 (
             SELECT 
                 CASE 
@@ -82,6 +83,12 @@ interface TripDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
+
+    @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
+    fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>
+
+    @Update
+    suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanCrossRef)
 
     @Delete
     suspend fun deleteCrossRef(crossRef: TripFishermanCrossRef)

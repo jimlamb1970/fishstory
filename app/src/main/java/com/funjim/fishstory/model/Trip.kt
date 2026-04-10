@@ -63,6 +63,7 @@ data class TripSummary(
     val totalCaught: Int,
     val totalKept: Int,
     val fishermanCount: Int,
+    val tackleBoxCount: Int,
     val bigFishWinner: String?,
     val topRodName: String?
 )

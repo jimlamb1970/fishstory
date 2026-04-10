@@ -39,6 +39,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
+import com.funjim.fishstory.ui.TackleBoxSummary
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -55,6 +56,7 @@ fun TripDetailsScreen(
     navigateToSegmentDetails: (String) -> Unit,
     navigateToLoadBoatForTrip: (String) -> Unit,
     navigateToAddSegment: (String) -> Unit,
+    navigateToTackleBoxes: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(tripId) {
@@ -291,6 +293,14 @@ fun TripDetailsScreen(
                         BoatSummary(
                             fishermanCount = details.fishermanCount,
                             onBoatClick = { navigateToLoadBoatForTrip(tripId) }
+                        )
+
+                        HorizontalDivider()
+
+                        // The Boat Concept
+                        TackleBoxSummary(
+                            fishermanCount = details.tackleBoxCount,
+                            onClick = { navigateToTackleBoxes(tripId) }
                         )
 
                         HorizontalDivider()

@@ -17,6 +17,8 @@ import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+// TODO -- add ability to add photos
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLureScreen(
