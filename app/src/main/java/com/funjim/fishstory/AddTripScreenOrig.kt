@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,127 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentWithDetails
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.BoatSummary
+import com.funjim.fishstory.ui.DateTimePickerButton
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateTimePickerButton(
-    label: String,
-    millis: Long,
-    modifier: Modifier = Modifier,
-    onConfirm: (Long) -> Unit
-) {
-    val dateTimeFormatter = remember {
-        SimpleDateFormat("MMM dd, yyyy  HH:mm", Locale.getDefault())
-    }
-    var showDateStep by remember { mutableStateOf(false) }
-    var showTimeStep by remember { mutableStateOf(false) }
-    var pendingMillis by remember { mutableLongStateOf(millis) }
-
-    OutlinedButton(onClick = { showDateStep = true }, modifier = modifier) {
-        Text(dateTimeFormatter.format(Date(millis)))
-    }
-
-    if (showDateStep) {
-        val localCal = Calendar.getInstance()
-        localCal.timeInMillis = millis
-        // Strip time in UTC (DatePicker expects UTC midnight for the selected date)
-        val startOfDayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            set(localCal.get(Calendar.YEAR), localCal.get(Calendar.MONTH), localCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = startOfDayUtc)
-
-        DatePickerDialog(
-            onDismissRequest = { showDateStep = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { newDate ->
-                        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                        utcCal.timeInMillis = newDate
-                        val cal = Calendar.getInstance()
-                        cal.timeInMillis = millis
-                        cal.set(
-                            utcCal.get(Calendar.YEAR),
-                            utcCal.get(Calendar.MONTH),
-                            utcCal.get(Calendar.DAY_OF_MONTH)
-                        )
-                        pendingMillis = cal.timeInMillis
-                    }
-                    showDateStep = false
-                    showTimeStep = true
-                }) { Text("Next") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDateStep = false }) { Text("Cancel") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    if (showTimeStep) {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = pendingMillis
-        val timePickerState = rememberTimePickerState(
-            initialHour = cal.get(Calendar.HOUR_OF_DAY),
-            initialMinute = cal.get(Calendar.MINUTE),
-            is24Hour = true
-        )
-        Dialog(onDismissRequest = { showTimeStep = false }) {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 6.dp,
-                modifier = Modifier
-                    .width(IntrinsicSize.Min)
-                    .height(IntrinsicSize.Min)
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Select $label time",
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
-                    )
-                    TimePicker(state = timePickerState)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { showTimeStep = false }) { Text("Cancel") }
-                        TextButton(onClick = {
-                            cal.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                            cal.set(Calendar.MINUTE, timePickerState.minute)
-                            cal.set(Calendar.SECOND, 0)
-                            cal.set(Calendar.MILLISECOND, 0)
-                            onConfirm(cal.timeInMillis)
-                            showTimeStep = false
-                        }) { Text("OK") }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -185,7 +185,7 @@ fun AppNavigation(
         }
 
         composable("addTrip") {
-            AddTripScreen(
+            AddTripScreenNew(
                 viewModel = viewModel,
                 navigateToLoadBoatForTrip = {
                     navController.navigate("loadBoatForTrip")

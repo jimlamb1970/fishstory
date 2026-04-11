@@ -32,11 +32,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.DateTimePickerButton
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.BoatSummary
+import com.funjim.fishstory.ui.DateTimePickerButton
 import com.funjim.fishstory.ui.PhotoPickerRow
 import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.TackleBoxSummary
