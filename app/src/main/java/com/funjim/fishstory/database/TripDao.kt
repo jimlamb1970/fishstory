@@ -7,6 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
@@ -25,11 +27,17 @@ interface TripDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTrip(trip: Trip)
 
+    @Upsert
+    suspend fun upsertTrip(trip: Trip)
+
     @Update
     suspend fun updateTrip(trip: Trip)
 
     @Delete
     suspend fun deleteTrip(trip: Trip)
+
+    @Query("DELETE FROM trip_table WHERE id = :tripId")
+    suspend fun deleteTripById(tripId: String)
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
@@ -75,21 +83,39 @@ interface TripDao {
 """)
     fun getTripSummaries(): Flow<List<TripSummary>>
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
+
+    @Upsert
+    suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef)
+
+    // TODO -- replace updateTripFishmanTackleBox with upsertTripFishermanCrossRef
+    @Update
+    suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanCrossRef)
+
     @Query("SELECT * FROM trip_fisherman_cross_ref")
     fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanCrossRef>>
 
-    @Query("DELETE FROM trip_fisherman_cross_ref")
-    suspend fun deleteAllTripFishermanCrossRefs()
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
+    @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
+    fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanCrossRef>>
 
     @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>
 
-    @Update
-    suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanCrossRef)
+    @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId LIMIT 1")
+    suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanCrossRef?
 
+
+    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId NOT IN (:fishermenIds)")
+    suspend fun removeFishermenNotInSet(tripId: String, fishermenIds: Set<String>)
+
+    // TODO -- replace deleteCrossRef with deleteTripFishermanCrossRef
     @Delete
     suspend fun deleteCrossRef(crossRef: TripFishermanCrossRef)
+
+    @Delete
+    suspend fun deleteTripFishermanCrossRef(crossRef: TripFishermanCrossRef)
+
+    @Query("DELETE FROM trip_fisherman_cross_ref")
+    suspend fun deleteAllTripFishermanCrossRefs()
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -147,7 +148,10 @@ fun TripItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(trip.trip.name, style = MaterialTheme.typography.titleLarge, color = Color.Black)
+                    Text(trip.trip.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black)
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -168,9 +172,9 @@ fun TripItem(
                         )
                     }
                 }
-                Text("Start: $startString", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Text("End:   $endString", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                
+                Text("$startString  →  $endString",
+                    style = MaterialTheme.typography.bodyMedium)
+
                 details?.let {
                     val fishermanCount = it.fishermen.size
                     val caughtCount = it.fish.size
@@ -178,7 +182,7 @@ fun TripItem(
                     
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "$fishermanCount Fisherman • $caughtCount Caught • $keptCount Kept",
+                        text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • $caughtCount Caught • $keptCount Kept",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )

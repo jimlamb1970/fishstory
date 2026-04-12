@@ -314,6 +314,18 @@ class MainViewModel(
         return tripDao.getTripWithFishermen(tripId)
     }
 
+    fun removeTripFishermenNotInSet(tripId: String, newSet: Set<String>) {
+        viewModelScope.launch {
+            tripDao.removeFishermenNotInSet(tripId, newSet)
+        }
+    }
+
+    fun removeSegmentFishermenNotInSet(segmentId: String, newSet: Set<String>) {
+        viewModelScope.launch {
+            segmentDao.removeFishermenNotInSet(segmentId, newSet)
+        }
+    }
+
     fun syncTripFishermen(tripId: String, newSet: Set<String>) {
         viewModelScope.launch {
             // 1. Get the CURRENT state from the DB (one-time fetch)
@@ -345,12 +357,20 @@ class MainViewModel(
         tripDao.insertTrip(trip)
     }
 
+    suspend fun upsertTrip(trip: Trip) {
+        tripDao.upsertTrip(trip)
+    }
+
     suspend fun updateTrip(trip: Trip) {
         tripDao.updateTrip(trip)
     }
 
     suspend fun deleteTrip(trip: Trip) {
         tripDao.deleteTrip(trip)
+    }
+
+    suspend fun deleteTripById(tripId: String) {
+        tripDao.deleteTripById(tripId)
     }
 
     suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
@@ -415,6 +435,22 @@ class MainViewModel(
         segmentDao.insertSegment(segment)
     }
 
+    suspend fun upsertSegment(segment: Segment) {
+        segmentDao.upsertSegment(segment)
+    }
+
+    fun upsertSegmentFishermanCrossRef(segmentId: String, fishermanId: String, tackleBoxId: String?) {
+        viewModelScope.launch {
+            segmentDao.upsertSegmentFishermanCrossRef(
+                SegmentFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
+            )
+        }
+    }
+
+    suspend fun upsertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef) {
+        segmentDao.upsertSegmentFishermanCrossRef(crossRef)
+    }
+
     suspend fun addSegmentWithFishermen(segment: Segment, fishermanIds: Collection<String>) {
         segmentDao.insertSegment(segment)
         fishermanIds.forEach { fid ->
@@ -473,6 +509,69 @@ class MainViewModel(
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForTrip(tripId)
     }
+
+    fun initializeNewTrip(): String {
+        val newId = UUID.randomUUID().toString()
+        viewModelScope.launch {
+            // Create a blank trip record immediately
+            tripDao.insertTrip(
+                Trip(
+                    id = newId,
+                    name = "", // User fills this in Step 1
+                    startDate = System.currentTimeMillis()
+                )
+            )
+        }
+        return newId
+    }
+
+    fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanCrossRef>> {
+        return tripDao.getTripFishermanCrossRefs(tripId)
+    }
+
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
+        return tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
+    }
+
+    fun upsertTripFishermanCrossRef(tripId: String, fishermanId: String, tackleBoxId: String?) {
+        viewModelScope.launch {
+            tripDao.upsertTripFishermanCrossRef(
+                TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
+            )
+        }
+    }
+
+    fun createAndAssignTackleBox(fishermanId: String, name: String, onCreated: (String) -> Unit) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            tackleBoxDao.insertTackleBox(tackleBox)
+            onCreated(tackleBox.id)
+        }
+    }
+
+    fun toggleFishermanForTrip(tripId: String, fishermanId: String, isAdded: Boolean) {
+        viewModelScope.launch {
+            if (isAdded) {
+                // Check if they already exist to avoid overwriting an existing tacklebox choice
+                val existing = tripDao.getTripFishermanCrossRef(tripId, fishermanId)
+                if (existing == null) {
+                    tripDao.upsertTripFishermanCrossRef(
+                        TripFishermanCrossRef(tripId, fishermanId, null)
+                    )
+                }
+            } else {
+                // User unchecked the box, remove the relationship entirely
+                tripDao.deleteTripFishermanCrossRef(
+                    TripFishermanCrossRef(tripId, fishermanId)
+                )
+            }
+        }
+    }
+//    fun updateTackleBoxForTripFisherman(tripId: String, fishermanId: String, tackleBoxId: String) {
+//        viewModelScope.launch {
+//            tripDao.updateTripFishermanTackleBox(TripFishermanCrossRef(tripId, fishermanId, tackleBoxId))
+//        }
+//    }
 
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForSegment(segmentId)

@@ -35,8 +35,12 @@ interface SegmentDao {
     @Query("SELECT * FROM segment_table WHERE id = :segmentId")
     fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?>
 
+    // TODO - convert these upsert
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSegment(segment: Segment)
+
+    @Upsert
+    suspend fun upsertSegment(segment: Segment)
 
     @Update
     suspend fun updateSegment(segment: Segment)
@@ -81,21 +85,29 @@ interface SegmentDao {
 """)
     fun getSegmentSummaries(tripId: String): Flow<List<SegmentSummary>>
 
-    @Query("SELECT * FROM segment_fisherman_cross_ref")
-    fun getAllSegmentFishermanCrossRefs(): Flow<List<SegmentFishermanCrossRef>>
 
-    @Query("DELETE FROM segment_fisherman_cross_ref")
-    suspend fun deleteAllSegmentFishermanCrossRefs()
-
+    // TODO -- convert these to upsert
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)
 
-    @Query("SELECT tackleBoxId FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId = :fishermanId")
-    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?>
+    @Upsert
+    suspend fun upsertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)
 
     @Update
     suspend fun updateSegmentFishermanTackleBox(crossRef: SegmentFishermanCrossRef)
 
+    @Query("SELECT * FROM segment_fisherman_cross_ref")
+    fun getAllSegmentFishermanCrossRefs(): Flow<List<SegmentFishermanCrossRef>>
+
+    @Query("SELECT tackleBoxId FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId = :fishermanId")
+    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?>
+
+    @Query("DELETE FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId NOT IN (:fishermenIds)")
+    suspend fun removeFishermenNotInSet(segmentId: String, fishermenIds: Set<String>)
+
     @Delete
     suspend fun deleteSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef)
+
+    @Query("DELETE FROM segment_fisherman_cross_ref")
+    suspend fun deleteAllSegmentFishermanCrossRefs()
 }

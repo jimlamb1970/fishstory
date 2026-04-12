@@ -1,10 +1,11 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,126 +29,138 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.DateTimePickerButton
-import com.funjim.fishstory.ui.SegmentItem
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 // ---------------------------------------------------------------------------
-// Wizard step enum
+// Wizard steps
 // ---------------------------------------------------------------------------
 private enum class WizardStep {
-    TripInfo,       // Step 1: name, dates, location
-    TripCrew,       // Step 2: fishermen + tackle boxes for trip
-    SegmentInfo,    // Step 3: segment name, dates, location
-    SegmentCrew,    // Step 4: fishermen + tackle boxes for segment
-    Review          // Step 5: review all segments, add another or finish
+    TripInfo,           // Step 1 – name, dates, location
+    TripCrew,           // Step 2 – fishermen + tackle boxes for trip
+    SegmentInfo,        // Step 3 – segment name, dates, location
+    SegmentCrew,        // Step 4 – fishermen + tackle boxes for segment
+    Review              // Step 5 – list segments, add another or finish
 }
 
+// Lightweight in-memory segment draft — no ViewModel needed
+private data class SegmentDraft(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val startTime: Long,
+    val endTime: Long,
+    val latitude: Double?,
+    val longitude: Double?,
+    val fishermanIds: Set<String>,
+    val tackleBoxSelections: Map<String, String?>
+)
+
 // ---------------------------------------------------------------------------
-// AddTripScreen – wizard
+// AddTripScreen
 // ---------------------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTripScreenNew(
+fun AddTripScreen(
     viewModel: MainViewModel,
+    tripViewModel: TripViewModel,
     navigateBack: () -> Unit,
-    // These params kept for nav-compat but unused inside wizard
+    // Kept for nav-compat but unused — wizard is self-contained
     navigateToLoadBoatForTrip: () -> Unit = {},
     navigateToAddSegment: (String) -> Unit = {},
     navigateToDraftSegmentDetails: (String) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val now = remember { System.currentTimeMillis() }
 
-    // Draft state from ViewModel
-    val draftTripId by viewModel.draftTripId.collectAsState()
-    val draftTripName by viewModel.draftTripName.collectAsState()
-    val draftTripStartDate by viewModel.draftTripStartDate.collectAsState()
-    val draftTripEndDate by viewModel.draftTripEndDate.collectAsState()
-    val draftLatitude by viewModel.draftLatitude.collectAsState()
-    val draftLongitude by viewModel.draftLongitude.collectAsState()
-    val draftSegments by viewModel.draftSegments.collectAsState()
-    val draftFishermanIds by viewModel.draftFishermanIds.collectAsState()
-    val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
-    val draftSegmentId by viewModel.draftSegmentId.collectAsStateWithLifecycle()
+    // All fishermen from DB — used for crew selection
     val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+    val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
-    // Local mirrors
-    var tripId by remember(draftTripId) { mutableStateOf(draftTripId) }
-    var name by remember(draftTripName) { mutableStateOf(draftTripName) }
-    var startDateMillis by remember(draftTripStartDate) { mutableLongStateOf(draftTripStartDate) }
-    var endDateMillis by remember(draftTripEndDate) { mutableLongStateOf(draftTripEndDate) }
-    var latitude by remember(draftLatitude) { mutableStateOf(draftLatitude) }
-    var longitude by remember(draftLongitude) { mutableStateOf(draftLongitude) }
+    // ── Trip-level state ────────────────────────────────────────────────────
+    var tripName by remember { mutableStateOf("") }
+    var tripStart by remember { mutableLongStateOf(now) }
+    var tripEnd by remember { mutableLongStateOf(now) }
+    var tripLat by remember { mutableStateOf<Double?>(null) }
+    var tripLng by remember { mutableStateOf<Double?>(null) }
+    var tripFishermanIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    // Maps fishermanId -> selected tackleBoxId for trip crew step
+    var tripTackleBoxSelections by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
 
-    // Segment local state
+    // The Trip row in the DB — null until Step 1 is committed
+    var newTripId by remember { mutableStateOf<String>(UUID.randomUUID().toString()) }
+    var newSegmentId by remember { mutableStateOf<String>(UUID.randomUUID().toString()) }
+
+    // ── Segment-level state (reused for each segment) ───────────────────────
     var segmentName by remember { mutableStateOf("") }
-    var segmentStartMillis by remember { mutableLongStateOf(draftTripStartDate) }
-    var segmentEndMillis by remember { mutableLongStateOf(draftTripEndDate) }
-    var segmentLatitude by remember { mutableStateOf<Double?>(null) }
-    var segmentLongitude by remember { mutableStateOf<Double?>(null) }
+    var segmentStart by remember { mutableLongStateOf(now) }
+    var segmentEnd by remember { mutableLongStateOf(now) }
+    var segmentLat by remember { mutableStateOf<Double?>(null) }
+    var segmentLng by remember { mutableStateOf<Double?>(null) }
+    var segmentFishermanIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    // Maps fishermanId -> selected tackleBoxId for segment crew step
+    var segmentTackleBoxSelections by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
 
-    // Wizard step
+    // In-memory list of committed segments
+    var committedSegments by remember { mutableStateOf<List<SegmentDraft>>(emptyList()) }
+
+    // ── Wizard step ─────────────────────────────────────────────────────────
     var currentStep by remember { mutableStateOf(WizardStep.TripInfo) }
-    var menuExpanded by remember { mutableStateOf(false) }
+    var isFirstSegment by remember { mutableStateOf(true) }
+    var fromReview by remember { mutableStateOf(false) }
 
-    // Init a fresh trip id on first composition
-    LaunchedEffect(Unit) {
-        if (tripId.isEmpty()) viewModel.prepareNewTrip()
-    }
+    var locationMenuExpanded by remember { mutableStateOf(false) }
 
-    // Keep local tripId in sync
-    LaunchedEffect(draftTripId) { if (draftTripId.isNotEmpty()) tripId = draftTripId }
-
+    // Location pickers
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
-    val locationPicker = rememberLocationPickerState(
+    val tripLocationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = latitude,
-        existingLng = longitude,
+        existingLat = tripLat,
+        existingLng = tripLng,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
-        onLocationConfirmed = { lat, lng ->
-            viewModel.updateDraftLocation(lat, lng)
-            latitude = lat; longitude = lng
-        }
+        onLocationConfirmed = { lat, lng -> tripLat = lat; tripLng = lng }
     )
 
     val segmentLocationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentLatitude,
-        existingLng = segmentLongitude,
+        existingLat = segmentLat,
+        existingLng = segmentLng,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
-        onLocationConfirmed = { lat, lng ->
-            segmentLatitude = lat; segmentLongitude = lng
-        }
+        onLocationConfirmed = { lat, lng -> segmentLat = lat; segmentLng = lng }
     )
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
                 viewModel.getCurrentLocation(context)?.let { loc ->
-                    when (currentStep) {
-                        WizardStep.TripInfo -> {
-                            viewModel.updateDraftLocation(loc.latitude, loc.longitude)
-                            latitude = loc.latitude; longitude = loc.longitude
-                        }
-                        WizardStep.SegmentInfo -> {
-                            segmentLatitude = loc.latitude; segmentLongitude = loc.longitude
-                        }
-                        else -> {}
+                    if (currentStep == WizardStep.TripInfo) {
+                        tripLat = loc.latitude; tripLng = loc.longitude
+                    } else if (currentStep == WizardStep.SegmentInfo) {
+                        segmentLat = loc.latitude; segmentLng = loc.longitude
                     }
-                }
+                } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Step labels for the progress indicator
-    val stepLabels = listOf("Trip", "Crew", "Segment", "Seg. Crew", "Review")
+    // Helper: delete the trip row if user cancels mid-wizard
+    fun cancelAndExit() {
+        scope.launch {
+                // CASCADE deletes will clean up fisherman cross-refs and segments
+                viewModel.deleteTripById(newTripId)
+            }
+        navigateBack()
+    }
+
+    // Progress indicator
+    val stepLabels = listOf("Trip", "Crew & Boxes", "Segment", "Seg. Crew & Boxes", "Review")
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
     Scaffold(
@@ -165,82 +179,80 @@ fun AddTripScreenNew(
                 navigationIcon = {
                     IconButton(onClick = {
                         when (currentStep) {
-                            WizardStep.TripInfo -> { viewModel.clearDrafts(); navigateBack() }
-                            WizardStep.TripCrew -> currentStep = WizardStep.TripInfo
-                            WizardStep.SegmentInfo -> currentStep = WizardStep.Review
+                            WizardStep.TripInfo    -> cancelAndExit()
+                            WizardStep.TripCrew    -> currentStep = WizardStep.TripInfo
+                            WizardStep.SegmentInfo -> {
+                                // Logic depends on whether this is the start of the trip or a later addition
+                                currentStep = if (isFirstSegment) {
+                                    WizardStep.TripCrew
+                                } else {
+                                    WizardStep.Review
+                                }
+                            }
                             WizardStep.SegmentCrew -> currentStep = WizardStep.SegmentInfo
-                            WizardStep.Review -> currentStep = WizardStep.TripCrew
+                            WizardStep.Review      -> currentStep = WizardStep.SegmentInfo
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    // Location menu on steps that support it
                     if (currentStep == WizardStep.TripInfo || currentStep == WizardStep.SegmentInfo) {
-                        val hasLocation = if (currentStep == WizardStep.TripInfo) latitude != null else segmentLatitude != null
+                        val onTripStep = currentStep == WizardStep.TripInfo
+                        val hasLocation = if (onTripStep) tripLat != null else segmentLat != null
                         Box {
-                            IconButton(onClick = { menuExpanded = true }) {
+                            IconButton(onClick = { locationMenuExpanded = true }) {
                                 Icon(
                                     Icons.Default.LocationOn,
                                     contentDescription = "Location",
                                     tint = if (hasLocation) Color(0xFF4CAF50) else LocalContentColor.current
                                 )
                             }
-                            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                            DropdownMenu(expanded = locationMenuExpanded, onDismissRequest = { locationMenuExpanded = false }) {
                                 DropdownMenuItem(
                                     text = { Text("Use Current Location") },
+                                    leadingIcon = { Icon(Icons.Default.MyLocation, null) },
                                     onClick = {
-                                        menuExpanded = false
+                                        locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
                                                 viewModel.getCurrentLocation(context)?.let { loc ->
-                                                    if (currentStep == WizardStep.TripInfo) {
-                                                        viewModel.updateDraftLocation(loc.latitude, loc.longitude)
-                                                        latitude = loc.latitude; longitude = loc.longitude
-                                                    } else {
-                                                        segmentLatitude = loc.latitude; segmentLongitude = loc.longitude
-                                                    }
+                                                    if (onTripStep) { tripLat = loc.latitude; tripLng = loc.longitude }
+                                                    else { segmentLat = loc.latitude; segmentLng = loc.longitude }
                                                 } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
                                             }
                                         } else {
                                             permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                                         }
-                                    },
-                                    leadingIcon = { Icon(Icons.Default.LocationOn, null) }
+                                    }
                                 )
-                                if (currentStep == WizardStep.SegmentInfo && latitude != null) {
+                                if (!onTripStep && tripLat != null) {
                                     DropdownMenuItem(
                                         text = { Text("Use Trip Location") },
+                                        leadingIcon = { Icon(Icons.Default.LocationOn, null) },
                                         onClick = {
-                                            menuExpanded = false
-                                            segmentLatitude = latitude; segmentLongitude = longitude
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.LocationOn, null) }
+                                            locationMenuExpanded = false
+                                            segmentLat = tripLat; segmentLng = tripLng
+                                        }
                                     )
                                 }
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
+                                    leadingIcon = { Icon(Icons.Default.Map, null) },
                                     onClick = {
-                                        menuExpanded = false
-                                        if (currentStep == WizardStep.TripInfo) locationPicker.openPicker()
-                                        else segmentLocationPicker.openPicker()
-                                    },
-                                    leadingIcon = { Icon(Icons.Default.Map, null) }
+                                        locationMenuExpanded = false
+                                        if (onTripStep) tripLocationPicker.openPicker() else segmentLocationPicker.openPicker()
+                                    }
                                 )
                                 if (hasLocation) {
                                     DropdownMenuItem(
                                         text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                        leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) },
                                         onClick = {
-                                            menuExpanded = false
-                                            if (currentStep == WizardStep.TripInfo) {
-                                                viewModel.updateDraftLocation(null, null)
-                                                latitude = null; longitude = null
-                                            } else {
-                                                segmentLatitude = null; segmentLongitude = null
-                                            }
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.error) }
+                                            locationMenuExpanded = false
+                                            if (onTripStep) { tripLat = null; tripLng = null }
+                                            else { segmentLat = null; segmentLng = null }
+                                        }
                                     )
                                 }
                             }
@@ -250,9 +262,8 @@ fun AddTripScreenNew(
             )
         }
     ) { padding ->
-
-        // Step progress bar
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+
             LinearProgressIndicator(
                 progress = { (stepIndex + 1f) / stepLabels.size },
                 modifier = Modifier.fillMaxWidth()
@@ -260,20 +271,17 @@ fun AddTripScreenNew(
 
             when (currentStep) {
 
-                // ── Step 1: Trip info ───────────────────────────────────────
+                // ── Step 1: Trip info ────────────────────────────────────────
                 WizardStep.TripInfo -> {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text("Trip Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
                         OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it; viewModel.updateDraftTripName(it) },
+                            value = tripName,
+                            onValueChange = { tripName = it },
                             label = { Text("Trip Name") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
@@ -281,77 +289,91 @@ fun AddTripScreenNew(
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("Start", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "start", millis = startDateMillis, modifier = Modifier.weight(1f)) { newMillis ->
-                                startDateMillis = newMillis
-                                viewModel.updateDraftTripStartDate(newMillis)
-                                if (newMillis > endDateMillis) {
-                                    endDateMillis = newMillis
-                                    viewModel.updateDraftTripEndDate(newMillis)
-                                }
+                            DateTimePickerButton(label = "start", millis = tripStart, modifier = Modifier.weight(1f)) { new ->
+                                tripStart = new
+                                if (new > tripEnd) tripEnd = new
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("End", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "end", millis = endDateMillis, modifier = Modifier.weight(1f)) { newMillis ->
-                                if (newMillis < startDateMillis) {
-                                    Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    endDateMillis = newMillis
-                                    viewModel.updateDraftTripEndDate(newMillis)
-                                }
+                            DateTimePickerButton(label = "end", millis = tripEnd, modifier = Modifier.weight(1f)) { new ->
+                                if (new < tripStart) Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                else tripEnd = new
                             }
                         }
 
-                        if (latitude != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
-                            }
+                        if (tripLat != null) {
+                            LocationSetRow()
                         }
 
                         Spacer(Modifier.weight(1f))
 
                         Button(
-                            onClick = { currentStep = WizardStep.TripCrew },
-                            enabled = name.isNotBlank(),
+                            onClick = {
+                                // Commit trip to DB now
+                                scope.launch {
+                                    val trip = Trip(
+                                        id = newTripId,
+                                        name = tripName,
+                                        startDate = tripStart,
+                                        endDate = tripEnd,
+                                        latitude = tripLat,
+                                        longitude = tripLng
+                                    )
+                                    viewModel.upsertTrip(trip)
+
+                                    // Seed segment defaults
+                                    segmentStart = tripStart
+                                    segmentEnd = tripEnd
+                                    currentStep = WizardStep.TripCrew
+                                }
+                            },
+                            enabled = tripName.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Next: Select Crew")
-                            Icon(Icons.Default.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }
 
-                // ── Step 2: Trip crew ───────────────────────────────────────
+                // ── Step 2: Trip crew + tackle boxes ────────────────────────
                 WizardStep.TripCrew -> {
-                    val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
-                    var addFishermanDialog by remember { mutableStateOf(false) }
+                    var showAddFishermanDialog by remember { mutableStateOf(false) }
 
                     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Select Crew for Trip", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Choose who's on the boat for this trip.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("Select who's on the boat and which tackle box each person will use.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("${draftFishermanIds.size} selected", style = MaterialTheme.typography.labelMedium)
-                            TextButton(onClick = { addFishermanDialog = true }) {
+                            Text("${tripFishermanIds.size} selected", style = MaterialTheme.typography.labelMedium)
+                            TextButton(onClick = { showAddFishermanDialog = true }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
-                                Text("Add new fisherman")
+                                Text("New fisherman")
                             }
                         }
 
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             items(sortedFishermen, key = { it.id }) { fisherman ->
-                                val checked = fisherman.id in draftFishermanIds
-                                FishermanCheckRow(
+                                val isSelected = fisherman.id in tripFishermanIds
+                                FishermanCrewRow(
                                     fisherman = fisherman,
-                                    checked = checked,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) viewModel.addDraftFisherman(fisherman.id)
-                                        else viewModel.removeDraftFisherman(fisherman.id)
-                                    }
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        tripFishermanIds = if (checked) tripFishermanIds + fisherman.id
+                                        else {
+                                            tripTackleBoxSelections = tripTackleBoxSelections - fisherman.id
+                                            tripFishermanIds - fisherman.id
+                                        }
+                                    },
+                                    selectedTackleBoxId = tripTackleBoxSelections[fisherman.id],
+                                    onTackleBoxSelected = { boxId ->
+                                        tripTackleBoxSelections = tripTackleBoxSelections + (fisherman.id to boxId)
+                                    },
+                                    tripViewModel = tripViewModel,
+                                    enabled = isSelected
                                 )
                                 HorizontalDivider()
                             }
@@ -366,55 +388,92 @@ fun AddTripScreenNew(
 
                         Button(
                             onClick = {
-                                segmentName = ""
-                                segmentStartMillis = startDateMillis
-                                segmentEndMillis = endDateMillis
-                                segmentLatitude = null; segmentLongitude = null
-                                val newSegId = UUID.randomUUID().toString()
-                                viewModel.updateDraftSegmentId(newSegId)
-                                viewModel.updateDraftSegmentName("")
-                                viewModel.updateDraftSegmentStartDate(startDateMillis)
-                                viewModel.updateDraftSegmentEndDate(endDateMillis)
-                                viewModel.setDraftSegmentFisherman(draftFishermanIds)
-                                currentStep = WizardStep.SegmentInfo
+                                scope.launch {
+                                    val tripId = newTripId ?: return@launch
+
+                                    // The databases for trip fishmen and segment fishermen may have
+                                    // already been written.  If a fisherman was removed from the trip,
+                                    // it needs to be removed from the trip as well as each segment
+                                    viewModel.removeTripFishermenNotInSet(
+                                        tripId = tripId,
+                                        newSet = tripFishermanIds)
+
+                                    committedSegments = committedSegments.map { segment ->
+                                        segment.copy(
+                                            // Keep only IDs that still exist in the master trip list
+                                            fishermanIds = segment.fishermanIds intersect tripFishermanIds,
+
+                                            // You should also filter the tackleBoxSelections map
+                                            // so you don't keep gear data for people who aren't there
+                                            tackleBoxSelections = segment.tackleBoxSelections.filterKeys { it in tripFishermanIds }
+                                        )
+                                    }
+                                    committedSegments.forEach { segment ->
+                                        viewModel.removeSegmentFishermenNotInSet(
+                                            segmentId = segment.id,
+                                            newSet = tripFishermanIds)
+                                    }
+
+                                    // TODO - need to 'sync' the tripFisherman or simply delete all the trip entries first
+                                    tripFishermanIds.forEach { fishermanId ->
+                                        viewModel.upsertTripFishermanCrossRef(
+                                            tripId = tripId,
+                                            fishermanId = fishermanId,
+                                            tackleBoxId = tripTackleBoxSelections[fishermanId])
+                                    }
+                                    // Seed segment crew and tackle box defaults from trip selections
+                                    segmentFishermanIds = tripFishermanIds
+                                    segmentTackleBoxSelections = tripTackleBoxSelections
+                                    segmentName = ""
+                                    segmentStart = tripStart
+                                    segmentEnd = tripEnd
+                                    segmentLat = null; segmentLng = null
+
+                                    if (fromReview) {
+                                        currentStep = WizardStep.Review
+                                    } else {
+                                        currentStep = WizardStep.SegmentInfo
+                                    }
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Next: Add First Segment")
-                            Icon(Icons.Default.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                            if (fromReview) {
+                                Text("Next: Review")
+                            } else {
+                                Text("Next: Add First Segment")
+                            }
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
 
-                    if (addFishermanDialog) {
-                        AddFishermanDialogNew(
-                            onDismiss = { addFishermanDialog = false },
-                            onAdd = { firstName, lastName, nickname ->
-                                scope.launch { viewModel.addFisherman(firstName, lastName, nickname) }
-                                addFishermanDialog = false
+                    if (showAddFishermanDialog) {
+                        AddFishermanDialog(
+                            onDismiss = { showAddFishermanDialog = false },
+                            onAdd = { first, last, nick ->
+                                scope.launch { viewModel.addFisherman(first, last, nick) }
+                                showAddFishermanDialog = false
                             }
                         )
                     }
                 }
 
-                // ── Step 3: Segment info ────────────────────────────────────
+                // ── Step 3: Segment info ─────────────────────────────────────
                 WizardStep.SegmentInfo -> {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text("Segment Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(
-                            "A segment is a single fishing session within the trip (e.g. morning run, afternoon drift).",
+                            "A segment is a single fishing session — e.g. morning run, afternoon drift.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         OutlinedTextField(
                             value = segmentName,
-                            onValueChange = { segmentName = it; viewModel.updateDraftSegmentName(it) },
+                            onValueChange = { segmentName = it },
                             label = { Text("Segment Name") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
@@ -422,76 +481,78 @@ fun AddTripScreenNew(
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("Start", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "start", millis = segmentStartMillis, modifier = Modifier.weight(1f)) { newMillis ->
-                                if (newMillis < startDateMillis) {
-                                    Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    segmentStartMillis = newMillis
-                                    viewModel.updateDraftSegmentStartDate(newMillis)
-                                    if (newMillis > segmentEndMillis) { segmentEndMillis = newMillis; viewModel.updateDraftSegmentEndDate(newMillis) }
+                            DateTimePickerButton(label = "start", millis = segmentStart, modifier = Modifier.weight(1f)) { new ->
+                                when {
+                                    new < tripStart -> Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
+                                    new > tripEnd   -> Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
+                                    else -> { segmentStart = new; if (new > segmentEnd) segmentEnd = new }
                                 }
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("End", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "end", millis = segmentEndMillis, modifier = Modifier.weight(1f)) { newMillis ->
+                            DateTimePickerButton(label = "end", millis = segmentEnd, modifier = Modifier.weight(1f)) { new ->
                                 when {
-                                    newMillis < segmentStartMillis -> Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
-                                    newMillis > endDateMillis -> Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
-                                    else -> { segmentEndMillis = newMillis; viewModel.updateDraftSegmentEndDate(newMillis) }
+                                    new < segmentStart -> Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
+                                    new > tripEnd      -> Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
+                                    else -> segmentEnd = new
                                 }
                             }
                         }
 
-                        if (segmentLatitude != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
-                            }
+                        if (segmentLat != null) {
+                            LocationSetRow()
                         }
 
                         Spacer(Modifier.weight(1f))
 
+                        // TODO -- commit segment information here just like trip steps
                         Button(
                             onClick = { currentStep = WizardStep.SegmentCrew },
                             enabled = segmentName.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Next: Select Segment Crew")
-                            Icon(Icons.Default.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }
 
-                // ── Step 4: Segment crew ────────────────────────────────────
+                // ── Step 4: Segment crew + tackle boxes ──────────────────────
                 WizardStep.SegmentCrew -> {
-                    // Only show fishermen who are on the trip
-                    val eligibleFishermen = remember(allFishermen, draftFishermanIds) {
-                        allFishermen.filter { it.id in draftFishermanIds }.sortedBy { it.fullName }
+                    // Only trip crew members are eligible for segment
+                    val eligibleFishermen = remember(sortedFishermen, tripFishermanIds) {
+                        sortedFishermen.filter { it.id in tripFishermanIds }
                     }
-                    val segmentCrewIds = draftSegmentFishermanIds[draftSegmentId] ?: draftFishermanIds
 
                     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Segment Crew", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("Segment Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(
-                            "Choose who's fishing this segment. Defaults to all trip crew.",
+                            "Who's fishing \"$segmentName\"? Tackle boxes default to trip selections.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text("\"${segmentName}\"", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             items(eligibleFishermen, key = { it.id }) { fisherman ->
-                                val checked = fisherman.id in segmentCrewIds
-                                FishermanCheckRow(
+                                val isSelected = fisherman.id in segmentFishermanIds
+                                FishermanCrewRow(
                                     fisherman = fisherman,
-                                    checked = checked,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) viewModel.addDraftSegmentFisherman(draftSegmentId, fisherman.id)
-                                        else viewModel.removeDraftSegmentFisherman(draftSegmentId, fisherman.id)
-                                    }
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        segmentFishermanIds = if (checked) segmentFishermanIds + fisherman.id
+                                        else {
+                                            segmentTackleBoxSelections = segmentTackleBoxSelections - fisherman.id
+                                            segmentFishermanIds - fisherman.id
+                                        }
+                                    },
+                                    selectedTackleBoxId = segmentTackleBoxSelections[fisherman.id],
+                                    onTackleBoxSelected = { boxId ->
+                                        segmentTackleBoxSelections = segmentTackleBoxSelections + (fisherman.id to boxId)
+                                    },
+                                    tripViewModel = tripViewModel,
+                                    enabled = isSelected
                                 )
                                 HorizontalDivider()
                             }
@@ -499,63 +560,115 @@ fun AddTripScreenNew(
 
                         Button(
                             onClick = {
-                                // Commit segment to draft list
-                                val finalCrewIds = draftSegmentFishermanIds[draftSegmentId] ?: draftFishermanIds
-                                val segment = Segment(
-                                    id = draftSegmentId,
-                                    tripId = tripId,
-                                    name = segmentName,
-                                    startTime = segmentStartMillis,
-                                    endTime = segmentEndMillis,
-                                    latitude = segmentLatitude,
-                                    longitude = segmentLongitude
-                                )
-                                viewModel.upsertDraftSegment(segment)
-                                currentStep = WizardStep.Review
+                                // Commit segment to DB
+                                scope.launch {
+                                    val segment = Segment(
+                                        tripId = newTripId,
+                                        id = newSegmentId,
+                                        name = segmentName,
+                                        startTime = segmentStart,
+                                        endTime = segmentEnd,
+                                        latitude = segmentLat,
+                                        longitude = segmentLng
+                                    )
+                                    viewModel.upsertSegment(segment)
+
+                                    // The databases for segment fishermen may have already been
+                                    // written.  If a fisherman was removed from the segment,
+                                    // it needs to be removed from the database
+                                    viewModel.removeSegmentFishermenNotInSet(
+                                        segmentId = segment.id,
+                                        newSet = segmentFishermanIds)
+
+                                    // Save tackle box selections for this segment
+                                    segmentFishermanIds.forEach { fishermanId ->
+                                        viewModel.upsertSegmentFishermanCrossRef(
+                                            segmentId = segment.id,
+                                            fishermanId = fishermanId,
+                                            tackleBoxId = segmentTackleBoxSelections[fishermanId])
+                                    }
+
+                                    val existing = committedSegments.find { it.id == newSegmentId }
+
+                                    if (existing != null) {
+                                        committedSegments = committedSegments - existing;
+                                    }
+
+                                    committedSegments = committedSegments + SegmentDraft(
+                                        id = segment.id,
+                                        name = segmentName,
+                                        startTime = segmentStart,
+                                        endTime = segmentEnd,
+                                        latitude = segmentLat,
+                                        longitude = segmentLng,
+                                        fishermanIds = segmentFishermanIds,
+                                        tackleBoxSelections = segmentTackleBoxSelections
+                                    )
+
+                                    currentStep = WizardStep.Review
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
+                            Icon(Icons.Default.Check, null, modifier = Modifier.padding(end = 8.dp))
                             Text("Save Segment")
-                            Icon(Icons.Default.Check, null, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }
 
-                // ── Step 5: Review ──────────────────────────────────────────
+                // ── Step 5: Review ───────────────────────────────────────────
                 WizardStep.Review -> {
+                    val fmt = remember { SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()) }
+                    val shortFmt = remember { SimpleDateFormat("MMM dd HH:mm", Locale.getDefault()) }
+
                     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Review Trip", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
                         // Trip summary card
-                        Card(modifier = Modifier.fillMaxWidth()) {
+                        // TODO - look into using same card (TripItem) from TripListScreen
+                        Card(modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable() {
+                                fromReview = true
+                                currentStep = WizardStep.TripInfo
+                            }
+                        ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                val fmt = remember { SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()) }
-                                Text("${fmt.format(Date(startDateMillis))} → ${fmt.format(Date(endDateMillis))}", style = MaterialTheme.typography.bodySmall)
-                                Text("${draftFishermanIds.size} fishermen on trip", style = MaterialTheme.typography.bodySmall)
-                                if (latitude != null) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
-                                        Text(" Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        tripName,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                    if (tripLat != null) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.LocationOn,
+                                            contentDescription = "Trip Location",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
+                                Text("${fmt.format(Date(tripStart))}  →  ${fmt.format(Date(tripEnd))}",
+                                    style = MaterialTheme.typography.bodyMedium)
+                                Text(text = "${tripFishermanIds.size} ${if (tripFishermanIds.size == 1) "fisherman" else "fishermen"}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary)
                             }
                         }
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Segments (${draftSegments.size})", style = MaterialTheme.typography.titleMedium)
+                            Text("Segments (${committedSegments.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
-                                // Start a fresh segment draft
+                                // Reset segment fields for a new one
+                                newSegmentId = UUID.randomUUID().toString()
                                 segmentName = ""
-                                segmentStartMillis = startDateMillis
-                                segmentEndMillis = endDateMillis
-                                segmentLatitude = null; segmentLongitude = null
-                                val newSegId = UUID.randomUUID().toString()
-                                viewModel.updateDraftSegmentId(newSegId)
-                                viewModel.updateDraftSegmentName("")
-                                viewModel.updateDraftSegmentStartDate(startDateMillis)
-                                viewModel.updateDraftSegmentEndDate(endDateMillis)
-                                viewModel.setDraftSegmentFisherman(draftFishermanIds)
+                                segmentStart = tripStart
+                                segmentEnd = tripEnd
+                                segmentLat = null; segmentLng = null
+                                segmentFishermanIds = tripFishermanIds
+                                segmentTackleBoxSelections = tripTackleBoxSelections
                                 currentStep = WizardStep.SegmentInfo
                             }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
@@ -564,53 +677,80 @@ fun AddTripScreenNew(
                             }
                         }
 
-                        if (draftSegments.isEmpty()) {
-                            Text("No segments added.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-                        }
-
                         LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(draftSegments, key = { it.id }) { segment ->
-                                val crewCount = draftSegmentFishermanIds[segment.id]?.size ?: 0
-                                ReviewSegmentRow(segment = segment, crewCount = crewCount)
-                                HorizontalDivider()
+                            items(committedSegments, key = { it.id }) { seg ->
+                                // TODO - look into using same card (SegmentItem) from SegmentComponents
+                                Card(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable() {
+                                        fromReview = true
+
+                                        newSegmentId = seg.id
+                                        segmentName = seg.name
+                                        segmentStart = seg.startTime
+                                        segmentEnd = seg.endTime
+                                        segmentLat = seg.latitude
+                                        segmentLng = seg.longitude
+                                        segmentFishermanIds = seg.fishermanIds
+                                        segmentTackleBoxSelections = seg.tackleBoxSelections
+
+                                        currentStep = WizardStep.SegmentInfo
+                                    }
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                seg.name,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color = Color.Black
+                                            )
+                                            if (seg.latitude != null) {
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Icon(
+                                                    imageVector = Icons.Default.LocationOn,
+                                                    contentDescription = "Trip Location",
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                        Text("${fmt.format(Date(seg.startTime))}  →  ${fmt.format(Date(seg.endTime))}",
+                                            style = MaterialTheme.typography.bodyMedium)
+                                        Text(text = "${seg.fishermanIds.size} ${if (seg.fishermanIds.size == 1) "fisherman" else "fishermen"}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
                             }
+
+                            if (committedSegments.isEmpty()) {
+                                item {
+                                    Text(
+                                        "No segments yet.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
+                            }
+
                         }
 
+                        // Done — trip + crew + segments are already in DB.
+                        // Just navigate back; nothing left to save.
                         Button(
-                            onClick = {
-                                scope.launch {
-                                    val trip = Trip(
-                                        id = tripId,
-                                        name = name,
-                                        startDate = startDateMillis,
-                                        endDate = endDateMillis,
-                                        latitude = latitude,
-                                        longitude = longitude
-                                    )
-                                    viewModel.addTrip(trip)
-                                    draftFishermanIds.forEach { fishermanId ->
-                                        viewModel.addFishermanToTrip(tripId, fishermanId)
-                                    }
-                                    draftSegments.forEach { draft ->
-                                        val segFishermen = draftSegmentFishermanIds[draft.id] ?: emptySet()
-                                        viewModel.addSegmentWithFishermen(draft, segFishermen)
-                                    }
-                                    viewModel.clearDrafts()
-                                    navigateBack()
-                                }
-                            },
+                            onClick = { navigateBack() },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = name.isNotBlank() && draftSegments.isNotEmpty()
+                            enabled = committedSegments.isNotEmpty()
                         ) {
-                            Icon(Icons.Default.Save, null, modifier = Modifier.padding(end = 8.dp))
-                            Text("Save Trip")
+                            Icon(Icons.Default.Check, null, modifier = Modifier.padding(end = 8.dp))
+                            Text("Done")
                         }
 
                         OutlinedButton(
-                            onClick = { viewModel.clearDrafts(); navigateBack() },
+                            onClick = { cancelAndExit() },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Discard")
+                            Text("Discard Entire Trip")
                         }
                     }
                 }
@@ -620,8 +760,17 @@ fun AddTripScreenNew(
 }
 
 // ---------------------------------------------------------------------------
-// Shared composables
+// Small shared composables
 // ---------------------------------------------------------------------------
+
+@Composable
+private fun LocationSetRow() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        Text("Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
+    }
+}
 
 @Composable
 private fun FishermanCheckRow(
@@ -630,9 +779,7 @@ private fun FishermanCheckRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(checked = checked, onCheckedChange = onCheckedChange)
@@ -641,32 +788,89 @@ private fun FishermanCheckRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReviewSegmentRow(segment: Segment, crewCount: Int) {
-    val fmt = remember { SimpleDateFormat("MMM dd HH:mm", Locale.getDefault()) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(segment.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+private fun FishermanCrewRow(
+    fisherman: Fisherman,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    selectedTackleBoxId: String?,
+    onTackleBoxSelected: (String) -> Unit,
+    tripViewModel: TripViewModel,
+    enabled: Boolean
+) {
+    val availableBoxes by tripViewModel.getTackleBoxesForFisherman(fisherman.id)
+        .collectAsState(initial = emptyList())
+    val lureCount by tripViewModel.getLureCountForTackleBox(selectedTackleBoxId)
+        .collectAsState(initial = 0)
+    val selectedBox = availableBoxes.find { it.id == selectedTackleBoxId }
+
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        // Fisherman checkbox row
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+            Spacer(Modifier.width(8.dp))
             Text(
-                "${fmt.format(Date(segment.startTime))} → ${fmt.format(Date(segment.endTime))}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = fisherman.fullName,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             )
-            Text("$crewCount fisherman${if (crewCount != 1) "en" else ""}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (segment.latitude != null) {
-            Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(18.dp))
+
+        // Tackle box dropdown — only shown when fisherman is selected
+        if (enabled) {
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded,
+                onExpandedChange = { if (availableBoxes.isNotEmpty()) dropdownExpanded = !dropdownExpanded },
+                modifier = Modifier.padding(start = 56.dp, end = 8.dp, bottom = 4.dp)
+            ) {
+                OutlinedTextField(
+                    value = selectedBox?.name ?: if (availableBoxes.isEmpty()) "No boxes available" else "Select tackle box",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Tackle Box") },
+                    trailingIcon = {
+                        if (availableBoxes.isNotEmpty()) ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
+                    },
+                    supportingText = if (selectedTackleBoxId != null) {
+                        { Text("$lureCount lure${if (lureCount != 1) "s" else ""}") }
+                    } else null,
+                    enabled = availableBoxes.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    textStyle = MaterialTheme.typography.bodySmall
+                )
+
+                if (availableBoxes.isNotEmpty()) {
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        availableBoxes.forEach { box ->
+                            DropdownMenuItem(
+                                text = { Text(box.name) },
+                                onClick = {
+                                    onTackleBoxSelected(box.id)
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun AddFishermanDialogNew(
+private fun AddFishermanDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, String, String) -> Unit
+    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
