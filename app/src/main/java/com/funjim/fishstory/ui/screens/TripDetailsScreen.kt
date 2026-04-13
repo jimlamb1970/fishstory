@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
@@ -76,6 +77,9 @@ fun TripDetailsScreen(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
+
+    val fishermanList by viewModel.getFishermanIdsForTrip(tripId)
+        .collectAsStateWithLifecycle(initialValue = emptyList())
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -322,22 +326,20 @@ fun TripDetailsScreen(
                                 style = MaterialTheme.typography.titleLarge
                             )
                             // TODO -- enable adding a segment to an existing trip
-                            /*
-                    IconButton(onClick = {
-                        viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
-                        // Set the start and end dates in the draft for the trip and segment
-                        viewModel.updateDraftSegmentStartDate(details.trip.startDate)
-                        viewModel.updateDraftSegmentEndDate(details.trip.endDate)
-                        viewModel.updateDraftTripStartDate(details.trip.startDate)
-                        viewModel.updateDraftTripEndDate(details.trip.endDate)
-                        viewModel.setDraftFisherman(details.fishermen.map { it.id }.toSet())
-                        viewModel.setDraftSegmentFisherman(details.fishermen.map { it.id }.toSet())
-                        viewModel.updateDraftLocation(details.trip.latitude, details.trip.longitude)
-                        navigateToAddSegment(tripId)
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Segment")
-                    }
-                    */
+                            IconButton(onClick = {
+                                viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
+                                // Set the start and end dates in the draft for the trip and segment
+                                viewModel.updateDraftSegmentStartDate(details.trip.startDate)
+                                viewModel.updateDraftSegmentEndDate(details.trip.endDate)
+                                viewModel.updateDraftTripStartDate(details.trip.startDate)
+                                viewModel.updateDraftTripEndDate(details.trip.endDate)
+                                viewModel.setDraftFisherman(fishermanList.toSet())
+                                viewModel.setDraftSegmentFisherman(fishermanList.toSet())
+                                viewModel.updateDraftLocation(details.trip.latitude, details.trip.longitude)
+                                navigateToAddSegment(tripId)
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Add Segment")
+                            }
                         }
                     }
 

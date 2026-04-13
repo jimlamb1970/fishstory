@@ -25,13 +25,13 @@ import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.DateTimePickerButton
 import com.funjim.fishstory.ui.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSegmentScreen(
-    viewModel: MainViewModel,
+    viewModel: TripViewModel,
     tripId: String,
     navigateBack: () -> Unit,
     navigateToLoadBoatForSegment: () -> Unit,

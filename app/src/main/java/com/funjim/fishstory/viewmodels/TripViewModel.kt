@@ -21,8 +21,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlin.plus
+import kotlin.text.get
 
 class TripViewModel(
     private val tripDao: TripDao,
@@ -32,6 +35,15 @@ class TripViewModel(
     private val tackleBoxDao: TackleBoxDao,
     private val fishDao: FishDao
 ) : ViewModel() {
+    @SuppressLint("MissingPermission")
+    suspend fun getCurrentLocation(context: Context): android.location.Location? {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        return try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     private val _rawSummaries = tripDao.getTripSummaries()
 
@@ -154,6 +166,13 @@ class TripViewModel(
             // 3. Optional: Trigger a UI event to ask the user for permission
             println("Location permission not granted")
         }
+    }
+
+    // TODO -- really don't want all the fishermen objects
+    val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
+
+    fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
+        return tripDao.getFishermanIdsForTrip(tripId)
     }
 
     fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
@@ -318,6 +337,121 @@ class TripViewModel(
     fun deleteFishermanFromSegment(segmentId: String, fishermanId: String) {
         viewModelScope.launch {
             segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+        }
+    }
+
+    private val _draftTripStartDate = MutableStateFlow(System.currentTimeMillis())
+    val draftTripStartDate = _draftTripStartDate.asStateFlow()
+
+    private val _draftTripEndDate = MutableStateFlow(System.currentTimeMillis())
+    val draftTripEndDate = _draftTripEndDate.asStateFlow()
+
+    fun updateDraftTripStartDate(dateMillis: Long) {
+        _draftTripStartDate.value = dateMillis
+    }
+
+    fun updateDraftTripEndDate(dateMillis: Long) {
+        _draftTripEndDate.value = dateMillis
+    }
+
+    private val _draftLatitude = MutableStateFlow<Double?>(null)
+    val draftLatitude = _draftLatitude.asStateFlow()
+
+    private val _draftLongitude = MutableStateFlow<Double?>(null)
+    val draftLongitude = _draftLongitude.asStateFlow()
+
+    fun updateDraftLocation(lat: Double?, lon: Double?) {
+        _draftLatitude.value = lat
+        _draftLongitude.value = lon
+    }
+
+    private val _draftSegmentId = MutableStateFlow("")
+    val draftSegmentId = _draftSegmentId.asStateFlow()
+
+    private val _draftSegmentName = MutableStateFlow("")
+    val draftSegmentName = _draftSegmentName.asStateFlow()
+
+    private val _draftSegmentStartDate = MutableStateFlow(System.currentTimeMillis())
+    val draftSegmentStartDate = _draftSegmentStartDate.asStateFlow()
+
+    private val _draftSegmentEndDate = MutableStateFlow(System.currentTimeMillis())
+    val draftSegmentEndDate = _draftSegmentEndDate.asStateFlow()
+
+    private val _draftSegmentLatitude = MutableStateFlow<Double?>(null)
+    val draftSegmentLatitude = _draftSegmentLatitude.asStateFlow()
+
+    private val _draftSegmentLongitude = MutableStateFlow<Double?>(null)
+    val draftSegmentLongitude = _draftSegmentLongitude.asStateFlow()
+
+    fun clearDraftSegment() {
+        _draftSegmentName.value = ""
+        val now = System.currentTimeMillis()
+        _draftSegmentStartDate.value = now
+        _draftSegmentEndDate.value = now
+        _draftSegmentLatitude.value = null
+        _draftSegmentLongitude.value = null
+    }
+
+    fun updateDraftSegmentId(id: String) {
+        _draftSegmentId.value = id
+    }
+
+    fun updateDraftSegmentName(name: String) {
+        _draftSegmentName.value = name
+    }
+
+    fun updateDraftSegmentStartDate(dateMillis: Long) {
+        _draftSegmentStartDate.value = dateMillis
+    }
+
+    fun updateDraftSegmentEndDate(dateMillis: Long) {
+        _draftSegmentEndDate.value = dateMillis
+    }
+
+    fun updateDraftSegmentLocation(lat: Double?, lon: Double?) {
+        _draftSegmentLatitude.value = lat
+        _draftSegmentLongitude.value = lon
+    }
+
+    private val _draftFishermanIds = MutableStateFlow<Set<String>>(emptySet())
+    val draftFishermanIds = _draftFishermanIds.asStateFlow()
+
+    fun setDraftFisherman(fishermanIds: Set<String>) {
+        _draftFishermanIds.update { fishermanIds }
+    }
+
+    private val _draftSegmentFishermanIds = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val draftSegmentFishermanIds = _draftSegmentFishermanIds.asStateFlow()
+
+    fun setDraftSegmentFisherman(fishermanIds: Set<String>) {
+        _draftSegmentFishermanIds.update { it + (draftSegmentId.value to fishermanIds) }
+    }
+
+    fun addDraftSegmentFisherman(segmentId: String, fishermanId: String) {
+        _draftSegmentFishermanIds.update { currentMap ->
+            val current = currentMap[segmentId] ?: emptySet()
+            currentMap + (segmentId to current + fishermanId)
+        }
+    }
+
+    // Draft state for new trip
+    private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
+    val draftSegments = _draftSegments.asStateFlow()
+
+    fun upsertDraftSegment(updatedSegment: Segment) {
+        _draftSegments.update { currentList ->
+            // 1. Check if the segment already exists in the list
+            val alreadyExists = currentList.any { it.id == updatedSegment.id }
+
+            if (alreadyExists) {
+                // 2. If it exists, map through and replace the old one
+                currentList.map { segment ->
+                    if (segment.id == updatedSegment.id) updatedSegment else segment
+                }
+            } else {
+                // 3. If it doesn't exist, create a new list with the item added
+                currentList + updatedSegment
+            }
         }
     }
 }

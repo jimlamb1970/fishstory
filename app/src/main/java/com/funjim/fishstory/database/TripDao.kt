@@ -99,12 +99,14 @@ interface TripDao {
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
     fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanCrossRef>>
 
+    @Query("SELECT fishermanId FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
+    fun getFishermanIdsForTrip(tripId: String): Flow<List<String>>
+
     @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId LIMIT 1")
     suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanCrossRef?
-
 
     @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId NOT IN (:fishermenIds)")
     suspend fun removeFishermenNotInSet(tripId: String, fishermenIds: Set<String>)

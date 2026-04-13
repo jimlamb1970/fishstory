@@ -56,7 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.BoatSummary
 import com.funjim.fishstory.ui.DateTimePickerButton
 import com.funjim.fishstory.ui.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,7 +65,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DraftSegmentDetailsScreen(
-    viewModel: MainViewModel,
+    viewModel: TripViewModel,
     segmentId: String,
     navigateToLoadBoatForSegment: () -> Unit,
     navigateBack: () -> Unit

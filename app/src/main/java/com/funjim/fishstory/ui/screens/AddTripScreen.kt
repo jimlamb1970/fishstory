@@ -75,18 +75,14 @@ private data class SegmentDraft(
 fun AddTripScreen(
     viewModel: MainViewModel,
     tripViewModel: TripViewModel,
-    navigateBack: () -> Unit,
-    // Kept for nav-compat but unused — wizard is self-contained
-    navigateToLoadBoatForTrip: () -> Unit = {},
-    navigateToAddSegment: (String) -> Unit = {},
-    navigateToDraftSegmentDetails: (String) -> Unit = {}
+    navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val now = remember { System.currentTimeMillis() }
 
     // All fishermen from DB — used for crew selection
-    val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+    val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
     val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
     // ── Trip-level state ────────────────────────────────────────────────────
