@@ -185,19 +185,11 @@ fun AppNavigation(
             )
         }
 
+        // TODO - refactor to only need TripViewModel?
         composable("addTrip") {
             AddTripScreen(
                 viewModel = viewModel,
                 tripViewModel = tripViewModel,
-                navigateToLoadBoatForTrip = {
-                    navController.navigate("loadBoatForTrip")
-                },
-                navigateToAddSegment = { id ->
-                    navController.navigate("addSegment/$id")
-                },
-                navigateToDraftSegmentDetails = { segmentId ->
-                    navController.navigate("draftSegmentDetails/$segmentId")
-                },
                 navigateBack = { navController.popBackStack() }
             )
         }
@@ -206,8 +198,8 @@ fun AppNavigation(
             route = "loadBoatForTrip",
         ) {
             val scope = rememberCoroutineScope()
-            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
-            val draftCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
+            val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
+            val draftCrew by tripViewModel.draftFishermanIds.collectAsState() // Current state in VM
 
             BoatLoadScreen(
                 eligibleFishermen = allFishermen,
@@ -215,7 +207,7 @@ fun AppNavigation(
                 canAddNewFisherman = true,
                 onSave = { finalCrew ->
                     val crewIds = finalCrew.map { it.id }.toSet()
-                    viewModel.setDraftFisherman(crewIds)
+                    tripViewModel.setDraftFisherman(crewIds)
                     navController.popBackStack()
                 },
                 onCancel = {
@@ -236,7 +228,7 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             val scope = rememberCoroutineScope()
-            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
+            val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
             val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
             val initialCrew = remember(tripWithFishermen) {
                 tripWithFishermen?.fishermen ?: emptyList()
@@ -267,10 +259,10 @@ fun AppNavigation(
             route = "loadBoatForSegment"
         ) {
             val scope = rememberCoroutineScope()
-            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
-            val tripCrew by viewModel.draftFishermanIds.collectAsState() // Current state in VM
-            val draftSegmentId by viewModel.draftSegmentId.collectAsState()
-            val draftSegmentFishermanIds by viewModel.draftSegmentFishermanIds.collectAsState()
+            val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
+            val tripCrew by tripViewModel.draftFishermanIds.collectAsState() // Current state in VM
+            val draftSegmentId by tripViewModel.draftSegmentId.collectAsState()
+            val draftSegmentFishermanIds by tripViewModel.draftSegmentFishermanIds.collectAsState()
             val draftCrew = draftSegmentFishermanIds[draftSegmentId] ?: emptySet()
 
             BoatLoadScreen(
@@ -280,7 +272,7 @@ fun AppNavigation(
                 onSave = { finalCrew ->
                     // ONLY PERSIST TO DATABASE HERE
                     val crewIds = finalCrew.map { it.id }.toSet()
-                    viewModel.setDraftSegmentFisherman(crewIds)
+                    tripViewModel.setDraftSegmentFisherman(crewIds)
                     navController.popBackStack()
                 },
                 onCancel = {
@@ -581,7 +573,7 @@ fun AppNavigation(
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             val scope = rememberCoroutineScope()
             AddSegmentScreen(
-                viewModel = viewModel,
+                viewModel = tripViewModel,
                 tripId = tripId,
                 navigateToLoadBoatForSegment = {
                     navController.navigate("loadBoatForSegment")
@@ -590,22 +582,10 @@ fun AppNavigation(
                     navController.popBackStack()
                 },
                 onSave = { segment, fishermen ->
-                    if (tripId == viewModel.draftTripId.value) {
-                        viewModel.addDraftSegment(
-                            name = segment.name,
-                            startTime = segment.startTime,
-                            endTime = segment.endTime,
-                            latitude = segment.latitude,
-                            longitude = segment.longitude
-                        )
-                        viewModel.clearDraftSegment()
+                    scope.launch {
+                        viewModel.addSegmentWithFishermen(segment, fishermen)
+                        tripViewModel.clearDraftSegment()
                         navController.popBackStack()
-                    } else {
-                        scope.launch {
-                            viewModel.addSegmentWithFishermen(segment, fishermen)
-                            viewModel.clearDraftSegment()
-                            navController.popBackStack()
-                        }
                     }
                 }
             )
@@ -680,7 +660,7 @@ fun AppNavigation(
         ) { backStackEntry ->
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
             DraftSegmentDetailsScreen(
-                viewModel = viewModel,
+                viewModel = tripViewModel,
                 segmentId = segmentId,
                 navigateToLoadBoatForSegment = {
                     navController.navigate("loadBoatForSegment")
