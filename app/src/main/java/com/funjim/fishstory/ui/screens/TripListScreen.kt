@@ -27,6 +27,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.hasLocationPermission
 import com.funjim.fishstory.ui.TripAction
 import com.funjim.fishstory.ui.TripItem
+import com.funjim.fishstory.ui.TripMenu
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -79,6 +80,73 @@ fun TripListScreen(
         }
     )
 
+    val onAction: (TripAction) -> Unit = { action ->
+        when (action) {
+            is TripAction.View -> navigateToTripDetails(action.tripSummary.trip.id)
+            is TripAction.Menu -> {
+                showMenu = true
+                activeTrip = action.tripSummary
+            }
+            is TripAction.OpenMap -> {}
+            is TripAction.UseCurrentLocation -> {
+                showMenu = false
+                if (hasLocationPermission(context)) {
+                    scope.launch {
+                        @SuppressLint("MissingPermission")
+                        val location = viewModel.getTripCurrentLocation(context)
+                        if (location != null) {
+                            viewModel.updateTrip(
+                                action.tripSummary.trip.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                            Toast.makeText(
+                                context,
+                                "Location updated",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Could not get location",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            }
+            is TripAction.SelectLocation -> {
+                showMenu = false
+                locationPicker.openPicker()
+            }
+            is TripAction.ClearLocation -> {
+                showMenu = false
+                scope.launch {
+                    viewModel.updateTrip(
+                        action.tripSummary.trip.copy(latitude = null, longitude = null)
+                    )
+                    Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+            }
+            is TripAction.Delete -> {
+                showMenu = false
+                scope.launch {
+                    viewModel.deleteTrip(action.tripSummary.trip)
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -105,16 +173,10 @@ fun TripListScreen(
                 items(tripSummaries) { trip ->
                     TripItem(
                         trip = trip,
-                        isMenuExpanded = showMenu && activeTrip?.trip?.id == trip.trip.id,
+                        onClick = { navigateToTripDetails(trip.trip.id) },
                         onAction = { action ->
                             when (action) {
-                                is TripAction.View -> navigateToTripDetails(action.tripSummary.trip.id)
-                                is TripAction.Menu -> {
-                                    showMenu = true
-                                    activeTrip = action.tripSummary
-                                }
                                 is TripAction.OpenMap -> {
-                                    // Logic moved here, outside of the Item
                                     val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
@@ -123,63 +185,64 @@ fun TripListScreen(
                                         Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                                is TripAction.UseCurrentLocation -> {
-                                    if (hasLocationPermission(context)) {
-                                        scope.launch {
-                                            @SuppressLint("MissingPermission")
-                                            val location = viewModel.getTripCurrentLocation(context)
-                                            if (location != null) {
-                                                viewModel.updateTrip(
-                                                    action.tripSummary.trip.copy(
-                                                        latitude = location.latitude,
-                                                        longitude = location.longitude
-                                                    )
-                                                )
-                                                Toast.makeText(
-                                                    context,
-                                                    "Location updated",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Could not get location",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                    } else {
-                                        permissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
-                                    }
-                                }
-                                is TripAction.SelectLocation -> {
-                                    locationPicker.openPicker()
-                                }
-                                is TripAction.ClearLocation -> {
-                                    scope.launch {
-                                        viewModel.updateTrip(
-                                            action.tripSummary.trip.copy(latitude = null, longitude = null)
-                                        )
-                                        Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-
-                                }
-                                is TripAction.Delete -> {
-                                    scope.launch {
-                                        viewModel.deleteTrip(action.tripSummary.trip)
-                                    }
-                                }
-
+                                else -> {}
                             }
-                        },
-                        onDismissMenu = { showMenu = false },
-                    )
+                        }
+                    ) {
+                        // Define the dropdown menu to be used with the TripItem card
+                        TripMenu(
+                            expanded = showMenu && activeTrip?.trip?.id == trip.trip.id,
+                            onMenuClick = { onAction(TripAction.Menu(tripSummary = trip)) },
+                            onDismiss = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Use Current Location") },
+                                onClick = {
+                                    onAction(TripAction.UseCurrentLocation(trip))
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.MyLocation,
+                                        contentDescription = null,
+                                        tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Select Location") },
+                                onClick = {
+                                    onAction(TripAction.SelectLocation(trip))
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Map,
+                                        contentDescription = null,
+                                        tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                }
+                            )
+                            if (trip.trip.latitude != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear Location") },
+                                    onClick = {
+                                        onAction(TripAction.ClearLocation(trip))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOff,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    onAction(TripAction.Delete(trip))
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Delete, contentDescription = null)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

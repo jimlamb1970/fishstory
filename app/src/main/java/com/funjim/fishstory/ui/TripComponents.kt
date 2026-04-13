@@ -3,12 +3,8 @@ package com.funjim.fishstory.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,9 +30,9 @@ sealed class TripAction {
 @Composable
 fun TripItem(
     trip: TripSummary,
-    isMenuExpanded: Boolean,
+    onClick: () -> Unit,
     onAction: (TripAction) -> Unit,
-    onDismissMenu: () -> Unit
+    actions: @Composable () -> Unit = {}
 ) {
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
@@ -44,7 +40,7 @@ fun TripItem(
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onAction(TripAction.View(trip)) }) {
+    Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onClick() }) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -85,85 +81,26 @@ fun TripItem(
                 )
             }
 
-            Box {
-                IconButton(onClick = { onAction(TripAction.Menu(trip)) }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                }
-
-                DropdownMenu(
-                    expanded = isMenuExpanded,
-                    onDismissRequest = onDismissMenu
-                ) {
-                    // We will move the MenuItems into a reusable function
-                    // so we don't bloat the TripItem file.
-                    TripMenuContent(
-                        trip = trip,
-                        onAction = onAction,
-                        onDismiss = onDismissMenu
-                    )
-                }
-            }
+            actions()
         }
     }
 }
 
 @Composable
-fun TripMenuContent(
-    trip: TripSummary,
-    onAction: (TripAction) -> Unit,
-    onDismiss: () -> Unit
+fun TripMenu(
+    expanded: Boolean,
+    onMenuClick: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    DropdownMenuItem(
-        text = { Text("Use Current Location") },
-        onClick = {
-            onDismiss()
-            onAction(TripAction.UseCurrentLocation(trip))
-        },
-        leadingIcon = {
-            Icon(Icons.Default.MyLocation,
-                contentDescription = null,
-                tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+    Box {
+        IconButton(onClick = onMenuClick) {
+            Icon(Icons.Default.MoreVert, contentDescription = "More options")
         }
-    )
-
-    DropdownMenuItem(
-        text = { Text("Select Location") },
-        onClick = {
-            onDismiss()
-            onAction(TripAction.SelectLocation(trip))
-        },
-        leadingIcon = {
-            Icon(Icons.Default.Map,
-                contentDescription = null,
-                tint = if (trip.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
-        }
-    )
-
-    if (trip.trip.latitude != null) {
-        DropdownMenuItem(
-            text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
-            onClick = {
-                onDismiss()
-                onAction(TripAction.ClearLocation(trip))
-            },
-            leadingIcon = {
-                Icon(
-                    Icons.Default.LocationOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismiss,
+            content = content
         )
     }
-
-    DropdownMenuItem(
-        text = { Text("Delete") },
-        onClick = {
-            onDismiss()
-            onAction(TripAction.Delete(trip))
-        },
-        leadingIcon = {
-            Icon(Icons.Default.Delete, contentDescription = null)
-        }
-    )
 }
