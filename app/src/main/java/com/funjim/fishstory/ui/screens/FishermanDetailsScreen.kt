@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -37,14 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
-import com.funjim.fishstory.model.FishermanTripSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.PhotoPickerRow
+import com.funjim.fishstory.ui.TripAction
+import com.funjim.fishstory.ui.TripItem
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +60,8 @@ fun FishermanDetailsScreen(
     }
 
     val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsStateWithLifecycle(initialValue = emptyList())
+
+    val context = LocalContext.current
 
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
@@ -182,10 +183,23 @@ fun FishermanDetailsScreen(
                         }
 
                         items(tripSummaries) { trip ->
-                            TripDetailItem(
+                            TripItem(
                                 trip = trip,
-                                onClick = {
-                                    navigateToTripDetails(trip.trip.id)
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                onClick = { navigateToTripDetails(trip.trip.id) },
+                                onAction = { action ->
+                                    when (action) {
+                                        is TripAction.OpenMap -> {
+                                            val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                        else -> {}
+                                    }
                                 }
                             )
                         }
@@ -295,78 +309,6 @@ fun EditFishermanDialog(
             }
         }
     )
-}
-
-@Composable
-fun TripDetailItem(
-    trip: FishermanTripSummary,
-    onClick: () -> Unit
-) {
-    val context = LocalContext.current
-
-    val dateTimeFormatter = remember {
-        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable(enabled = true, onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(trip.trip.name, style = MaterialTheme.typography.titleMedium)
-                    if (trip.trip.latitude != null && trip.trip.longitude != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${trip.trip.latitude},${trip.trip.longitude}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                        )
-                    }
-                }
-                Text(
-                    text = "Start: ${dateTimeFormatter.format(Date(trip.trip.startDate))}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                Text(
-                    text = "End: ${dateTimeFormatter.format(Date(trip.trip.endDate))}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Fish • ${trip.totalCaught} Caught • ${trip.totalKept} Kept",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
 }
 
 @Composable

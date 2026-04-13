@@ -47,7 +47,7 @@ class FishermanDetailsViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tripSummaries: StateFlow<List<FishermanTripSummary>> = _selectedFishermanId
+    val tripSummaries: StateFlow<List<TripSummary>> = _selectedFishermanId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())

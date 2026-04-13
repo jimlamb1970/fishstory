@@ -1,7 +1,10 @@
 package com.funjim.fishstory.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,7 +31,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.DateTimePickerButton
+import com.funjim.fishstory.ui.TripAction
+import com.funjim.fishstory.ui.TripItem
+import com.funjim.fishstory.ui.TripMenu
+import com.funjim.fishstory.ui.hasLocationPermission
 import com.funjim.fishstory.ui.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -113,6 +121,8 @@ fun AddTripScreen(
     var isFirstSegment by remember { mutableStateOf(true) }
     var fromReview by remember { mutableStateOf(false) }
 
+    var showTripMenu by remember { mutableStateOf(false) }
+
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
     // Location pickers
@@ -162,6 +172,77 @@ fun AddTripScreen(
     // Progress indicator
     val stepLabels = listOf("Trip", "Crew & Boxes", "Segment", "Seg. Crew & Boxes", "Review")
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
+
+    val onTripAction: (TripAction) -> Unit = { action ->
+        when (action) {
+            is TripAction.View -> {}
+            is TripAction.Menu -> {
+                showTripMenu = true
+            }
+            is TripAction.OpenMap -> {}
+            is TripAction.UseCurrentLocation -> {
+                showTripMenu = false
+                if (hasLocationPermission(context)) {
+                    scope.launch {
+                        @SuppressLint("MissingPermission")
+                        val location = viewModel.getCurrentLocation(context)
+                        if (location != null) {
+                            viewModel.updateTrip(
+                                action.tripSummary.trip.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                            tripLat = location.latitude; tripLng = location.longitude
+                            Toast.makeText(
+                                context,
+                                "Location updated",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Could not get location",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            }
+            is TripAction.SelectLocation -> {
+                showTripMenu = false
+                tripLocationPicker.openPicker()
+                scope.launch {
+                    viewModel.updateTrip(
+                        action.tripSummary.trip.copy(
+                            latitude = tripLat,
+                            longitude = tripLng
+                        )
+                    )
+                }
+            }
+            is TripAction.ClearLocation -> {
+                showTripMenu = false
+                scope.launch {
+                    viewModel.updateTrip(
+                        action.tripSummary.trip.copy(latitude = null, longitude = null)
+                    )
+                    tripLat = null; tripLng = null
+                    Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+            }
+            is TripAction.Delete -> {}
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -262,7 +343,9 @@ fun AddTripScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()) {
 
             LinearProgressIndicator(
                 progress = { (stepIndex + 1f) / stepLabels.size },
@@ -274,7 +357,10 @@ fun AddTripScreen(
                 // ── Step 1: Trip info ────────────────────────────────────────
                 WizardStep.TripInfo -> {
                     Column(
-                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text("Trip Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -342,7 +428,9 @@ fun AddTripScreen(
                 WizardStep.TripCrew -> {
                     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
-                    Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text("Select who's on the boat and which tackle box each person will use.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -379,7 +467,9 @@ fun AddTripScreen(
                             }
                             if (sortedFishermen.isEmpty()) {
                                 item {
-                                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                    Box(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp), contentAlignment = Alignment.Center) {
                                         Text("No fishermen yet. Add one above.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
@@ -461,7 +551,10 @@ fun AddTripScreen(
                 // ── Step 3: Segment info ─────────────────────────────────────
                 WizardStep.SegmentInfo -> {
                     Column(
-                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text("Segment Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -526,7 +619,9 @@ fun AddTripScreen(
                         sortedFishermen.filter { it.id in tripFishermanIds }
                     }
 
-                    Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Segment Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(
                             "Who's fishing \"$segmentName\"? Tackle boxes default to trip selections.",
@@ -621,40 +716,102 @@ fun AddTripScreen(
                     val fmt = remember { SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()) }
                     val shortFmt = remember { SimpleDateFormat("MMM dd HH:mm", Locale.getDefault()) }
 
-                    Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Review Trip", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Review Trip",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold)
 
                         // Trip summary card
                         // TODO - look into using same card (TripItem) from TripListScreen
-                        Card(modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable() {
+                        val currentTrip = TripSummary(
+                            trip = Trip(
+                                id = newTripId,
+                                name = tripName,
+                                startDate = tripStart,
+                                endDate = tripEnd,
+                                latitude = tripLat,
+                                longitude = tripLng
+                            ),
+                            totalCaught = 0,
+                            totalKept = 0,
+                            fishermanCount = tripFishermanIds.size,
+                            tackleBoxCount = tripTackleBoxSelections.size,
+                            bigFishWinner = null,
+                            topRodName = null
+                        )
+
+                        TripItem(
+                            trip = currentTrip,
+                            modifier = Modifier.padding(),
+                            onClick = {
                                 fromReview = true
                                 currentStep = WizardStep.TripInfo
+                            },
+                            onAction = { action ->
+                                when (action) {
+                                    is TripAction.OpenMap -> {
+                                        val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    else -> {}
+                                }
                             }
                         ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        tripName,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
-                                    )
-                                    if (tripLat != null) {
-                                        Spacer(modifier = Modifier.width(8.dp))
+                            // Define the dropdown menu to be used with the TripItem card
+                            TripMenu(
+                                expanded = showTripMenu,
+                                onMenuClick = { onTripAction(TripAction.Menu(tripSummary = currentTrip)) },
+                                onDismiss = { showTripMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Use Current Location") },
+                                    onClick = {
+                                        onTripAction(TripAction.UseCurrentLocation(tripSummary = currentTrip))
+                                    },
+                                    leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.LocationOn,
-                                            contentDescription = "Trip Location",
-                                            tint = MaterialTheme.colorScheme.primary
+                                            Icons.Default.MyLocation,
+                                            contentDescription = null,
+                                            tint = if (tripLat != null) Color(0xFF4CAF50) else LocalContentColor.current
                                         )
                                     }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Select Location") },
+                                    onClick = {
+                                        onTripAction(TripAction.SelectLocation(tripSummary = currentTrip))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Map,
+                                            contentDescription = null,
+                                            tint = if (tripLat != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                        )
+                                    }
+                                )
+                                if (tripLat != null) {
+                                    DropdownMenuItem(
+                                        text = { Text("Clear Location") },
+                                        onClick = {
+                                            onTripAction(TripAction.ClearLocation(tripSummary = currentTrip))
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.LocationOff,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
                                 }
-                                Text("${fmt.format(Date(tripStart))}  →  ${fmt.format(Date(tripEnd))}",
-                                    style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "${tripFishermanIds.size} ${if (tripFishermanIds.size == 1) "fisherman" else "fishermen"}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary)
                             }
                         }
 
@@ -779,7 +936,9 @@ private fun FishermanCheckRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(checked = checked, onCheckedChange = onCheckedChange)
@@ -807,10 +966,14 @@ private fun FishermanCrewRow(
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 6.dp)) {
         // Fisherman checkbox row
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(checked = checked, onCheckedChange = onCheckedChange)
@@ -842,7 +1005,9 @@ private fun FishermanCrewRow(
                         { Text("$lureCount lure${if (lureCount != 1) "s" else ""}") }
                     } else null,
                     enabled = availableBoxes.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
                     textStyle = MaterialTheme.typography.bodySmall
                 )
 

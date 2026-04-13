@@ -11,10 +11,10 @@ import androidx.room.Upsert
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.model.FishermanTripSummary
 import com.funjim.fishstory.model.FishermanWithDetails
 import com.funjim.fishstory.model.FishermanWithTrips
 import com.funjim.fishstory.model.TripFishermanCrossRef
+import com.funjim.fishstory.model.TripSummary
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -169,7 +169,12 @@ interface FishermanDao {
     SELECT 
         t.*, 
         COUNT(f.id) AS totalCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        0 as totalKept,
+        -1 as fishermanCount,
+        -1 as tackleBoxCount,
+        NULL as bigFishWinner,
+        NULL as topRodName
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -177,7 +182,7 @@ interface FishermanDao {
     GROUP BY t.id
     ORDER BY t.startDate DESC
 """)
-    fun getTripSummariesForFisherman(fishermanId: String): Flow<List<FishermanTripSummary>>
+    fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripSummary>>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

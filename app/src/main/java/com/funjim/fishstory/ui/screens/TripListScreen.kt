@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.hasLocationPermission
@@ -82,7 +83,7 @@ fun TripListScreen(
 
     val onAction: (TripAction) -> Unit = { action ->
         when (action) {
-            is TripAction.View -> navigateToTripDetails(action.tripSummary.trip.id)
+            is TripAction.View -> {}
             is TripAction.Menu -> {
                 showMenu = true
                 activeTrip = action.tripSummary
@@ -173,6 +174,7 @@ fun TripListScreen(
                 items(tripSummaries) { trip ->
                     TripItem(
                         trip = trip,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         onClick = { navigateToTripDetails(trip.trip.id) },
                         onAction = { action ->
                             when (action) {

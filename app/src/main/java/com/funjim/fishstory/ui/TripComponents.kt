@@ -30,6 +30,7 @@ sealed class TripAction {
 @Composable
 fun TripItem(
     trip: TripSummary,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
@@ -40,7 +41,7 @@ fun TripItem(
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onClick() }) {
+    Card(modifier = modifier.fillMaxWidth().clickable { onClick() }) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -50,7 +51,6 @@ fun TripItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(trip.trip.name,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
                         color = Color.Black)
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -70,15 +70,29 @@ fun TripItem(
                     style = MaterialTheme.typography.bodyMedium)
 
                 val fishermanCount = trip.fishermanCount
+                val tackleBoxCount = trip.tackleBoxCount
                 val caughtCount = trip.totalCaught
                 val keptCount = trip.totalKept
+                val now = System.currentTimeMillis()
 
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • $caughtCount Caught • $keptCount Kept",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                if (fishermanCount != -1) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • " +
+                                "$tackleBoxCount with ${if (tackleBoxCount == 1) "a tacklebox" else "tackleboxes"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                if (caughtCount != 0 || now >= trip.trip.startDate) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Fish Summary • $caughtCount Caught • $keptCount Kept",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             actions()
