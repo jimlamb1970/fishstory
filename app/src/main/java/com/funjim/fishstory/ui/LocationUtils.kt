@@ -24,6 +24,17 @@ import org.maplibre.android.geometry.LatLng
 
 class LocationUtils
 
+fun hasLocationPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+}
+
 @Composable
 fun rememberLocationPickerState(
     deviceLocation: Pair<Double, Double>?,
