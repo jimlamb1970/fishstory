@@ -98,19 +98,13 @@ data class FishWithDetails(
     val tripName: String,
     val holeNumber: Int? = null
 ) {
-    // TODO -- need to fix the name -- not really correct
-    fun getFullLureName(): String? {
-        if (lureName == null) return null
-        val sb = StringBuilder(lureName)
-        if (!lurePrimaryColorName.isNullOrBlank()) {
-            sb.append(" : $lurePrimaryColorName")
+    val fullLureName: String
+        get() {
+            if (lureName == null) return "No Lure"
+            val colors = listOfNotNull(lurePrimaryColorName, lureSecondaryColorName)
+                .joinToString("/")
+            val glow = if (lureGlows == true) " (Glow: $lureGlowColorName)" else ""
+
+            return if (colors.isEmpty()) "$lureName$glow" else "$lureName ($colors)$glow"
         }
-        if (lureGlows == true) {
-            sb.append(", Glow")
-            if (!lureGlowColorName.isNullOrBlank()) {
-                sb.append(" : $lureGlowColorName")
-            }
-        }
-        return sb.toString()
-    }
 }

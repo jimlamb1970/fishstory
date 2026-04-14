@@ -5,13 +5,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.repository.FishStoryRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class FishermanListViewModel(
-    private val repository: FishStoryRepository
+    private val repository: FishermanRepository
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(FishermanSortOrder.NAME_AZ)
@@ -55,7 +55,7 @@ class FishermanListViewModel(
     }
 }
 class FishermanListViewModelFactory(
-    private val repository: FishStoryRepository
+    private val repository: FishermanRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanListViewModel::class.java)) {

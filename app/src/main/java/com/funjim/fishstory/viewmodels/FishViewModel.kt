@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
-import com.funjim.fishstory.repository.FishStoryRepository
+import com.funjim.fishstory.repository.FishRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class FishViewModel(
-    private val repository: FishStoryRepository
+    private val repository: FishRepository
 ) : ViewModel() {
     // UI State flows
     private val _selectedTripId = MutableStateFlow<String?>(null)
@@ -101,7 +101,7 @@ class FishViewModel(
         val sorted = when (order) {
             FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.timestamp }
             FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.length }
-            FishSortOrder.LURE -> list.sortedBy { it.getFullLureName() }
+            FishSortOrder.LURE -> list.sortedBy { it.fullLureName }
             FishSortOrder.SPECIES_AZ -> list.sortedBy { it.speciesName }
             FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fishermanName }
             FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.holeNumber ?: 999 }
@@ -161,108 +161,6 @@ class FishViewModel(
         }
     }
 
-
-    /*
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentTrip = _selectedTripIdForFilter
-        .filterNotNull()
-        .flatMapLatest { id -> tripDao.getTripWithDetails(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    // Observe the Segment Details reactively
-
-
-    fun updateSelectedTripIdForFilter(id: String?) {
-        _selectedTripIdForFilter.value = id
-        _selectedSegmentIdForFilter.value = null
-    }
-
-    fun updateSelectedSegmentIdForFilter(id: String?) {
-        _selectedSegmentIdForFilter.value = id
-    }
-
-
-    fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> {
-        return segmentDao.getSegmentsForTrip(tripId)
-    }
-
-    fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
-        return fishDao.getFishForTrip(tripId)
-    }
-
-    fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
-        return fishDao.getFishForSegment(segmentId)
-    }
-
-    fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>> {
-        return fishDao.getFishForFisherman(fishermanId)
-    }
-
-
-    private data class FishFilterParams(
-        val tripId: String?,
-        val segmentId: String?,
-        val fishermanId: String?,
-        val sortOrder: FishSortOrder,
-        val isReversed: Boolean
-    )
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val fishForScope: StateFlow<List<FishWithDetails>> = combine(
-        selectedTripIdForFilter,
-        selectedSegmentIdForFilter,
-        fishermanIdForFilter,
-        _sortOrder,
-        _isReversed
-    ) { tripId, segId, fishermanId, sortOrder, isReversed ->
-        FishFilterParams(tripId, segId, fishermanId, sortOrder, isReversed)
-    }.flatMapLatest { params ->
-        val baseFlow = when {
-            !params.segmentId.isNullOrBlank() -> getFishForSegment(params.segmentId)
-            !params.tripId.isNullOrBlank() -> getFishForTrip(params.tripId)
-            !params.fishermanId.isNullOrBlank() -> getFishForFisherman(params.fishermanId)
-            else -> flowOf(emptyList())
-        }
-        baseFlow.map { list ->
-            val sortedList = when (params.sortOrder) {
-                FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.timestamp }
-                FishSortOrder.TRIP_AZ -> list.sortedBy { it.tripName }
-                FishSortOrder.SEGMENT_AZ -> list.sortedBy { it.segmentName }
-                FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fishermanName }
-                FishSortOrder.SPECIES_AZ -> list.sortedBy { it.speciesName }
-                FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.length }
-                FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.holeNumber }
-                FishSortOrder.RELEASED -> list.sortedBy { it.isReleased }
-                FishSortOrder.LURE -> list.sortedBy { it.getFullLureName() }
-            }
-
-            if (params.isReversed) sortedList.reversed() else sortedList
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
-
-    fun deleteFishObject(fish: Fish) {
-        viewModelScope.launch {
-            fishDao.deleteFish(fish)
-        }
-    }
-
-    fun addPhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.insertPhoto(photo)
-        }
-    }
-
-    fun deletePhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.deletePhoto(photo)
-        }
-    }
-
-    */
     private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
     val deviceLocation = _deviceLocation.asStateFlow()
 
@@ -309,7 +207,7 @@ class FishViewModel(
 }
 
 class FishViewModelFactory(
-    private val repository: FishStoryRepository
+    private val repository: FishRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishViewModel::class.java)) {

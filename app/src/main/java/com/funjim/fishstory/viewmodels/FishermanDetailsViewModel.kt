@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
-import com.funjim.fishstory.repository.FishStoryRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FishermanDetailsViewModel(
-    private val repository: FishStoryRepository
+    private val repository: FishermanRepository
 ) : ViewModel() {
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
@@ -89,7 +89,7 @@ class FishermanDetailsViewModel(
     }
 }
 class FishermanDetailsViewModelFactory(
-    private val repository: FishStoryRepository
+    private val repository: FishermanRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanDetailsViewModel::class.java)) {

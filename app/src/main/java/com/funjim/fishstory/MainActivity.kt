@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val fishViewModel: FishViewModel by viewModels {
-        val repository = (application as FishstoryApplication).repository
+        val repository = (application as FishstoryApplication).repositoryFish
         FishViewModelFactory(repository)
     }
 
@@ -283,7 +283,7 @@ fun AppNavigation(
         }
 
         composable("fishermen") {
-            val repository = (navController.context.applicationContext as FishstoryApplication).repository
+            val repository = (navController.context.applicationContext as FishstoryApplication).repositoryFisherman
             val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanListViewModelFactory(repository)
             )
@@ -590,7 +590,7 @@ fun AppNavigation(
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
-            val repository = (navController.context.applicationContext as FishstoryApplication).repository
+            val repository = (navController.context.applicationContext as FishstoryApplication).repositoryFisherman
             val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanDetailsViewModelFactory(repository)
             )

@@ -125,10 +125,8 @@ fun FishItem(
                         style = MaterialTheme.typography.bodyMedium
                     )
 
-                val fullLureName = fish.getFullLureName()
-                if (fullLureName != null) {
-                    Text("Lure: $fullLureName", style = MaterialTheme.typography.bodySmall)
-                }
+                Text("Lure: ${fish.fullLureName}", style = MaterialTheme.typography.bodySmall)
+
                 Text(
                     "Status: ${if (fish.isReleased) "Released" else "Kept"}",
                     style = MaterialTheme.typography.bodySmall
