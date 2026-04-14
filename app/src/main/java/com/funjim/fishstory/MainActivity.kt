@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
             database.photoDao(),
             database.fishermanDao(),
             database.tackleBoxDao(),
+            database.lureDao(),
             database.fishDao()
         )
     }

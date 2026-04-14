@@ -3,12 +3,12 @@ package com.funjim.fishstory.database
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
@@ -104,6 +104,16 @@ interface TripDao {
 
     @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>
+
+    @Query("""
+    SELECT fishermanId, tackleBoxId 
+    FROM trip_fisherman_cross_ref 
+    WHERE tripId = :tripId
+""")
+    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<
+            @MapColumn(columnName = "fishermanId") String,
+            @MapColumn(columnName = "tackleBoxId") String?
+            >>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId LIMIT 1")
     suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanCrossRef?

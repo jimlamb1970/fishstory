@@ -28,11 +28,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.AddFishermanDialog
 import com.funjim.fishstory.ui.DateTimePickerButton
+import com.funjim.fishstory.ui.TripViewModelCrewPickerBridge
+import com.funjim.fishstory.ui.buildCrewEntries
 import com.funjim.fishstory.ui.TripAction
 import com.funjim.fishstory.ui.TripItem
 import com.funjim.fishstory.ui.TripMenu
@@ -63,8 +65,7 @@ private data class SegmentDraft(
     val endTime: Long,
     val latitude: Double?,
     val longitude: Double?,
-    val fishermanIds: Set<String>,
-    val tackleBoxSelections: Map<String, String?>
+    val fishermanIds: Set<String>
 )
 
 // ---------------------------------------------------------------------------
@@ -85,6 +86,8 @@ fun AddTripScreen(
     val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
     val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
+    // TODO -- look into using TripSummary and SegmentSummary
+
     // ── Trip-level state ────────────────────────────────────────────────────
     var tripName by remember { mutableStateOf("") }
     var tripStart by remember { mutableLongStateOf(now) }
@@ -93,11 +96,17 @@ fun AddTripScreen(
     var tripLng by remember { mutableStateOf<Double?>(null) }
     var tripFishermanIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     // Maps fishermanId -> selected tackleBoxId for trip crew step
-    var tripTackleBoxSelections by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
 
     // The Trip row in the DB — null until Step 1 is committed
     var newTripId by remember { mutableStateOf<String>(UUID.randomUUID().toString()) }
     var newSegmentId by remember { mutableStateOf<String>(UUID.randomUUID().toString()) }
+
+    LaunchedEffect(newTripId) {
+        tripViewModel.selectTrip(newTripId)
+        tripViewModel.selectSegment(newSegmentId)
+    }
+    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
+    val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
 
     // ── Segment-level state (reused for each segment) ───────────────────────
     var segmentName by remember { mutableStateOf("") }
@@ -107,7 +116,6 @@ fun AddTripScreen(
     var segmentLng by remember { mutableStateOf<Double?>(null) }
     var segmentFishermanIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     // Maps fishermanId -> selected tackleBoxId for segment crew step
-    var segmentTackleBoxSelections by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
 
     // In-memory list of committed segments
     var committedSegments by remember { mutableStateOf<List<SegmentDraft>>(emptyList()) }
@@ -159,9 +167,9 @@ fun AddTripScreen(
     // Helper: delete the trip row if user cancels mid-wizard
     fun cancelAndExit() {
         scope.launch {
-                // CASCADE deletes will clean up fisherman cross-refs and segments
-                viewModel.deleteTripById(newTripId)
-            }
+            // CASCADE deletes will clean up fisherman cross-refs and segments
+            viewModel.deleteTripById(newTripId)
+        }
         navigateBack()
     }
 
@@ -422,126 +430,74 @@ fun AddTripScreen(
 
                 // ── Step 2: Trip crew + tackle boxes ────────────────────────
                 WizardStep.TripCrew -> {
-                    var showAddFishermanDialog by remember { mutableStateOf(false) }
-
-                    Column(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Select who's on the boat and which tackle box each person will use.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("${tripFishermanIds.size} selected", style = MaterialTheme.typography.labelMedium)
-                            TextButton(onClick = { showAddFishermanDialog = true }) {
-                                Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("New fisherman")
-                            }
-                        }
-
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(sortedFishermen, key = { it.id }) { fisherman ->
-                                val isSelected = fisherman.id in tripFishermanIds
-                                FishermanCrewRow(
-                                    fisherman = fisherman,
-                                    checked = isSelected,
-                                    onCheckedChange = { checked ->
-                                        tripFishermanIds = if (checked) tripFishermanIds + fisherman.id
-                                        else {
-                                            tripTackleBoxSelections = tripTackleBoxSelections - fisherman.id
-                                            tripFishermanIds - fisherman.id
-                                        }
-                                    },
-                                    selectedTackleBoxId = tripTackleBoxSelections[fisherman.id],
-                                    onTackleBoxSelected = { boxId ->
-                                        tripTackleBoxSelections = tripTackleBoxSelections + (fisherman.id to boxId)
-                                    },
-                                    tripViewModel = tripViewModel,
-                                    enabled = isSelected
+                    TripViewModelCrewPickerBridge(
+                        title = "Crew & Tackle Boxes",
+                        subtitle = "Select who's on the boat and which tackle box each person will use.",
+                        eligibleFishermen = sortedFishermen,
+                        selectedIds = tripFishermanIds,
+                        tackleBoxSelections = tripTackleBoxMap,
+                        onSelectionChanged = { fishermanId, selected ->
+                            if (selected) {
+                                tripFishermanIds = tripFishermanIds + fishermanId
+                                viewModel.upsertTripFishermanCrossRef(
+                                    tripId = newTripId,
+                                    fishermanId = fishermanId,
+                                    tackleBoxId = tripTackleBoxMap[fishermanId]
                                 )
-                                HorizontalDivider()
-                            }
-                            if (sortedFishermen.isEmpty()) {
-                                item {
-                                    Box(modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp), contentAlignment = Alignment.Center) {
-                                        Text("No fishermen yet. Add one above.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                }
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    val tripId = newTripId ?: return@launch
-
-                                    // The databases for trip fishmen and segment fishermen may have
-                                    // already been written.  If a fisherman was removed from the trip,
-                                    // it needs to be removed from the trip as well as each segment
-                                    viewModel.removeTripFishermenNotInSet(
-                                        tripId = tripId,
-                                        newSet = tripFishermanIds)
-
-                                    committedSegments = committedSegments.map { segment ->
-                                        segment.copy(
-                                            // Keep only IDs that still exist in the master trip list
-                                            fishermanIds = segment.fishermanIds intersect tripFishermanIds,
-
-                                            // You should also filter the tackleBoxSelections map
-                                            // so you don't keep gear data for people who aren't there
-                                            tackleBoxSelections = segment.tackleBoxSelections.filterKeys { it in tripFishermanIds }
-                                        )
-                                    }
-                                    committedSegments.forEach { segment ->
-                                        viewModel.removeSegmentFishermenNotInSet(
-                                            segmentId = segment.id,
-                                            newSet = tripFishermanIds)
-                                    }
-
-                                    // TODO - need to 'sync' the tripFisherman or simply delete all the trip entries first
-                                    tripFishermanIds.forEach { fishermanId ->
-                                        viewModel.upsertTripFishermanCrossRef(
-                                            tripId = tripId,
-                                            fishermanId = fishermanId,
-                                            tackleBoxId = tripTackleBoxSelections[fishermanId])
-                                    }
-                                    // Seed segment crew and tackle box defaults from trip selections
-                                    segmentFishermanIds = tripFishermanIds
-                                    segmentTackleBoxSelections = tripTackleBoxSelections
-                                    segmentName = ""
-                                    segmentStart = tripStart
-                                    segmentEnd = tripEnd
-                                    segmentLat = null; segmentLng = null
-
-                                    if (fromReview) {
-                                        currentStep = WizardStep.Review
-                                    } else {
-                                        currentStep = WizardStep.SegmentInfo
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            if (fromReview) {
-                                Text("Next: Review")
                             } else {
-                                Text("Next: Add First Segment")
+                                tripViewModel.deleteTripFishermanCrossRef(
+                                    tripId = newTripId,
+                                    fishermanId = fishermanId
+                                )
+                                tripFishermanIds = tripFishermanIds - fishermanId
                             }
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                        },
+                        onTackleBoxChanged = { fishermanId, boxId ->
+                            viewModel.upsertTripFishermanCrossRef(
+                                tripId = newTripId,
+                                fishermanId = fishermanId,
+                                tackleBoxId = boxId
+                            )
+                        },
+                        tripViewModel = tripViewModel,
+                        confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Segment",
+                        onConfirm = {
+                            scope.launch {
+                                // TODO - Need to refactor trip and segment fisherman cross references
+                                // TODO - As soon as removed from trip, should be removed from segment
+                                committedSegments = committedSegments.map { segment ->
+                                    segment.copy(
+                                        fishermanIds = segment.fishermanIds intersect tripFishermanIds
+                                    )
+                                }
+                                committedSegments.forEach { segment ->
+                                    viewModel.removeSegmentFishermenNotInSet(
+                                        segmentId = segment.id,
+                                        newSet = tripFishermanIds
+                                    )
+                                }
+                                segmentFishermanIds = tripFishermanIds
+                                segmentName = ""
+                                segmentStart = tripStart
+                                segmentEnd = tripEnd
+                                segmentLat = null; segmentLng = null
+                                currentStep =
+                                    if (fromReview) WizardStep.Review else WizardStep.SegmentInfo
+                            }
+                        },
+                        onAddFisherman = { first, last, nick ->
+                            scope.launch { viewModel.addFisherman(first, last, nick) }
+                        },
+                        onAddTackleBox = { tackleBoxName, fishermanId ->
+                            scope.launch {
+                                tripViewModel.createAndAssignTackleBox(
+                                    fishermanId = fishermanId,
+                                    tripId = newTripId,
+                                    name = tackleBoxName
+                                )
+                            }
                         }
-                    }
-
-                    if (showAddFishermanDialog) {
-                        AddFishermanDialog(
-                            onDismiss = { showAddFishermanDialog = false },
-                            onAdd = { first, last, nick ->
-                                scope.launch { viewModel.addFisherman(first, last, nick) }
-                                showAddFishermanDialog = false
-                            }
-                        )
-                    }
+                    )
                 }
 
                 // ── Step 3: Segment info ─────────────────────────────────────
@@ -596,63 +552,10 @@ fun AddTripScreen(
 
                         Spacer(Modifier.weight(1f))
 
-                        // TODO -- commit segment information here just like trip steps
-                        Button(
-                            onClick = { currentStep = WizardStep.SegmentCrew },
-                            enabled = segmentName.isNotBlank(),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Next: Select Segment Crew")
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                }
-
-                // ── Step 4: Segment crew + tackle boxes ──────────────────────
-                WizardStep.SegmentCrew -> {
-                    // Only trip crew members are eligible for segment
-                    val eligibleFishermen = remember(sortedFishermen, tripFishermanIds) {
-                        sortedFishermen.filter { it.id in tripFishermanIds }
-                    }
-
-                    Column(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Segment Crew & Tackle Boxes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text(
-                            "Who's fishing \"$segmentName\"? Tackle boxes default to trip selections.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(eligibleFishermen, key = { it.id }) { fisherman ->
-                                val isSelected = fisherman.id in segmentFishermanIds
-                                FishermanCrewRow(
-                                    fisherman = fisherman,
-                                    checked = isSelected,
-                                    onCheckedChange = { checked ->
-                                        segmentFishermanIds = if (checked) segmentFishermanIds + fisherman.id
-                                        else {
-                                            segmentTackleBoxSelections = segmentTackleBoxSelections - fisherman.id
-                                            segmentFishermanIds - fisherman.id
-                                        }
-                                    },
-                                    selectedTackleBoxId = segmentTackleBoxSelections[fisherman.id],
-                                    onTackleBoxSelected = { boxId ->
-                                        segmentTackleBoxSelections = segmentTackleBoxSelections + (fisherman.id to boxId)
-                                    },
-                                    tripViewModel = tripViewModel,
-                                    enabled = isSelected
-                                )
-                                HorizontalDivider()
-                            }
-                        }
-
                         Button(
                             onClick = {
-                                // Commit segment to DB
                                 scope.launch {
+                                    // Add the new segment
                                     val segment = Segment(
                                         tripId = newTripId,
                                         id = newSegmentId,
@@ -664,47 +567,89 @@ fun AddTripScreen(
                                     )
                                     viewModel.upsertSegment(segment)
 
-                                    // The databases for segment fishermen may have already been
-                                    // written.  If a fisherman was removed from the segment,
-                                    // it needs to be removed from the database
-                                    viewModel.removeSegmentFishermenNotInSet(
-                                        segmentId = segment.id,
-                                        newSet = segmentFishermanIds)
-
-                                    // Save tackle box selections for this segment
-                                    segmentFishermanIds.forEach { fishermanId ->
-                                        viewModel.upsertSegmentFishermanCrossRef(
-                                            segmentId = segment.id,
-                                            fishermanId = fishermanId,
-                                            tackleBoxId = segmentTackleBoxSelections[fishermanId])
+                                    if (segmentTackleBoxMap.isEmpty()) {
+                                        segmentFishermanIds.forEach { fishermanId ->
+                                            viewModel.upsertSegmentFishermanCrossRef(
+                                                segmentId = newSegmentId,
+                                                fishermanId = fishermanId,
+                                                tackleBoxId = tripTackleBoxMap[fishermanId]
+                                            )
+                                        }
                                     }
-
-                                    val existing = committedSegments.find { it.id == newSegmentId }
-
-                                    if (existing != null) {
-                                        committedSegments = committedSegments - existing;
-                                    }
-
-                                    committedSegments = committedSegments + SegmentDraft(
-                                        id = segment.id,
-                                        name = segmentName,
-                                        startTime = segmentStart,
-                                        endTime = segmentEnd,
-                                        latitude = segmentLat,
-                                        longitude = segmentLng,
-                                        fishermanIds = segmentFishermanIds,
-                                        tackleBoxSelections = segmentTackleBoxSelections
-                                    )
-
-                                    currentStep = WizardStep.Review
                                 }
+
+                                currentStep = WizardStep.SegmentCrew
                             },
+                            enabled = segmentName.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(Icons.Default.Check, null, modifier = Modifier.padding(end = 8.dp))
-                            Text("Save Segment")
+                            Text("Next: Select Segment Crew")
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
+                }
+
+                // ── Step 4: Segment crew + tackle boxes ──────────────────────
+                WizardStep.SegmentCrew -> {
+                    val eligibleFishermen = remember(sortedFishermen, tripFishermanIds) {
+                        sortedFishermen.filter { it.id in tripFishermanIds }
+                    }
+                    TripViewModelCrewPickerBridge(
+                        title = "Segment Crew & Tackle Boxes",
+                        subtitle = "Who's fishing \"$segmentName\"? Tackle boxes default to trip selections.",
+                        eligibleFishermen = eligibleFishermen,
+                        selectedIds = segmentFishermanIds,
+                        tackleBoxSelections = segmentTackleBoxMap,
+                        onSelectionChanged = { fishermanId, selected ->
+                            if (selected) {
+                                segmentFishermanIds = segmentFishermanIds + fishermanId
+                                viewModel.upsertSegmentFishermanCrossRef(
+                                    segmentId = newSegmentId,
+                                    fishermanId = fishermanId,
+                                    tackleBoxId = segmentTackleBoxMap[fishermanId]
+                                )
+                            } else {
+                                segmentFishermanIds = segmentFishermanIds - fishermanId
+                                tripViewModel.deleteSegmentFishermanCrossRef(
+                                    segmentId = newSegmentId,
+                                    fishermanId = fishermanId
+                                )
+                            }
+                        },
+                        onTackleBoxChanged = { fishermanId, boxId ->
+                            viewModel.upsertSegmentFishermanCrossRef(
+                                segmentId = newSegmentId,
+                                fishermanId = fishermanId,
+                                tackleBoxId = boxId
+                            )
+                        },
+                        tripViewModel = tripViewModel,
+                        confirmLabel = "Review",
+                        onConfirm = {
+                            scope.launch {
+                                val existing = committedSegments.find { it.id == newSegmentId }
+                                if (existing != null) committedSegments = committedSegments - existing
+                                committedSegments = committedSegments + SegmentDraft(
+                                    id = newSegmentId,
+                                    name = segmentName,
+                                    startTime = segmentStart,
+                                    endTime = segmentEnd,
+                                    latitude = segmentLat,
+                                    longitude = segmentLng,
+                                    fishermanIds = segmentFishermanIds
+                                )
+                                currentStep = WizardStep.Review
+                            }
+                        },
+                        onAddTackleBox = { tackleBoxName, fishermanId ->
+                            scope.launch { tripViewModel.createAndAssignSegmentTackleBox(
+                                fishermanId = fishermanId,
+                                segmentId = newSegmentId,
+                                name = tackleBoxName
+                            ) }
+                        }
+
+                    )
                 }
 
                 // ── Step 5: Review ───────────────────────────────────────────
@@ -715,7 +660,7 @@ fun AddTripScreen(
                     Column(modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Review Trip",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold)
@@ -734,7 +679,7 @@ fun AddTripScreen(
                             totalCaught = 0,
                             totalKept = 0,
                             fishermanCount = tripFishermanIds.size,
-                            tackleBoxCount = tripTackleBoxSelections.size,
+                            tackleBoxCount = tripTackleBoxMap.size,
                             bigFishWinner = null,
                             topRodName = null
                         )
@@ -811,7 +756,10 @@ fun AddTripScreen(
                             }
                         }
 
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically) {
                             Text("Segments (${committedSegments.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
                                 // Reset segment fields for a new one
@@ -821,7 +769,8 @@ fun AddTripScreen(
                                 segmentEnd = tripEnd
                                 segmentLat = null; segmentLng = null
                                 segmentFishermanIds = tripFishermanIds
-                                segmentTackleBoxSelections = tripTackleBoxSelections
+
+                                tripViewModel.selectSegment(newSegmentId)
                                 currentStep = WizardStep.SegmentInfo
                             }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
@@ -835,6 +784,7 @@ fun AddTripScreen(
                                 // TODO - look into using same card (SegmentItem) from SegmentComponents
                                 Card(modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(bottom = 4.dp)
                                     .clickable() {
                                         fromReview = true
 
@@ -845,8 +795,8 @@ fun AddTripScreen(
                                         segmentLat = seg.latitude
                                         segmentLng = seg.longitude
                                         segmentFishermanIds = seg.fishermanIds
-                                        segmentTackleBoxSelections = seg.tackleBoxSelections
 
+                                        tripViewModel.selectSegment(newSegmentId)
                                         currentStep = WizardStep.SegmentInfo
                                     }
                                 ) {
@@ -923,136 +873,4 @@ private fun LocationSetRow() {
         Spacer(Modifier.width(4.dp))
         Text("Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
     }
-}
-
-@Composable
-private fun FishermanCheckRow(
-    fisherman: Fisherman,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-        Spacer(Modifier.width(8.dp))
-        Text(fisherman.fullName, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FishermanCrewRow(
-    fisherman: Fisherman,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    selectedTackleBoxId: String?,
-    onTackleBoxSelected: (String) -> Unit,
-    tripViewModel: TripViewModel,
-    enabled: Boolean
-) {
-    val availableBoxes by tripViewModel.getTackleBoxesForFisherman(fisherman.id)
-        .collectAsState(initial = emptyList())
-    val lureCount by tripViewModel.getLureCountForTackleBox(selectedTackleBoxId)
-        .collectAsState(initial = 0)
-    val selectedBox = availableBoxes.find { it.id == selectedTackleBoxId }
-
-    var dropdownExpanded by remember { mutableStateOf(false) }
-
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 6.dp)) {
-        // Fisherman checkbox row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = fisherman.fullName,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-            )
-        }
-
-        // Tackle box dropdown — only shown when fisherman is selected
-        if (enabled) {
-            ExposedDropdownMenuBox(
-                expanded = dropdownExpanded,
-                onExpandedChange = { if (availableBoxes.isNotEmpty()) dropdownExpanded = !dropdownExpanded },
-                modifier = Modifier.padding(start = 56.dp, end = 8.dp, bottom = 4.dp)
-            ) {
-                OutlinedTextField(
-                    value = selectedBox?.name ?: if (availableBoxes.isEmpty()) "No boxes available" else "Select tackle box",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Tackle Box") },
-                    trailingIcon = {
-                        if (availableBoxes.isNotEmpty()) ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
-                    },
-                    supportingText = if (selectedTackleBoxId != null) {
-                        { Text("$lureCount lure${if (lureCount != 1) "s" else ""}") }
-                    } else null,
-                    enabled = availableBoxes.isNotEmpty(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    textStyle = MaterialTheme.typography.bodySmall
-                )
-
-                if (availableBoxes.isNotEmpty()) {
-                    ExposedDropdownMenu(
-                        expanded = dropdownExpanded,
-                        onDismissRequest = { dropdownExpanded = false }
-                    ) {
-                        availableBoxes.forEach { box ->
-                            DropdownMenuItem(
-                                text = { Text(box.name) },
-                                onClick = {
-                                    onTackleBoxSelected(box.id)
-                                    dropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AddFishermanDialog(
-    onDismiss: () -> Unit,
-    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
-) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add Fisherman") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = nickname, onValueChange = { nickname = it }, label = { Text("Nickname (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onAdd(firstName, lastName, nickname) },
-                enabled = firstName.isNotBlank() || lastName.isNotBlank()
-            ) { Text("Add") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
 }

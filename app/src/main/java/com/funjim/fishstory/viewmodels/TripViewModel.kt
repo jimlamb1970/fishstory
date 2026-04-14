@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import kotlin.plus
 import kotlin.text.get
 
@@ -33,6 +35,7 @@ class TripViewModel(
     private val photoDao: PhotoDao,
     private val fishermanDao: FishermanDao,
     private val tackleBoxDao: TackleBoxDao,
+    private val lureDao: LureDao,
     private val fishDao: FishDao
 ) : ViewModel() {
     @SuppressLint("MissingPermission")
@@ -45,9 +48,11 @@ class TripViewModel(
         }
     }
 
+    var lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
+
     private val _rawSummaries = tripDao.getTripSummaries()
 
-    // TODO -- sorting on Trip summaries?
+    // TODO -- add sorting on Trip summaries
     val tripSummaries: StateFlow<List<TripSummary>> = _rawSummaries
         .stateIn(
             scope = viewModelScope,
@@ -57,6 +62,7 @@ class TripViewModel(
 
     // The "Trigger" - holds the ID of the trip the user clicked
     private val _selectedTripId = MutableStateFlow<String?>(null)
+//    private val _selectedTripId = MutableStateFlow(UUID.randomUUID().toString())
 
     // The "Reactive Selection" - always stays in sync with the list
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -263,17 +269,30 @@ class TripViewModel(
         }
     }
 
+    fun createTackleBox(tackleBoxName: String, fishermanId: String) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = tackleBoxName)
+            tackleBoxDao.insertTackleBox(tackleBox)
+        }
+    }
+
     fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             tackleBoxDao.insertTackleBox(tackleBox)
-            tripDao.updateTripFishermanTackleBox(
+            tripDao.upsertTripFishermanCrossRef(
                 TripFishermanCrossRef(
                     tripId,
                     fishermanId,
                     tackleBox.id
                 )
             )
+        }
+    }
+
+    fun deleteTripFishermanCrossRef(tripId: String, fishermanId: String) {
+        viewModelScope.launch {
+            tripDao.deleteTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId))
         }
     }
 
@@ -295,6 +314,37 @@ class TripViewModel(
         return tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
     }
 
+    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> {
+        return tripDao.getTripFishermenTackleBoxIds(tripId)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
+        .filterNotNull()
+        .flatMapLatest { id -> getTripFishermenTackleBoxIds(tripId = id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
+
+    fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> {
+        return segmentDao.getSegmentFishermenTackleBoxIds(segmentId)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val segmentTackleBoxMap: StateFlow<Map<String, String?>> = _selectedSegmentId
+        .filterNotNull()
+        .flatMapLatest { id -> getSegmentFishermenTackleBoxIds(segmentId = id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
+
+
     fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> {
         return segmentDao.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
     }
@@ -307,6 +357,23 @@ class TripViewModel(
         return tackleBoxDao.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
 
+    fun getLureNamesInTackleBox(tackleBoxId: String?): Flow<List<String>> {
+        val luresFlow = tackleBoxDao.getLuresInTackleBox(tackleBoxId ?: "")
+
+        // Combine the two flows: lures and colors
+        return combine(luresFlow, lureColors) { lures, colors ->
+            // Create a map for O(1) color lookup performance
+            val colorMap = colors.associate { it.id to it.name }
+
+            lures.map { lure ->
+                val primary = colorMap[lure.primaryColorId]
+                val secondary = colorMap[lure.secondaryColorId]
+                val glow = colorMap[lure.glowColorId]
+
+                lure.getDisplayName(primary, secondary, glow)
+            }.sorted()
+        }
+    }
 
     val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
         .map { photos ->
@@ -334,12 +401,13 @@ class TripViewModel(
         }
     }
 
-    fun deleteFishermanFromSegment(segmentId: String, fishermanId: String) {
+    fun deleteSegmentFishermanCrossRef(segmentId: String, fishermanId: String) {
         viewModelScope.launch {
             segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
         }
     }
 
+    // TODO - refactor Add Segment logic so that it does not use these drafts
     private val _draftTripStartDate = MutableStateFlow(System.currentTimeMillis())
     val draftTripStartDate = _draftTripStartDate.asStateFlow()
 
@@ -462,12 +530,13 @@ class TripViewModelFactory(
     private val photoDao: PhotoDao,
     private val fishermanDao: FishermanDao,
     private val tackleBoxDao: TackleBoxDao,
+    private val lureDao: LureDao,
     private val fishDao: FishDao
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripViewModel(tripDao, segmentDao, photoDao, fishermanDao, tackleBoxDao, fishDao) as T
+            return TripViewModel(tripDao, segmentDao, photoDao, fishermanDao, tackleBoxDao, lureDao, fishDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

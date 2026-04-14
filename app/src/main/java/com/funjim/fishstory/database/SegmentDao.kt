@@ -102,6 +102,16 @@ interface SegmentDao {
     @Query("SELECT tackleBoxId FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId = :fishermanId")
     fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?>
 
+    @Query("""
+    SELECT fishermanId, tackleBoxId 
+    FROM segment_fisherman_cross_ref 
+    WHERE segmentId = :segmentId
+""")
+    fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<
+            @MapColumn(columnName = "fishermanId") String,
+            @MapColumn(columnName = "tackleBoxId") String?
+            >>
+
     @Query("DELETE FROM segment_fisherman_cross_ref WHERE segmentId = :segmentId AND fishermanId NOT IN (:fishermenIds)")
     suspend fun removeFishermenNotInSet(segmentId: String, fishermenIds: Set<String>)
 
