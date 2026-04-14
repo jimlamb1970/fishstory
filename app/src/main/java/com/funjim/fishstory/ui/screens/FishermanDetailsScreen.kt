@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,14 +60,13 @@ fun FishermanDetailsScreen(
         viewModel.selectFisherman(fishermanId)
     }
 
-    val fishermanPhotos by viewModel.getPhotosForFisherman(fishermanId).collectAsStateWithLifecycle(initialValue = emptyList())
-
     val context = LocalContext.current
 
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
-    val stats by viewModel.statistics.collectAsState()
+    val stats by viewModel.statistics.collectAsStateWithLifecycle()
     val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+    val fishermanPhotos by viewModel.fishermanPhotos.collectAsStateWithLifecycle()
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
@@ -381,6 +381,9 @@ fun TackleBoxCard(
     var expanded by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
+    val lureNames by viewModel.getFormattedLureList(tackleBoxWithLures.tackleBox.id)
+        .collectAsState(initial = "")
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -455,20 +458,12 @@ fun TackleBoxCard(
             // Expandable lure list
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
-                    tackleBoxWithLures.lures.forEach { lure ->
-                        val colors by viewModel.lureColors.collectAsState(initial = emptyList())
-
-                        val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
-                        val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
-                        val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-
-                        Text(
-                            text = "• ${lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)}",
-                            color = Color.White.copy(alpha = 0.8f),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        )
-                    }
+                    Text(
+                        text = lureNames,
+                        color = Color.White.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
                 }
             }
         }

@@ -289,9 +289,9 @@ fun AppNavigation(
         }
 
         composable("fishermen") {
-            val database = (navController.context.applicationContext as FishstoryApplication).database
+            val repository = (navController.context.applicationContext as FishstoryApplication).repository
             val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanListViewModelFactory(database.fishermanDao())
+                factory = FishermanListViewModelFactory(repository)
             )
             FishermanListScreen(
                 viewModel = listViewModel,
@@ -596,15 +596,9 @@ fun AppNavigation(
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
-            val database = (navController.context.applicationContext as FishstoryApplication).database
+            val repository = (navController.context.applicationContext as FishstoryApplication).repository
             val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanDetailsViewModelFactory(
-                    database.fishermanDao(),
-                    database.tripDao(),
-                    database.lureDao(),
-                    database.photoDao(),
-                    database.tackleBoxDao()
-                )
+                factory = FishermanDetailsViewModelFactory(repository)
             )
             FishermanDetailsScreen(
                 viewModel = detailsViewModel,

@@ -3,15 +3,14 @@ package com.funjim.fishstory.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.FishStoryRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -19,110 +18,83 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FishermanDetailsViewModel(
-    private val fishermanDao: FishermanDao,
-    private val tripDao: TripDao,
-    private val lureDao: LureDao,
-    private val photoDao: PhotoDao,
-    private val tackleBoxDao: TackleBoxDao
+    private val repository: FishStoryRepository
 ) : ViewModel() {
 
-    val trips: Flow<List<Trip>> = tripDao.getAllTrips()
-    var lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
-
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
-    fun selectFisherman(id: String) {
-        _selectedFishermanId.value = id
-    }
+    fun selectFisherman(id: String) { _selectedFishermanId.value = id }
 
+    // Data Flows
     @OptIn(ExperimentalCoroutinesApi::class)
     val statistics: StateFlow<FishermanFullStatistics?> = _selectedFishermanId
-        .filterNotNull() // Only query if we have an ID
-        .flatMapLatest { id ->
-            fishermanDao.getFishermanFullStatistics(id)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
+        .filterNotNull()
+        .flatMapLatest { repository.getFishermanFullStatistics(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripSummaries: StateFlow<List<TripSummary>> = _selectedFishermanId
         .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                fishermanDao.getTripSummariesForFisherman(id)
-            }
+            if (id == null) flowOf(emptyList())
+            else repository.getTripSummariesForFisherman(id)
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>> {
-        return photoDao.getPhotosForFisherman(fishermanId)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishermanPhotos: StateFlow<List<Photo>> = _selectedFishermanId
+        .filterNotNull()
+        .flatMapLatest { repository.getPhotosForFisherman(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.getLurePhotosGrouped()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    fun getLureNames(tackleBoxId: String?): Flow<List<String>> {
+        return repository.getLureNamesInTackleBox(tackleBoxId)
+    }
+    // In your ViewModel
+    fun getFormattedLureList(tackleBoxId: String): StateFlow<String> {
+        return getLureNames(tackleBoxId)
+            .map { names ->
+                if (names.isEmpty()) "No lures in this box"
+                else names.joinToString(separator = "\n", limit = 8, truncated = "...and more") { lureName ->
+                    "• $lureName"
+                }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = "Loading lures..."
+            )
     }
 
-    fun getPhotosForLure(lureId: String): Flow<List<Photo>> {
-        return photoDao.getPhotosForLure(lureId)
+    // Actions
+    fun updateFisherman(fisherman: Fisherman) {
+        viewModelScope.launch { repository.updateFisherman(fisherman) }
     }
 
     fun addPhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.insertPhoto(photo)
-        }
+        viewModelScope.launch { repository.addPhoto(photo) }
     }
 
     fun deletePhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.deletePhoto(photo)
-        }
-    }
-
-    fun updateFisherman(fisherman: Fisherman) {
-        viewModelScope.launch {
-            fishermanDao.update(fisherman)
-        }
+        viewModelScope.launch { repository.deletePhoto(photo) }
     }
 
     fun createTackleBox(fishermanId: String, name: String) {
-        viewModelScope.launch {
-            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-            tackleBoxDao.insertTackleBox(tackleBox)
-        }
+        viewModelScope.launch { repository.createTackleBox(fishermanId, name) }
     }
 
     fun deleteTackleBox(tackleBox: TackleBox) {
-        viewModelScope.launch {
-            tackleBoxDao.deleteTackleBox(tackleBox)
-        }
+        viewModelScope.launch { repository.deleteTackleBox(tackleBox) }
     }
-
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
-        .map { photos ->
-            photos.filter { it.lureId != null }
-                .groupBy { it.lureId!! } // The !! is safe here because of the filter
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
 }
-
 class FishermanDetailsViewModelFactory(
-    private val fishermanDao: FishermanDao,
-    private val tripDao: TripDao,
-    private val lureDao: LureDao,
-    private val photoDao: PhotoDao,
-    private val tackleBoxDao: TackleBoxDao
+    private val repository: FishStoryRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanDetailsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishermanDetailsViewModel(fishermanDao, tripDao, lureDao, photoDao, tackleBoxDao) as T
+            return FishermanDetailsViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
