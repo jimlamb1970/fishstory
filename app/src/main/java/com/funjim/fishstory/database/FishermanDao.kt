@@ -24,6 +24,8 @@ interface FishermanDao {
 
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
     suspend fun getFishermanById(id: String): Fisherman?
+    @Query("SELECT * FROM fisherman_table WHERE id = :id")
+    fun getFisherman(id: String): Flow<Fisherman?>
 
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()

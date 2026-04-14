@@ -45,8 +45,8 @@ fun FishSummaryScreen(
     onNavigateToFishList: (tripId: String, segmentId: String) -> Unit
 ) {
     val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedTripId by viewModel.selectedTripIdForFilter.collectAsStateWithLifecycle()
-    val selectedSegmentId by viewModel.selectedSegmentIdForFilter.collectAsStateWithLifecycle()
+    val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
+    val selectedSegmentId by viewModel.selectedSegmentId.collectAsStateWithLifecycle()
 
     val selectedTrip = remember(allTrips, selectedTripId) {
         allTrips.find { it.id == selectedTripId }
@@ -55,8 +55,8 @@ fun FishSummaryScreen(
     var tripExpanded by remember { mutableStateOf(false) }
 
     val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = selectedTrip) {
-        selectedTrip?.let { trip ->
-            viewModel.getSegmentsForTrip(trip.id).collect { value = it }
+        selectedTrip?.let {
+            viewModel.segmentsForTrip.collect { value = it }
         } ?: run { value = emptyList() }
     }
 
@@ -164,8 +164,8 @@ fun FishSummaryScreen(
                         DropdownMenuItem(
                             text = { Text(trip.name) },
                             onClick = {
-                                viewModel.updateSelectedTripIdForFilter(trip.id)
-                                viewModel.updateSelectedSegmentIdForFilter(null)
+                                viewModel.updateSelectedTrip(trip.id)
+                                viewModel.updateSelectedSegment(null)
                                 tripExpanded = false
                             }
                         )
@@ -203,7 +203,7 @@ fun FishSummaryScreen(
                     DropdownMenuItem(
                         text = { Text("All segments") },
                         onClick = {
-                            viewModel.updateSelectedSegmentIdForFilter(null)
+                            viewModel.updateSelectedSegment(null)
                             segmentExpanded = false
                         }
                     )
@@ -211,7 +211,7 @@ fun FishSummaryScreen(
                         DropdownMenuItem(
                             text = { Text(segment.name) },
                             onClick = {
-                                viewModel.updateSelectedSegmentIdForFilter(segment.id)
+                                viewModel.updateSelectedSegment(segment.id)
                                 segmentExpanded = false
                             }
                         )

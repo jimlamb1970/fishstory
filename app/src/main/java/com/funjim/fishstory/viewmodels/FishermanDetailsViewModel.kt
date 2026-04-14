@@ -45,7 +45,7 @@ class FishermanDetailsViewModel(
         .flatMapLatest { repository.getPhotosForFisherman(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.getLurePhotosGrouped()
+    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.lurePhotos
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun getLureNames(tackleBoxId: String?): Flow<List<String>> {

@@ -167,6 +167,8 @@ interface FishDao {
 
     @Query("SELECT * FROM fish_table WHERE id = :id")
     suspend fun getFishById(id: String): Fish?
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFish(id: String): Fish?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFish(fish: Fish)

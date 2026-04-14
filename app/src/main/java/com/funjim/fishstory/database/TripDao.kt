@@ -41,6 +41,10 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
+    fun getTrip(tripId: String): Flow<Trip?>
+
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE id = :tripId")
     fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?>
 
     @Transaction

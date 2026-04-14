@@ -15,6 +15,9 @@ interface SegmentDao {
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>>
 
+    @Query("SELECT * FROM segment_table WHERE id = :id")
+    fun getSegment(id: String): Flow<Segment?>
+
     @Transaction
     @Query("SELECT * FROM segment_table WHERE tripId = :tripId")
     fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>>

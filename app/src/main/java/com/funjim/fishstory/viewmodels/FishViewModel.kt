@@ -4,12 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.FishDao
-import com.funjim.fishstory.database.FishermanDao
-import com.funjim.fishstory.database.PhotoDao
-import com.funjim.fishstory.database.SegmentDao
-import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.FishStoryRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -29,26 +25,144 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class FishViewModel(
-    private val fishDao: FishDao,
-    private val tripDao: TripDao,
-    private val segmentDao: SegmentDao,
-    private val fishermanDao: FishermanDao,
-    private val photoDao: PhotoDao
+    private val repository: FishStoryRepository
 ) : ViewModel() {
+    // UI State flows
+    private val _selectedTripId = MutableStateFlow<String?>(null)
+    private val _selectedSegmentId = MutableStateFlow<String?>(null)
+    private val _selectedFishermanId = MutableStateFlow<String?>(null)
+    private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
+    private val _isReversed = MutableStateFlow(false)
 
-    val trips: Flow<List<Trip>> = tripDao.getAllTrips()
-    val species: Flow<List<Species>> = fishDao.getAllSpecies()
+    // Exposed State for the UI
+    val trips = repository.allTrips
+    val species = repository.allSpecies
+    val fishPhotos = repository.fishPhotos.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyMap()
+    )
 
-    private val _selectedTripIdForFilter = MutableStateFlow<String?>(null)
-    val selectedTripIdForFilter = _selectedTripIdForFilter.asStateFlow()
+    val selectedTripId = _selectedTripId.asStateFlow()
+    val selectedSegmentId = _selectedSegmentId.asStateFlow()
+    val selectedFishermanId = _selectedFishermanId.asStateFlow()
+    val sortOrder = _sortOrder.asStateFlow()
+    val isReversed = _isReversed.asStateFlow()
 
-    private val _selectedSegmentIdForFilter = MutableStateFlow<String?>(null)
-    val selectedSegmentIdForFilter = _selectedSegmentIdForFilter.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val segmentsForTrip: StateFlow<List<Segment>> = _selectedTripId
+        .flatMapLatest { tripId ->
+            if (tripId == null) {
+                flowOf(emptyList())
+            } else {
+                repository.getSegmentsForTrip(tripId)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    private val _fishermanIdForFilter = MutableStateFlow<String?>(null)
-    val fishermanIdForFilter = _fishermanIdForFilter.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedTrip = _selectedTripId
+        .filterNotNull()
+        .flatMapLatest { id -> repository.getTrip(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // Observe the Trip Details reactively
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedSegment = _selectedSegmentId
+        .filterNotNull()
+        .flatMapLatest { id -> repository.getSegment(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedFisherman = _selectedFishermanId
+        .filterNotNull()
+        .flatMapLatest { id -> repository.getFisherman(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishForScope: StateFlow<List<FishWithDetails>> = combine(
+        _selectedTripId,
+        _selectedSegmentId,
+        _selectedFishermanId,
+        _sortOrder,
+        _isReversed
+    ) { trip, seg, fish, sort, rev ->
+        // Helper to pass params
+        FilterParams(trip, seg, fish, sort, rev)
+    }.flatMapLatest { params ->
+        repository.getFilteredFish(params.tripId, params.segmentId, params.fishermanId)
+            .map { list -> applySorting(list, params.sortOrder, params.isReversed) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {
+        val sorted = when (order) {
+            FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.timestamp }
+            FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.length }
+            FishSortOrder.LURE -> list.sortedBy { it.getFullLureName() }
+            FishSortOrder.SPECIES_AZ -> list.sortedBy { it.speciesName }
+            FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fishermanName }
+            FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.holeNumber ?: 999 }
+            else -> list
+        }
+        return if (reversed) sorted.reversed() else sorted
+    }
+
+    // UI Events
+    fun updateSelectedTrip(id: String?) {
+        _selectedTripId.value = id
+        _selectedSegmentId.value = null // Reset segment if trip changes
+    }
+    fun updateSelectedSegment(id: String?) {
+        _selectedSegmentId.value = id
+    }
+
+    fun updateSelectedFisherman(id: String?) {
+        _selectedFishermanId.value = id
+    }
+
+    fun toggleReverse() { _isReversed.value = !_isReversed.value }
+    fun updateSortOrder(order: FishSortOrder) { _sortOrder.value = order }
+
+    private data class FilterParams(
+        val tripId: String?,
+        val segmentId: String?,
+        val fishermanId: String?,
+        val sortOrder: FishSortOrder,
+        val isReversed: Boolean
+    )
+
+    suspend fun getFish(id: String): Fish? {
+        return repository.getFish(id)
+    }
+    fun upsertFish(fish: Fish) {
+        viewModelScope.launch {
+            repository.upsertFish(fish)
+        }
+    }
+
+    fun deleteFish(fish: Fish) {
+        viewModelScope.launch {
+            repository.deleteFish(fish)
+        }
+    }
+
+    fun addSpecies(species: Species) {
+        viewModelScope.launch {
+            repository.addSpecies(species)
+        }
+    }
+
+    fun deleteSpecies(species: Species) {
+        viewModelScope.launch {
+            repository.deleteSpecies(species)
+        }
+    }
+
+
+    /*
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentTrip = _selectedTripIdForFilter
         .filterNotNull()
@@ -56,17 +170,7 @@ class FishViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // Observe the Segment Details reactively
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentSegment = _selectedSegmentIdForFilter
-        .filterNotNull()
-        .flatMapLatest { id -> segmentDao.getSegmentWithDetails(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentFisherman = _fishermanIdForFilter
-        .filterNotNull()
-        .flatMapLatest { id -> fishermanDao.getFishermanWithDetails(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun updateSelectedTripIdForFilter(id: String?) {
         _selectedTripIdForFilter.value = id
@@ -77,9 +181,6 @@ class FishViewModel(
         _selectedSegmentIdForFilter.value = id
     }
 
-    fun updateFishermanIdForFilter(id: String?) {
-        _fishermanIdForFilter.value = id
-    }
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> {
         return segmentDao.getSegmentsForTrip(tripId)
@@ -97,15 +198,6 @@ class FishViewModel(
         return fishDao.getFishForFisherman(fishermanId)
     }
 
-    suspend fun getFishById(id: String): Fish? {
-        return fishDao.getFishById(id)
-    }
-
-    private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
-    val sortOrder = _sortOrder.asStateFlow()
-
-    private val _isReversed = MutableStateFlow(false)
-    val isReversed = _isReversed.asStateFlow()
 
     private data class FishFilterParams(
         val tripId: String?,
@@ -151,35 +243,10 @@ class FishViewModel(
         initialValue = emptyList()
     )
 
-    fun toggleReverse() {
-        _isReversed.value = !_isReversed.value
-    }
-
-    fun updateSortOrder(newOrder: FishSortOrder) {
-        _sortOrder.value = newOrder
-    }
-
-    fun upsertFish(fish: Fish) {
-        viewModelScope.launch {
-            fishDao.upsertFish(fish)
-        }
-    }
 
     fun deleteFishObject(fish: Fish) {
         viewModelScope.launch {
             fishDao.deleteFish(fish)
-        }
-    }
-
-    fun addSpecies(species: Species) {
-        viewModelScope.launch {
-            fishDao.insertSpecies(species)
-        }
-    }
-
-    fun deleteSpecies(species: Species) {
-        viewModelScope.launch {
-            fishDao.deleteSpecies(species)
         }
     }
 
@@ -194,16 +261,8 @@ class FishViewModel(
             photoDao.deletePhoto(photo)
         }
     }
-    val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
-        .map { photos ->
-            photos.filter { it.fishId != null }
-                .groupBy { it.fishId!! } // The !! is safe here because of the filter
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
 
+    */
     private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
     val deviceLocation = _deviceLocation.asStateFlow()
 
@@ -250,16 +309,12 @@ class FishViewModel(
 }
 
 class FishViewModelFactory(
-    private val fishDao: FishDao,
-    private val tripDao: TripDao,
-    private val segmentDao: SegmentDao,
-    private val fishermanDao: FishermanDao,
-    private val photoDao: PhotoDao
+    private val repository: FishStoryRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishViewModel(fishDao, tripDao, segmentDao, fishermanDao, photoDao) as T
+            return FishViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
