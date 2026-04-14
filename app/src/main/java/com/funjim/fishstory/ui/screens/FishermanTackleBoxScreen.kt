@@ -32,7 +32,7 @@ fun FishermanTackleBoxScreen(
         viewModel.selectTackleBox(tackleBoxId)
     }
 
-    val allLures by viewModel.lures.collectAsState(initial = emptyList())
+    val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val luresInBox by viewModel.tackleBoxesWithLures.collectAsState(initial = emptyList())
 
@@ -106,7 +106,7 @@ fun FishermanTackleBoxScreen(
                             if (currentOrder == field) {
                                 viewModel.toggleReverse()
                             } else {
-                                viewModel.updateSortOrder(field)
+                                viewModel.setSortOrder(field)
                                 if (reversed) {
                                     viewModel.toggleReverse()
                                 }

@@ -1,15 +1,12 @@
 package com.funjim.fishstory.viewmodels
 
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.ui.screens.LureWithDisplay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,120 +14,112 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.collections.map
 
 class LureViewModel(
-    private val lureDao: LureDao,
-    private val fishermanDao: FishermanDao,
-    private val tackleBoxDao: TackleBoxDao,
-    private val photoDao: PhotoDao
+    private val repository: LureRepository
 ) : ViewModel() {
-    private val _rawLures = lureDao.getAllLures()
-
     private val _sortOrder = MutableStateFlow(LureSortOrder.NAME)
     val sortOrder = _sortOrder.asStateFlow()
 
     private val _isReversed = MutableStateFlow(false)
     val isReversed = _isReversed.asStateFlow()
 
-    private val _lureColors = lureDao.getAllLureColors()
+    private val _lureColors = repository.allLureColors
     val lureColors = _lureColors
 
-    val lures: StateFlow<List<LureWithDisplay>> = combine(
-        _rawLures,
-        _sortOrder,
-        _isReversed,
-        _lureColors
-    ) { lures, order, reversed, colors ->
-        val mapped = lures.map { lure ->
-            val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
-            val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
-            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-            LureWithDisplay(
-                lure = lure,
-                primaryColorName = primaryColorName,
-                secondaryColorName = secondaryColorName,
-                glowColorName = glowColorName,
-                displayName = lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
-            )
-        }
-
-        val sorted = when (order) {
-            LureSortOrder.NAME         -> mapped.sortedBy { it.displayName }
-            LureSortOrder.PRIMARY_COLOR -> mapped.sortedBy { it.primaryColorName ?: "" }
-            LureSortOrder.SECONDARY_COLOR -> mapped.sortedBy { it.secondaryColorName ?: "" }
-            LureSortOrder.GLOW_COLOR    -> mapped.sortedBy { it.glowColorName ?: "" }
-            LureSortOrder.GLOW         -> mapped.sortedBy { it.lure.glows }
-            LureSortOrder.HOOK_TYPE     -> mapped.sortedBy { it.lure.hasSingleHook }
-        }
-
-        if (reversed) sorted.reversed() else sorted
-    }
+    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.lurePhotos
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyMap() // <--- This ensures 'by' always has a non-null map to read
         )
 
-    fun toggleReverse() {
-        _isReversed.value = !_isReversed.value
+    // Combine lures, colors, and photos into the UI model
+    val luresWithDisplay: StateFlow<List<LureWithDisplay>> = combine(
+        repository.allLures,
+        repository.allLureColors,
+        repository.lurePhotos,
+        _sortOrder,
+        _isReversed
+    ) { lures, colors, photos, sort, reversed ->
+        val colorMap = colors.associateBy { it.id }
+
+        val displayList = lures.map { lure ->
+            LureWithDisplay(
+                lure = lure,
+                primaryColorName = colorMap[lure.primaryColorId]?.name,
+                secondaryColorName = colorMap[lure.secondaryColorId]?.name,
+                glowColorName = colorMap[lure.glowColorId]?.name,
+                displayName = lure.getDisplayName(
+                    colorMap[lure.primaryColorId]?.name,
+                    colorMap[lure.secondaryColorId]?.name,
+                    colorMap[lure.glowColorId]?.name),
+                // TODO - enable photos
+            )
+        }
+
+        val sortedList = applySorting(displayList, sort)
+        if (reversed) sortedList.reversed() else sortedList
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList())
+
+    private fun applySorting(list: List<LureWithDisplay>, order: LureSortOrder): List<LureWithDisplay> {
+        return when (order) {
+            LureSortOrder.NAME -> list.sortedBy { it.lure.name }
+            LureSortOrder.PRIMARY_COLOR -> list.sortedBy { it.primaryColorName }
+            LureSortOrder.SECONDARY_COLOR -> list.sortedBy { it.secondaryColorName }
+            LureSortOrder.GLOW_COLOR -> list.sortedBy { it.glowColorName }
+            LureSortOrder.GLOW -> list.sortedBy { it.lure.glows }
+            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hasSingleHook }
+        }
     }
 
-    fun updateSortOrder(newOrder: LureSortOrder) {
-        _sortOrder.value = newOrder
+    fun toggleReverse() { _isReversed.value = !_isReversed.value }
+    fun setSortOrder(order: LureSortOrder) { _sortOrder.value = order }
+
+    fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
+        viewModelScope.launch {
+            repository.addLureToTackleBox(fishermanId, lureId)
+        }
     }
 
-    val fishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
-
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllPhotos()
-        .map { photos -> photos.filter { it.lureId != null }.groupBy { it.lureId!! } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-
-    fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>> {
-        return tackleBoxDao.getLuresForFisherman(fishermanId)
-    }
-
-    suspend fun getLureById(id: String): Lure? {
-        return lureDao.getLureById(id)
+    fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
+        viewModelScope.launch {
+            repository.removeLureFromTackleBox(fishermanId, lureId)
+        }
     }
 
     fun addLure(lure: Lure) {
         viewModelScope.launch {
-            lureDao.insertLure(lure)
+            repository.insertLure(lure)
         }
     }
 
     fun deleteLure(lure: Lure) {
         viewModelScope.launch {
-            lureDao.deleteLure(lure)
+            repository.deleteLure(lure)
         }
     }
 
     fun addLureColor(color: LureColor) {
         viewModelScope.launch {
-            lureDao.insertLureColor(color)
+            repository.insertLureColor(color)
         }
     }
 
     fun deleteLureColor(color: LureColor) {
         viewModelScope.launch {
-            lureDao.deleteLureColor(color)
+            repository.deleteLureColor(color)
         }
     }
 
-    fun addPhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.insertPhoto(photo)
-        }
-    }
-
-    fun deletePhoto(photo: Photo) {
-        viewModelScope.launch {
-            photoDao.deletePhoto(photo)
-        }
+    suspend fun getLureById(id: String): Lure? {
+        return repository.getLureById(id)
     }
 
     private val _selectedFisherman = MutableStateFlow<Fisherman?>(null)
@@ -139,13 +128,15 @@ class LureViewModel(
     fun selectFisherman(id: String) {
         viewModelScope.launch {
             // This is the 'suspend' call to the database
-            val fisherman = fishermanDao.getFishermanById(id)
+            val fisherman = repository.getFishermanById(id)
             _selectedFisherman.value = fisherman
         }
     }
 
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
-
+    fun selectTackleBox(id: String) {
+        _selectedTackleBoxId.value = id
+    }
     @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxesWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
         .flatMapLatest { id ->
@@ -153,7 +144,7 @@ class LureViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                tackleBoxDao.getLuresInTackleBox(id)
+                repository.getLuresInTackleBox(id)
             }
         }
         .stateIn(
@@ -162,42 +153,15 @@ class LureViewModel(
             initialValue = emptyList()
         )
 
-    fun selectTackleBox(id: String) {
-        _selectedTackleBoxId.value = id
-    }
-
-    fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
-        viewModelScope.launch {
-            // Need to get or create tacklebox
-            var tackleBox = tackleBoxDao.getExistingTackleBoxForFisherman(fishermanId)
-            if (tackleBox == null) {
-                tackleBox = TackleBox(fishermanId = fishermanId)
-                tackleBoxDao.insertTackleBox(tackleBox)
-            }
-            tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
-        }
-    }
-
-    fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
-        viewModelScope.launch {
-            val tackleBox = tackleBoxDao.getExistingTackleBoxForFisherman(fishermanId)
-            if (tackleBox != null) {
-                tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
-            }
-        }
-    }
 }
 
 class LureViewModelFactory(
-    private val lureDao: LureDao,
-    private val fishermanDao: FishermanDao,
-    private val tackleBoxDao: TackleBoxDao,
-    private val photoDao: PhotoDao
+    private val repository: LureRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LureViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LureViewModel(lureDao, fishermanDao, tackleBoxDao, photoDao) as T
+            return LureViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

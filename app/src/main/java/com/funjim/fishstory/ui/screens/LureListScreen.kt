@@ -29,7 +29,7 @@ fun LureListScreen(
     onAddLure: (String?) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val allLures by viewModel.lures.collectAsState(initial = emptyList())
+    val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -82,7 +82,7 @@ fun LureListScreen(
                             if (currentOrder == field) {
                                 viewModel.toggleReverse()
                             } else {
-                                viewModel.updateSortOrder(field)
+                                viewModel.setSortOrder(field)
                                 if (reversed) {
                                     viewModel.toggleReverse()
                                 }

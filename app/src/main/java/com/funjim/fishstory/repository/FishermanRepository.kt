@@ -1,22 +1,14 @@
 package com.funjim.fishstory.repository
 
-import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
-import com.funjim.fishstory.database.SegmentDao
 import com.funjim.fishstory.database.TackleBoxDao
-import com.funjim.fishstory.database.TripDao
-import com.funjim.fishstory.model.Fish
-import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow

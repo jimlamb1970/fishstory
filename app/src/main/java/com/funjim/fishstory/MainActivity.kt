@@ -72,13 +72,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private val lureViewModel: LureViewModel by viewModels {
-        val database = (application as FishstoryApplication).database
-        LureViewModelFactory(
-            database.lureDao(),
-            database.fishermanDao(),
-            database.tackleBoxDao(),
-            database.photoDao()
-        )
+        val repository = (application as FishstoryApplication).repositoryLure
+        LureViewModelFactory(repository)
     }
 
     private val tripViewModel: TripViewModel by viewModels {
