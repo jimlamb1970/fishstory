@@ -29,7 +29,7 @@ fun SegmentTackleBoxScreen(
         viewModel.selectSegment(segmentId)
     }
 
-    val segmentSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val fishermen by viewModel.getFishermanForSegment(segmentId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -44,10 +44,10 @@ fun SegmentTackleBoxScreen(
             )
         }
     ) { padding ->
-        val segmentWithFishermen by viewModel.getSegmentWithFishermen(segmentId).collectAsState(initial = null)
-        val fishermen = segmentWithFishermen?.fishermen ?: emptyList()
 
-        if (fishermen.isEmpty()) {
+        if (fishermen == null) {
+            CircularProgressIndicator()
+        } else if (fishermen!!.isEmpty()) {
             Box(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -60,14 +60,14 @@ fun SegmentTackleBoxScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(fishermen) { fisherman ->
+                items(fishermen!!) { fisherman ->
                     SegmentFishermanTackleBoxCard(
                         fisherman = fisherman,
                         segmentId = segmentId,
                         viewModel = viewModel,
                         onTackleBoxChanged = { newTackleBoxId ->
                             scope.launch {
-                                viewModel.updateSegmentFishermanTackleBox(
+                                viewModel.upsertSegmentFishermanCrossRef(
                                     segmentId = segmentId,
                                     fishermanId = fisherman.id,
                                     tackleBoxId = newTackleBoxId

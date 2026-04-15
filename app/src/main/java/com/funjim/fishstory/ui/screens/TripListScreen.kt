@@ -61,7 +61,7 @@ fun TripListScreen(
                     @SuppressLint("MissingPermission")
                     val location = viewModel.getTripCurrentLocation(context)
                     location?.let {
-                        viewModel.updateTrip(summary.trip.copy(latitude = it.latitude, longitude = it.longitude))
+                        viewModel.saveTrip(summary.trip.copy(latitude = it.latitude, longitude = it.longitude))
                     }
                 }
             }
@@ -76,7 +76,7 @@ fun TripListScreen(
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             activeTrip?.let { summary ->
-                scope.launch { viewModel.updateTrip(summary.trip.copy(latitude = lat, longitude = lng)) }
+                scope.launch { viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng)) }
             }
         }
     )
@@ -96,7 +96,7 @@ fun TripListScreen(
                         @SuppressLint("MissingPermission")
                         val location = viewModel.getTripCurrentLocation(context)
                         if (location != null) {
-                            viewModel.updateTrip(
+                            viewModel.saveTrip(
                                 action.tripSummary.trip.copy(
                                     latitude = location.latitude,
                                     longitude = location.longitude
@@ -131,7 +131,7 @@ fun TripListScreen(
             is TripAction.ClearLocation -> {
                 showMenu = false
                 scope.launch {
-                    viewModel.updateTrip(
+                    viewModel.saveTrip(
                         action.tripSummary.trip.copy(latitude = null, longitude = null)
                     )
                     Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)

@@ -57,3 +57,5 @@ interface TackleBoxDao {
     """)
     fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>>
 }
+
+// TODO - add query to get lures for tacklebox/fishermen with names built out

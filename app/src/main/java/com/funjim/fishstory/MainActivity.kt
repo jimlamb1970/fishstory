@@ -8,6 +8,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +39,7 @@ import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
+import com.funjim.fishstory.ui.screens.DashboardScreen
 import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
 import com.funjim.fishstory.ui.screens.FishSummaryScreen
@@ -66,26 +69,28 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private val dashboardViewModel: DashboardViewModel by viewModels {
+        val repository = (application as FishstoryApplication).tripRepository
+        DashboardViewModelFactory(repository)
+    }
     private val fishViewModel: FishViewModel by viewModels {
-        val repository = (application as FishstoryApplication).repositoryFish
+        val repository = (application as FishstoryApplication).fishRepository
         FishViewModelFactory(repository)
     }
 
     private val lureViewModel: LureViewModel by viewModels {
-        val repository = (application as FishstoryApplication).repositoryLure
+        val repository = (application as FishstoryApplication).lureRepository
         LureViewModelFactory(repository)
     }
 
     private val tripViewModel: TripViewModel by viewModels {
+        val tripRepository = (application as FishstoryApplication).tripRepository
+        val fishermanRepository = (application as FishstoryApplication).fishermanRepository
+
         val database = (application as FishstoryApplication).database
         TripViewModelFactory(
-            database.tripDao(),
-            database.segmentDao(),
-            database.photoDao(),
-            database.fishermanDao(),
-            database.tackleBoxDao(),
-            database.lureDao(),
-            database.fishDao()
+            tripRepository,
+            fishermanRepository
         )
     }
 
@@ -123,7 +128,7 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel, tripViewModel, fishViewModel, lureViewModel)
+                        AppNavigation(navController, viewModel, dashboardViewModel, tripViewModel, fishViewModel, lureViewModel)
                     }
                 }
             }
@@ -152,6 +157,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(
     navController: NavHostController,
     viewModel: MainViewModel,
+    dashboardViewModel: DashboardViewModel,
     tripViewModel: TripViewModel,
     fishViewModel: FishViewModel,
     lureViewModel: LureViewModel
@@ -160,6 +166,14 @@ fun AppNavigation(
         composable("main_menu") {
             MainMenuScreen(navController)
         }
+
+        composable("dashboard") {
+            DashboardScreen(
+                onNavigate = { route -> navController.navigate(route) },
+                viewModel = dashboardViewModel
+            )
+        }
+
         composable("trips") {
             TripListScreen(
                 viewModel = tripViewModel,
@@ -278,7 +292,7 @@ fun AppNavigation(
         }
 
         composable("fishermen") {
-            val repository = (navController.context.applicationContext as FishstoryApplication).repositoryFisherman
+            val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanListViewModelFactory(repository)
             )
@@ -585,7 +599,7 @@ fun AppNavigation(
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
-            val repository = (navController.context.applicationContext as FishstoryApplication).repositoryFisherman
+            val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanDetailsViewModelFactory(repository)
             )
@@ -637,25 +651,6 @@ fun AppNavigation(
         }
 
         composable(
-            route = "draftSegmentDetails/{segmentId}",
-            arguments = listOf(
-                navArgument("segmentId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
-            DraftSegmentDetailsScreen(
-                viewModel = tripViewModel,
-                segmentId = segmentId,
-                navigateToLoadBoatForSegment = {
-                    navController.navigate("loadBoatForSegment")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
             route = "segmentBoatLoad/{segmentId}/{tripId}",
             arguments = listOf(
                 navArgument("segmentId") { type = NavType.StringType },
@@ -699,6 +694,18 @@ fun MainMenuScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            SecretNavigationWrapper(onSecretTriggered = {
+                navController.navigate("dashboard") // Use your dashboard route name
+            }) {
+                // Put your App Title or Logo here
+                Text(
+                    "FishStory Management",
+                    style = MaterialTheme.typography.displaySmall,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFF00274C) // Michigan Blue
+                )
+            }
+            Spacer(modifier = Modifier.height(32.dp))
             val menuItems = listOf(
                 MenuButtonData("Trips", MenuIcon.Resource(R.mipmap.compass_rose_foreground), "trips"),
                 MenuButtonData("Fishermen", MenuIcon.Resource(R.mipmap.fishermen_foreground), "fishermen"),
@@ -770,5 +777,37 @@ fun MenuIconOnlyButton(data: MenuButtonData, onClick: () -> Unit, modifier: Modi
             ),
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun SecretNavigationWrapper(
+    onSecretTriggered: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    var tapCount by remember { mutableIntStateOf(0) }
+    var lastTapTime by remember { mutableLongStateOf(0L) }
+
+    Box(modifier = Modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null // Hide the ripple so it's actually a secret
+    ) {
+        val currentTime = System.currentTimeMillis()
+
+        // If the gap between taps is too long (e.g. > 500ms), reset the count
+        if (currentTime - lastTapTime > 500) {
+            tapCount = 1
+        } else {
+            tapCount++
+        }
+
+        lastTapTime = currentTime
+
+        if (tapCount >= 5) {
+            tapCount = 0 // Reset
+            onSecretTriggered()
+        }
+    }) {
+        content()
     }
 }

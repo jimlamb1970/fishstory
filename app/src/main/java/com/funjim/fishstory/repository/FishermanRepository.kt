@@ -7,8 +7,10 @@ import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +23,15 @@ class FishermanRepository(
     private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao,
 ) {
+    val allFishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
+    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> =
+        fishermanDao.getFishermenForTrip(tripId)
+    fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> =
+        fishermanDao.getFishermenForSegment(segmentId)
+
+    // TODO - this really should be from Lure Repo
+    val allLureColors = lureDao.getAllLureColors()
+
     /**
      * Provides a sorted list of fishermen summaries.
      * Moving this here allows the Dashboard to easily grab the "Top 3" fishermen
@@ -96,6 +107,10 @@ class FishermanRepository(
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(fishermanId: String, name: String) =
         tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId, name = name))
-
+    suspend fun insertTackleBox(tackleBox: TackleBox) = tackleBoxDao.insertTackleBox(tackleBox)
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> =
+        tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
+    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<Lure>> =
+        tackleBoxDao.getLuresInTackleBox(tackleBoxId)
     suspend fun deleteTackleBox(tackleBox: TackleBox) = tackleBoxDao.deleteTackleBox(tackleBox)
 }

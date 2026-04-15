@@ -5,11 +5,12 @@ import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.TripRepository
 
 class FishstoryApplication : Application() {
     val database: FishstoryDatabase by lazy { FishstoryDatabase.getDatabase(this) }
 
-    val repositoryFisherman by lazy {
+    val fishermanRepository by lazy {
         FishermanRepository(
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
@@ -18,7 +19,7 @@ class FishstoryApplication : Application() {
         )
     }
 
-    val repositoryFish by lazy {
+    val fishRepository by lazy {
         FishRepository(
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
@@ -28,12 +29,21 @@ class FishstoryApplication : Application() {
         )
     }
 
-    val repositoryLure by lazy {
+    val lureRepository by lazy {
         LureRepository(
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
             photoDao = database.photoDao(),
             tackleBoxDao = database.tackleBoxDao()
+        )
+    }
+
+    val tripRepository by lazy {
+        TripRepository(
+            fishermanDao = database.fishermanDao(),
+            photoDao = database.photoDao(),
+            segmentDao = database.segmentDao(),
+            tripDao = database.tripDao()
         )
     }
 }

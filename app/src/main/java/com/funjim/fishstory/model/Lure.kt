@@ -81,3 +81,5 @@ data class Lure(
         return sb.toString()
     }
 }
+
+// TODO - Need a version of lure that has the full name already built

@@ -67,7 +67,7 @@ fun TripDetailsScreen(
     val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val segmentSummaries by viewModel.segmentSummaries.collectAsStateWithLifecycle()
 
-    val tripPhotos by viewModel.getPhotosForTrip(tripId).collectAsState(initial = emptyList())
+    val tripPhotos by viewModel.tripPhotos.collectAsState(initial = emptyList())
 
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -90,7 +90,7 @@ fun TripDetailsScreen(
                 val location = viewModel.getTripCurrentLocation(context)
                 if (location != null) {
                     tripSummary?.trip?.let { trip ->
-                        viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                        viewModel.saveTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
                         Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                     }
                 } else {
@@ -114,7 +114,7 @@ fun TripDetailsScreen(
         onLocationConfirmed = { lat, lng ->
             tripSummary?.trip?.let { trip ->
                 scope.launch {
-                    viewModel.updateTrip(trip.copy(latitude = lat, longitude = lng))
+                    viewModel.saveTrip(trip.copy(latitude = lat, longitude = lng))
                 }
             }
         }
@@ -128,7 +128,7 @@ fun TripDetailsScreen(
         onLocationConfirmed = { lat, lng ->
             segmentToUpdateLocation?.segment?.let { segment ->
                 scope.launch {
-                    viewModel.updateSegment(segment.copy(latitude = lat, longitude = lng))
+                    viewModel.upsertSegment(segment.copy(latitude = lat, longitude = lng))
                 }
             }
         }
@@ -164,7 +164,7 @@ fun TripDetailsScreen(
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
                                                 tripSummary?.trip?.let { trip ->
-                                                    viewModel.updateTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
+                                                    viewModel.saveTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
                                                     Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                                 }
                                             } else {
@@ -204,7 +204,7 @@ fun TripDetailsScreen(
                                         menuExpanded = false
                                         tripSummary?.trip?.let { trip ->
                                             scope.launch {
-                                                viewModel.updateTrip(
+                                                viewModel.saveTrip(
                                                     trip.copy(latitude = null, longitude = null)
                                                 )
                                                 Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
@@ -360,7 +360,7 @@ fun TripDetailsScreen(
                                     scope.launch {
                                         val location = viewModel.getTripCurrentLocation(context)
                                         if (location != null) {
-                                            viewModel.updateSegment(segmentSummary.segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            viewModel.upsertSegment(segmentSummary.segment.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }
@@ -377,7 +377,7 @@ fun TripDetailsScreen(
                             onUseTripLocation = if (details.trip.latitude != null) {
                                 {
                                     scope.launch {
-                                        viewModel.updateSegment(
+                                        viewModel.upsertSegment(
                                             segmentSummary.segment.copy(
                                                 latitude = details.trip.latitude,
                                                 longitude = details.trip.longitude
@@ -388,7 +388,7 @@ fun TripDetailsScreen(
                             } else null,
                             onClearLocation = {
                                 scope.launch {
-                                    viewModel.updateSegment(segmentSummary.segment.copy(latitude = null, longitude = null))
+                                    viewModel.upsertSegment(segmentSummary.segment.copy(latitude = null, longitude = null))
                                 }
                             }
                         )
@@ -444,7 +444,7 @@ fun TripDetailsScreen(
                         confirmButton = {
                             Button(onClick = {
                                 scope.launch {
-                                    viewModel.updateTrip(details.trip.copy(
+                                    viewModel.saveTrip(details.trip.copy(
                                         name = tripName,
                                         startDate = startDateMillis,
                                         endDate = endDateMillis

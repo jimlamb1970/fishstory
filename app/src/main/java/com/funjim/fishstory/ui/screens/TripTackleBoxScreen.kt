@@ -12,9 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 
@@ -29,7 +27,7 @@ fun TripTackleBoxScreen(
         viewModel.selectTrip(tripId)
     }
 
-    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val fishermen by viewModel.getFishermanForTrip(tripId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -44,10 +42,10 @@ fun TripTackleBoxScreen(
             )
         }
     ) { padding ->
-        val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
-        val fishermen = tripWithFishermen?.fishermen ?: emptyList()
 
-        if (fishermen.isEmpty()) {
+        if (fishermen == null) {
+            CircularProgressIndicator()
+        } else if (fishermen!!.isEmpty()) {
             Box(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -60,14 +58,14 @@ fun TripTackleBoxScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(fishermen) { fisherman ->
+                items(fishermen!!) { fisherman ->
                     FishermanTackleBoxCard(
                         fisherman = fisherman,
                         tripId = tripId,
                         viewModel = viewModel,
                         onTackleBoxChanged = { newTackleBoxId ->
                             scope.launch {
-                                viewModel.updateTripFishermanTackleBox(
+                                viewModel.upsertTripFishermanCrossRef(
                                     tripId = tripId,
                                     fishermanId = fisherman.id,
                                     tackleBoxId = newTackleBoxId
