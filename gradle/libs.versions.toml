@@ -1,14 +1,14 @@
 [versions]
-agp = "9.1.0"
+agp = "9.1.1"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
-kotlin = "2.1.0"
+kotlin = "2.2.10"
 kotlinxSerializationJson = "1.8.0"
-ksp = "2.1.0-1.0.29"
+ksp = "2.3.2"
 composeBom = "2026.03.00"
 foundationLayout = "1.10.5"
 foundation = "1.10.5"
@@ -21,6 +21,8 @@ mapsCompose = "6.1.2"
 playServicesMaps = "19.0.0"
 maplibre = "13.0.1"
 vico = "3.0.3"
+runtime = "1.10.6"
+foundationVersion = "1.10.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +56,8 @@ maplibre-android = { group = "org.maplibre.gl", name = "android-sdk", version.re
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
