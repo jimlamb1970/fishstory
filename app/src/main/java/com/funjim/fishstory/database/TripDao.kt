@@ -82,7 +82,15 @@ interface TripDao {
             WHERE f.tripId = t.id 
             GROUP BY f.fishermanId 
             ORDER BY COUNT(f.id) DESC LIMIT 1
-        ) as topRodName    FROM trip_table t
+        ) as mostCaughtName,
+        (
+            SELECT COUNT(f.id)
+            FROM fish_table f 
+            WHERE f.tripId = t.id 
+            GROUP BY f.fishermanId 
+            ORDER BY COUNT(f.id) DESC LIMIT 1
+        ) as mostCaught
+    FROM trip_table t
     ORDER BY t.startDate DESC
 """)
     fun getTripSummaries(): Flow<List<TripSummary>>

@@ -499,7 +499,7 @@ fun TripHighlightCard(
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = tripSummary.topRodName)
+                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = tripSummary.mostCaughtName)
                 AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = tripSummary.bigFishWinner)
             }
         }
@@ -530,26 +530,45 @@ fun StatItem(
 fun AchievementItem(
     icon: ImageVector,
     label: String,
-    name: String?
+    name: String?,
+    description: String? = null,
+    color: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
+    // Parent Column to stack Label over the Icon/Name group
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // 1. Label at the very top
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp) // Space before the icon/name
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+        // 2. Row to keep Icon and Name on the same line
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp), // Slightly smaller to let name lead
+                tint = color
             )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Text(
-                text = name ?: "No data",
+                text = name ?: "---",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
+                color = color
+            )
+        }
+
+        // 3. Description (Optional) stays at the bottom
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = color,
+                modifier = Modifier.padding(top = 2.dp, start = 28.dp) // Indented to align with text
             )
         }
     }

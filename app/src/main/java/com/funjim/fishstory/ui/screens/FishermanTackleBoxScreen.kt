@@ -38,7 +38,7 @@ fun FishermanTackleBoxScreen(
 
     val scope = rememberCoroutineScope()
 
-    // Build a set of IDs in the tackle box for O(1) lookup
+    // Build a set of IDs in the tackle box for 'inBox'' lookup
     val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.id }.toSet() }
 
     val inBoxCount = luresInBoxIds.size

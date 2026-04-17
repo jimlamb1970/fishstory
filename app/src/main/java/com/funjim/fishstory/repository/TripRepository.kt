@@ -25,7 +25,7 @@ class TripRepository(
     // Trip Streams
     val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
     val allTripSummaries: Flow<List<TripSummary>> = tripDao.getTripSummaries()
-
+    
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> =
         tripDao.getTripWithDetails(tripId)
 
@@ -40,6 +40,11 @@ class TripRepository(
     fun getActiveTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
         trips.filter { now in it.startDate..it.endDate }
+    }
+
+    fun getActiveTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
+        val now = System.currentTimeMillis()
+        trips.filter { now in it.trip.startDate..it.trip.endDate }
     }
 
     /**
@@ -58,6 +63,11 @@ class TripRepository(
         trips.filter { it.endDate < now }.sortedByDescending { it.endDate }
     }
 
+    fun getPreviousTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
+        val now = System.currentTimeMillis()
+        trips.filter { it.trip.endDate < now}.sortedByDescending { it.trip.endDate }
+    }
+
     /**
      * Get the fisherman IDs for a given trip.
      */
@@ -67,11 +77,30 @@ class TripRepository(
     // Segment Streams
     fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> =
         segmentDao.getSegmentsForTrip(tripId)
+    fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<SegmentSummary>> =
+        segmentDao.getSegmentsForActiveTrips(currentTime)
     fun getSegmentSummaries(tripId: String): Flow<List<SegmentSummary>> =
         segmentDao.getSegmentSummaries(tripId)
 
     fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?> =
         segmentDao.getSegmentWithDetails(segmentId)
+
+    fun getActiveSegments(): Flow<List<Segment>> =
+        segmentDao.getAllSegments().map { segments ->
+            val now = System.currentTimeMillis()
+            segments.filter { now in it.startTime..it.endTime }
+        }
+
+    fun getActiveSegmentsForTrip(tripId: String): Flow<List<Segment>> =
+        segmentDao.getSegmentsForTrip(tripId).map { segments ->
+        val now = System.currentTimeMillis()
+        segments.filter { now in it.startTime..it.endTime }
+    }
+
+    fun getUpcomingSegments(): Flow<List<Segment>> = segmentDao.getAllSegments().map { segments ->
+        val now = System.currentTimeMillis()
+        segments.filter { it.startTime > now }.sortedBy { it.startTime }
+    }
 
     // --- Photo Logic ---
     fun getPhotosForTrip(id: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(id)

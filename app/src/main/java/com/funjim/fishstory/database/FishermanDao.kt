@@ -29,13 +29,15 @@ interface FishermanDao {
 
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
-            WHERE tref.tripId = :tripId;
+            WHERE tref.tripId = :tripId 
+            ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
 
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN segment_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
-            WHERE sref.segmentId = :segmentId;
+            WHERE sref.segmentId = :segmentId
+            ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
     fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>>
 
@@ -188,7 +190,8 @@ interface FishermanDao {
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishWinner,
-        NULL as topRodName
+        NULL as mostCaughtName,
+        0 as mostCaught
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId

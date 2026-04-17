@@ -69,5 +69,6 @@ data class SegmentSummary(
     val fishCaught: Int,
     val fishKept: Int,
     val biggestFish: String?,
-    val mostFish: String?
+    val mostCaughtName: String?,
+    val mostCaught: Int
 )

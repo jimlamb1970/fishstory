@@ -27,7 +27,7 @@ fun TripTackleBoxScreen(
         viewModel.selectTrip(tripId)
     }
 
-    val fishermen by viewModel.getFishermanForTrip(tripId).collectAsState(initial = null)
+    val fishermen by viewModel.getFishermenForTrip(tripId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
     Scaffold(

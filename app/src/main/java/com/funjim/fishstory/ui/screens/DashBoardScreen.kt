@@ -1,7 +1,12 @@
 package com.funjim.fishstory.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,19 +22,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhonelinkSetup
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material.ripple.createRippleModifierNode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -38,15 +49,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.TripAction
+import com.funjim.fishstory.ui.TripItem
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 
 @Composable
@@ -55,6 +76,9 @@ fun DashboardScreen(
     viewModel: DashboardViewModel
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val activeTripSegments by viewModel.activeTripSegments.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
 
     // Scaffold automatically calculates the "Safe Area" for the Top Bar and Bottom Bar
     Scaffold(
@@ -65,40 +89,85 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(innerPadding), // Apply the safe padding here!
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // 1. ACTIVE TRIP (The Hero)
             item {
-                if (state.activeTrip != null) {
+                if (state.activeTrips.isNotEmpty() && activeTripSegments.active.isNotEmpty()) {
                     ActiveTripCard(
-                        trip = state.activeTrip!!,
-                        onLogFish = { /* Navigate to catch logging */ }
+                        activeTrips = state.activeTrips,
+                        activeSegments = activeTripSegments.active,
+                        onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
+                        onSegmentClick = { tripId, segmentId -> onNavigate("segment_details/$segmentId/$tripId") },
+                        onClick = { tripId, segmentId -> onNavigate("segment_details/$segmentId/$tripId") },
+                        onLogFish = { tripId, segmentId -> onNavigate("add_fish/$tripId/$segmentId") }
                     )
                 } else {
                     // Empty state leads user to create new trip
-                    NewTripHeroCard(onCreateClick = { onNavigate("create_trip") })
+                    NewTripHeroCard(onCreateClick = { onNavigate("add_trip") })
                 }
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                    thickness = 1.dp,
+                    color = Color(0xFF00274C) // Michigan Blue
+                )
             }
 
             // 2. UPCOMING TRIPS (Horizontal Row)
-            if (state.upcomingTrips.isNotEmpty()) {
+            if ((activeTripSegments.upcoming.isNotEmpty() || state.upcomingTrips.isNotEmpty())) {
                 item {
                     Text("Upcoming Adventures", style = MaterialTheme.typography.titleLarge)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(state.upcomingTrips) { trip ->
-                            UpcomingTripChip(trip) // Maize themed small cards
+
+                    if (activeTripSegments.upcoming.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Upcoming Segments", style = MaterialTheme.typography.titleSmall)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(activeTripSegments.upcoming) { segment ->
+                                UpcomingSegmentChip(
+                                    tripName = state.activeTrips.find { it.trip.id == segment.segment.tripId }?.trip?.name ?: "Unknown Trip",
+                                    segment = segment.segment,
+                                    onSegmentClick = { segmentId, tripId -> onNavigate("segment_details/${segmentId}/${tripId}") }
+                                )
+                            }
                         }
                     }
+
+                    if (state.upcomingTrips.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Upcoming Trips", style = MaterialTheme.typography.titleSmall)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(state.upcomingTrips) { trip ->
+                                UpcomingTripChip(
+                                    trip = trip,
+                                    onTripClick = { onNavigate("trip_details/$it") }
+                                )
+                            }
+                        }
+                    }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                        thickness = 1.dp,
+                        color = Color(0xFF00274C) // Michigan Blue
+                    )
                 }
             }
 
             // 3. NAVIGATION GRID (The "Get to Everything" section)
             item {
                 Text("Management", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(4.dp))
                 DashboardGrid(
+                    onFishClick = { onNavigate("fish") },
                     onFishermenClick = { onNavigate("fishermen") },
                     onLuresClick = { onNavigate("lures") },
-                    onTackleBoxClick = { onNavigate("tackleboxes") }
+                    onReportsClick = { onNavigate("reports") },
+                    onSettingsClick = { onNavigate("settings") },
+                    onTripsClick = { onNavigate("trips") }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                    thickness = 1.dp,
+                    color = Color(0xFF00274C) // Michigan Blue
                 )
             }
 
@@ -107,19 +176,41 @@ fun DashboardScreen(
                 Text("Recent History", style = MaterialTheme.typography.titleLarge)
             }
             items(state.recentTrips) { trip ->
-                TripHistoryRow(trip)
+                TripItem(
+                    trip = trip,
+                    modifier = Modifier.padding(),
+                    onClick = { onNavigate("trip_details/${trip.trip.id}") },
+                    onAction = { action ->
+                        when (action) {
+                            is TripAction.OpenMap -> {
+                                val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                )
+
+                //TripHistoryRow(trip)
             }
         }
     }
 }
-
+/*
 @Composable
 fun ActiveTripCard(
-    trip: Trip,
-    onLogFish: () -> Unit
+    activeTrips: List<Trip>,
+    activeSegments: List<Segment>,
+    onClick: (String, String) -> Unit,
+    onLogFish: (String, String) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick(activeSegments[0].tripId, activeSegments[0].id) },
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFFFCB05), // Michigan Maize
             contentColor = Color(0xFF00274C)    // Michigan Blue
@@ -133,17 +224,18 @@ fun ActiveTripCard(
                 Text("LIVE TRIP", style = MaterialTheme.typography.labelLarge)
             }
             Text(
-                text = trip.name,
+                text = activeSegments[0].name,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = onLogFish,
+                onClick = { onLogFish(activeSegments[0].tripId, activeSegments[0].id) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF00274C), // Michigan Blue
                     contentColor = Color.White
                 ),
+                enabled = activeSegments.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("LOG A CATCH")
@@ -151,27 +243,185 @@ fun ActiveTripCard(
         }
     }
 }
+*/
+
+@Composable
+fun ActiveTripCard(
+    activeTrips: List<TripSummary>,
+    activeSegments: List<SegmentSummary>,
+    onClick: (String, String) -> Unit,
+    onTripClick: (String) -> Unit,
+    onSegmentClick: (String, String) -> Unit,
+    onLogFish: (String, String) -> Unit
+) {
+    var currentIndex by remember { mutableIntStateOf(0) }
+    val segment = activeSegments.getOrNull(currentIndex) ?: return
+    val trip = activeTrips.find { it.trip.id == segment.segment.tripId } ?: return
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick(segment.segment.tripId, segment.segment.id) }
+            .pointerInput(activeSegments.size) {
+                var dragTotal = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { dragTotal = 0f },
+                    onDragEnd = {
+                        when {
+                            dragTotal < -50f && currentIndex < activeSegments.size - 1 -> currentIndex++
+                            dragTotal > 50f && currentIndex > 0 -> currentIndex--
+                        }
+                        dragTotal = 0f
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragTotal += dragAmount
+                    }
+                )
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFCB05),
+            contentColor = Color(0xFF00274C)
+        ),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Waves, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("LIVE TRIP", style = MaterialTheme.typography.labelLarge)
+                }
+                if (activeSegments.size > 1) {
+                    Text(
+                        text = "${currentIndex + 1} / ${activeSegments.size}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF00274C).copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            Text(
+                text = trip.trip.name,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable( onClick = { onTripClick(trip.trip.id) })
+            )
+            if (trip.totalCaught != segment.fishCaught) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    StatItem(
+                        label = "CAUGHT",
+                        value = "${trip.totalCaught}",
+                        color = Color(0xFF00274C)
+                    )
+                    StatItem(
+                        label = "KEPT",
+                        value = "${trip.totalKept}",
+                        color = Color(0xFF00274C)
+                    ) // Harvest Green
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Most Caught",
+                        name = trip.mostCaughtName,
+                        description = "(${trip.mostCaught} fish)"
+                    )
+                }
+            }
+
+            Text(
+                text = segment.segment.name,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable( onClick = { onSegmentClick(segment.segment.tripId, segment.segment.id) })
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = Color(0xFF00274C))
+                StatItem(label = "KEPT", value = "${segment.fishKept}", color = Color(0xFF00274C)) // Harvest Green
+                AchievementItem(
+                    icon = Icons.Default.Person,
+                    label = "Most Caught",
+                    name = segment.mostCaughtName,
+                    description = "(${segment.mostCaught} fish)",
+                    color = Color(0xFF00274C)
+                )
+            }
+
+
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { onLogFish(segment.segment.tripId, segment.segment.id) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00274C),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("LOG A CATCH")
+            }
+            if (activeSegments.size > 1) {
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    activeSegments.forEachIndexed { index, _ ->
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 3.dp)
+                                .size(if (index == currentIndex) 8.dp else 6.dp)
+                                .background(
+                                    color = if (index == currentIndex)
+                                        Color(0xFF00274C)
+                                    else
+                                        Color(0xFF00274C).copy(alpha = 0.3f),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 @Composable
 fun DashboardGrid(
+    onFishClick: () -> Unit,
     onFishermenClick: () -> Unit,
     onLuresClick: () -> Unit,
-    onTackleBoxClick: () -> Unit
+    onReportsClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onTripsClick: () -> Unit
 ) {
     val items = listOf(
+        Triple("Trips", Icons.Default.Map, onTripsClick),
+        Triple("Fish", Icons.Default.Waves, onFishClick),
         Triple("Fishermen", Icons.Default.Groups, onFishermenClick),
-        Triple("Tackle Box", Icons.Default.Inventory, onTackleBoxClick),
-        Triple("Lures", Icons.Default.PhonelinkSetup, onLuresClick), // Or a custom hook icon
-        Triple("Settings", Icons.Default.Settings, { /* TODO */ })
+        Triple("Lures", Icons.Default.Inventory, onLuresClick), // Or a custom hook icon
+        Triple("Reports", Icons.Default.AutoGraph, onReportsClick), // Or a custom hook icon
+        Triple("Settings", Icons.Default.Settings, onSettingsClick)
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GridItem(items[0], Modifier.weight(1f))
             GridItem(items[1], Modifier.weight(1f))
+            GridItem(items[2], Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GridItem(items[2], Modifier.weight(1f))
             GridItem(items[3], Modifier.weight(1f))
+            GridItem(items[4], Modifier.weight(1f))
+            GridItem(items[5], Modifier.weight(1f))
         }
     }
 }
@@ -232,15 +482,18 @@ fun NewTripHeroCard(onCreateClick: () -> Unit) {
 }
 
 @Composable
-fun UpcomingTripChip(trip: Trip) {
-    val dateString = java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault())
+fun UpcomingTripChip(
+    trip: Trip,
+    onTripClick: (String) -> Unit
+) {
+    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
         .format(java.util.Date(trip.startDate))
 
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFFFFCB05).copy(alpha = 0.15f), // Faint Maize background
         border = BorderStroke(1.dp, Color(0xFFFFCB05)),
-        modifier = Modifier.width(140.dp)
+        modifier = Modifier.width(140.dp).clickable{onTripClick(trip.id)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -250,6 +503,45 @@ fun UpcomingTripChip(trip: Trip) {
             )
             Text(
                 text = trip.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun UpcomingSegmentChip(
+    tripName: String,
+    segment: Segment,
+    onSegmentClick: (String, String) -> Unit
+) {
+    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
+        .format(java.util.Date(segment.startTime))
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFFFCB05).copy(alpha = 0.15f), // Faint Maize background
+        border = BorderStroke(1.dp, Color(0xFFFFCB05)),
+        modifier = Modifier.width(140.dp).clickable{onSegmentClick(segment.id, segment.tripId)}
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = dateString,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF00274C)
+            )
+            Text(
+                text = tripName,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = segment.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,

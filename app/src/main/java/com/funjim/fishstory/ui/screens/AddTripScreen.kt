@@ -31,10 +31,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.ui.AddFishermanDialog
 import com.funjim.fishstory.ui.DateTimePickerButton
 import com.funjim.fishstory.ui.TripViewModelCrewPickerBridge
-import com.funjim.fishstory.ui.buildCrewEntries
 import com.funjim.fishstory.ui.TripAction
 import com.funjim.fishstory.ui.TripItem
 import com.funjim.fishstory.ui.TripMenu
@@ -681,7 +679,8 @@ fun AddTripScreen(
                             fishermanCount = tripFishermanIds.size,
                             tackleBoxCount = tripTackleBoxMap.size,
                             bigFishWinner = null,
-                            topRodName = null
+                            mostCaughtName = null,
+                            mostCaught = 0
                         )
 
                         TripItem(

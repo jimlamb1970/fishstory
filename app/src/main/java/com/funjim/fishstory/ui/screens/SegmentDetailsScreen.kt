@@ -49,6 +49,7 @@ import kotlin.collections.emptyList
 @Composable
 fun SegmentDetailsScreen(
     viewModel: TripViewModel,
+    tripId: String,
     segmentId: String,
     navigateToSegmentBoatLoad: () -> Unit,
     navigateToTackleBoxes: (String) -> Unit,
@@ -57,6 +58,7 @@ fun SegmentDetailsScreen(
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(segmentId) {
+        viewModel.selectTrip(tripId)
         viewModel.selectSegment(segmentId)
     }
 
@@ -474,7 +476,7 @@ fun SegmentHighlightCard(
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = summary.mostFish)
+                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = summary.mostCaughtName)
                 AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = summary.biggestFish)
             }
         }

@@ -112,7 +112,7 @@ class TripViewModel(
     fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
         return tripRepository.getFishermanIdsForTrip(tripId)
     }
-    fun getFishermanForTrip(tripId: String): Flow<List<Fisherman>> {
+    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepository.getFishermenForTrip(tripId)
     }
     fun getFishermanForSegment(segmentId: String): Flow<List<Fisherman>> {

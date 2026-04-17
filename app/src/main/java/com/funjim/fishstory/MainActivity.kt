@@ -174,14 +174,55 @@ fun AppNavigation(
             )
         }
 
-        composable("trips") {
-            TripListScreen(
-                viewModel = tripViewModel,
-                navigateToTripDetails = { tripId ->
-                    navController.navigate("tripDetails/$tripId")
+        // Define the destination with argument placeholders
+        composable(
+            route = "add_fish/{tripId}/{segmentId}?fishId={fishId}",
+            arguments = listOf(
+                navArgument("tripId") { type = NavType.StringType },
+                navArgument("segmentId") { type = NavType.StringType },
+                navArgument("fishId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            // Extract the arguments from the backStackEntry
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
+            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: ""
+            val fishIdStr = backStackEntry.arguments?.getString("fishId")
+
+            // Call the screen
+            AddFishScreen(
+                viewModel = viewModel,
+                tripId = tripId,
+                segmentId = segmentId,
+                fishId = fishIdStr,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // TODO - refactor to only need TripViewModel?
+        composable("add_trip") {
+            AddTripScreen(
+                viewModel = viewModel,
+                tripViewModel = tripViewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("fish") {
+            FishSummaryScreen(
+                viewModel = fishViewModel,
+                onAddFish = { tripId, segmentId, fishId ->
+                    val route =
+                        if (fishId != null) "add_fish/$tripId/$segmentId?fishId=$fishId" else "add_fish/$tripId/$segmentId"
+                    navController.navigate(route)
                 },
-                navigateToAddTrip = {
-                    navController.navigate("addTrip")
+                onNavigateToFishList = { tripId, segmentId ->
+                    navController.navigate("FishList/$tripId/$segmentId")
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -189,12 +230,132 @@ fun AppNavigation(
             )
         }
 
-        // TODO - refactor to only need TripViewModel?
-        composable("addTrip") {
-            AddTripScreen(
+        composable("fishermen") {
+            val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
+            val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = FishermanListViewModelFactory(repository)
+            )
+            FishermanListScreen(
+                viewModel = listViewModel,
+                navigateToFishermanDetails = { fishermanId ->
+                    navController.navigate("fishermanDetails/$fishermanId")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "lures?fishermanId={fishermanId}",
+            arguments = listOf(
+                navArgument("fishermanId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val fishermanId = backStackEntry.arguments?.getString("fishermanId")
+            LureListScreen(
+                viewModel = lureViewModel,
+                initialFishermanId = fishermanId,
+                onAddLure = { lureId ->
+                    val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
+                    navController.navigate(route)
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("reports") {
+            ReportsScreen(
                 viewModel = viewModel,
-                tripViewModel = tripViewModel,
                 navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "segment_details/{segmentId}/{tripId}",
+            arguments = listOf(
+                navArgument("segmentId") { type = NavType.StringType },
+                navArgument("tripId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            SegmentDetailsScreen(
+                viewModel = tripViewModel,
+                tripId = tripId,
+                segmentId = segmentId,
+                navigateToSegmentBoatLoad = {  ->
+                    navController.navigate("segmentBoatLoad/$segmentId/$tripId")
+                },
+                navigateToTackleBoxes = { id ->
+                    navController.navigate("segmentTackleBoxes/$id")
+                },
+                navigateToFishList = {
+                    navController.navigate("FishList/$tripId/$segmentId")
+                },
+                navigateToAddFish = {
+                    navController.navigate("add_fish/$tripId/$segmentId")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("settings") {
+            SettingsScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "trip_details/{tripId}",
+            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            TripDetailsScreen(
+                viewModel = tripViewModel,
+                tripId = tripId,
+                navigateToLoadBoatForTrip = { id ->
+                    navController.navigate("loadBoatForTrip/$id")
+                },
+                navigateToTackleBoxes = { id ->
+                    navController.navigate("tripTackleBoxes/$id")
+                },
+                navigateToFishList = {
+                    navController.navigate("FishList/$tripId/")
+                },
+                navigateToAddSegment = { id ->
+                    navController.navigate("addSegment/$id")
+                },
+                navigateToSegmentDetails = { segmentId ->
+                    navController.navigate("segment_details/$segmentId/$tripId")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("trips") {
+            TripListScreen(
+                viewModel = tripViewModel,
+                navigateToTripDetails = { tripId ->
+                    navController.navigate("trip_details/$tripId")
+                },
+                navigateToAddTrip = {
+                    navController.navigate("add_trip")
+                },
+                navigateBack = {
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -291,22 +452,6 @@ fun AppNavigation(
             )
         }
 
-        composable("fishermen") {
-            val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
-            val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanListViewModelFactory(repository)
-            )
-            FishermanListScreen(
-                viewModel = listViewModel,
-                navigateToFishermanDetails = { fishermanId ->
-                    navController.navigate("fishermanDetails/$fishermanId")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
         composable(
             route = "addLure?lureId={lureId}",
             arguments = listOf(
@@ -322,30 +467,6 @@ fun AppNavigation(
                 viewModel = lureViewModel,
                 lureId = lureIdStr,
                 onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = "lures?fishermanId={fishermanId}",
-            arguments = listOf(
-                navArgument("fishermanId") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                }
-            )
-        ) { backStackEntry ->
-            val fishermanId = backStackEntry.arguments?.getString("fishermanId")
-            LureListScreen(
-                viewModel = lureViewModel,
-                initialFishermanId = fishermanId,
-                onAddLure = { lureId ->
-                    val route = if (lureId != null) "addLure?lureId=$lureId" else "addLure"
-                    navController.navigate(route)
-                },
-                navigateBack = {
                     navController.popBackStack()
                 }
             )
@@ -372,23 +493,6 @@ fun AppNavigation(
             )
         }
 
-        composable("fish") {
-            FishSummaryScreen(
-                viewModel = fishViewModel,
-                onAddFish = { tripId, segmentId, fishId ->
-                    val route =
-                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
-                    navController.navigate(route)
-                },
-                onNavigateToFishList = { tripId, segmentId ->
-                    navController.navigate("FishList/$tripId/$segmentId")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
         composable(
             route = "FishList/{tripId}/{segmentId}",
             arguments = listOf(
@@ -408,7 +512,7 @@ fun AppNavigation(
                 fishermanId = null,
                 onAddFish = { tripId, segmentId, fishId ->
                     val route =
-                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                        if (fishId != null) "add_fish/$tripId/$segmentId?fishId=$fishId" else "add_fish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
                 navigateToFishDetails = { fishId ->
@@ -449,7 +553,7 @@ fun AppNavigation(
                 fishermanId = fishermanId,
                 onAddFish = { tripId, segmentId, fishId ->
                     val route =
-                        if (fishId != null) "addFish/$tripId/$segmentId?fishId=$fishId" else "addFish/$tripId/$segmentId"
+                        if (fishId != null) "add_fish/$tripId/$segmentId?fishId=$fishId" else "add_fish/$tripId/$segmentId"
                     navController.navigate(route)
                 },
                 navigateToFishDetails = { fishId ->
@@ -470,79 +574,6 @@ fun AppNavigation(
                 viewModel = fishViewModel,
                 initialFishId = fishId,
                 navigateBack = { navController.popBackStack() }
-            )
-        }
-
-        // Define the destination with argument placeholders
-        composable(
-            route = "addFish/{tripId}/{segmentId}?fishId={fishId}",
-            arguments = listOf(
-                navArgument("tripId") { type = NavType.StringType },
-                navArgument("segmentId") { type = NavType.StringType },
-                navArgument("fishId") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                }
-            )
-        ) { backStackEntry ->
-            // Extract the arguments from the backStackEntry
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
-            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: ""
-            val fishIdStr = backStackEntry.arguments?.getString("fishId")
-
-            // Call the screen
-            AddFishScreen(
-                viewModel = viewModel,
-                tripId = tripId,
-                segmentId = segmentId,
-                fishId = fishIdStr,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable("settings") {
-            SettingsScreen(
-                viewModel = viewModel,
-                navigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable("reports") {
-            ReportsScreen(
-                viewModel = viewModel,
-                navigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(
-            route = "tripDetails/{tripId}",
-            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            TripDetailsScreen(
-                viewModel = tripViewModel,
-                tripId = tripId,
-                navigateToLoadBoatForTrip = { id ->
-                    navController.navigate("loadBoatForTrip/$id")
-                },
-                navigateToTackleBoxes = { id ->
-                    navController.navigate("tripTackleBoxes/$id")
-                },
-                navigateToFishList = {
-                    navController.navigate("FishList/$tripId/")
-                },
-                navigateToAddSegment = { id ->
-                    navController.navigate("addSegment/$id")
-                },
-                navigateToSegmentDetails = { segmentId ->
-                    navController.navigate("segmentDetails/$segmentId/$tripId")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
             )
         }
 
@@ -607,42 +638,13 @@ fun AppNavigation(
                 viewModel = detailsViewModel,
                 fishermanId = fishermanId,
                 navigateToTripDetails = { id ->
-                    navController.navigate("tripDetails/$id")
+                    navController.navigate("trip_details/$id")
                 },
                 navigateToFishList = { id ->
                     navController.navigate("FishermanFishList/$id")
                 },
                 navigateToLureList = { fishermanId, tackleBoxid ->
                     navController.navigate("lureList/$fishermanId/$tackleBoxid")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        composable(
-            route = "segmentDetails/{segmentId}/{tripId}",
-            arguments = listOf(
-                navArgument("segmentId") { type = NavType.StringType },
-                navArgument("tripId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            SegmentDetailsScreen(
-                viewModel = tripViewModel,
-                segmentId = segmentId,
-                navigateToSegmentBoatLoad = {  ->
-                    navController.navigate("segmentBoatLoad/$segmentId/$tripId")
-                },
-                navigateToTackleBoxes = { id ->
-                    navController.navigate("segmentTackleBoxes/$id")
-                },
-                navigateToFishList = {
-                    navController.navigate("FishList/$tripId/$segmentId")
-                },
-                navigateToAddFish = {
-                    navController.navigate("addFish/$tripId/$segmentId")
                 },
                 navigateBack = {
                     navController.popBackStack()
