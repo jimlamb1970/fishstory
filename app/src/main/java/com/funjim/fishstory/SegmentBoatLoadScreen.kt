@@ -10,139 +10,143 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
+import java.util.UUID
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SegmentBoatLoadScreen(
-    viewModel: MainViewModel,
-    segmentId: String,
+    tripViewModel: TripViewModel,
     tripId: String,
+    segmentId: String,
     navigateBack: () -> Unit
 ) {
-    val tripWithDetails by viewModel.getTripWithDetails(tripId).collectAsState(initial = null)
-    val segmentWithFishermen by viewModel.getSegmentWithFishermen(segmentId).collectAsState(initial = null)
-    
+    LaunchedEffect(tripId) {
+        tripViewModel.selectTrip(tripId)
+        tripViewModel.selectSegment(segmentId)
+    }
+
+    val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
+    val initialCrew by tripViewModel.getFishermenForSegment(segmentId).collectAsState(emptyList())
+
+    val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
+    var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
+    var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
+
+    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
+    val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
+    var workingTripTackleBoxMap by remember { mutableStateOf(segmentTackleBoxMap) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Column {
-                        Text("Load Boat", style = MaterialTheme.typography.titleLarge)
-                        segmentWithFishermen?.segment?.name?.let { 
-                            Text(it, style = MaterialTheme.typography.bodySmall) 
-                        }
-                    }
-                },
+                title = { Text("Load Boat") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                }
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Select from fishermen on this trip:",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            tripWithDetails?.let { tripDetails ->
-                val currentFishermanIds = segmentWithFishermen?.fishermen?.map { it.id }?.toSet() ?: emptySet()
-
-                if (tripDetails.fishermen.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No fishermen found for this trip.")
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            TripViewModelCrewPickerBridge(
+                title = "Crew & Tackle Boxes",
+                subtitle = "Select who's on the boat and which tackle box each person will use.",
+                eligibleFishermen = sortedFishermen,
+                selectedIds = initialSet + addSet - removeSet,
+                tackleBoxSelections = workingTripTackleBoxMap,
+                onSelectionChanged = { fishermanId, selected ->
+                    if (selected) {
+                        if (initialSet.contains(fishermanId)) {
+                            removeSet = removeSet - fishermanId
+                        } else {
+                            addSet = addSet + fishermanId
+                            workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                                this[fishermanId] = null
+                            }
+                        }
+                    } else {
+                        if (initialSet.contains(fishermanId)) {
+                            removeSet = removeSet + fishermanId
+                        } else {
+                            addSet = addSet - fishermanId
+                        }
+                        addSet = addSet - fishermanId
+                        removeSet = removeSet + fishermanId
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(tripDetails.fishermen) { fisherman ->
-                            val isSelected = currentFishermanIds.contains(fisherman.id)
-                            
-                            FishermanSelectionRow(
-                                fisherman = fisherman,
-                                isSelected = isSelected,
-                                onToggle = {
-                                    scope.launch {
-                                        if (isSelected) {
-                                            viewModel.deleteFishermanFromSegment(segmentId, fisherman.id)
-                                        } else {
-                                            viewModel.addFishermanToSegment(segmentId, fisherman.id)
-                                        }
-                                    }
-                                }
+                },
+                onTackleBoxChanged = { fishermanId, boxId ->
+                    workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                        this[fishermanId] = boxId
+                    }
+                },
+                tripViewModel = tripViewModel,
+                confirmLabel = "Confirm Crew & Tackle Boxes",
+                onConfirm = {
+                    removeSet.forEach { fishermanId ->
+                        // TODO - Need to refactor trip and segment fisherman cross references
+                        // TODO - As soon as removed from trip, should be removed from segment
+                        tripViewModel.deleteSegmentFishermanCrossRef(
+                            segmentId = segmentId,
+                            fishermanId = fishermanId
+                        )
+                    }
+                    addSet.forEach { fishermanId ->
+                        tripViewModel.upsertSegmentFishermanCrossRef(
+                            segmentId = segmentId,
+                            fishermanId = fishermanId,
+                            tackleBoxId = workingTripTackleBoxMap[fishermanId]
+                        )
+                    }
+                    workingTripTackleBoxMap.forEach { (fishermanId, boxId) ->
+                        if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
+                            tripViewModel.upsertSegmentFishermanCrossRef(
+                                segmentId = segmentId,
+                                fishermanId = fishermanId,
+                                tackleBoxId = boxId
                             )
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
                         }
                     }
+                    navigateBack()
+                },
+                onAddTackleBox = { tackleBoxName, fishermanId ->
+                    val boxId = UUID.randomUUID().toString()
+                    scope.launch {
+                        tripViewModel.insertTackleBox(
+                            TackleBox(
+                                id = boxId,
+                                fishermanId = fishermanId,
+                                name = tackleBoxName
+                            )
+                        )
+                    }
+                    workingTripTackleBoxMap.toMutableMap().apply {
+                        this[fishermanId] = boxId
+                    }
                 }
-            } ?: run {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FishermanSelectionRow(
-    fisherman: Fisherman,
-    isSelected: Boolean,
-    onToggle: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-            contentDescription = null,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
-            modifier = Modifier.size(28.dp)
-        )
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "${fisherman.firstName} ${fisherman.lastName}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
-            if (fisherman.nickname.isNotEmpty()) {
-                Text(
-                    text = fisherman.nickname,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
         }
     }
 }

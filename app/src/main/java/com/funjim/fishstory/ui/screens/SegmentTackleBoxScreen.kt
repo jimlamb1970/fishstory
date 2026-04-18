@@ -12,9 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 
@@ -29,7 +27,7 @@ fun SegmentTackleBoxScreen(
         viewModel.selectSegment(segmentId)
     }
 
-    val fishermen by viewModel.getFishermanForSegment(segmentId).collectAsState(initial = null)
+    val fishermen by viewModel.getFishermenForSegment(segmentId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
     Scaffold(

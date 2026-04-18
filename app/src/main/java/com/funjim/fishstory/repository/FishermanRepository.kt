@@ -69,10 +69,18 @@ class FishermanRepository(
         }
     }
 
+    suspend fun getFishermanByName(
+        firstName: String,
+        lastName: String,
+        nickname: String): Fisherman? {
+        return fishermanDao.getFishermanByName(firstName, lastName, nickname)
+    }
+
     suspend fun deleteFisherman(fisherman: Fisherman) {
         fishermanDao.deleteFisherman(fisherman)
     }
 
+    // TODO - change to upsert
     suspend fun updateFisherman(fisherman: Fisherman) = fishermanDao.update(fisherman)
 
     fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =

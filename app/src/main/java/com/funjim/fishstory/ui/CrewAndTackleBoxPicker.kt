@@ -81,7 +81,7 @@ fun CrewAndTackleBoxPicker(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(title, style = MaterialTheme.typography.titleLarge)

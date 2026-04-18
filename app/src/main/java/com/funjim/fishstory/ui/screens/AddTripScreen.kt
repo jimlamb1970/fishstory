@@ -428,6 +428,7 @@ fun AddTripScreen(
 
                 // ── Step 2: Trip crew + tackle boxes ────────────────────────
                 WizardStep.TripCrew -> {
+                    Spacer(Modifier.height(16.dp))
                     TripViewModelCrewPickerBridge(
                         title = "Crew & Tackle Boxes",
                         subtitle = "Select who's on the boat and which tackle box each person will use.",
@@ -592,6 +593,7 @@ fun AddTripScreen(
                     val eligibleFishermen = remember(sortedFishermen, tripFishermanIds) {
                         sortedFishermen.filter { it.id in tripFishermanIds }
                     }
+                    Spacer(Modifier.height(16.dp))
                     TripViewModelCrewPickerBridge(
                         title = "Segment Crew & Tackle Boxes",
                         subtitle = "Who's fishing \"$segmentName\"? Tackle boxes default to trip selections.",

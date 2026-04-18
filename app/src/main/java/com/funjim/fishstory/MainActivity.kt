@@ -360,34 +360,6 @@ fun AppNavigation(
         }
 
         composable(
-            route = "loadBoatForTrip",
-        ) {
-            val scope = rememberCoroutineScope()
-            val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
-            val draftCrew by tripViewModel.draftFishermanIds.collectAsState() // Current state in VM
-
-            BoatLoadScreen(
-                eligibleFishermen = allFishermen,
-                initialCrew = allFishermen.filter { it.id in draftCrew },
-                canAddNewFisherman = true,
-                onSave = { finalCrew ->
-                    val crewIds = finalCrew.map { it.id }.toSet()
-                    tripViewModel.setDraftFisherman(crewIds)
-                    navController.popBackStack()
-                },
-                onCancel = {
-                    // Rollback or just navigate away
-                    navController.popBackStack()
-                },
-                onAddFisherman = { first, last, nick ->
-                    scope.launch {
-                        viewModel.addFisherman(first, last, nick)
-                    }
-                }
-            )
-        }
-
-        composable(
             route = "loadBoatForTrip/{tripId}",
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -400,22 +372,12 @@ fun AppNavigation(
             }
 
             BoatLoadScreen(
+                tripViewModel = tripViewModel,
+                tripId = tripId,
                 eligibleFishermen = allFishermen,
                 initialCrew = initialCrew,
-                canAddNewFisherman = true,
-                onSave = { finalCrew ->
-                    val newIdSet = finalCrew.map { it.id }.toSet()
-                    viewModel.syncTripFishermen(tripId, newIdSet)
+                navigateBack = {
                     navController.popBackStack()
-                },
-                onCancel = {
-                    // Rollback or just navigate away
-                    navController.popBackStack()
-                },
-                onAddFisherman = { first, last, nick ->
-                    scope.launch {
-                        viewModel.addFisherman(first, last, nick)
-                    }
                 }
             )
         }
@@ -431,24 +393,11 @@ fun AppNavigation(
             val draftCrew = draftSegmentFishermanIds[draftSegmentId] ?: emptySet()
 
             BoatLoadScreen(
+                tripViewModel = tripViewModel,
+                tripId = "",
                 eligibleFishermen = allFishermen.filter { it.id in tripCrew },
                 initialCrew = allFishermen.filter { it.id in draftCrew },
-                canAddNewFisherman = false,
-                onSave = { finalCrew ->
-                    // ONLY PERSIST TO DATABASE HERE
-                    val crewIds = finalCrew.map { it.id }.toSet()
-                    tripViewModel.setDraftSegmentFisherman(crewIds)
-                    navController.popBackStack()
-                },
-                onCancel = {
-                    // Rollback or just navigate away
-                    navController.popBackStack()
-                },
-                onAddFisherman = { first, last, nick ->
-                    scope.launch {
-                        viewModel.addFisherman(first, last, nick)
-                    }
-                }
+                navigateBack = { navController.popBackStack() }
             )
         }
 
@@ -607,11 +556,12 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             val scope = rememberCoroutineScope()
+            // TODO -- create a new screen for this
             AddSegmentScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
                 navigateToLoadBoatForSegment = {
-                    navController.navigate("loadBoatForSegment")
+//                    navController.navigate("loadBoatForSegment")
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -661,10 +611,11 @@ fun AppNavigation(
         ) { backStackEntry ->
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+
             SegmentBoatLoadScreen(
-                viewModel = viewModel,
-                segmentId = segmentId,
+                tripViewModel = tripViewModel,
                 tripId = tripId,
+                segmentId = segmentId,
                 navigateBack = {
                     navController.popBackStack()
                 }

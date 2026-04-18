@@ -5,10 +5,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
-import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -28,12 +26,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 import kotlin.collections.get
 import kotlin.collections.map
 import kotlin.collections.sorted
-import kotlin.plus
-import kotlin.text.get
 
 class TripViewModel(
     private val tripRepository: TripRepository,
@@ -115,7 +110,7 @@ class TripViewModel(
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepository.getFishermenForTrip(tripId)
     }
-    fun getFishermanForSegment(segmentId: String): Flow<List<Fisherman>> {
+    fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> {
         return fishermanRepository.getFishermenForSegment(segmentId)
     }
 
@@ -308,6 +303,23 @@ class TripViewModel(
     fun deleteSegmentFishermanCrossRef(segmentId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepository.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+        }
+    }
+
+    suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
+        // Check if the fisherman already exists
+        val fisherman = fishermanRepository.getFishermanByName(firstName, lastName, nickname)
+
+        // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
+        if (fisherman == null) {
+            val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+            fishermanRepository.addFisherman(fisherman)
+        }
+    }
+
+    fun insertTackleBox(tackleBox: TackleBox) {
+        viewModelScope.launch {
+            fishermanRepository.insertTackleBox(tackleBox)
         }
     }
 
