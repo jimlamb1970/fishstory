@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -27,16 +26,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.ui.DateTimeUtils.toLocalDateTime
-import com.funjim.fishstory.ui.DateTimeUtils.updateDate
-import com.funjim.fishstory.ui.DateTimeUtils.updateTime
+import com.funjim.fishstory.ui.utils.DateTimeUtils.toLocalDateTime
+import com.funjim.fishstory.ui.utils.DateTimeUtils.updateDate
+import com.funjim.fishstory.ui.utils.DateTimeUtils.updateTime
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -52,6 +50,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 
 enum class FishField { Species, Fisherman, Lure, Length, Hole, Location, Released, LogCatch }
 

@@ -32,10 +32,8 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PhonelinkSetup
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Waves
-import androidx.compose.material.ripple.createRippleModifierNode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,8 +64,8 @@ import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.ui.TripAction
-import com.funjim.fishstory.ui.TripItem
+import com.funjim.fishstory.ui.utils.TripAction
+import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 
 @Composable

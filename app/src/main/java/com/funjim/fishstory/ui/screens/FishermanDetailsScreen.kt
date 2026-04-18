@@ -41,9 +41,9 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBoxWithLures
-import com.funjim.fishstory.ui.PhotoPickerRow
-import com.funjim.fishstory.ui.TripAction
-import com.funjim.fishstory.ui.TripItem
+import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.TripAction
+import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

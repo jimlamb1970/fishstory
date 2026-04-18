@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui
+package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -128,7 +129,7 @@ fun DateTimePickerButton(
             initialMinute = cal.get(Calendar.MINUTE),
             is24Hour = true
         )
-        androidx.compose.ui.window.Dialog(onDismissRequest = { showTimeStep = false }) {
+        Dialog(onDismissRequest = { showTimeStep = false }) {
             Surface(
                 shape = MaterialTheme.shapes.extraLarge,
                 tonalElevation = 6.dp,

@@ -29,7 +29,7 @@ import com.funjim.fishstory.R
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
-import com.funjim.fishstory.ui.ManageSpeciesDialog
+import com.funjim.fishstory.ui.utils.ManageSpeciesDialog
 import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

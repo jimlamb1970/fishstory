@@ -33,11 +33,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentSummary
-import com.funjim.fishstory.ui.BoatSummary
-import com.funjim.fishstory.ui.DateTimePickerButton
-import com.funjim.fishstory.ui.PhotoPickerRow
-import com.funjim.fishstory.ui.TackleBoxSummary
-import com.funjim.fishstory.ui.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.BoatSummary
+import com.funjim.fishstory.ui.utils.DateTimePickerButton
+import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.TackleBoxSummary
+import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

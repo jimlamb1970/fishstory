@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.ui.FishItem
-import com.funjim.fishstory.ui.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.FishItem
+import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.launch

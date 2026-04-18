@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.ui.FishermanItem
+import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
 import kotlinx.coroutines.launch

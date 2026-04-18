@@ -25,11 +25,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.ui.hasLocationPermission
-import com.funjim.fishstory.ui.TripAction
-import com.funjim.fishstory.ui.TripItem
-import com.funjim.fishstory.ui.TripMenu
-import com.funjim.fishstory.ui.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.hasLocationPermission
+import com.funjim.fishstory.ui.utils.TripAction
+import com.funjim.fishstory.ui.utils.TripItem
+import com.funjim.fishstory.ui.utils.TripMenu
+import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 

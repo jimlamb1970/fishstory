@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui
+package com.funjim.fishstory.ui.utils
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -13,8 +13,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.viewmodels.MainViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource

@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.ui.LureItem
-import com.funjim.fishstory.ui.ManageColorsDialog
+import com.funjim.fishstory.ui.utils.LureItem
+import com.funjim.fishstory.ui.utils.ManageColorsDialog
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch

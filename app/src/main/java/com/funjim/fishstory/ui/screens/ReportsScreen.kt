@@ -1,4 +1,4 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
 //import androidx.compose.foundation.layout.Arrangement
 //import androidx.compose.foundation.layout.height
@@ -16,11 +16,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 //import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,13 +43,12 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.Fill
+import java.time.Instant
 
 import java.time.ZoneId
 
-import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 enum class ReportType(val label: String) {
     SPECIES("Catches by Species"),
@@ -118,7 +116,7 @@ fun ReportsScreen(
         if (fishList.isEmpty() && selectedTripId == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = androidx.compose.ui.Alignment.Center
+                contentAlignment = Alignment.Center
             ) {
                 Text("No fish logged yet. Log some fish to see reports!")
             }
@@ -164,7 +162,7 @@ private fun EmptyState(padding: PaddingValues) {
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+        contentAlignment = Alignment.Center
     ) {
         Text("No fish logged yet. Log some fish to see reports!")
     }
@@ -318,7 +316,7 @@ private fun ReportsList(
             if (fishList.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text("No fish logged for $scopeLabel.")
                 }
@@ -412,7 +410,7 @@ fun FishermanBarChart(
     }
 
     if (isSyncing) {
-        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {
@@ -445,7 +443,7 @@ fun FishermanPieChart(fishList: List<FishWithDetails>) {
     if (total == 0f) {
         Box(
             modifier = Modifier.fillMaxWidth().height(250.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text("No catch data recorded.")
         }
@@ -481,7 +479,7 @@ fun FishermanPieChart(fishList: List<FishWithDetails>) {
                 )
                 // Draw a thin white divider between slices
                 drawArc(
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     startAngle = startAngle,
                     sweepAngle = 1f,
                     useCenter = true,
@@ -498,7 +496,7 @@ fun FishermanPieChart(fishList: List<FishWithDetails>) {
             val percentage = ((count / total) * 100).toInt()
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 2.dp)
             ) {
                 Surface(
@@ -582,7 +580,7 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
     }
 
     if (isSyncing) {
-        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {
@@ -606,7 +604,7 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
         allSpecies.forEachIndexed { index, species ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 2.dp)
             ) {
                 Surface(
@@ -627,7 +625,7 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
         val counts = IntArray(24)
         fishList.forEach { fish ->
             // Assumes FishWithDetails has a timestamp (Long epoch ms) field called `caughtAt`
-            val hour = java.time.Instant
+            val hour = Instant
                 .ofEpochMilli(fish.timestamp)
                 .atZone(ZoneId.systemDefault())
                 .hour
@@ -686,11 +684,11 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
 
     if (trimmedCounts.isEmpty()) {
         Box(modifier = Modifier.fillMaxWidth().height(250.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center) {
+            contentAlignment = Alignment.Center) {
             Text("No catch times recorded.")
         }
     } else if (isSyncing) {
-        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {
@@ -781,12 +779,12 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
     if (trimmedCounts.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxWidth().height(250.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text("No size data recorded.")
         }
     } else if (isSyncing) {
-        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.height(200.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     } else {

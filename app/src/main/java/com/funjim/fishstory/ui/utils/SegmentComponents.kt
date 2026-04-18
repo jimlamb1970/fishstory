@@ -1,7 +1,6 @@
-package com.funjim.fishstory.ui
+package com.funjim.fishstory.ui.utils
 
 import android.content.Intent
-import android.location.Location
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable

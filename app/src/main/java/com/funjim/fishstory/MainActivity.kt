@@ -33,12 +33,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
-import com.funjim.fishstory.ui.SettingsScreen
+import com.funjim.fishstory.ui.utils.SettingsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
+import com.funjim.fishstory.ui.screens.BoatLoadScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
 import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
@@ -47,6 +48,8 @@ import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
+import com.funjim.fishstory.ui.screens.ReportsScreen
+import com.funjim.fishstory.ui.screens.SegmentBoatLoadScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
 import com.funjim.fishstory.ui.screens.SegmentTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen

@@ -1,57 +1,40 @@
-package com.funjim.fishstory
+package com.funjim.fishstory.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.TripViewModelCrewPickerBridge
-import com.funjim.fishstory.viewmodels.MainViewModel
+import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SegmentBoatLoadScreen(
+fun BoatLoadScreen(
     tripViewModel: TripViewModel,
     tripId: String,
-    segmentId: String,
+    eligibleFishermen: List<Fisherman>,
+    initialCrew: List<Fisherman>,
     navigateBack: () -> Unit
 ) {
-    LaunchedEffect(tripId) {
-        tripViewModel.selectTrip(tripId)
-        tripViewModel.selectSegment(segmentId)
-    }
-
-    val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
-    val initialCrew by tripViewModel.getFishermenForSegment(segmentId).collectAsState(emptyList())
-
     val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
     var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
     var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(tripId) {
+        tripViewModel.selectTrip(tripId)
+    }
+
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
-    var workingTripTackleBoxMap by remember { mutableStateOf(segmentTackleBoxMap) }
+    var workingTripTackleBoxMap by remember { mutableStateOf(tripTackleBoxMap) }
 
     Scaffold(
         topBar = {
@@ -69,7 +52,6 @@ fun SegmentBoatLoadScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
             TripViewModelCrewPickerBridge(
                 title = "Crew & Tackle Boxes",
@@ -108,28 +90,33 @@ fun SegmentBoatLoadScreen(
                     removeSet.forEach { fishermanId ->
                         // TODO - Need to refactor trip and segment fisherman cross references
                         // TODO - As soon as removed from trip, should be removed from segment
-                        tripViewModel.deleteSegmentFishermanCrossRef(
-                            segmentId = segmentId,
+                        tripViewModel.deleteTripFishermanCrossRef(
+                            tripId = tripId,
                             fishermanId = fishermanId
                         )
                     }
                     addSet.forEach { fishermanId ->
-                        tripViewModel.upsertSegmentFishermanCrossRef(
-                            segmentId = segmentId,
+                        tripViewModel.upsertTripFishermanCrossRef(
+                            tripId = tripId,
                             fishermanId = fishermanId,
                             tackleBoxId = workingTripTackleBoxMap[fishermanId]
                         )
                     }
                     workingTripTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
-                            tripViewModel.upsertSegmentFishermanCrossRef(
-                                segmentId = segmentId,
+                            tripViewModel.upsertTripFishermanCrossRef(
+                                tripId = tripId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )
                         }
                     }
                     navigateBack()
+                },
+                onAddFisherman = { first, last, nick ->
+                    scope.launch {
+                        tripViewModel.addFisherman(first, last, nick)
+                    }
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->
                     val boxId = UUID.randomUUID().toString()

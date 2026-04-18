@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui
+package com.funjim.fishstory.ui.utils
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
@@ -10,13 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.viewmodels.TripViewModel
-import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------
 // Data model for a single fisherman's crew entry

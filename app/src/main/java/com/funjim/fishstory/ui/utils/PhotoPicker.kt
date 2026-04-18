@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui
+package com.funjim.fishstory.ui.utils
 
 import android.Manifest
 import android.content.ContentValues
