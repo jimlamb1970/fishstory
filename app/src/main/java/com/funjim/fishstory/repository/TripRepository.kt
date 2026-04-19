@@ -137,4 +137,7 @@ class TripRepository(
         tripDao.deleteTripFishermanCrossRef(crossRef)
     suspend fun deleteSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef) =
         segmentDao.deleteSegmentFishermanCrossRef(crossRef)
+
+    suspend fun removeFishermenNotInSet(segmentId: String, newSet: Set<String>) =
+        segmentDao.removeFishermenNotInSet(segmentId, newSet)
 }

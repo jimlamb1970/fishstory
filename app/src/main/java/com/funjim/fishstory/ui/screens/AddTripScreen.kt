@@ -72,7 +72,6 @@ private data class SegmentDraft(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTripScreen(
-    viewModel: MainViewModel,
     tripViewModel: TripViewModel,
     navigateBack: () -> Unit
 ) {
@@ -128,13 +127,13 @@ fun AddTripScreen(
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
     // Location pickers
-    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+    val deviceLocation by tripViewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val tripLocationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = tripLat,
         existingLng = tripLng,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng -> tripLat = lat; tripLng = lng }
     )
 
@@ -142,7 +141,7 @@ fun AddTripScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = segmentLat,
         existingLng = segmentLng,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng -> segmentLat = lat; segmentLng = lng }
     )
 
@@ -151,7 +150,7 @@ fun AddTripScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                viewModel.getCurrentLocation(context)?.let { loc ->
+                tripViewModel.getCurrentLocation(context)?.let { loc ->
                     if (currentStep == WizardStep.TripInfo) {
                         tripLat = loc.latitude; tripLng = loc.longitude
                     } else if (currentStep == WizardStep.SegmentInfo) {
@@ -166,7 +165,7 @@ fun AddTripScreen(
     fun cancelAndExit() {
         scope.launch {
             // CASCADE deletes will clean up fisherman cross-refs and segments
-            viewModel.deleteTripById(newTripId)
+            tripViewModel.deleteTripById(newTripId)
         }
         navigateBack()
     }
@@ -187,9 +186,9 @@ fun AddTripScreen(
                 if (hasLocationPermission(context)) {
                     scope.launch {
                         @SuppressLint("MissingPermission")
-                        val location = viewModel.getCurrentLocation(context)
+                        val location = tripViewModel.getCurrentLocation(context)
                         if (location != null) {
-                            viewModel.updateTrip(
+                            tripViewModel.saveTrip(
                                 action.tripSummary.trip.copy(
                                     latitude = location.latitude,
                                     longitude = location.longitude
@@ -222,7 +221,7 @@ fun AddTripScreen(
                 showTripMenu = false
                 tripLocationPicker.openPicker()
                 scope.launch {
-                    viewModel.updateTrip(
+                    tripViewModel.saveTrip(
                         action.tripSummary.trip.copy(
                             latitude = tripLat,
                             longitude = tripLng
@@ -233,7 +232,7 @@ fun AddTripScreen(
             is TripAction.ClearLocation -> {
                 showTripMenu = false
                 scope.launch {
-                    viewModel.updateTrip(
+                    tripViewModel.saveTrip(
                         action.tripSummary.trip.copy(latitude = null, longitude = null)
                     )
                     tripLat = null; tripLng = null
@@ -299,7 +298,7 @@ fun AddTripScreen(
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
-                                                viewModel.getCurrentLocation(context)?.let { loc ->
+                                                tripViewModel.getCurrentLocation(context)?.let { loc ->
                                                     if (onTripStep) { tripLat = loc.latitude; tripLng = loc.longitude }
                                                     else { segmentLat = loc.latitude; segmentLng = loc.longitude }
                                                 } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
@@ -409,7 +408,7 @@ fun AddTripScreen(
                                         latitude = tripLat,
                                         longitude = tripLng
                                     )
-                                    viewModel.upsertTrip(trip)
+                                    tripViewModel.saveTrip(trip)
 
                                     // Seed segment defaults
                                     segmentStart = tripStart
@@ -438,7 +437,7 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             if (selected) {
                                 tripFishermanIds = tripFishermanIds + fishermanId
-                                viewModel.upsertTripFishermanCrossRef(
+                                tripViewModel.upsertTripFishermanCrossRef(
                                     tripId = newTripId,
                                     fishermanId = fishermanId,
                                     tackleBoxId = tripTackleBoxMap[fishermanId]
@@ -452,7 +451,7 @@ fun AddTripScreen(
                             }
                         },
                         onTackleBoxChanged = { fishermanId, boxId ->
-                            viewModel.upsertTripFishermanCrossRef(
+                            tripViewModel.upsertTripFishermanCrossRef(
                                 tripId = newTripId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
@@ -470,7 +469,7 @@ fun AddTripScreen(
                                     )
                                 }
                                 committedSegments.forEach { segment ->
-                                    viewModel.removeSegmentFishermenNotInSet(
+                                    tripViewModel.removeSegmentFishermenNotInSet(
                                         segmentId = segment.id,
                                         newSet = tripFishermanIds
                                     )
@@ -485,7 +484,7 @@ fun AddTripScreen(
                             }
                         },
                         onAddFisherman = { first, last, nick ->
-                            scope.launch { viewModel.addFisherman(first, last, nick) }
+                            scope.launch { tripViewModel.addFisherman(first, last, nick) }
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
                             scope.launch {
@@ -564,11 +563,11 @@ fun AddTripScreen(
                                         latitude = segmentLat,
                                         longitude = segmentLng
                                     )
-                                    viewModel.upsertSegment(segment)
+                                    tripViewModel.upsertSegment(segment)
 
                                     if (segmentTackleBoxMap.isEmpty()) {
                                         segmentFishermanIds.forEach { fishermanId ->
-                                            viewModel.upsertSegmentFishermanCrossRef(
+                                            tripViewModel.upsertSegmentFishermanCrossRef(
                                                 segmentId = newSegmentId,
                                                 fishermanId = fishermanId,
                                                 tackleBoxId = tripTackleBoxMap[fishermanId]
@@ -603,7 +602,7 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             if (selected) {
                                 segmentFishermanIds = segmentFishermanIds + fishermanId
-                                viewModel.upsertSegmentFishermanCrossRef(
+                                tripViewModel.upsertSegmentFishermanCrossRef(
                                     segmentId = newSegmentId,
                                     fishermanId = fishermanId,
                                     tackleBoxId = segmentTackleBoxMap[fishermanId]
@@ -617,7 +616,7 @@ fun AddTripScreen(
                             }
                         },
                         onTackleBoxChanged = { fishermanId, boxId ->
-                            viewModel.upsertSegmentFishermanCrossRef(
+                            tripViewModel.upsertSegmentFishermanCrossRef(
                                 segmentId = newSegmentId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId

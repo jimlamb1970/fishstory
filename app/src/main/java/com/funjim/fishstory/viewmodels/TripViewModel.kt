@@ -287,6 +287,12 @@ class TripViewModel(
         }
     }
 
+    fun deleteTripById(tripId: String) {
+        viewModelScope.launch {
+            tripRepository.deleteTrip(tripId)
+        }
+    }
+
     fun upsertSegment(segment: Segment) {
         viewModelScope.launch {
             tripRepository.upsertSegment(segment)
@@ -330,6 +336,12 @@ class TripViewModel(
     fun deleteSegmentFishermanCrossRef(segmentId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepository.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+        }
+    }
+
+    fun removeSegmentFishermenNotInSet(segmentId: String, newSet: Set<String>) {
+        viewModelScope.launch {
+            tripRepository.removeFishermenNotInSet(segmentId, newSet)
         }
     }
 

@@ -224,7 +224,6 @@ fun AppNavigation(
         // TODO - refactor to only need TripViewModel?
         composable("add_trip") {
             AddTripScreen(
-                viewModel = viewModel,
                 tripViewModel = tripViewModel,
                 navigateBack = { navController.popBackStack() }
             )
