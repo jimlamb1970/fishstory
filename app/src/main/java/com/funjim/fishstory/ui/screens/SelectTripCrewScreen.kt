@@ -16,7 +16,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoatLoadScreen(
+fun SelectTripCrewScreen(
     tripViewModel: TripViewModel,
     tripId: String,
     eligibleFishermen: List<Fisherman>,
@@ -34,7 +34,7 @@ fun BoatLoadScreen(
     }
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    var workingTripTackleBoxMap by remember { mutableStateOf(tripTackleBoxMap) }
+    var workingTackleBoxMap by remember { mutableStateOf(tripTackleBoxMap) }
 
     Scaffold(
         topBar = {
@@ -58,14 +58,14 @@ fun BoatLoadScreen(
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,
-                tackleBoxSelections = workingTripTackleBoxMap,
+                tackleBoxSelections = workingTackleBoxMap,
                 onSelectionChanged = { fishermanId, selected ->
                     if (selected) {
                         if (initialSet.contains(fishermanId)) {
                             removeSet = removeSet - fishermanId
                         } else {
                             addSet = addSet + fishermanId
-                            workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                            workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
                                 this[fishermanId] = null
                             }
                         }
@@ -80,7 +80,7 @@ fun BoatLoadScreen(
                     }
                 },
                 onTackleBoxChanged = { fishermanId, boxId ->
-                    workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                    workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
                         this[fishermanId] = boxId
                     }
                 },
@@ -99,10 +99,10 @@ fun BoatLoadScreen(
                         tripViewModel.upsertTripFishermanCrossRef(
                             tripId = tripId,
                             fishermanId = fishermanId,
-                            tackleBoxId = workingTripTackleBoxMap[fishermanId]
+                            tackleBoxId = workingTackleBoxMap[fishermanId]
                         )
                     }
-                    workingTripTackleBoxMap.forEach { (fishermanId, boxId) ->
+                    workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
                             tripViewModel.upsertTripFishermanCrossRef(
                                 tripId = tripId,
@@ -129,7 +129,7 @@ fun BoatLoadScreen(
                             )
                         )
                     }
-                    workingTripTackleBoxMap.toMutableMap().apply {
+                    workingTackleBoxMap.toMutableMap().apply {
                         this[fishermanId] = boxId
                     }
                 }

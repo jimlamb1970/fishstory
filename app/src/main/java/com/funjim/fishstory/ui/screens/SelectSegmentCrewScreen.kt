@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -19,7 +18,7 @@ import kotlin.collections.set
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SegmentBoatLoadScreen(
+fun SelectSegmentCrewScreen(
     tripViewModel: TripViewModel,
     tripId: String,
     segmentId: String,
@@ -39,9 +38,8 @@ fun SegmentBoatLoadScreen(
     var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
 
-    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
-    var workingTripTackleBoxMap by remember { mutableStateOf(segmentTackleBoxMap) }
+    var workingTackleBoxMap by remember { mutableStateOf(segmentTackleBoxMap) }
 
     Scaffold(
         topBar = {
@@ -59,21 +57,20 @@ fun SegmentBoatLoadScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
             TripViewModelCrewPickerBridge(
                 title = "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,
-                tackleBoxSelections = workingTripTackleBoxMap,
+                tackleBoxSelections = workingTackleBoxMap,
                 onSelectionChanged = { fishermanId, selected ->
                     if (selected) {
                         if (initialSet.contains(fishermanId)) {
                             removeSet = removeSet - fishermanId
                         } else {
                             addSet = addSet + fishermanId
-                            workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                            workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
                                 this[fishermanId] = null
                             }
                         }
@@ -88,7 +85,7 @@ fun SegmentBoatLoadScreen(
                     }
                 },
                 onTackleBoxChanged = { fishermanId, boxId ->
-                    workingTripTackleBoxMap = workingTripTackleBoxMap.toMutableMap().apply {
+                    workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
                         this[fishermanId] = boxId
                     }
                 },
@@ -96,8 +93,6 @@ fun SegmentBoatLoadScreen(
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        // TODO - Need to refactor trip and segment fisherman cross references
-                        // TODO - As soon as removed from trip, should be removed from segment
                         tripViewModel.deleteSegmentFishermanCrossRef(
                             segmentId = segmentId,
                             fishermanId = fishermanId
@@ -107,10 +102,10 @@ fun SegmentBoatLoadScreen(
                         tripViewModel.upsertSegmentFishermanCrossRef(
                             segmentId = segmentId,
                             fishermanId = fishermanId,
-                            tackleBoxId = workingTripTackleBoxMap[fishermanId]
+                            tackleBoxId = workingTackleBoxMap[fishermanId]
                         )
                     }
-                    workingTripTackleBoxMap.forEach { (fishermanId, boxId) ->
+                    workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
                             tripViewModel.upsertSegmentFishermanCrossRef(
                                 segmentId = segmentId,
@@ -132,7 +127,7 @@ fun SegmentBoatLoadScreen(
                             )
                         )
                     }
-                    workingTripTackleBoxMap.toMutableMap().apply {
+                    workingTackleBoxMap.toMutableMap().apply {
                         this[fishermanId] = boxId
                     }
                 }

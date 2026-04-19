@@ -40,7 +40,7 @@ import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.AddSegmentScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
-import com.funjim.fishstory.ui.screens.BoatLoadScreen
+import com.funjim.fishstory.ui.screens.SelectTripCrewScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
 import com.funjim.fishstory.ui.screens.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
@@ -50,13 +50,12 @@ import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
-import com.funjim.fishstory.ui.screens.SegmentBoatLoadScreen
+import com.funjim.fishstory.ui.screens.SelectSegmentCrewScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
 import com.funjim.fishstory.ui.screens.SegmentTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripTackleBoxScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -208,6 +207,20 @@ fun AppNavigation(
             )
         }
 
+        composable(
+            route = "add_segment/{tripId}",
+            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            AddSegmentScreen(
+                tripViewModel = tripViewModel,
+                tripId = tripId,
+                navigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
         // TODO - refactor to only need TripViewModel?
         composable("add_trip") {
             AddTripScreen(
@@ -337,7 +350,7 @@ fun AppNavigation(
                     navController.navigate("FishList/$tripId/")
                 },
                 navigateToAddSegment = { id ->
-                    navController.navigate("addSegment/$id")
+                    navController.navigate("add_segment/$id")
                 },
                 navigateToSegmentDetails = { segmentId ->
                     navController.navigate("segment_details/$segmentId/$tripId")
@@ -375,7 +388,7 @@ fun AppNavigation(
                 tripWithFishermen?.fishermen ?: emptyList()
             }
 
-            BoatLoadScreen(
+            SelectTripCrewScreen(
                 tripViewModel = tripViewModel,
                 tripId = tripId,
                 eligibleFishermen = allFishermen,
@@ -396,7 +409,7 @@ fun AppNavigation(
             val draftSegmentFishermanIds by tripViewModel.draftSegmentFishermanIds.collectAsState()
             val draftCrew = draftSegmentFishermanIds[draftSegmentId] ?: emptySet()
 
-            BoatLoadScreen(
+            SelectTripCrewScreen(
                 tripViewModel = tripViewModel,
                 tripId = "",
                 eligibleFishermen = allFishermen.filter { it.id in tripCrew },
@@ -555,20 +568,6 @@ fun AppNavigation(
         }
 
         composable(
-            route = "addSegment/{tripId}",
-            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            AddSegmentScreen(
-                tripViewModel = tripViewModel,
-                tripId = tripId,
-                navigateBack = {
-                    navController.popBackStack()
-                },
-            )
-        }
-
-        composable(
             route = "fishermanDetails/{fishermanId}",
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -605,7 +604,7 @@ fun AppNavigation(
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
 
-            SegmentBoatLoadScreen(
+            SelectSegmentCrewScreen(
                 tripViewModel = tripViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
