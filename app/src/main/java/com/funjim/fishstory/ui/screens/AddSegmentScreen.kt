@@ -90,12 +90,12 @@ fun AddSegmentScreen(
     var segmentLat by remember { mutableStateOf<Double?>(null) }
     var segmentLng by remember { mutableStateOf<Double?>(null) }
 
-    var segmentFishermanIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var segmentFishermanIds by remember (tripFishermen) {
+        mutableStateOf(tripFishermen.map { it.id }.toSet())
+    }
 
     // ── Wizard step ─────────────────────────────────────────────────────────
     var currentStep by remember { mutableStateOf(SegmentWizardStep.SegmentInfo) }
-
-    var showTripMenu by remember { mutableStateOf(false) }
 
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
@@ -362,7 +362,7 @@ fun AddSegmentScreen(
                                 )
                             },
                             tripViewModel = tripViewModel,
-                            confirmLabel = "Review",
+                            confirmLabel = "Done",
                             onConfirm = { navigateBack() },
                             onAddTackleBox = { tackleBoxName, fishermanId ->
                                 scope.launch { tripViewModel.createAndAssignSegmentTackleBox(
@@ -371,7 +371,6 @@ fun AddSegmentScreen(
                                     name = tackleBoxName
                                 ) }
                             }
-
                         )
                     }
                 }

@@ -307,7 +307,7 @@ fun AppNavigation(
                 viewModel = tripViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
-                navigateToSegmentBoatLoad = {  ->
+                navigateToSelectSegmentCrew = {  ->
                     navController.navigate("segmentBoatLoad/$segmentId/$tripId")
                 },
                 navigateToTackleBoxes = { id ->
@@ -340,11 +340,8 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
-                navigateToLoadBoatForTrip = { id ->
+                navigateToSelectTripCrew = { id ->
                     navController.navigate("loadBoatForTrip/$id")
-                },
-                navigateToTackleBoxes = { id ->
-                    navController.navigate("tripTackleBoxes/$id")
                 },
                 navigateToFishList = {
                     navController.navigate("FishList/$tripId/")

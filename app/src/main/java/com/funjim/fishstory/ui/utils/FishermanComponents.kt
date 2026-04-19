@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.funjim.fishstory.model.FishermanSummary
@@ -75,12 +76,15 @@ fun FishermanItem(
 }
 
 @Composable
-fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit) {
+fun FishermanSummary(
+    fishermanCount: Int,
+    tackleBoxCount: Int,
+    onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .clickable { onBoatClick() },
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6))
     ) {
         Row(
@@ -88,25 +92,46 @@ fun BoatSummary(fishermanCount: Int, onBoatClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.DirectionsBoat,
+                Icons.Default.Groups,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = Color.White
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
-                    "THE BOAT",
+                    "THE CREW AND TACKLE BOXES",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center, // Centers the text within the middle space
                 )
                 Text(
-                    "$fishermanCount Fisherman/men on board",
+                    "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
                     color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center, // Centers the text within the middle space
+                )
+                Text(
+                    "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
+                    color = Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center, // Centers the text within the middle space
                 )
             }
+            Spacer(modifier = Modifier.width(16.dp))
+            Icon(
+                Icons.Default.Inventory,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = Color.White
+            )
         }
     }
 }

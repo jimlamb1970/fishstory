@@ -33,10 +33,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SegmentSummary
-import com.funjim.fishstory.ui.utils.BoatSummary
+import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.TackleBoxSummary
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -51,7 +50,7 @@ fun SegmentDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     segmentId: String,
-    navigateToSegmentBoatLoad: () -> Unit,
+    navigateToSelectSegmentCrew: () -> Unit,
     navigateToTackleBoxes: (String) -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: () -> Unit,
@@ -321,18 +320,10 @@ fun SegmentDetailsScreen(
 
                         HorizontalDivider()
 
-                        // The Boat Concept for Segment
-                        BoatSummary(
+                        FishermanSummary(
                             fishermanCount = details.fishermanCount,
-                            onBoatClick = { navigateToSegmentBoatLoad() }
-                        )
-
-                        HorizontalDivider()
-
-                        // The Gear Summary
-                        TackleBoxSummary(
-                            fishermanCount = details.tackleBoxCount,
-                            onClick = { navigateToTackleBoxes(segmentId) }
+                            tackleBoxCount = details.tackleBoxCount,
+                            onClick = { navigateToSelectSegmentCrew() }
                         )
 
                         HorizontalDivider()
