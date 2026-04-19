@@ -115,6 +115,8 @@ class TripRepository(
     // Segment Operations
     suspend fun upsertSegment(segment: Segment) = segmentDao.upsertSegment(segment)
     suspend fun deleteSegment(segment: Segment) = segmentDao.deleteSegment(segment)
+    suspend fun deleteSegment(segmentId: String) = segmentDao.deleteSegmentById(segmentId)
+
 
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =

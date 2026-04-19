@@ -92,6 +92,7 @@ class TripViewModel(
 
     // --- Draft Logic (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
+    val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedSegmentId = MutableStateFlow<String?>(null)
     private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
@@ -104,6 +105,26 @@ class TripViewModel(
     fun getSegmentsForTrip(tripId: String) = tripRepository.getSegmentsForTrip(tripId)
 
     val fishermen: Flow<List<Fisherman>> = fishermanRepository.allFishermen
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tripFishermen: StateFlow<List<Fisherman>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                fishermanRepository.getFishermenForTrip(id)
+            }
+        }
+        .map { list ->
+            // Sort by Last Name, then First Name
+            list.sortedWith(compareBy({ it.fullName }))
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
         return tripRepository.getFishermanIdsForTrip(tripId)
     }
@@ -275,6 +296,12 @@ class TripViewModel(
     fun deleteSegment(segment: Segment) {
         viewModelScope.launch {
             tripRepository.deleteSegment(segment)
+        }
+    }
+
+    fun deleteSegment(segmentId: String) {
+        viewModelScope.launch {
+            tripRepository.deleteSegment(segmentId)
         }
     }
 

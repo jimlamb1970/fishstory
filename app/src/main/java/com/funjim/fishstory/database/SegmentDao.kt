@@ -105,6 +105,9 @@ interface SegmentDao {
     @Delete
     suspend fun deleteSegment(segment: Segment)
 
+    @Query("DELETE FROM segment_table WHERE id = :id")
+    suspend fun deleteSegmentById(id: String)
+
     @Query("""
     SELECT 
         s.*,

@@ -38,6 +38,7 @@ import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
 import com.funjim.fishstory.ui.screens.AddLureScreen
+import com.funjim.fishstory.ui.screens.AddSegmentScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
 import com.funjim.fishstory.ui.screens.BoatLoadScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
@@ -558,26 +559,15 @@ fun AppNavigation(
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            val scope = rememberCoroutineScope()
-            // TODO -- create a new screen for this
             AddSegmentScreen(
-                viewModel = tripViewModel,
+                tripViewModel = tripViewModel,
                 tripId = tripId,
-                navigateToLoadBoatForSegment = {
-//                    navController.navigate("loadBoatForSegment")
-                },
                 navigateBack = {
                     navController.popBackStack()
                 },
-                onSave = { segment, fishermen ->
-                    scope.launch {
-                        viewModel.addSegmentWithFishermen(segment, fishermen)
-                        tripViewModel.clearDraftSegment()
-                        navController.popBackStack()
-                    }
-                }
             )
         }
+
         composable(
             route = "fishermanDetails/{fishermanId}",
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
