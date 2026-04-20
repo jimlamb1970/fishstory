@@ -324,12 +324,31 @@ fun ActiveTripCard(
                         label = "KEPT",
                         value = "${trip.totalKept}",
                         color = Color(0xFF00274C)
-                    ) // Harvest Green
+                    )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = Color(0xFF00274C))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     AchievementItem(
                         icon = Icons.Default.Person,
                         label = "Most Caught",
                         name = trip.mostCaughtName,
-                        description = "(${trip.mostCaught} fish)"
+                        description = "(${trip.mostCaught} fish)",
+                        modifier = Modifier.weight(1f)
+                    )
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Biggest Fish",
+                        name = trip.bigFishName,
+                        description = "(${trip.bigFishLength}\" : ${trip.bigFishSpecies})",
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -343,15 +362,36 @@ fun ActiveTripCard(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = Color(0xFF00274C))
                 StatItem(label = "KEPT", value = "${segment.fishKept}", color = Color(0xFF00274C)) // Harvest Green
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Most Caught",
-                    name = segment.mostCaughtName,
-                    description = "(${segment.mostCaught} fish)",
-                    color = Color(0xFF00274C)
-                )
             }
 
+            if (segment.mostCaught != 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = Color(0xFF00274C)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Most Caught",
+                        name = segment.mostCaughtName,
+                        description = "(${segment.mostCaught} fish)",
+                        color = Color(0xFF00274C),
+                        modifier = Modifier.weight(1f)
+                    )
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Biggest Fish",
+                        name = segment.bigFishName,
+                        description = "(${segment.bigFishLength}\" : ${segment.bigFishSpecies})",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
             Spacer(Modifier.height(16.dp))
             Button(

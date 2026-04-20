@@ -467,8 +467,16 @@ fun SegmentHighlightCard(
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = summary.mostCaughtName)
-                AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = summary.biggestFish)
+                AchievementItem(
+                    icon = Icons.Default.Person,
+                    label = "Top Rod",
+                    name = summary.mostCaughtName,
+                    modifier = Modifier.weight(1f))
+                AchievementItem(
+                    icon = Icons.Default.Star,
+                    label = "Big Fish",
+                    name = summary.bigFishName,
+                    modifier = Modifier.weight(1f))
             }
         }
     }

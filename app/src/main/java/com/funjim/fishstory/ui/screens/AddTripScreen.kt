@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
@@ -59,6 +58,7 @@ fun AddTripScreen(
     val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
     val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
+    // TODO -- can tripDraft and segmentDraft be replaced by tripSummary and segmentSummary?
     val tripDraft by tripViewModel.tripDraft.collectAsStateWithLifecycle()
     val segmentDraft by tripViewModel.segmentDraft.collectAsStateWithLifecycle()
 
@@ -436,7 +436,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     tackleBoxId = tripTackleBoxMap[fishermanId]
                                 )
                             } else {
-                                // TODO -- update this call to also remove fisherman from segments
                                 tripViewModel.removeFishermanCrossRefFromTripAndAllSegments(
                                     tripId = tripDraft.id,
                                     fishermanId = fishermanId
@@ -454,21 +453,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Segment",
                         onConfirm = {
                             scope.launch {
-                                /*
-                                // TODO - Need to refactor trip and segment fisherman cross references
-                                // TODO - As soon as removed from trip, should be removed from segment
-                                committedSegments = committedSegments.map { segment ->
-                                    segment.copy(
-                                        fishermanIds = segment.fishermanIds intersect tripFishermanIds
-                                    )
-                                }
-                                committedSegments.forEach { segment ->
-                                    tripViewModel.removeSegmentFishermenNotInSet(
-                                        segmentId = segment.id,
-                                        newSet = tripFishermanIds
-                                    )
-                                }
-                                */
                                 tripViewModel.updateSegmentDraft {
                                     it.copy(
                                         name = "",
@@ -661,14 +645,15 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             fontWeight = FontWeight.Bold)
 
                         // Trip summary card
-                        // TODO - look into using same card (TripItem) from TripListScreen
                         val currentTrip = TripSummary(
                             trip = tripDraft,
                             totalCaught = 0,
                             totalKept = 0,
                             fishermanCount = tripFishermanIds.size,
                             tackleBoxCount = tripTackleBoxMap.size,
-                            bigFishWinner = null,
+                            bigFishName = null,
+                            bigFishSpecies = "",
+                            bigFishLength = 0,
                             mostCaughtName = null,
                             mostCaught = 0
                         )

@@ -189,7 +189,9 @@ interface FishermanDao {
         0 as totalKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        NULL as bigFishWinner,
+        NULL as bigFishName,
+        "" as bigFishSpecies,
+        0 as bigFishLength,
         NULL as mostCaughtName,
         0 as mostCaught
     FROM trip_table AS t

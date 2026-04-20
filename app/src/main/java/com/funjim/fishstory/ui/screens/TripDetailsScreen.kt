@@ -490,8 +490,16 @@ fun TripHighlightCard(
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(icon = Icons.Default.Person, label = "Top Rod", name = tripSummary.mostCaughtName)
-                AchievementItem(icon = Icons.Default.Star, label = "Big Fish", name = tripSummary.bigFishWinner)
+                AchievementItem(
+                    icon = Icons.Default.Person,
+                    label = "Top Rod",
+                    name = tripSummary.mostCaughtName,
+                    modifier = Modifier.weight(1f))
+                AchievementItem(
+                    icon = Icons.Default.Star,
+                    label = "Big Fish",
+                    name = tripSummary.bigFishName,
+                    modifier = Modifier.weight(1f))
             }
         }
     }
@@ -523,10 +531,13 @@ fun AchievementItem(
     label: String,
     name: String?,
     description: String? = null,
+    modifier: Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface
 ) {
     // Parent Column to stack Label over the Icon/Name group
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier) {
         // 1. Label at the very top
         Text(
             text = label,
@@ -559,7 +570,7 @@ fun AchievementItem(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
                 color = color,
-                modifier = Modifier.padding(top = 2.dp, start = 28.dp) // Indented to align with text
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }

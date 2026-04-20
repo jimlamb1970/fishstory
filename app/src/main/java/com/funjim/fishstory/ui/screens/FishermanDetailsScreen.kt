@@ -516,28 +516,32 @@ fun FishermanHighlightCard(
                     AchievementItem(
                         icon = Icons.Default.Celebration,
                         label = "Best Trip (${stats.mostTripCatches} fish)",
-                        name = stats.bestTripName
+                        name = stats.bestTripName,
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 if (!stats.bestSegmentName.isNullOrEmpty()) {
                     AchievementItem(
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         label = "Best Segment (${stats.mostSegmentCatches} fish)",
-                        name = "${stats.bestSegmentName}\n(${stats.bestSegmentTripName})"
+                        name = "${stats.bestSegmentName}\n(${stats.bestSegmentTripName})",
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 if (!stats.worstTripName.isNullOrEmpty()) {
                     AchievementItem(
                         icon = Icons.Default.Warning,
                         label = "Worst Trip (${stats.fewestTripCatches} fish)",
-                        name = stats.worstTripName
+                        name = stats.worstTripName,
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 if (!stats.worstSegmentName.isNullOrEmpty()) {
                     AchievementItem(
                         icon = Icons.AutoMirrored.Filled.TrendingDown,
                         label = "Worst Segment (${stats.fewestSegmentCatches} fish)",
-                        name = "${stats.worstSegmentName}\n(${stats.worstSegmentTripName})"
+                        name = "${stats.worstSegmentName}\n(${stats.worstSegmentTripName})",
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

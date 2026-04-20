@@ -58,6 +58,8 @@ interface TripDao {
         (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id AND f.isReleased = 0) as totalKept,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+        
+        -- BIG FISH LOGIC (Added f.id tie-breaker)
         (
             SELECT 
                 CASE 
@@ -68,8 +70,23 @@ interface TripDao {
             FROM fish_table f 
             JOIN fisherman_table fm ON f.fishermanId = fm.id 
             WHERE f.tripId = t.id 
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishWinner,
+            ORDER BY f.length DESC, f.id ASC LIMIT 1
+        ) as bigFishName,
+        (
+            SELECT sp.name
+            FROM fish_table f
+            JOIN species_table sp ON f.speciesId = sp.id
+            WHERE f.tripId = t.id
+            ORDER BY f.length DESC, f.id ASC LIMIT 1
+        ) as bigFishSpecies,
+        (
+            SELECT f.length
+            FROM fish_table f
+            WHERE f.tripId = t.id
+            ORDER BY f.length DESC, f.id ASC LIMIT 1
+        ) as bigFishLength,
+        
+        -- MOST CAUGHT LOGIC (Added fm.id tie-breaker)
         (
             SELECT 
                 CASE 
@@ -81,14 +98,14 @@ interface TripDao {
             JOIN fisherman_table fm ON f.fishermanId = fm.id 
             WHERE f.tripId = t.id 
             GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
+            ORDER BY COUNT(f.id) DESC, fm.id ASC LIMIT 1
         ) as mostCaughtName,
         (
             SELECT COUNT(f.id)
             FROM fish_table f 
             WHERE f.tripId = t.id 
             GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
+            ORDER BY COUNT(f.id) DESC, f.fishermanId ASC LIMIT 1
         ) as mostCaught
     FROM trip_table t
     ORDER BY t.startDate DESC
