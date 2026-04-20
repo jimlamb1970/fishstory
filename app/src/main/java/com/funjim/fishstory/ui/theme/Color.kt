@@ -9,3 +9,12 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val MichBlue = Color(0xFF00274C)
+val MichMaize = Color(0xFFFFCB05)
+
+// Support colors for Material 3 logic
+val MichBlueContainer = Color(0xFF00E3FF)
+val MichMaizeContainer = Color(0xFFFFE082)
+val DarkGrey = Color(0xFF1C1B1F)
+val LightGrey = Color(0xFFF4F4F4)

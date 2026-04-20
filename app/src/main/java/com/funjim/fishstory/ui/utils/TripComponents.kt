@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -40,7 +41,15 @@ fun TripItem(
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
-    Card(modifier = modifier.fillMaxWidth().clickable { onClick() }) {
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth().clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp,
+            color = MaterialTheme.colorScheme.tertiary)
+    ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -50,13 +59,13 @@ fun TripItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(trip.trip.name,
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.Black)
+                        color = MaterialTheme.colorScheme.onTertiary)
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onTertiary,
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
@@ -80,7 +89,7 @@ fun TripItem(
                         text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • " +
                                 "$tackleBoxCount with ${if (tackleBoxCount == 1) "a tacklebox" else "tackleboxes"}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiary
                     )
                 }
 
@@ -89,7 +98,7 @@ fun TripItem(
                     Text(
                         text = "Fish Summary • $caughtCount Caught • $keptCount Kept",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiary
                     )
                 }
             }

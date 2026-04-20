@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -17,26 +18,30 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = MichBlue,
+    onPrimary = MichMaize,
+    primaryContainer = MichBlueContainer,
+    onPrimaryContainer = MichBlue,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
+    secondary = MichBlue, // Keeping it consistent
     onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+
+    tertiary = MichMaize,
+    onTertiary = MichBlue, // Blue text on Maize background looks sharp
+    tertiaryContainer = MichMaizeContainer,
+    onTertiaryContainer = Color(0xFF241A00),
+
+    background = Color.White,
+    surface = Color.White,
+    onBackground = DarkGrey,
+    onSurface = DarkGrey,
 )
 
 @Composable
 fun FishstoryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Setting to false to force my theme
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
