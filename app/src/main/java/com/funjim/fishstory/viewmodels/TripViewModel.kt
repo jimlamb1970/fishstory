@@ -22,13 +22,23 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import kotlin.collections.get
 import kotlin.collections.map
 import kotlin.collections.sorted
+
+enum class WizardStep {
+    TripInfo,           // Step 1 – name, dates, location
+    TripCrew,           // Step 2 – fishermen + tackle boxes for trip
+    SegmentInfo,        // Step 3 – segment name, dates, location
+    SegmentCrew,        // Step 4 – fishermen + tackle boxes for segment
+    Review              // Step 5 – list segments, add another or finish
+}
 
 class TripViewModel(
     private val tripRepository: TripRepository,
@@ -119,6 +129,12 @@ class TripViewModel(
             // Sort by Last Name, then First Name
             list.sortedWith(compareBy({ it.fullName }))
         }
+        .onEach { list ->
+            // SIDE EFFECT: Update the draft IDs whenever the list changes
+            // This ensures the wizard state is "set" automatically
+            val ids = list.map { it.id }.toSet()
+            _tripFishermanIds.value = ids
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -131,6 +147,32 @@ class TripViewModel(
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepository.getFishermenForTrip(tripId)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val segmentFishermen: StateFlow<List<Fisherman>> = _selectedSegmentId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                fishermanRepository.getFishermenForSegment(id)
+            }
+        }
+        .map { list ->
+            // Sort by Last Name, then First Name
+            list.sortedWith(compareBy({ it.fullName }))
+        }
+        .onEach { list ->
+            // SIDE EFFECT: Update the draft IDs whenever the list changes
+            // This ensures the wizard state is "set" automatically
+            val ids = list.map { it.id }.toSet()
+            _segmentFishermanIds.value = ids
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> {
         return fishermanRepository.getFishermenForSegment(segmentId)
     }
@@ -164,8 +206,7 @@ class TripViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val segmentTackleBoxMap: StateFlow<Map<String, String?>> = _selectedSegmentId
         .filterNotNull()
-        .flatMapLatest { id -> getSegmentFishermenTackleBoxIds(segmentId = id)
-        }
+        .flatMapLatest { id -> getSegmentFishermenTackleBoxIds(segmentId = id) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -322,6 +363,12 @@ class TripViewModel(
     fun deleteTripFishermanCrossRef(tripId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepository.deleteTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId))
+        }
+    }
+
+    fun removeFishermanCrossRefFromTripAndAllSegments(tripId: String, fishermanId: String) {
+        viewModelScope.launch {
+            tripRepository.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
         }
     }
 
@@ -508,6 +555,52 @@ class TripViewModel(
             val current = currentMap[segmentId] ?: emptySet()
             currentMap + (segmentId to current + fishermanId)
         }
+    }
+
+    // --- Wizard Navigation State ---
+    private val _currentWizardStep = MutableStateFlow(WizardStep.TripInfo)
+    val currentWizardStep = _currentWizardStep.asStateFlow()
+
+    fun updateWizardStep(step: WizardStep) {
+        _currentWizardStep.value = step
+    }
+
+    // --- Trip Draft State ---
+    private val _tripDraft = MutableStateFlow(Trip(id = UUID.randomUUID().toString(), name = ""))
+    val tripDraft = _tripDraft.asStateFlow()
+
+    fun updateTripDraft(update: (Trip) -> Trip) {
+        _tripDraft.update(update)
+        // Synchronize the selected ID for your other flows
+        _selectedTripId.value = _tripDraft.value.id
+    }
+
+    // --- Segment Draft State ---
+    private val _segmentDraft = MutableStateFlow(Segment(id = UUID.randomUUID().toString(), name = "", tripId = ""))
+    val segmentDraft = _segmentDraft.asStateFlow()
+
+    fun updateSegmentDraft(update: (Segment) -> Segment) {
+        _segmentDraft.update(update)
+        _selectedSegmentId.value = _segmentDraft.value.id
+    }
+
+    // --- Crew Draft State ---
+    private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
+    val tripFishermanIds = _tripFishermanIds.asStateFlow()
+
+    fun toggleTripFisherman(id: String) {
+        _tripFishermanIds.update { if (it.contains(id)) it - id else it + id }
+    }
+
+    private val _segmentFishermanIds = MutableStateFlow<Set<String>>(emptySet())
+    val segmentFishermanIds = _segmentFishermanIds.asStateFlow()
+
+    fun toggleSegmentFisherman(id: String) {
+        _segmentFishermanIds.update { if (it.contains(id)) it - id else it + id }
+    }
+
+    fun updateSegmentFishermanIds(ids: Set<String>) {
+        _segmentFishermanIds.value = ids
     }
 }
 
