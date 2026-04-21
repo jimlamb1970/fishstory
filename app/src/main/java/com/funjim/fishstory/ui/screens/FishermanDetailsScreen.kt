@@ -10,12 +10,16 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -73,13 +78,19 @@ fun FishermanDetailsScreen(
 
     if (stats == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFF00274C)) // Michigan Blue
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) // Michigan Blue
         }
     } else {
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("Fisherman Details") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
                     navigationIcon = {
                         IconButton(onClick = navigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -100,7 +111,7 @@ fun FishermanDetailsScreen(
                             Text(
                                 text = details.fisherman.fullName,
                                 style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(horizontal = 16.dp)
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
 
                             PhotoPickerRow(
@@ -145,9 +156,10 @@ fun FishermanDetailsScreen(
                                         showAddTackleBoxDialog = true
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = Color(0xFFFFCB05), // Michigan Maize
-                                        contentColor = Color(0xFF00274C)    // Michigan Blue
-                                    )
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    modifier = Modifier.size(24.dp)
                                 ) {
                                     Icon(Icons.Default.Add, contentDescription = "Add Tackle Box")
                                 }
@@ -315,9 +327,9 @@ fun EditFishermanDialog(
 fun FishermanLoadingView() {
     // 1. Define the Shimmer colors (Michigan Blue as the base)
     val shimmerColors = listOf(
-        Color(0xFF00274C).copy(alpha = 0.6f),
-        Color(0xFF00274C).copy(alpha = 0.2f),
-        Color(0xFF00274C).copy(alpha = 0.6f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer")
@@ -384,12 +396,14 @@ fun TackleBoxCard(
     val lureNames by viewModel.getFormattedLureList(tackleBoxWithLures.tackleBox.id)
         .collectAsState(initial = "")
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable { expanded = !expanded },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6)),
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp,
+        color = MaterialTheme.colorScheme.tertiary),
         elevation = CardDefaults.cardElevation()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -399,22 +413,18 @@ fun TackleBoxCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.ShoppingBag,
+                    Icons.Default.Inventory,
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.White
+                    modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         tackleBoxWithLures.tackleBox.name,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text(
                         "${tackleBoxWithLures.lures.size} Lures",
-                        color = Color.White.copy(alpha = 0.8f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -422,8 +432,7 @@ fun TackleBoxCard(
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Options",
-                            tint = Color.White
+                            contentDescription = "Options"
                         )
                     }
                     DropdownMenu(
@@ -457,10 +466,13 @@ fun TackleBoxCard(
             }
             // Expandable lure list
             AnimatedVisibility(visible = expanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 4.dp),
+                    thickness = 1.dp
+                )
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     Text(
                         text = lureNames,
-                        color = Color.White.copy(alpha = 0.8f),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(vertical = 2.dp)
                     )
@@ -475,75 +487,149 @@ fun FishermanHighlightCard(
     stats: FishermanFullStatistics,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    val pagerState = rememberPagerState(pageCount = { 2 })
 
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "HIGHLIGHTS",
-                style = MaterialTheme.typography.labelLarge,
-                color = Color(0xFF00274C), // Michigan Blue
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            )
 
-            // Top Section: The Big/Small Trophy Fish
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatItem(
-                    label = "LARGEST FISH",
-                    value = "${stats.largestFishLength ?: 0.0}\"",
-                    color = Color(0xFF00274C), // Michigan Blue
-                )
-                StatItem(
-                    label = "SMALLEST FISH",
-                    value = "${stats.smallestFishLength ?: 0.0}\"",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            HorizontalPager(state = pagerState) { page ->
+                when (page) {
+                    0 -> HighlightsPage(stats)
+                    1 -> LowlightsPage(stats)
+                }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+            // Dot indicator
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(2) { i ->
+                    val isSelected = pagerState.currentPage == i
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 3.dp)
+                            .size(if (isSelected) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.onTertiary
+                                else MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.3f)
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
 
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (!stats.bestTripName.isNullOrEmpty()) {
-                    AchievementItem(
-                        icon = Icons.Default.Celebration,
-                        label = "Best Trip (${stats.mostTripCatches} fish)",
-                        name = stats.bestTripName,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (!stats.bestSegmentName.isNullOrEmpty()) {
-                    AchievementItem(
-                        icon = Icons.AutoMirrored.Filled.TrendingUp,
-                        label = "Best Segment (${stats.mostSegmentCatches} fish)",
-                        name = "${stats.bestSegmentName}\n(${stats.bestSegmentTripName})",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (!stats.worstTripName.isNullOrEmpty()) {
-                    AchievementItem(
-                        icon = Icons.Default.Warning,
-                        label = "Worst Trip (${stats.fewestTripCatches} fish)",
-                        name = stats.worstTripName,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (!stats.worstSegmentName.isNullOrEmpty()) {
-                    AchievementItem(
-                        icon = Icons.AutoMirrored.Filled.TrendingDown,
-                        label = "Worst Segment (${stats.fewestSegmentCatches} fish)",
-                        name = "${stats.worstSegmentName}\n(${stats.worstSegmentTripName})",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+@Composable
+private fun HighlightsPage(stats: FishermanFullStatistics) {
+    Column {
+        Text(
+            text = "HIGHLIGHTS",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onTertiary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            StatItem(
+                label = "LARGEST FISH",
+                value = "${stats.largestFishLength ?: 0.0}\"",
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (!stats.bestTripName.isNullOrEmpty()) {
+                AchievementItem(
+                    icon = Icons.Default.Celebration,
+                    label = "Best Trip",
+                    name = stats.bestTripName,
+                    description = "(${stats.mostTripCatches} fish)",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (!stats.bestSegmentName.isNullOrEmpty()) {
+                AchievementItem(
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                    label = "Best Segment",
+                    name = "${stats.bestSegmentName} - (${stats.bestSegmentTripName})",
+                    description = "(${stats.mostSegmentCatches} fish)",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LowlightsPage(stats: FishermanFullStatistics) {
+    Column {
+        Text(
+            text = "LOWLIGHTS",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onTertiary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            StatItem(
+                label = "SMALLEST FISH",
+                value = "${stats.smallestFishLength ?: 0.0}\"",
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (!stats.worstTripName.isNullOrEmpty()) {
+                AchievementItem(
+                    icon = Icons.Default.Warning,
+                    label = "Worst Trip",
+                    name = stats.worstTripName,
+                    description = "(${stats.fewestTripCatches} fish)",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (!stats.worstSegmentName.isNullOrEmpty()) {
+                AchievementItem(
+                    icon = Icons.AutoMirrored.Filled.TrendingDown,
+                    label = "Worst Segment",
+                    name = "${stats.worstSegmentName} - (${stats.worstSegmentTripName})",
+                    description = "(${stats.fewestSegmentCatches} fish)",
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
