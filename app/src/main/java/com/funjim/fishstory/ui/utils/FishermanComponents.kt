@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -79,13 +80,16 @@ fun FishermanItem(
 fun FishermanSummary(
     fishermanCount: Int,
     tackleBoxCount: Int,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6))
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp,
+            color = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -94,8 +98,7 @@ fun FishermanSummary(
             Icon(
                 Icons.Default.Groups,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
+                modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(
@@ -104,7 +107,6 @@ fun FishermanSummary(
             ) {
                 Text(
                     "THE CREW AND TACKLE BOXES",
-                    color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(horizontal = 12.dp),
@@ -112,14 +114,14 @@ fun FishermanSummary(
                 )
                 Text(
                     "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center, // Centers the text within the middle space
                 )
                 Text(
                     "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center, // Centers the text within the middle space
@@ -129,8 +131,7 @@ fun FishermanSummary(
             Icon(
                 Icons.Default.Inventory,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
+                modifier = Modifier.size(48.dp)
             )
         }
     }

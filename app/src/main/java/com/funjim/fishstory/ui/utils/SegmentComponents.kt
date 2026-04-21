@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -26,7 +27,8 @@ import java.util.Locale
 @Composable
 fun SegmentItem(
     segmentSummary: SegmentSummary,
-    onEdit: (() -> Unit)? = null, 
+    modifier: Modifier = Modifier,
+    onEdit: (() -> Unit)? = null,
     onDelete: () -> Unit, 
     onClick: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
@@ -36,7 +38,9 @@ fun SegmentItem(
 ) {
     SegmentItem(
         segment = segmentSummary.segment,
+        modifier = modifier,
         fishermenCount = segmentSummary.fishermanCount,
+        tackleBoxCount = segmentSummary.tackleBoxCount,
         fishCaught = segmentSummary.fishCaught,
         fishKept = segmentSummary.fishKept,
         onEdit = onEdit,
@@ -52,7 +56,9 @@ fun SegmentItem(
 @Composable
 fun SegmentItem(
     segment: Segment,
+    modifier: Modifier = Modifier,
     fishermenCount: Int = 0,
+    tackleBoxCount: Int = 0,
     fishCaught: Int = 0,
     fishKept: Int = 0,
     onEdit: (() -> Unit)? = null, 
@@ -63,15 +69,25 @@ fun SegmentItem(
     onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
-    val dateTimeFormatter = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    }
+    val now = System.currentTimeMillis()
+
+    val startString = dateTimeFormatter.format(Date(segment.startTime))
+    val endString = dateTimeFormatter.format(Date(segment.endTime))
+
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable { onClick() }
+
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth().clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp,
+            color = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -106,18 +122,26 @@ fun SegmentItem(
                         )
                     }
                 }
-                Text(
-                    text = "Started: ${dateTimeFormatter.format(Date(segment.startTime))}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+
+                Text("$startString  →  $endString",
+                    style = MaterialTheme.typography.bodyMedium)
 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "$fishermenCount Fisherman • $fishCaught Caught • $fishKept Kept",
+                    text = "$fishermenCount ${if (fishermenCount == 1) "fisherman" else "fishermen"} • " +
+                            "$tackleBoxCount with a tacklebox",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
+
+                if (fishCaught != 0 || now >= segment.startTime) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Fish Summary • $fishCaught Caught • $fishKept Kept",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiary
+                    )
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onEdit != null) {
@@ -187,7 +211,7 @@ fun SegmentItem(
 
                         if (segment.latitude != null && onClearLocation != null) {
                             DropdownMenuItem(
-                                text = { Text("Clear Location", color = Color.Red) },
+                                text = { Text("Clear Location") },
                                 onClick = {
                                     menuExpanded = false
                                     onClearLocation()
@@ -202,7 +226,7 @@ fun SegmentItem(
                             )
                         }
                         DropdownMenuItem(
-                            text = { Text("Delete", color = Color.Red) },
+                            text = { Text("Delete") },
                             onClick = {
                                 menuExpanded = false
                                 onDelete()
@@ -211,7 +235,7 @@ fun SegmentItem(
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = null,
-                                    tint = Color.Red
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         )

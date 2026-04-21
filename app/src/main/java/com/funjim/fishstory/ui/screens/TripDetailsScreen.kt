@@ -75,6 +75,7 @@ fun TripDetailsScreen(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
+    val now = System.currentTimeMillis()
 
     val fishermanList by viewModel.getFishermanIdsForTrip(tripId)
         .collectAsStateWithLifecycle(initialValue = emptyList())
@@ -136,6 +137,12 @@ fun TripDetailsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Trip Details") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -231,11 +238,12 @@ fun TripDetailsScreen(
                 LazyColumn(horizontalAlignment = Alignment.Start) {
                     item {
                         Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = details.trip.name,
-                                style = MaterialTheme.typography.headlineMedium
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
                             )
                             if (details.trip.latitude != null && details.trip.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -244,7 +252,7 @@ fun TripDetailsScreen(
                                     contentDescription = "View on map",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
-                                        .size(32.dp)
+                                        .size(24.dp)
                                         .clickable {
                                             val mapUri =
                                                 Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
@@ -266,13 +274,13 @@ fun TripDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.primary
                         )
 
                         PhotoPickerRow(
@@ -289,6 +297,15 @@ fun TripDetailsScreen(
                             }
                         )
 
+                        if (details.totalCaught != 0 || now >= details.trip.startDate) {
+                            HorizontalDivider()
+
+                            TripHighlightCard(
+                                tripSummary = details,
+                                onClick = { navigateToFishList() }
+                            )
+                        }
+
                         HorizontalDivider()
 
                         // The Boat Concept
@@ -300,33 +317,16 @@ fun TripDetailsScreen(
 
                         HorizontalDivider()
 
-                        // TODO -- add more information to summaries so that more information can be displayed
-                        TripHighlightCard(
-                            tripSummary = details,
-                            onClick = { navigateToFishList() }
-                        )
-
-                        HorizontalDivider()
-
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "Segments",
                                 style = MaterialTheme.typography.titleLarge
                             )
-                            // TODO -- enable adding a segment to an existing trip
                             IconButton(onClick = {
-                                viewModel.clearDraftSegment() // Ensure a clean slate for the new segment
-                                // Set the start and end dates in the draft for the trip and segment
-                                viewModel.updateDraftSegmentStartDate(details.trip.startDate)
-                                viewModel.updateDraftSegmentEndDate(details.trip.endDate)
-                                viewModel.updateDraftTripStartDate(details.trip.startDate)
-                                viewModel.updateDraftTripEndDate(details.trip.endDate)
-                                viewModel.setDraftFisherman(fishermanList.toSet())
-                                viewModel.setDraftSegmentFisherman(fishermanList.toSet())
-                                viewModel.updateDraftLocation(details.trip.latitude, details.trip.longitude)
                                 navigateToAddSegment(tripId)
                             }) {
                                 Icon(Icons.Default.Add, contentDescription = "Add Segment")
@@ -337,6 +337,7 @@ fun TripDetailsScreen(
                     items(segmentSummaries) { segmentSummary ->
                         SegmentItem(
                             segmentSummary = segmentSummary,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             onEdit = null,
                             onDelete = {
                                 scope.launch {
@@ -468,6 +469,10 @@ fun TripHighlightCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

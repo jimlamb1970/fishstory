@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TripSummary
 import java.text.SimpleDateFormat
@@ -38,6 +37,7 @@ fun TripItem(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
+
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
@@ -74,6 +74,7 @@ fun TripItem(
                         )
                     }
                 }
+
                 Text("$startString  →  $endString",
                     style = MaterialTheme.typography.bodyMedium)
 
@@ -87,7 +88,7 @@ fun TripItem(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • " +
-                                "$tackleBoxCount with ${if (tackleBoxCount == 1) "a tacklebox" else "tackleboxes"}",
+                                "$tackleBoxCount with a tacklebox",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiary
                     )

@@ -85,7 +85,7 @@ fun AddSegmentScreen(
         mutableLongStateOf(tripSummary?.trip?.startDate ?: System.currentTimeMillis())
     }
     var segmentEnd by remember(tripSummary) {
-        mutableLongStateOf(tripSummary?.trip?.startDate ?: System.currentTimeMillis())
+        mutableLongStateOf(tripSummary?.trip?.endDate ?: System.currentTimeMillis())
     }
     var segmentLat by remember { mutableStateOf<Double?>(null) }
     var segmentLng by remember { mutableStateOf<Double?>(null) }

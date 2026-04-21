@@ -278,8 +278,8 @@ fun ActiveTripCard(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFCB05),
-            contentColor = Color(0xFF00274C)
+            containerColor = MaterialTheme.colorScheme.tertiary,
+            contentColor = MaterialTheme.colorScheme.onTertiary
         ),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
