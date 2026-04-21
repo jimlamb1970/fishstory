@@ -234,7 +234,7 @@ fun PhotoPickerRow(
                         photoToDelete = null
                     }
                 ) {
-                    Text("Delete", color = Color.Red)
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {

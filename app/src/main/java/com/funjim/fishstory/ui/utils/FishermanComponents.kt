@@ -32,24 +32,34 @@ fun FishermanItem(
 
     var expanded by remember { mutableStateOf(false) }
 
-    Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { onClick() }) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+    ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(fisherman.fisherman.fullName, style = MaterialTheme.typography.titleLarge, color = Color.Black)
+                Text(
+                    fisherman.fisherman.fullName,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "Trips: $tripCount",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     "Fish: $caughtCount (Released: $releasedCount, Kept: $keptCount)",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             Box {
@@ -67,7 +77,10 @@ fun FishermanItem(
                             onDelete()
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error)
                         }
                     )
                 }

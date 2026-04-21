@@ -220,7 +220,7 @@ fun FishItem(
 
                         if (fish.latitude != null && onClearLocation != null) {
                             DropdownMenuItem(
-                                text = { Text("Clear Location", color = Color.Red) },
+                                text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     menuExpanded = false
                                     onClearLocation()
@@ -235,7 +235,7 @@ fun FishItem(
                             )
                         }
                         DropdownMenuItem(
-                            text = { Text("Delete", color = Color.Red) },
+                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                             onClick = {
                                 menuExpanded = false
                                 onDelete()
@@ -244,7 +244,7 @@ fun FishItem(
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = null,
-                                    tint = Color.Red
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         )
@@ -361,7 +361,10 @@ fun ManageSpeciesDialog(
                         ) {
                             Text(species.name)
                             IconButton(onClick = { onDeleteSpecies(species) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = MaterialTheme.colorScheme.error)
                             }
                         }
                     }

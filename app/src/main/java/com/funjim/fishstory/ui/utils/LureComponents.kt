@@ -308,7 +308,10 @@ fun ManageColorsDialog(
                         ) {
                             Text(color.name)
                             IconButton(onClick = { onDeleteColor(color) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = MaterialTheme.colorScheme.error)
                             }
                         }
                     }
@@ -380,10 +383,16 @@ fun LureItem(
                 // TODO - put these into a kebab menu
                 Row {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }

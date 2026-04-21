@@ -44,6 +44,12 @@ fun FishermanListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Fishermen") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -52,7 +58,11 @@ fun FishermanListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Fisherman")
             }
         }
@@ -162,6 +172,18 @@ fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+            selectedBorderWidth = 2.dp,
+            borderColor = MaterialTheme.colorScheme.primary,
+            borderWidth = 1.dp
+        ),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            selectedLabelColor = MaterialTheme.colorScheme.onTertiary
+        ),
         modifier = Modifier.padding(end = 4.dp)
     )
 }

@@ -250,7 +250,10 @@ fun TripListScreen(
                                     onAction(TripAction.Delete(trip))
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.Delete, contentDescription = null)
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error)
                                 }
                             )
                         }
