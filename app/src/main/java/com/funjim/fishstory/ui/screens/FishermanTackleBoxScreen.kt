@@ -1,11 +1,13 @@
 package com.funjim.fishstory.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -35,8 +37,12 @@ fun FishermanTackleBoxScreen(
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val luresInBox by viewModel.tackleBoxesWithLures.collectAsState(initial = emptyList())
+    val tackleBox by viewModel.selectedTackleBox.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
+
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var editedName by remember { mutableStateOf("") }
 
     // Build a set of IDs in the tackle box for 'inBox'' lookup
     val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.id }.toSet() }
@@ -51,20 +57,35 @@ fun FishermanTackleBoxScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Tackle Box")
+                        Text(
+                            text = tackleBox?.name ?: "Tackle Box",
+                            maxLines = 1
+                        )
                         Text(
                             text = fisherman?.fullName ?: "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
-            )
+                },
+                actions = {
+                    IconButton(onClick = {
+                        editedName = tackleBox?.name ?: ""
+                        showRenameDialog = true
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Rename Tackle Box")
+                    }
+                }            )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -73,15 +94,16 @@ fun FishermanTackleBoxScreen(
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = MaterialTheme.shapes.small
+                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+                shape = MaterialTheme.shapes.small,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
             ) {
                 Text(
                     text = "$inBoxCount lure${if (inBoxCount != 1) "s" else ""} in tackle box",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
 
@@ -112,6 +134,18 @@ fun FishermanTackleBoxScreen(
                                 }
                             }
                         },
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selected,
+                            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+                            selectedBorderWidth = 2.dp,
+                            borderColor = MaterialTheme.colorScheme.primary,
+                            borderWidth = 1.dp
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+                            selectedLabelColor = MaterialTheme.colorScheme.onTertiary
+                        ),
                         label = {
                             Text(if (selected) "$label ${if (reversed) "↑" else "↓"}" else label)
                         }
@@ -145,6 +179,41 @@ fun FishermanTackleBoxScreen(
                 }
             }
         }
+    }
+    if (showRenameDialog) {
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text("Rename Tackle Box") },
+            text = {
+                OutlinedTextField(
+                    value = editedName,
+                    onValueChange = { editedName = it },
+                    label = { Text("Tackle Box Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        tackleBox?.let {
+                            scope.launch {
+                                viewModel.updateTackleBox(it.copy(name = editedName.trim()))
+                                showRenameDialog = false
+                            }
+                        }
+                    },
+                    enabled = editedName.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

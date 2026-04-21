@@ -115,10 +115,14 @@ class FishermanRepository(
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(fishermanId: String, name: String) =
         tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId, name = name))
+
     suspend fun insertTackleBox(tackleBox: TackleBox) = tackleBoxDao.insertTackleBox(tackleBox)
+
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> =
         tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
+
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<Lure>> =
         tackleBoxDao.getLuresInTackleBox(tackleBoxId)
+
     suspend fun deleteTackleBox(tackleBox: TackleBox) = tackleBoxDao.deleteTackleBox(tackleBox)
 }

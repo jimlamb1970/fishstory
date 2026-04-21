@@ -134,9 +134,29 @@ class LureViewModel(
     }
 
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedTackleBox: StateFlow<TackleBox?> = _selectedTackleBoxId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(null)
+            else repository.getTackleBoxById(id) // Room DAO should return Flow<TackleBox>
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     fun selectTackleBox(id: String) {
         _selectedTackleBoxId.value = id
     }
+
+    fun updateTackleBox(tackleBox: TackleBox) {
+        viewModelScope.launch {
+            repository.updateTackleBox(tackleBox)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxesWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
         .flatMapLatest { id ->

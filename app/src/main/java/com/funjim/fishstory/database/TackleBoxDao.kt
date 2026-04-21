@@ -1,6 +1,7 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.SegmentFishermanCrossRef
 import com.funjim.fishstory.model.TackleBox
@@ -26,6 +27,9 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
     suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBox?
 
+    @Query("SELECT * FROM tackle_box_table WHERE id = :id")
+    fun getTackleBoxById(id: String): Flow<TackleBox?>
+
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>>
 
@@ -35,6 +39,8 @@ interface TackleBoxDao {
     @Delete
     suspend fun deleteTackleBox(tackleBox: TackleBox)
 
+    @Update
+    suspend fun updateTackleBox(tackleBox: TackleBox)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLureToTackleBox(crossRef: TackleBoxLureCrossRef)

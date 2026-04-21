@@ -60,4 +60,7 @@ class LureRepository(
     suspend fun deleteLureColor(lureColor: LureColor) = lureDao.deleteLureColor(lureColor)
 
     suspend fun getFishermanById(id: String) = fishermanDao.getFishermanById(id)
+    fun getTackleBoxById(id: String) = tackleBoxDao.getTackleBoxById(id)
+
+    suspend fun updateTackleBox(tackleBox: TackleBox) = tackleBoxDao.updateTackleBox(tackleBox)
 }
