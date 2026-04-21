@@ -309,9 +309,6 @@ fun AppNavigation(
                 navigateToSelectSegmentCrew = {  ->
                     navController.navigate("segmentBoatLoad/$segmentId/$tripId")
                 },
-                navigateToTackleBoxes = { id ->
-                    navController.navigate("segmentTackleBoxes/$id")
-                },
                 navigateToFishList = {
                     navController.navigate("FishList/$tripId/$segmentId")
                 },

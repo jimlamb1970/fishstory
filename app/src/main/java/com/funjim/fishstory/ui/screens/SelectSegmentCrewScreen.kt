@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -39,12 +40,27 @@ fun SelectSegmentCrewScreen(
     val scope = rememberCoroutineScope()
 
     val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
-    var workingTackleBoxMap by remember { mutableStateOf(segmentTackleBoxMap) }
+    val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
+
+    LaunchedEffect(segmentTackleBoxMap) {
+        // Only initialize if the map is currently empty and we have data to put in it
+        if (workingTackleBoxMap.isEmpty() && segmentTackleBoxMap.isNotEmpty()) {
+            segmentTackleBoxMap.forEach { (fisherman, tackleBoxId) ->
+                workingTackleBoxMap[fisherman] = tackleBoxId
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Load Boat") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
@@ -58,6 +74,7 @@ fun SelectSegmentCrewScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
                 title = "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
@@ -70,9 +87,7 @@ fun SelectSegmentCrewScreen(
                             removeSet = removeSet - fishermanId
                         } else {
                             addSet = addSet + fishermanId
-                            workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
-                                this[fishermanId] = null
-                            }
+                            workingTackleBoxMap[fishermanId] = null
                         }
                     } else {
                         if (initialSet.contains(fishermanId)) {
@@ -85,9 +100,7 @@ fun SelectSegmentCrewScreen(
                     }
                 },
                 onTackleBoxChanged = { fishermanId, boxId ->
-                    workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
-                        this[fishermanId] = boxId
-                    }
+                    workingTackleBoxMap[fishermanId] = boxId
                 },
                 tripViewModel = tripViewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",

@@ -77,9 +77,6 @@ fun TripDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
-    val fishermanList by viewModel.getFishermanIdsForTrip(tripId)
-        .collectAsStateWithLifecycle(initialValue = emptyList())
-
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -164,21 +161,37 @@ fun TripDetailsScreen(
                                 text = { Text("Use Current Location") },
                                 onClick = {
                                     menuExpanded = false
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                    ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
                                                 tripSummary?.trip?.let { trip ->
-                                                    viewModel.saveTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
-                                                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                                    viewModel.saveTrip(
+                                                        trip.copy(
+                                                            latitude = location.latitude,
+                                                            longitude = location.longitude
+                                                        )
+                                                    )
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Location updated",
+                                                        Toast.LENGTH_SHORT).show()
                                                 }
                                             } else {
-                                                Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Could not get location",
+                                                    Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     } else {
                                         permissionLauncher.launch(
-                                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION)
                                         )
                                     }
                                 },
@@ -198,7 +211,10 @@ fun TripDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (tripSummary?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (tripSummary?.trip?.latitude != null)
+                                            Color(0xFF4CAF50)
+                                        else
+                                            LocalContentColor.current)
                                 }
                             )
 
@@ -243,7 +259,7 @@ fun TripDetailsScreen(
                             Text(
                                 text = details.trip.name,
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Bold
                             )
                             if (details.trip.latitude != null && details.trip.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -487,8 +503,14 @@ fun TripHighlightCard(
 
             // Top Row: The Numbers
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(label = "CAUGHT", value = "${tripSummary.totalCaught}", color = MaterialTheme.colorScheme.primary)
-                StatItem(label = "KEPT", value = "${tripSummary.totalKept}", color = Color(0xFF4CAF50)) // Harvest Green
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${tripSummary.totalCaught}",
+                    color = MaterialTheme.colorScheme.primary)
+                StatItem(
+                    label = "KEPT",
+                    value = "${tripSummary.totalKept}",
+                    color = Color(0xFF4CAF50)) // Harvest Green
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)

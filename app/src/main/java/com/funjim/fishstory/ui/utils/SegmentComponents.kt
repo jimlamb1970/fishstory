@@ -86,8 +86,7 @@ fun SegmentItem(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp,
-            color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -96,13 +95,14 @@ fun SegmentItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(segment.name, style = MaterialTheme.typography.titleMedium)
+                    Text(segment.name,
+                        style = MaterialTheme.typography.titleLarge)
                     if (segment.latitude != null && segment.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onTertiary,
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {

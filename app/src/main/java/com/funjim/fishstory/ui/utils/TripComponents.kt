@@ -57,8 +57,7 @@ fun TripItem(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(trip.trip.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onTertiary)
+                        style = MaterialTheme.typography.titleLarge)
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(

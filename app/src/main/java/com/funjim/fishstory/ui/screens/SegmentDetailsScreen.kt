@@ -51,7 +51,6 @@ fun SegmentDetailsScreen(
     tripId: String,
     segmentId: String,
     navigateToSelectSegmentCrew: () -> Unit,
-    navigateToTackleBoxes: (String) -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: () -> Unit,
     navigateBack: () -> Unit
@@ -74,6 +73,7 @@ fun SegmentDetailsScreen(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
+    val now = System.currentTimeMillis()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -81,7 +81,27 @@ fun SegmentDetailsScreen(
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         ) {
-            // Permission granted
+            val granted = permissions.entries.all { it.value }
+            if (granted) {
+                scope.launch {
+                    val location = viewModel.getTripCurrentLocation(context)
+                    if (location != null) {
+                        segmentSummary?.segment?.let { segment ->
+                            viewModel.upsertSegment(
+                                segment.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
@@ -110,6 +130,12 @@ fun SegmentDetailsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Segment Details") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -139,11 +165,22 @@ fun SegmentDetailsScreen(
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
                                                 segmentSummary?.segment?.let { segment ->
-                                                    viewModel.upsertSegment(segment.copy(latitude = location.latitude, longitude = location.longitude))
-                                                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                                    viewModel.upsertSegment(
+                                                        segment.copy(
+                                                            latitude = location.latitude,
+                                                            longitude = location.longitude
+                                                        )
+                                                    )
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Location updated",
+                                                        Toast.LENGTH_SHORT).show()
                                                 }
                                             } else {
-                                                Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Could not get location",
+                                                    Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     } else {
@@ -157,7 +194,10 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (segmentSummary?.segment?.latitude != null)
+                                            Color(0xFF4CAF50)
+                                        else
+                                            LocalContentColor.current)
                                 }
                             )
 
@@ -168,15 +208,26 @@ fun SegmentDetailsScreen(
                                         menuExpanded = false
                                         scope.launch {
                                             segmentSummary?.segment?.let { segment ->
-                                                viewModel.upsertSegment(segment.copy(latitude = tripSummary?.trip?.latitude, longitude = tripSummary?.trip?.longitude))
-                                                Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                                viewModel.upsertSegment(
+                                                    segment.copy(
+                                                        latitude = tripSummary?.trip?.latitude,
+                                                        longitude = tripSummary?.trip?.longitude
+                                                    )
+                                                )
+                                                Toast.makeText(
+                                                    context,
+                                                    "Location updated",
+                                                    Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     },
                                     leadingIcon = {
                                         Icon(Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                            tint = if (segmentSummary?.segment?.latitude != null)
+                                                Color(0xFF4CAF50)
+                                            else
+                                                LocalContentColor.current)
                                     }
                                 )
                             }
@@ -190,7 +241,10 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (segmentSummary?.segment?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint = if (segmentSummary?.segment?.latitude != null)
+                                            Color(0xFF4CAF50)
+                                        else
+                                            LocalContentColor.current)
                                 }
                             )
 
@@ -224,29 +278,9 @@ fun SegmentDetailsScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {
-                    val fineLocationPermission = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    )
-                    val coarseLocationPermission = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-
-                    if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
-                        coarseLocationPermission == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        navigateToAddFish()
-                    } else {
-                        permissionLauncher.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            )
-                        )
-                    }
-                },
+                onClick = { navigateToAddFish() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("Log Fish") }
             )
@@ -259,12 +293,13 @@ fun SegmentDetailsScreen(
                 LazyColumn(horizontalAlignment = Alignment.Start) {
                     item {
                         Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = details.segment.name,
-                                style = MaterialTheme.typography.headlineMedium
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
                             )
                             if (details.segment.latitude != null && details.segment.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -273,7 +308,7 @@ fun SegmentDetailsScreen(
                                     contentDescription = "View on map",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
-                                        .size(32.dp)
+                                        .size(24.dp)
                                         .clickable {
                                             val mapUri =
                                                 Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.segment.latitude},${details.segment.longitude}")
@@ -295,13 +330,13 @@ fun SegmentDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.segment.startTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.segment.endTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.primary
                         )
 
                         PhotoPickerRow(
@@ -318,22 +353,21 @@ fun SegmentDetailsScreen(
                             }
                         )
 
+                        if (details.fishCaught != 0 || now >= details.segment.startTime) {
+                            HorizontalDivider()
+
+                            SegmentHighlightCard(
+                                summary = details,
+                                onClick = { navigateToFishList() }
+                            )
+                        }
+
                         HorizontalDivider()
 
                         FishermanSummary(
                             fishermanCount = details.fishermanCount,
                             tackleBoxCount = details.tackleBoxCount,
                             onClick = { navigateToSelectSegmentCrew() }
-                        )
-
-                        HorizontalDivider()
-
-                        // TODO -- add more information to summaries so that more information can be displayed
-                        SegmentHighlightCard(
-                            summary = details,
-                            onClick = {
-                                navigateToFishList()
-                            }
                         )
                     }
                 }
@@ -445,6 +479,10 @@ fun SegmentHighlightCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -459,8 +497,14 @@ fun SegmentHighlightCard(
 
             // Top Row: The Numbers
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(label = "CAUGHT", value = "${summary.fishCaught}", color = MaterialTheme.colorScheme.primary)
-                StatItem(label = "KEPT", value = "${summary.fishKept}", color = Color(0xFF4CAF50)) // Harvest Green
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${summary.fishCaught}",
+                    color = MaterialTheme.colorScheme.primary)
+                StatItem(
+                    label = "KEPT",
+                    value = "${summary.fishKept}",
+                    color = Color(0xFF4CAF50)) // Harvest Green
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)

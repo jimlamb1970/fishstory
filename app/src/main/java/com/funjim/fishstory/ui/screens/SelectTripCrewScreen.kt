@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
@@ -49,6 +50,12 @@ fun SelectTripCrewScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Load Boat") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
@@ -62,6 +69,7 @@ fun SelectTripCrewScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
                 title = "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
