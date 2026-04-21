@@ -1,12 +1,14 @@
 package com.funjim.fishstory.ui.utils
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -182,12 +184,17 @@ private fun FishermanCrewRow(
     var showCreateDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
 
-    Card(
+    OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .animateContentSize(), // Smoothly animates the expansion
-        onClick = { if (selectedBox != null) expanded = !expanded }
+        onClick = { if (selectedBox != null) expanded = !expanded },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
     ) {
         Column(
             modifier = Modifier
@@ -416,8 +423,8 @@ fun TripViewModelCrewPickerBridge(
     onAddFisherman: ((String, String, String) -> Unit)? = null,
     onAddTackleBox: ((String, String) -> Unit)? = null
 ) {
-    val crewEntries = remember(eligibleFishermen, selectedIds, tackleBoxSelections) {
-        buildCrewEntries(eligibleFishermen, selectedIds, tackleBoxSelections)
+    val crewEntries by remember(eligibleFishermen, selectedIds, key3 = tackleBoxSelections) {
+        derivedStateOf { buildCrewEntries(eligibleFishermen, selectedIds, tackleBoxSelections) }
     }
 
     CrewAndTackleBoxPicker(

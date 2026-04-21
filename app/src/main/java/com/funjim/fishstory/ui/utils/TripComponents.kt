@@ -47,8 +47,7 @@ fun TripItem(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp,
-            color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),

@@ -34,7 +34,16 @@ fun SelectTripCrewScreen(
     }
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    var workingTackleBoxMap by remember { mutableStateOf(tripTackleBoxMap) }
+    val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
+
+    LaunchedEffect(tripTackleBoxMap) {
+        // Only initialize if the map is currently empty and we have data to put in it
+        if (workingTackleBoxMap.isEmpty() && tripTackleBoxMap.isNotEmpty()) {
+            tripTackleBoxMap.forEach { (fisherman, tackleBoxId) ->
+                workingTackleBoxMap[fisherman] = tackleBoxId
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -65,9 +74,7 @@ fun SelectTripCrewScreen(
                             removeSet = removeSet - fishermanId
                         } else {
                             addSet = addSet + fishermanId
-                            workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
-                                this[fishermanId] = null
-                            }
+                            workingTackleBoxMap[fishermanId] = null
                         }
                     } else {
                         if (initialSet.contains(fishermanId)) {
@@ -80,9 +87,7 @@ fun SelectTripCrewScreen(
                     }
                 },
                 onTackleBoxChanged = { fishermanId, boxId ->
-                    workingTackleBoxMap = workingTackleBoxMap.toMutableMap().apply {
-                        this[fishermanId] = boxId
-                    }
+                    workingTackleBoxMap[fishermanId] = boxId
                 },
                 tripViewModel = tripViewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
