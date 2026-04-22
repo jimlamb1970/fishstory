@@ -31,6 +31,7 @@ fun TripItem(
     trip: TripSummary,
     modifier: Modifier = Modifier,
     index: Int = 0,
+    totalItems: Int = 0,
     onClick: () -> Unit,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
@@ -42,7 +43,7 @@ fun TripItem(
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
-    val backgroundColor = if (index % 2 == 0) {
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)

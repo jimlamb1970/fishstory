@@ -174,10 +174,13 @@ fun DashboardScreen(
             item {
                 Text("Recent History", style = MaterialTheme.typography.titleLarge)
             }
+
+            val totalItems = state.recentTrips.size
             itemsIndexed(state.recentTrips) { index, trip ->
                 TripItem(
                     trip = trip,
                     index = index,
+                    totalItems = totalItems,
                     modifier = Modifier.padding(),
                     onClick = { onNavigate("trip_details/${trip.trip.id}") },
                     onAction = { action ->

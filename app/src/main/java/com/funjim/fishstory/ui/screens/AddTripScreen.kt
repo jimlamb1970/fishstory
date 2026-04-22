@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.SegmentSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
+import com.funjim.fishstory.ui.utils.SegmentItem
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -763,12 +766,31 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         }
 
                         LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(segmentSummaries, key = { it.segment.id }) { seg ->
+                            val totalItems = segmentSummaries.size
+
+                            itemsIndexed(segmentSummaries, key = { _, seg -> seg.segment.id }) { index, seg ->
                                 // TODO - look into using same card (SegmentItem) from SegmentComponents
-                                Card(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 4.dp)
-                                    .clickable() {
+                                val currentSummary = SegmentSummary(
+                                    segment = seg.segment,
+                                    fishCaught = 0,
+                                    fishKept = 0,
+                                    fishermanCount = seg.fishermanCount,
+                                    tackleBoxCount = seg.tackleBoxCount,
+                                    bigFishName = null,
+                                    bigFishSpecies = "",
+                                    bigFishLength = 0,
+                                    mostCaughtName = null,
+                                    mostCaught = 0
+                                )
+
+                                SegmentItem(
+                                    currentSummary,
+                                    modifier = Modifier.padding(
+                                        vertical = 4.dp
+                                    ),
+                                    index = index,
+                                    totalItems = totalItems,
+                                    onClick = {
                                         fromReview = true
 
                                         tripViewModel.selectSegment(seg.segment.id)
@@ -776,30 +798,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 
                                         currentStep = WizardStep.SegmentInfo
                                     }
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                seg.segment.name,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = Color.Black
-                                            )
-                                            if (seg.segment.latitude != null) {
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Icon(
-                                                    imageVector = Icons.Default.LocationOn,
-                                                    contentDescription = "Trip Location",
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                        Text("${fmt.format(Date(seg.segment.startTime))}  →  ${fmt.format(Date(seg.segment.endTime))}",
-                                            style = MaterialTheme.typography.bodyMedium)
-                                        Text(text = "${seg.fishermanCount} ${if (seg.fishermanCount == 1) "fisherman" else "fishermen"}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary)
-                                    }
-                                }
+                                )
                             }
 
                             if (segmentSummaries.isEmpty()) {

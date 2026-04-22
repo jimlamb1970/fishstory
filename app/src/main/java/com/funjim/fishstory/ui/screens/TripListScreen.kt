@@ -182,10 +182,12 @@ fun TripListScreen(
             .padding(padding)
         ) {
             LazyColumn {
+                val totalItems = tripSummaries.size
                 itemsIndexed(tripSummaries) { index, trip ->
                     TripItem(
                         trip = trip,
                         index = index,
+                        totalItems = totalItems,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         onClick = { navigateToTripDetails(trip.trip.id) },
                         onAction = { action ->

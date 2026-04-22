@@ -10,8 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -352,17 +351,21 @@ fun TripDetailsScreen(
                         }
                     }
 
-                    items(segmentSummaries) { segmentSummary ->
+                    // TODO - order segments by date
+                    val totalItems = segmentSummaries.size
+                    itemsIndexed(segmentSummaries) { index, segmentSummary ->
                         SegmentItem(
                             segmentSummary = segmentSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            index = index,
+                            totalItems = totalItems,
+                            onClick = {
+                                navigateToSegmentDetails(segmentSummary.segment.id)
+                            },
                             onDelete = {
                                 scope.launch {
                                     viewModel.deleteSegment(segmentSummary.segment)
                                 }
-                            },
-                            onClick = {
-                                navigateToSegmentDetails(segmentSummary.segment.id)
                             },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
