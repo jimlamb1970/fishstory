@@ -121,8 +121,9 @@ fun AddFishScreen(
         context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
                 context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
     }
-    // Default to true only if permission is actually granted
-    var useCurrentLocation by remember { mutableStateOf(hasLocationPermission) }
+    // Default to false
+    // TODO - store last selected state in view model?
+    var useCurrentLocation by remember { mutableStateOf(false) }
 
     // Load data if editing
     LaunchedEffect(fishId) {
@@ -386,19 +387,27 @@ fun AddFishScreen(
                 )
 
                 ExposedDropdownMenu(expanded = speciesExpanded, onDismissRequest = { speciesExpanded = false }) {
+                    val totalSpecies = speciesList.size
                     speciesList.forEachIndexed { index, species ->
+                        val backgroundColor = if ((index % 2 == 0) || (totalSpecies < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
                         DropdownMenuItem(
                             text = { Text(species.name) },
                             onClick = {
                                 selectedSpeciesId = species.id
                                 speciesExpanded = false
                                 focusManager.clearFocus()
-//                                focusRequester.requestFocus()
                             },
                             modifier = Modifier
                                 .then(if (index == 0) Modifier.focusRequester(firstItemRequester) else Modifier)
-                                .background(if (index == speciesSelectedIndex) MaterialTheme.colorScheme.primaryContainer
-                                else Color.Transparent
+                                .background(
+                                    if (index == speciesSelectedIndex) MaterialTheme.colorScheme.primaryContainer
+                                    else backgroundColor
                                 )
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown) {
@@ -461,7 +470,15 @@ fun AddFishScreen(
                 )
                 ExposedDropdownMenu(expanded = fishermanExpanded, onDismissRequest = { fishermanExpanded = false }) {
                     val fishermen = segmentDetails?.fishermen?.sortedBy { it.fullName } ?: emptyList()
+                    val totalFishermen = fishermen.size
                     fishermen.forEachIndexed { index, fisherman ->
+                        val backgroundColor = if ((index % 2 == 0) || (totalFishermen < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
                         DropdownMenuItem(
                             text = { Text(fisherman.fullName) },
                             onClick = {
@@ -473,7 +490,7 @@ fun AddFishScreen(
                                 .then(if (index == 0) Modifier.focusRequester(firstItemRequester) else Modifier)
                                 .background(
                                     if (index == fishermanSelectedIndex) MaterialTheme.colorScheme.primaryContainer
-                                    else Color.Transparent
+                                    else backgroundColor
                                 )
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown) {
@@ -521,7 +538,15 @@ fun AddFishScreen(
                     modifier = Modifier.menuAnchor().fillMaxWidth().onFocusChanged { if (it.isFocused) focusedField = FishField.Lure }
                 )
                 ExposedDropdownMenu(expanded = lureExpanded, onDismissRequest = { lureExpanded = false }) {
+                    val totalLures = luresSorted.size
                     luresSorted.forEachIndexed { index, (lure, displayName) ->
+                        val backgroundColor = if ((index % 2 == 0) || (totalLures < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
                         DropdownMenuItem(
                             text = { Text(displayName) },
                             onClick = { selectedLureId = lure.id; lureExpanded = false },
@@ -529,7 +554,7 @@ fun AddFishScreen(
                                 .then(if (index == 0) Modifier.focusRequester(firstItemRequester) else Modifier)
                                 .background(
                                     if (index == lureSelectedIndex) MaterialTheme.colorScheme.primaryContainer
-                                    else Color.Transparent
+                                    else backgroundColor
                                 )
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown) {
@@ -679,8 +704,12 @@ fun AddFishScreen(
                 interactionSource = logInteractionSource,
                 colors = ButtonDefaults.buttonColors(
                     // Change color entirely when focused via Volume Keys
-                    containerColor = if (focusedField == FishField.LogCatch) Color.Yellow else MaterialTheme.colorScheme.primary,
-                    contentColor = if (focusedField == FishField.LogCatch) Color.Black else MaterialTheme.colorScheme.onPrimary
+                    containerColor =
+                        if (focusedField == FishField.LogCatch) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.primary,
+                    contentColor =
+                        if (focusedField == FishField.LogCatch) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onPrimary
                 ),
                 enabled = selectedSpeciesId != null && selectedFishermanId != null,
                 border = if (focusedField == FishField.LogCatch) BorderStroke(4.dp, Color.Blue) else null,
@@ -779,7 +808,9 @@ fun StepperField(
                     .size(48.dp)
                     .border(
                         width = if (isDecFocused) 3.dp else 1.dp,
-                        color = if (isDecFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        color =
+                            if (isDecFocused) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline,
                         shape = MaterialTheme.shapes.small
                     )
                     .onKeyEvent { event ->
@@ -800,7 +831,9 @@ fun StepperField(
                     .onFocusChanged { if (it.isFocused) onFocused?.invoke() },
                 shape = MaterialTheme.shapes.small,
                 colors = IconButtonDefaults.outlinedIconButtonColors(
-                    containerColor = if (isDecFocused) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
+                    containerColor =
+                        if (isDecFocused) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        else Color.Transparent
                 )
             ) {
                 Text("-", style = MaterialTheme.typography.titleLarge)
@@ -826,7 +859,9 @@ fun StepperField(
                     .size(48.dp)
                     .border(
                         width = if (isIncFocused) 3.dp else 1.dp,
-                        color = if (isIncFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        color =
+                            if (isIncFocused) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline,
                         shape = MaterialTheme.shapes.small
                     )
                     .onKeyEvent { event ->
@@ -847,7 +882,9 @@ fun StepperField(
                     .onFocusChanged { if (it.isFocused) onFocused?.invoke() },
                 shape = MaterialTheme.shapes.small,
                 colors = IconButtonDefaults.outlinedIconButtonColors(
-                    containerColor = if (isIncFocused) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
+                    containerColor =
+                        if (isIncFocused) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        else Color.Transparent
                 )
             ) {
                 Text("+", style = MaterialTheme.typography.titleLarge)
@@ -895,7 +932,7 @@ fun NavigableCheckboxRow(
                 enabled = enabled,
                 modifier = Modifier.border(
                     width = if (isFocused && enabled) 4.dp else 0.dp,
-                    color = if (isFocused) Color.Blue else Color.Transparent,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(4.dp)
                 ).size(24.dp)
             )

@@ -82,7 +82,7 @@ fun FishDetailScreen(
                         Text(
                             text = "${currentIndex + 1} / ${fishList.size}",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.padding(end = 16.dp)
                         )
                     }

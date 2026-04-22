@@ -18,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
@@ -35,7 +34,6 @@ fun ManageColorsDialog(
     var newColorName by remember { mutableStateOf("") }
     val sortedColors = remember(colors) { colors.sortedBy { it.name } }
 
-    // State for the secondary confirmation dialog
     var colorToDelete by remember { mutableStateOf<LureColor?>(null) }
 
     AlertDialog(
@@ -43,7 +41,6 @@ fun ManageColorsDialog(
         title = { Text("Manage Colors") },
         text = {
             Column(modifier = Modifier.fillMaxWidth().heightIn(max = 450.dp)) {
-                // Input Section with Enter Key Support
                 OutlinedTextField(
                     value = newColorName,
                     onValueChange = { newColorName = it },
@@ -76,7 +73,6 @@ fun ManageColorsDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // List Section
                 if (sortedColors.isEmpty()) {
                     // Default message for empty list
                     Box(
@@ -131,7 +127,7 @@ fun ManageColorsDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            Button(onClick = onDismiss) { Text("Close") }
         }
     )
 

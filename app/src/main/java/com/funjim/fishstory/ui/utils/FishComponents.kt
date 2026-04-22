@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -16,15 +19,20 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import kotlinx.coroutines.launch
@@ -337,47 +345,96 @@ fun ManageSpeciesDialog(
     onDeleteSpecies: (Species) -> Unit
 ) {
     var newSpeciesName by remember { mutableStateOf("") }
+    val sortedSpecies = remember(species) { species.sortedBy { it.name } }
 
-    val sortedSpecies = remember(species) {
-        species.sortedBy { it.name }
-    }
+    var speciesToDelete by remember { mutableStateOf<Species?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Manage Species") },
         text = {
-            Column(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextField(
-                        value = newSpeciesName,
-                        onValueChange = { newSpeciesName = it },
-                        placeholder = { Text("New Species") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = {
-                        if (newSpeciesName.isNotBlank()) {
-                            onAddSpecies(newSpeciesName)
-                            newSpeciesName = ""
-                        }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add")
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn {
-                    items(sortedSpecies) { species ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(species.name)
-                            IconButton(onClick = { onDeleteSpecies(species) }) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.error)
+            Column(modifier = Modifier.fillMaxWidth().heightIn(max = 450.dp)) {
+                OutlinedTextField(
+                    value = newSpeciesName,
+                    onValueChange = { newSpeciesName = it },
+                    placeholder = { Text("New Species") },
+                    label = { Text("Add New Species") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (newSpeciesName.isNotBlank()) {
+                                onAddSpecies(newSpeciesName.trim())
+                                newSpeciesName = ""
                             }
+                        }
+                    ),
+                    trailingIcon = {
+                        IconButton(
+                            enabled = newSpeciesName.isNotBlank(),
+                            onClick = {
+                                onAddSpecies(newSpeciesName.trim())
+                                newSpeciesName = ""
+                            }
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (sortedSpecies.isEmpty()) {
+                    // Default message for empty list
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No fish species added yet.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        itemsIndexed(sortedSpecies, key = { _, species -> species.id }) { index, species ->
+                            // Calculate the background color based on the index
+                            val backgroundColor = if (index % 2 == 0) {
+                                MaterialTheme.colorScheme.surface
+                            } else {
+                                // Use a very light tint of your primary or surfaceVariant
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            }
+
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = species.name,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                },
+                                trailingContent = {
+                                    IconButton(onClick = { speciesToDelete = species }) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = backgroundColor
+                                )
+                            )
+                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                 }
@@ -387,4 +444,30 @@ fun ManageSpeciesDialog(
             Button(onClick = onDismiss) { Text("Close") }
         }
     )
+
+    // Confirmation Sub-Dialog
+    speciesToDelete?.let { species ->
+        AlertDialog(
+            onDismissRequest = { speciesToDelete = null },
+            title = { Text("Delete Species?") },
+            text = { Text("Are you sure you want to delete '${species.name}'? This cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteSpecies(species)
+                        speciesToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { speciesToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
