@@ -76,21 +76,7 @@ fun FishSummaryScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    var permissionGranted by remember { mutableStateOf(false) }
     var showManageSpeciesDialog by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (isGranted) {
-            permissionGranted = true
-            val tripId = selectedSegment?.tripId ?: selectedTrip?.id
-            val segId = selectedSegment?.id ?: ""
-            if (tripId != null) onAddFish(tripId, segId, null)
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -122,17 +108,10 @@ fun FishSummaryScreen(
                     onClick = {
                         val tripId = selectedSegment.tripId
                         val segId = selectedSegment.id
-                        if (permissionGranted) {
-                            onAddFish(tripId, segId, null)
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            )
-                        }
+                        onAddFish(tripId, segId, null)
                     },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
                     text = { Text("Log Fish") }
                 )
@@ -152,7 +131,7 @@ fun FishSummaryScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
             ) {
-                TextField(
+                OutlinedTextField(
                     value = selectedTrip?.name ?: "Select Trip",
                     onValueChange = {},
                     readOnly = true,
@@ -166,14 +145,22 @@ fun FishSummaryScreen(
                     expanded = tripExpanded,
                     onDismissRequest = { tripExpanded = false }
                 ) {
-                    allTrips.forEach { trip ->
+                    val numberOfTrips = allTrips.size
+                    allTrips.forEachIndexed { index, trip ->
+                        val itemBackground = if ((numberOfTrips < 4) || (index % 2 == 0)) {
+                            Color.Transparent
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
                         DropdownMenuItem(
                             text = { Text(trip.name) },
                             onClick = {
                                 viewModel.updateSelectedTrip(trip.id)
                                 viewModel.updateSelectedSegment(null)
                                 tripExpanded = false
-                            }
+                            },
+                            modifier = Modifier.background(itemBackground)
                         )
                     }
                 }
@@ -190,7 +177,7 @@ fun FishSummaryScreen(
                     .padding(bottom = 8.dp)
                     .fillMaxWidth()
             ) {
-                TextField(
+                OutlinedTextField(
                     value = selectedSegment?.name ?: "Select Segment (optional)",
                     onValueChange = {},
                     readOnly = true,
@@ -213,13 +200,21 @@ fun FishSummaryScreen(
                             segmentExpanded = false
                         }
                     )
-                    segmentsForTrip.forEach { segment ->
+                    val numberOfSegments = segmentsForTrip.size
+                    segmentsForTrip.forEachIndexed { index, segment ->
+                        val itemBackground = if ((numberOfSegments < 3) || (index % 2 == 1)) {
+                            Color.Transparent
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
                         DropdownMenuItem(
                             text = { Text(segment.name) },
                             onClick = {
                                 viewModel.updateSelectedSegment(segment.id)
                                 segmentExpanded = false
-                            }
+                            },
+                            modifier = Modifier.background(itemBackground)
                         )
                     }
                 }
@@ -229,6 +224,7 @@ fun FishSummaryScreen(
 
             // Fish Visual — only shown when a trip is selected
             // TODO -- add more information to summaries so that more information can be displayed
+            // TODO -- refactor the visual to be more color theme aware
             if (selectedTrip != null) {
                 Spacer(modifier = Modifier.height(24.dp))
                 FishVisual(

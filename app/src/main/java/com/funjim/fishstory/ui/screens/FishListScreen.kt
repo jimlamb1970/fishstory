@@ -9,6 +9,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,9 +77,7 @@ fun FishListScreen(
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (isGranted) {
             permissionGranted = true
-            if (tripId != null && segmentId != null) {
-                onAddFish(tripId, segmentId, null)
-            }
+            // TODO -- add actions
         }
     }
 
@@ -133,19 +133,12 @@ fun FishListScreen(
             if (!segmentId.isNullOrEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        if (permissionGranted) {
-                            if (tripId != null) {
-                                onAddFish(tripId, segmentId, null)
-                            }
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            )
+                        if (tripId != null) {
+                            onAddFish(tripId, segmentId, null)
                         }
                     },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
                     text = { Text("Log Fish") }
                 )
@@ -162,23 +155,27 @@ fun FishListScreen(
                 Text("No fish logged yet. Tap 'Log Fish' to add one.")
             }
         } else {
-            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier.padding(padding).fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (!fishermanId.isNullOrEmpty()) {
                         Text(
                             text = fisherman?.fullName ?: "All Fishermen",
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     } else {
                         Text(
                             text = trip?.name ?: "All Trips",
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
+
                 // TODO - make this a drop down menu for all the segments in the trip?
                 if (!segmentId.isNullOrEmpty()) {
                     Row(
@@ -193,7 +190,7 @@ fun FishListScreen(
                 }
 
                 // Sort Buttons
-                Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp)) {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                     SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
                         viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                     }
@@ -239,10 +236,13 @@ fun FishListScreen(
                 val allPhotos by viewModel.fishPhotos.collectAsStateWithLifecycle()
 
                 LazyColumn {
-                    items(fishForScope) { fishDetails ->
+                    val totalItems = fishForScope.size
+                    itemsIndexed(fishForScope) { index, fishDetails ->
                         val photos = allPhotos[fishDetails.id] ?: emptyList()
                         FishItem(
                             fish = fishDetails,
+                            index = index,
+                            totalItems = totalItems,
                             includeTrip = tripId.isNullOrEmpty(),
                             includeSegment = segmentId.isNullOrEmpty(),
                             includeFisherman = fishermanId.isNullOrEmpty(),

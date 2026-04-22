@@ -163,11 +163,14 @@ fun FishermanDetailsScreen(
                             }
                         }
 
+                        val totalTackleBoxes = details.tackleBoxesWithLures.size
                         itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
                             if (tackleBoxWithLures != null) {
                                 TackleBoxCard(
                                     viewModel,
                                     tackleBoxWithLures,
+                                    index = index,
+                                    totalItems = totalTackleBoxes,
                                     modifier = Modifier.padding(
                                         bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
                                     ),
@@ -382,10 +385,13 @@ fun FishermanLoadingView() {
     }
 }
 
+// TODO -- remove viewmodel dependency
 @Composable
 fun TackleBoxCard(
     viewModel: FishermanDetailsViewModel,
     tackleBoxWithLures: TackleBoxWithLures,
+    index: Int = 0,
+    totalItems: Int = 0,
     modifier: Modifier,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -396,10 +402,16 @@ fun TackleBoxCard(
     val lureNames by viewModel.getFormattedLureList(tackleBoxWithLures.tackleBox.id)
         .collectAsState(initial = "")
 
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+
     OutlinedCard(
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
         border = BorderStroke(1.dp,

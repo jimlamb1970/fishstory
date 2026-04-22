@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -43,6 +44,8 @@ import androidx.compose.ui.focus.focusRequester
 
 import android.util.Log
 import android.view.KeyEvent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.alpha
@@ -250,6 +253,17 @@ fun AddFishScreen(
         }
     }
 
+    var permissionGranted by remember { mutableStateOf(false) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (isGranted) {
+            permissionGranted = true
+        }
+    }
+
     val localDateTime = remember(timestamp) { timestamp.toLocalDateTime() }
 
     val datePickerState = key(showDatePicker) {
@@ -326,6 +340,12 @@ fun AddFishScreen(
         topBar = {
             TopAppBar(
                 title = { Text( if (fishId == null) "Log Fish" else "Edit Fish" ) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

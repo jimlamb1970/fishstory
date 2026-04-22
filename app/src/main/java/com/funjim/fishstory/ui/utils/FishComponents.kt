@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,8 @@ import java.util.Locale
 @Composable
 fun FishItem(
     fish: FishWithDetails,
+    index: Int = 0,
+    totalItems: Int = 0,
     includeTrip: Boolean = false,
     includeSegment: Boolean = false,
     includeFisherman: Boolean = false,
@@ -54,8 +57,14 @@ fun FishItem(
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
-    Card(
+
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+
+    OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -66,7 +75,11 @@ fun FishItem(
                 } else {
                     Modifier
                 }
-            )
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -134,7 +147,6 @@ fun FishItem(
                 Text(
                     "At: ${dateFormatter.format(Date(fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

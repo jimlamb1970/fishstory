@@ -74,7 +74,7 @@ fun LureListScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val chips = listOf(
@@ -85,6 +85,8 @@ fun LureListScreen(
                     LureSortOrder.GLOW to "Glows",
                     LureSortOrder.HOOK_TYPE to "Hook Type"
                 )
+
+                // TODO -- need to make this consistent with other screens
                 items(chips) { (field, label) ->
                     val selected = currentOrder == field
                     FilterChip(

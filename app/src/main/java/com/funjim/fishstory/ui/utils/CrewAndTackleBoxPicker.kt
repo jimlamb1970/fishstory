@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -128,12 +129,15 @@ fun CrewAndTackleBoxPicker(
                     }
                 }
             } else {
-                items(crewEntries, key = { it.fisherman.id }) { entry ->
+                val totalItems = crewEntries.size
+                itemsIndexed(crewEntries, key = { _, entry -> entry.fisherman.id }) { index, entry ->
                     val availableBoxes = getTackleBoxesForFisherman(entry.fisherman.id)
                     val lureCount = getLureCount(entry.selectedTackleBoxId)
                     val lures = getLuresForTacklebox(entry.selectedTackleBoxId)
                     FishermanCrewRow(
                         entry = entry,
+                        index = index,
+                        totalItems = totalItems,
                         availableBoxes = availableBoxes,
                         lureCount = lureCount,
                         lures = lures,
@@ -177,6 +181,8 @@ fun CrewAndTackleBoxPicker(
 @Composable
 private fun FishermanCrewRow(
     entry: CrewEntry,
+    index: Int = 0,
+    totalItems: Int = 0,
     availableBoxes: List<TackleBox>,
     lureCount: Int,
     lures: List<String>,
@@ -191,6 +197,12 @@ private fun FishermanCrewRow(
     var showCreateDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
 
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,7 +210,7 @@ private fun FishermanCrewRow(
             .animateContentSize(), // Smoothly animates the expansion
         onClick = { if (selectedBox != null) expanded = !expanded },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
