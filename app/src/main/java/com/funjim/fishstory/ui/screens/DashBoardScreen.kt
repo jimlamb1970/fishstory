@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -173,9 +174,10 @@ fun DashboardScreen(
             item {
                 Text("Recent History", style = MaterialTheme.typography.titleLarge)
             }
-            items(state.recentTrips) { trip ->
+            itemsIndexed(state.recentTrips) { index, trip ->
                 TripItem(
                     trip = trip,
+                    index = index,
                     modifier = Modifier.padding(),
                     onClick = { onNavigate("trip_details/${trip.trip.id}") },
                     onAction = { action ->

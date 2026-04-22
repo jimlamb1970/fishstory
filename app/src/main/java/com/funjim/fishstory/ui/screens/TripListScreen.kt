@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -181,9 +182,10 @@ fun TripListScreen(
             .padding(padding)
         ) {
             LazyColumn {
-                items(tripSummaries) { trip ->
+                itemsIndexed(tripSummaries) { index, trip ->
                     TripItem(
                         trip = trip,
+                        index = index,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         onClick = { navigateToTripDetails(trip.trip.id) },
                         onAction = { action ->

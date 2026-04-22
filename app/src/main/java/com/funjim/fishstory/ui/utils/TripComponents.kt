@@ -30,6 +30,7 @@ sealed class TripAction {
 fun TripItem(
     trip: TripSummary,
     modifier: Modifier = Modifier,
+    index: Int = 0,
     onClick: () -> Unit,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
@@ -41,10 +42,16 @@ fun TripItem(
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
 
+    val backgroundColor = if (index % 2 == 0) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+
     OutlinedCard(
         modifier = modifier.fillMaxWidth().clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)

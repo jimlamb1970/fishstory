@@ -191,9 +191,10 @@ fun FishermanDetailsScreen(
                             )
                         }
 
-                        items(tripSummaries) { trip ->
+                        itemsIndexed(tripSummaries) { index, trip ->
                             TripItem(
                                 trip = trip,
+                                index = index,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 onClick = { navigateToTripDetails(trip.trip.id) },
                                 onAction = { action ->
