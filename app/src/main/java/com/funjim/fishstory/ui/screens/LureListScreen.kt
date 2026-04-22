@@ -25,8 +25,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun LureListScreen(
     viewModel: LureViewModel,
-    initialFishermanId: String? = null,
-    onAddLure: (String?) -> Unit,
+    onAdd: () -> Unit,
+    onEdit: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
@@ -48,6 +48,12 @@ fun LureListScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 actions = {
                     IconButton(onClick = { showManageColorsDialog = true }) {
                         Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Colors")
@@ -56,7 +62,11 @@ fun LureListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAddLure(null) }) {
+            FloatingActionButton(
+                onClick = { onAdd() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Lure")
             }
         }
@@ -90,7 +100,20 @@ fun LureListScreen(
                         },
                         label = {
                             Text(if (selected) "$label ${if (reversed) "↑" else "↓"}" else label)
-                        }
+                        },
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selected,
+                            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+                            selectedBorderWidth = 2.dp,
+                            borderColor = MaterialTheme.colorScheme.primary,
+                            borderWidth = 1.dp
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+                            selectedLabelColor = MaterialTheme.colorScheme.onTertiary
+                        ),
+                        modifier = Modifier.padding(end = 4.dp)
                     )
                 }
             }
@@ -115,7 +138,7 @@ fun LureListScreen(
                             onAddPhoto = { photo -> scope.launch { viewModel.addPhoto(photo) } },
                             onDeletePhoto = { photo -> scope.launch { viewModel.deletePhoto(photo) } },
                              */
-                            onEdit = { onAddLure(item.lure.id) },
+                            onEdit = { onEdit(item.lure.id) },
                             onDelete = { scope.launch { viewModel.deleteLure(item.lure) } }
                         )
                     }

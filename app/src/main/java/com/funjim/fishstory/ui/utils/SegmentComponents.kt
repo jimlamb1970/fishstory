@@ -43,7 +43,6 @@ fun SegmentItem(
         tackleBoxCount = segmentSummary.tackleBoxCount,
         fishCaught = segmentSummary.fishCaught,
         fishKept = segmentSummary.fishKept,
-        onEdit = onEdit,
         onDelete = onDelete,
         onClick = onClick,
         onSetLocation = onSetLocation,
@@ -61,8 +60,7 @@ fun SegmentItem(
     tackleBoxCount: Int = 0,
     fishCaught: Int = 0,
     fishKept: Int = 0,
-    onEdit: (() -> Unit)? = null, 
-    onDelete: () -> Unit, 
+    onDelete: () -> Unit,
     onClick: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
@@ -144,12 +142,6 @@ fun SegmentItem(
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (onEdit != null) {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-                
                 Box {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More options")

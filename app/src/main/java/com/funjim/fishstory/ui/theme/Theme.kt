@@ -47,7 +47,9 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHigh = Color.White,
 
     // This is for the "outline" of the menu or cards
-    outlineVariant = MichBlue
+    outlineVariant = MichBlue,
+    surfaceVariant = MichMaize,
+    onSurfaceVariant = MichBlue,
 )
 
 @Composable

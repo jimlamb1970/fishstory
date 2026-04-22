@@ -1,9 +1,5 @@
 package com.funjim.fishstory.ui.screens
 
-//import androidx.compose.foundation.layout.Arrangement
-//import androidx.compose.foundation.layout.height
-//import androidx.compose.foundation.layout.Row
-//import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -105,6 +101,12 @@ fun ReportsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Catch Reports") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

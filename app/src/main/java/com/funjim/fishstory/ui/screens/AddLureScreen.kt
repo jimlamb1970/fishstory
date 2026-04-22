@@ -1,7 +1,9 @@
 package com.funjim.fishstory.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -10,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
@@ -64,6 +68,12 @@ fun AddLureScreen(
         topBar = {
             TopAppBar(
                 title = { Text(if (lureId == null) "New Lure" else "Edit Lure") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -85,7 +95,11 @@ fun AddLureScreen(
                 onValueChange = { name = it },
                 label = { Text("Lure Name") },
                 placeholder = { Text("e.g. Rapala Shad Rap") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next // Moves focus to the next field/dismisses
+                )
             )
 
             // Primary Color
@@ -151,7 +165,7 @@ fun AddLureScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotBlank() && selectedPrimaryColorId != null
+                enabled = name.isNotBlank()
             ) {
                 Text("Save Lure")
             }
@@ -210,21 +224,39 @@ private fun LureColorDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth()
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
-            colors.forEach { color ->
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
+        ) {
+            colors.forEachIndexed { index, color ->
+                // Alternating background for dropdown items
+                val itemBackground = if (index % 2 == 0) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                }
+
                 DropdownMenuItem(
                     text = { Text(color.name) },
-                    onClick = { onSelect(color.id); onExpandedChange(false) }
+                    onClick = {
+                        onSelect(color.id)
+                        onExpandedChange(false)
+                    },
+                    modifier = Modifier.background(itemBackground)
                 )
             }
-            HorizontalDivider()
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
             DropdownMenuItem(
                 text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
                 leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = { onExpandedChange(false); onAddNew() }
+                onClick = {
+                    onExpandedChange(false)
+                    onAddNew()
+                }
             )
         }
     }
 }
-
 private enum class ColorTarget { PRIMARY, SECONDARY, GLOW }

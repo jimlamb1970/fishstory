@@ -354,7 +354,6 @@ fun TripDetailsScreen(
                         SegmentItem(
                             segmentSummary = segmentSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            onEdit = null,
                             onDelete = {
                                 scope.launch {
                                     viewModel.deleteSegment(segmentSummary.segment)
