@@ -385,11 +385,13 @@ fun SegmentDetailsScreen(
                         title = { Text("Edit Segment Details") },
                         text = {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextField(
+                                // TODO - put limit on number of characters
+                                OutlinedTextField(
                                     value = segmentName,
                                     onValueChange = { segmentName = it },
                                     label = { Text("Segment Name") },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true
                                 )
 
                                 Text("Start", style = MaterialTheme.typography.labelLarge)

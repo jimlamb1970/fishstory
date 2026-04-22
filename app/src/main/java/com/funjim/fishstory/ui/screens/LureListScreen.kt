@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -124,10 +125,13 @@ fun LureListScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(allLures, key = { it.lure.id }) { item ->
+                    val totalItems = allLures.size
+                    itemsIndexed(allLures, key = { _, item -> item.lure.id }) { index, item ->
                         val photos = allPhotos[item.lure.id] ?: emptyList()
                         LureItem(
                             lure = item.lure,
+                            index = index,
+                            totalItems = totalItems,
                             primaryColorName = item.primaryColorName,
                             secondaryColorName = item.secondaryColorName,
                             glowColorName = item.glowColorName,

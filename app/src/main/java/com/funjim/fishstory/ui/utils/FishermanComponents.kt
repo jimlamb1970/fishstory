@@ -22,6 +22,8 @@ import com.funjim.fishstory.model.FishermanSummary
 @Composable
 fun FishermanItem(
     fisherman: FishermanSummary,
+    index: Int = 0,
+    totalItems: Int = 0,
     onDelete: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -32,10 +34,16 @@ fun FishermanItem(
 
     var expanded by remember { mutableStateOf(false) }
 
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+
     OutlinedCard(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
