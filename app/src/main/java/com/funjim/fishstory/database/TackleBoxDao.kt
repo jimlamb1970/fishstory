@@ -27,6 +27,9 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
     suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBox?
 
+    @Query("SELECT * FROM tackle_box_table WHERE name = :name AND fishermanId = :fishermanId LIMIT 1")
+    suspend fun getExistingTackleBoxForFishermanByName(name: String, fishermanId: String): TackleBox?
+
     @Query("SELECT * FROM tackle_box_table WHERE id = :id")
     fun getTackleBoxById(id: String): Flow<TackleBox?>
 
@@ -36,8 +39,24 @@ interface TackleBoxDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTackleBox(tackleBox: TackleBox)
 
+    // TODO - rename these getOrCreate functions
+    @Transaction
+    suspend fun getOrCreate(fishermanId: String, name: String): String {
+        val existingTackleBox = getExistingTackleBoxForFishermanByName(name, fishermanId)
+        if (existingTackleBox != null) {
+            return existingTackleBox.id
+        }
+
+        val newTackleBox = TackleBox(fishermanId = fishermanId, name = name)
+        upsertTackleBox(newTackleBox)
+        return newTackleBox.id
+    }
+
     @Delete
     suspend fun deleteTackleBox(tackleBox: TackleBox)
+
+    @Upsert
+    suspend fun upsertTackleBox(tackleBox: TackleBox)
 
     @Update
     suspend fun updateTackleBox(tackleBox: TackleBox)

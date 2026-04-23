@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.utils
+package com.funjim.fishstory.ui.screens
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     viewModel: MainViewModel,
+    importViewModel: ImportViewModel,
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -53,6 +55,17 @@ fun SettingsScreen(
                     hostState.showSnackbar(message)
                 }
             }
+        }
+    }
+
+    // 1. Define the launcher
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        // 2. Handle the result
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            inputStream?.let { stream -> importViewModel.startImport(stream) }
         }
     }
 
@@ -92,6 +105,7 @@ fun SettingsScreen(
             ) {
                 Text("Export Database as JSON")
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
@@ -101,6 +115,17 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Database from JSON")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    // Trigger the file picker to select a JSON database file for import
+                    launcher.launch(arrayOf("text/csv"))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Import Fish from CSV")
             }
         }
     }

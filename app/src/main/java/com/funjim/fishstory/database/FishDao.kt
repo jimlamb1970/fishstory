@@ -185,6 +185,9 @@ interface FishDao {
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<Species>>
 
+    @Query("SELECT * FROM species_table ORDER BY name ASC")
+    suspend fun getAllSpeciesList(): List<Species>
+
     @Query("DELETE FROM species_table")
     suspend fun deleteAllSpecies()
 

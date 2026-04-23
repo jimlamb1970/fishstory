@@ -121,6 +121,22 @@ interface SegmentDao {
     @Query("DELETE FROM segment_table WHERE id = :id")
     suspend fun deleteSegmentById(id: String)
 
+    @Query("SELECT * FROM segment_table WHERE tripId = :tripId AND name = :name")
+    suspend fun getSegmentByName(tripId: String, name: String): Segment?
+
+    // TODO - rename these getOrCreate functions
+    @Transaction
+    suspend fun getOrCreate(tripId: String, name: String): String {
+        val existingSegment = getSegmentByName(tripId, name)
+        return if (existingSegment != null) {
+            existingSegment.id
+        } else {
+            val newSegment = Segment(tripId = tripId, name = name)
+            upsertSegment(newSegment)
+            newSegment.id
+        }
+    }
+
     @Query("""
     SELECT 
         s.*,

@@ -33,7 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.AddFishScreen
-import com.funjim.fishstory.ui.utils.SettingsScreen
+import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
@@ -77,6 +77,11 @@ class MainActivity : ComponentActivity() {
     private val fishViewModel: FishViewModel by viewModels {
         val repository = (application as FishstoryApplication).fishRepository
         FishViewModelFactory(repository)
+    }
+
+    private val importViewModel: ImportViewModel by viewModels {
+        val repository = (application as FishstoryApplication).fishStoryRepository
+        ImportViewModelFactory(repository)
     }
 
     private val lureViewModel: LureViewModel by viewModels {
@@ -129,7 +134,7 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel, dashboardViewModel, tripViewModel, fishViewModel, lureViewModel)
+                        AppNavigation(navController, viewModel, dashboardViewModel, importViewModel, tripViewModel, fishViewModel, lureViewModel)
                     }
                 }
             }
@@ -159,6 +164,7 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: MainViewModel,
     dashboardViewModel: DashboardViewModel,
+    importViewModel: ImportViewModel,
     tripViewModel: TripViewModel,
     fishViewModel: FishViewModel,
     lureViewModel: LureViewModel
@@ -419,6 +425,7 @@ fun AppNavigation(
         composable("settings") {
             SettingsScreen(
                 viewModel = viewModel,
+                importViewModel = importViewModel,
                 navigateBack = { navController.popBackStack() }
             )
         }

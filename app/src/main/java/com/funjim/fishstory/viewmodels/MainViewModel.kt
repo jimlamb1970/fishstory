@@ -484,11 +484,11 @@ class MainViewModel(
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.segments.forEach { segmentDao.insertSegment(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
+                    data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
                     data.segmentFishermanCrossRef.forEach { segmentDao.insertSegmentFishermanCrossRef(it) }
                     data.colors.forEach { lureDao.insertLureColor(it) }
                     data.lures.forEach { lureDao.insertLure(it) }
-                    data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }

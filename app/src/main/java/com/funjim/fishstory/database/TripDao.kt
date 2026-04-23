@@ -39,9 +39,26 @@ interface TripDao {
     @Query("DELETE FROM trip_table WHERE id = :tripId")
     suspend fun deleteTripById(tripId: String)
 
+    // TODO - rename these getOrCreate functions
+    @Transaction
+    suspend fun getOrCreate(name: String): String {
+        val existingTrip = getTripByName(name)
+        return if (existingTrip != null) {
+            existingTrip.id
+        } else {
+            val newTrip = Trip(name = name)
+            upsertTrip(newTrip)
+            newTrip.id
+        }
+    }
+
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
     fun getTrip(tripId: String): Flow<Trip?>
+
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE name = :name")
+    fun getTripByName(name: String): Trip?
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")

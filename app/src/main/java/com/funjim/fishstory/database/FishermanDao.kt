@@ -62,6 +62,20 @@ interface FishermanDao {
     @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nick LIMIT 1")
     suspend fun getFishermanByName(first: String, last: String, nick: String): Fisherman?
 
+    // TODO - rename these getOrCreate functions
+    @Transaction
+    suspend fun getOrCreate(firstName: String, lastName: String, nickname: String? = null): String {
+        val existingFisherman = getFishermanByName(firstName, lastName, nickname ?: "")
+        return if (existingFisherman != null) {
+            existingFisherman.id
+        } else {
+            val newFisherman =
+                Fisherman(firstName = firstName, lastName = lastName, nickname = nickname ?: "")
+            upsert(newFisherman)
+            newFisherman.id
+        }
+    }
+
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
     fun getFishermanWithTrips(fishermanId: String): Flow<FishermanWithTrips?>
