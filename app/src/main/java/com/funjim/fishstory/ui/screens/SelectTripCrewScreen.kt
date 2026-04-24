@@ -57,7 +57,10 @@ fun SelectTripCrewScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = {
+                        tripViewModel.clearTrip()
+                        navigateBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
                     }
                 }
@@ -124,6 +127,7 @@ fun SelectTripCrewScreen(
                             )
                         }
                     }
+                    tripViewModel.clearTrip()
                     navigateBack()
                 },
                 onAddFisherman = { first, last, nick ->

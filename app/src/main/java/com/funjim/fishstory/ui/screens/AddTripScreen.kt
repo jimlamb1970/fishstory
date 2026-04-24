@@ -147,6 +147,8 @@ fun AddTripScreen(
             // CASCADE deletes will clean up fisherman cross-refs and segments
             tripViewModel.deleteTripById(tripDraft.id)
         }
+        tripViewModel.clearTrip()
+        tripViewModel.clearSegment()
         navigateBack()
     }
 
@@ -817,7 +819,11 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         // Done — trip + crew + segments are already in DB.
                         // Just navigate back; nothing left to save.
                         Button(
-                            onClick = { navigateBack() },
+                            onClick = {
+                                tripViewModel.clearTrip()
+                                tripViewModel.clearSegment()
+                                navigateBack()
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = segmentSummaries.isNotEmpty()
                         ) {

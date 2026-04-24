@@ -62,7 +62,11 @@ fun SelectSegmentCrewScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = {
+                        tripViewModel.clearTrip()
+                        tripViewModel.clearSegment()
+                        navigateBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
                     }
                 }

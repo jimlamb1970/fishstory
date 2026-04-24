@@ -130,6 +130,8 @@ fun AddSegmentScreen(
             // CASCADE deletes will clean up fisherman cross-refs and segments
             tripViewModel.deleteSegment(newSegmentId)
         }
+        tripViewModel.clearTrip()
+        tripViewModel.clearSegment()
         navigateBack()
     }
 
@@ -368,7 +370,11 @@ fun AddSegmentScreen(
                             },
                             tripViewModel = tripViewModel,
                             confirmLabel = "Done",
-                            onConfirm = { navigateBack() },
+                            onConfirm = {
+                                tripViewModel.clearTrip()
+                                tripViewModel.clearSegment()
+                                navigateBack()
+                            },
                             onAddTackleBox = { tackleBoxName, fishermanId ->
                                 scope.launch { tripViewModel.createAndAssignSegmentTackleBox(
                                     fishermanId = fishermanId,

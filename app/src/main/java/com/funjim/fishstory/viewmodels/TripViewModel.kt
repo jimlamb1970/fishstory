@@ -192,10 +192,15 @@ class TripViewModel(
         return fishermanRepository.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
 
+    // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
-        .filterNotNull()
-        .flatMapLatest { id -> getTripFishermenTackleBoxIds(tripId = id)
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyMap()) // This clears the map when you set id to null
+            } else {
+                getTripFishermenTackleBoxIds(tripId = id)
+            }
         }
         .stateIn(
             scope = viewModelScope,
@@ -203,10 +208,16 @@ class TripViewModel(
             initialValue = emptyMap()
         )
 
+    // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
     val segmentTackleBoxMap: StateFlow<Map<String, String?>> = _selectedSegmentId
-        .filterNotNull()
-        .flatMapLatest { id -> getSegmentFishermenTackleBoxIds(segmentId = id) }
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyMap()) // This clears the map when you set id to null
+            } else {
+                getSegmentFishermenTackleBoxIds(segmentId = id)
+            }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -461,6 +472,13 @@ class TripViewModel(
         viewModelScope.launch {
             tripRepository.deletePhoto(photo)
         }
+    }
+
+    fun clearTrip() {
+        _selectedTripId.value = null
+    }
+    fun clearSegment() {
+        _selectedSegmentId.value = null
     }
 
     fun selectTrip(id: String) {
