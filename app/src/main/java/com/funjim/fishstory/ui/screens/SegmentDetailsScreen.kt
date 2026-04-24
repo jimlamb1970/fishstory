@@ -517,11 +517,13 @@ fun SegmentHighlightCard(
                     icon = Icons.Default.Person,
                     label = "Top Rod",
                     name = summary.mostCaughtName,
+                    description = "(${summary.mostCaught} fish)",
                     modifier = Modifier.weight(1f))
                 AchievementItem(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
                     name = summary.bigFishName,
+                    description = "(${summary.bigFishLength}\" : ${summary.bigFishSpecies})",
                     modifier = Modifier.weight(1f))
             }
         }

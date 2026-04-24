@@ -24,61 +24,67 @@ interface SegmentDao {
     fun getSegmentsForActiveTrips(): Flow<List<Segment>>
 
     @Query("""
+WITH 
+-- 1. Find the biggest fish for every segment
+BigFishPerSegment AS (
     SELECT 
-        s.*,
-        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
-        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
-        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
-        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-        (
-            SELECT 
-                CASE 
-                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
-                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
-                    ELSE fm.firstName || ' ' || fm.lastName 
-                END
-            FROM fish_table f 
-            JOIN fisherman_table fm ON f.fishermanId = fm.id 
-            WHERE f.segmentId = s.id 
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishName,
-        (
-            SELECT sp.name
-            FROM fish_table f
-            JOIN species_table sp ON f.speciesId = sp.id
-            WHERE f.segmentId = s.id
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishSpecies,
-        (
-            SELECT f.length
-            FROM fish_table f
-            WHERE f.segmentId = s.id
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishLength,
-        (
-            SELECT 
-                CASE 
-                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
-                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
-                    ELSE fm.firstName || ' ' || fm.lastName 
-                END
-            FROM fish_table f 
-            JOIN fisherman_table fm ON f.fishermanId = fm.id 
-            WHERE f.segmentId = s.id 
-            GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
-        ) as mostCaughtName,
-        (
-            SELECT COUNT(f.id)
-            FROM fish_table f 
-            WHERE f.segmentId = s.id 
-            GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
-        ) as mostCaught
-    FROM segment_table s
-    JOIN trip_table AS t ON s.tripId = t.id
-    WHERE :currentTime BETWEEN t.startDate AND t.endDate
-    ORDER BY s.startTime ASC
+        f.segmentId, 
+        f.length, 
+        f.speciesId, 
+        f.fishermanId,
+        ROW_NUMBER() OVER (PARTITION BY f.segmentId ORDER BY f.length DESC, f.id ASC) as row_num
+    FROM fish_table f
+),
+-- 2. Find the fisherman with the most catches per segment
+MostCaughtPerSegment AS (
+    SELECT 
+        f.segmentId, 
+        f.fishermanId, 
+        COUNT(f.id) as catchCount,
+        ROW_NUMBER() OVER (PARTITION BY f.segmentId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
+    FROM fish_table f
+    GROUP BY f.segmentId, f.fishermanId
+)
+
+SELECT 
+    s.*,
+    -- Basic Counts
+    (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
+    (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
+    (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    
+    -- Big Fish Data (joined from CTE)
+    CASE 
+        WHEN bfm.nickname IS NOT NULL AND bfm.nickname != '' 
+        THEN bfm.firstName || ' "' || bfm.nickname || '" ' || bfm.lastName 
+        ELSE bfm.firstName || ' ' || bfm.lastName 
+    END as bigFishName,
+    bsp.name as bigFishSpecies,
+    bf.length as bigFishLength,
+    
+    -- Most Caught Data (joined from CTE)
+    CASE 
+        WHEN mcm.nickname IS NOT NULL AND mcm.nickname != '' 
+        THEN mcm.firstName || ' "' || mcm.nickname || '" ' || mcm.lastName 
+        ELSE mcm.firstName || ' ' || mcm.lastName 
+    END as mostCaughtName,
+    mc.catchCount as mostCaught
+
+FROM segment_table s
+JOIN trip_table AS t ON s.tripId = t.id
+
+-- Join Big Fish logic
+LEFT JOIN BigFishPerSegment bf ON s.id = bf.segmentId AND bf.row_num = 1
+LEFT JOIN fisherman_table bfm ON bf.fishermanId = bfm.id
+LEFT JOIN species_table bsp ON bf.speciesId = bsp.id
+
+-- Join Most Caught logic
+LEFT JOIN MostCaughtPerSegment mc ON s.id = mc.segmentId AND mc.row_num = 1
+LEFT JOIN fisherman_table mcm ON mc.fishermanId = mcm.id
+
+WHERE :currentTime BETWEEN t.startDate AND t.endDate
+ORDER BY s.startTime ASC
 """)
     fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<SegmentSummary>>
 
@@ -138,61 +144,67 @@ interface SegmentDao {
     }
 
     @Query("""
+WITH 
+-- 1. Get the biggest fish per segment for this specific trip
+BigFishPerSegment AS (
     SELECT 
-        s.*,
-        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
-        (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
-        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
-        (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-        (
-            SELECT 
-                CASE 
-                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
-                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
-                    ELSE fm.firstName || ' ' || fm.lastName 
-                END
-            FROM fish_table f 
-            JOIN fisherman_table fm ON f.fishermanId = fm.id 
-            WHERE f.segmentId = s.id 
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishName,
-        (
-            SELECT sp.name
-            FROM fish_table f
-            JOIN species_table sp ON f.speciesId = sp.id
-            WHERE f.segmentId = s.id
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishSpecies,
-        (
-            SELECT f.length
-            FROM fish_table f
-            WHERE f.segmentId = s.id
-            ORDER BY f.length DESC LIMIT 1
-        ) as bigFishLength,
-        (
-            SELECT 
-                CASE 
-                    WHEN fm.nickname IS NOT NULL AND fm.nickname != '' 
-                    THEN fm.firstName || ' "' || fm.nickname || '" ' || fm.lastName 
-                    ELSE fm.firstName || ' ' || fm.lastName 
-                END
-            FROM fish_table f 
-            JOIN fisherman_table fm ON f.fishermanId = fm.id 
-            WHERE f.segmentId = s.id 
-            GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
-        ) as mostCaughtName,    
-        (
-            SELECT COUNT(f.id)
-            FROM fish_table f 
-            WHERE f.segmentId = s.id 
-            GROUP BY f.fishermanId 
-            ORDER BY COUNT(f.id) DESC LIMIT 1
-        ) as mostCaught
-    FROM segment_table s
-    WHERE s.tripId = :tripId
-    ORDER BY s.startTime DESC
-""")
+        f.segmentId, 
+        f.length, 
+        f.speciesId, 
+        f.fishermanId,
+        ROW_NUMBER() OVER (PARTITION BY f.segmentId ORDER BY f.length DESC, f.id ASC) as row_num
+    FROM fish_table f
+    WHERE f.tripId = :tripId
+),
+-- 2. Get the fisherman with the most catches per segment for this specific trip
+MostCaughtPerSegment AS (
+    SELECT 
+        f.segmentId, 
+        f.fishermanId, 
+        COUNT(f.id) as catchCount,
+        ROW_NUMBER() OVER (PARTITION BY f.segmentId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
+    FROM fish_table f
+    WHERE f.tripId = :tripId
+    GROUP BY f.segmentId, f.fishermanId
+)
+
+SELECT 
+    s.*,
+    -- Basic Counts
+    (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id) as fishCaught,
+    (SELECT COUNT(*) FROM fish_table f WHERE f.segmentId = s.id AND f.isReleased = 0) as fishKept,
+    (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM segment_fisherman_cross_ref xr WHERE xr.segmentId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    
+    -- Big Fish Data (joined from CTE)
+    CASE 
+        WHEN bfm.nickname IS NOT NULL AND bfm.nickname != '' 
+        THEN bfm.firstName || ' "' || bfm.nickname || '" ' || bfm.lastName 
+        ELSE bfm.firstName || ' ' || bfm.lastName 
+    END as bigFishName,
+    bsp.name as bigFishSpecies,
+    bf.length as bigFishLength,
+    
+    -- Most Caught Data (joined from CTE)
+    CASE 
+        WHEN mcm.nickname IS NOT NULL AND mcm.nickname != '' 
+        THEN mcm.firstName || ' "' || mcm.nickname || '" ' || mcm.lastName 
+        ELSE mcm.firstName || ' ' || mcm.lastName 
+    END as mostCaughtName,
+    mc.catchCount as mostCaught
+
+FROM segment_table s
+
+-- Left join ensures we don't hide segments with no fish yet
+LEFT JOIN BigFishPerSegment bf ON s.id = bf.segmentId AND bf.row_num = 1
+LEFT JOIN fisherman_table bfm ON bf.fishermanId = bfm.id
+LEFT JOIN species_table bsp ON bf.speciesId = bsp.id
+
+LEFT JOIN MostCaughtPerSegment mc ON s.id = mc.segmentId AND mc.row_num = 1
+LEFT JOIN fisherman_table mcm ON mc.fishermanId = mcm.id
+
+WHERE s.tripId = :tripId
+ORDER BY s.startTime DESC""")
     fun getSegmentSummaries(tripId: String): Flow<List<SegmentSummary>>
 
 

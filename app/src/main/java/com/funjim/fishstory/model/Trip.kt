@@ -67,7 +67,7 @@ data class TripSummary(
     val tackleBoxCount: Int,
     val bigFishName: String? = null,
     val bigFishSpecies: String? = null,
-    val bigFishLength: Int,
+    val bigFishLength: Double? = null,
     val mostCaughtName: String? = null,
-    val mostCaught: Int
+    val mostCaught: Int? = null
 )

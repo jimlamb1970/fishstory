@@ -527,11 +527,13 @@ fun TripHighlightCard(
                     icon = Icons.Default.Person,
                     label = "Top Rod",
                     name = tripSummary.mostCaughtName,
+                    description = "(${tripSummary.mostCaught} fish)",
                     modifier = Modifier.weight(1f))
                 AchievementItem(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
                     name = tripSummary.bigFishName,
+                    description = "(${tripSummary.bigFishLength}\" : ${tripSummary.bigFishSpecies})",
                     modifier = Modifier.weight(1f))
             }
         }
