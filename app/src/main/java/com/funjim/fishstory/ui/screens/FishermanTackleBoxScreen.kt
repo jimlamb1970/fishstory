@@ -85,7 +85,8 @@ fun FishermanTackleBoxScreen(
                     }) {
                         Icon(Icons.Default.Edit, contentDescription = "Rename Tackle Box")
                     }
-                }            )
+                }
+            )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

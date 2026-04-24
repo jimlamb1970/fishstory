@@ -202,6 +202,11 @@ private fun FishermanCrewRow(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     OutlinedCard(
         modifier = Modifier
@@ -213,7 +218,7 @@ private fun FishermanCrewRow(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Column(
             modifier = Modifier

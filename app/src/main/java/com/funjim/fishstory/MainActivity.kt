@@ -584,7 +584,7 @@ fun MainMenuScreen(navController: NavHostController) {
                     "FishStory Management",
                     style = MaterialTheme.typography.displaySmall,
                     textAlign = TextAlign.Center,
-                    color = Color(0xFF00274C) // Michigan Blue
+                    color = MaterialTheme.colorScheme.primary // Michigan Blue
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))

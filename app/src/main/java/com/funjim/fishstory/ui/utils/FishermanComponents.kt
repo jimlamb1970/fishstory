@@ -39,6 +39,11 @@ fun FishermanItem(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     OutlinedCard(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { onClick() },
@@ -46,7 +51,7 @@ fun FishermanItem(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -109,8 +114,7 @@ fun FishermanSummary(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp,
-            color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -154,45 +158,6 @@ fun FishermanSummary(
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )
-        }
-    }
-}
-
-// TODO -- allow card to be clickable to view tackle boxes
-// TODO -- give an option to go to screen to add lures
-@Composable
-fun TackleBoxSummary(fishermanCount: Int, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0077B6))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.Inventory,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "THE GEAR",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Text(
-                    "$fishermanCount Fisherman/men with a tackle box",
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
     }
 }

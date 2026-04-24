@@ -317,7 +317,7 @@ private fun FishVisual(
                         text = label,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                     if (hasLocation) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -349,12 +349,12 @@ private fun FishVisual(
                 Text(
                     text = "${dateFormatter.format(Date(startDate))}  →  ${dateFormatter.format(Date(endDate))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
                 )
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp),
-                    color = Color.White.copy(alpha = 0.3f)
+                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.3f)
                 )
 
                 // Caught / Kept counts
@@ -366,12 +366,12 @@ private fun FishVisual(
                             text = "$caughtCount",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSecondary
                         )
                         Text(
                             text = "Caught",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
                         )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -379,12 +379,12 @@ private fun FishVisual(
                             text = "$keptCount",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSecondary
                         )
                         Text(
                             text = "Kept",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -393,7 +393,7 @@ private fun FishVisual(
                 Text(
                     text = "Tap to view fish",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
                 )
             }
         }

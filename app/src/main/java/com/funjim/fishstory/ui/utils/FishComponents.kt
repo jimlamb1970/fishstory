@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,6 +72,11 @@ fun FishItem(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     OutlinedCard(
         modifier = Modifier
@@ -87,7 +93,8 @@ fun FishItem(
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
-        )
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),

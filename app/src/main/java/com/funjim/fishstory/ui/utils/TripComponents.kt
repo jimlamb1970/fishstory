@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TripSummary
 import java.text.SimpleDateFormat
@@ -48,6 +49,11 @@ fun TripItem(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     OutlinedCard(
         modifier = modifier.fillMaxWidth().clickable { onClick() },
@@ -55,7 +61,7 @@ fun TripItem(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -105,7 +111,8 @@ fun TripItem(
                     Text(
                         text = "Fish Summary • $caughtCount Caught • $keptCount Kept",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiary
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

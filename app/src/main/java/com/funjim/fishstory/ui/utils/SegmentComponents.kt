@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Segment
 import com.funjim.fishstory.model.SegmentSummary
@@ -86,6 +87,11 @@ fun SegmentItem(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -96,7 +102,7 @@ fun SegmentItem(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -149,7 +155,8 @@ fun SegmentItem(
                     Text(
                         text = "Fish Summary • $fishCaught Caught • $fishKept Kept",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiary
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

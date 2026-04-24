@@ -257,6 +257,10 @@ class TripViewModel(
                 tripRepository.getSegmentSummaries(id)
             }
         }
+        .map { list ->
+            // Sort by whatever property makes sense for your segments
+            list.sortedBy { it.segment.startTime }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

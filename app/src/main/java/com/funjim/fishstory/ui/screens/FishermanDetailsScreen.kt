@@ -407,6 +407,11 @@ fun TackleBoxCard(
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     OutlinedCard(
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { expanded = !expanded },
@@ -414,8 +419,7 @@ fun TackleBoxCard(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
         ),
-        border = BorderStroke(1.dp,
-        color = MaterialTheme.colorScheme.tertiary),
+        border = BorderStroke(1.dp, color = borderColor),
         elevation = CardDefaults.cardElevation()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

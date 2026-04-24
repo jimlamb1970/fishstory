@@ -108,7 +108,7 @@ fun DashboardScreen(
                 HorizontalDivider(
                     modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                     thickness = 1.dp,
-                    color = Color(0xFF00274C) // Michigan Blue
+                    color = MaterialTheme.colorScheme.primary // Michigan Blue
                 )
             }
 
@@ -146,7 +146,7 @@ fun DashboardScreen(
                     HorizontalDivider(
                         modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                         thickness = 1.dp,
-                        color = Color(0xFF00274C) // Michigan Blue
+                        color = MaterialTheme.colorScheme.primary // Michigan Blue
                     )
                 }
             }
@@ -166,7 +166,7 @@ fun DashboardScreen(
                 HorizontalDivider(
                     modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                     thickness = 1.dp,
-                    color = Color(0xFF00274C) // Michigan Blue
+                    color = MaterialTheme.colorScheme.primary // Michigan Blue
                 )
             }
 
@@ -204,49 +204,6 @@ fun DashboardScreen(
         }
     }
 }
-/*
-@Composable
-fun ActiveTripCard(
-    activeTrips: List<Trip>,
-    activeSegments: List<Segment>,
-    onClick: (String, String) -> Unit,
-    onLogFish: (String, String) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick(activeSegments[0].tripId, activeSegments[0].id) },
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFCB05), // Michigan Maize
-            contentColor = Color(0xFF00274C)    // Michigan Blue
-        ),
-        elevation = CardDefaults.cardElevation(8.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Waves, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("LIVE TRIP", style = MaterialTheme.typography.labelLarge)
-            }
-            Text(
-                text = activeSegments[0].name,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { onLogFish(activeSegments[0].tripId, activeSegments[0].id) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00274C), // Michigan Blue
-                    contentColor = Color.White
-                ),
-                enabled = activeSegments.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("LOG A CATCH")
-            }
-        }
-    }
-}
-*/
 
 @Composable
 fun ActiveTripCard(
@@ -304,7 +261,7 @@ fun ActiveTripCard(
                     Text(
                         text = "${currentIndex + 1} / ${activeSegments.size}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF00274C).copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -323,19 +280,20 @@ fun ActiveTripCard(
                     StatItem(
                         label = "CAUGHT",
                         value = "${trip.totalCaught}",
-                        color = Color(0xFF00274C)
+                        color = MaterialTheme.colorScheme.primary
                     )
                     StatItem(
                         label = "KEPT",
                         value = "${trip.totalKept}",
-                        color = Color(0xFF00274C)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
-                    color = Color(0xFF00274C))
+                    color = MaterialTheme.colorScheme.primary
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -365,15 +323,15 @@ fun ActiveTripCard(
                 modifier = Modifier.clickable( onClick = { onSegmentClick(segment.segment.tripId, segment.segment.id) })
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = Color(0xFF00274C))
-                StatItem(label = "KEPT", value = "${segment.fishKept}", color = Color(0xFF00274C)) // Harvest Green
+                StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = MaterialTheme.colorScheme.primary)
+                StatItem(label = "KEPT", value = "${segment.fishKept}", color = MaterialTheme.colorScheme.primary) // Harvest Green
             }
 
             if (segment.mostCaught != 0) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
-                    color = Color(0xFF00274C)
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Row(
@@ -385,7 +343,7 @@ fun ActiveTripCard(
                         label = "Most Caught",
                         name = segment.mostCaughtName,
                         description = "(${segment.mostCaught} fish)",
-                        color = Color(0xFF00274C),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
                     AchievementItem(
@@ -402,8 +360,8 @@ fun ActiveTripCard(
             Button(
                 onClick = { onLogFish(segment.segment.tripId, segment.segment.id) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00274C),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -423,9 +381,9 @@ fun ActiveTripCard(
                                 .size(if (index == currentIndex) 8.dp else 6.dp)
                                 .background(
                                     color = if (index == currentIndex)
-                                        Color(0xFF00274C)
+                                        MaterialTheme.colorScheme.primary
                                     else
-                                        Color(0xFF00274C).copy(alpha = 0.3f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                                     shape = CircleShape
                                 )
                         )
@@ -474,7 +432,7 @@ fun GridItem(item: Triple<String, ImageVector, () -> Unit>, modifier: Modifier) 
     OutlinedCard(
         onClick = item.third,
         modifier = modifier.height(100.dp),
-        colors = CardDefaults.outlinedCardColors(contentColor = Color(0xFF00274C))
+        colors = CardDefaults.outlinedCardColors(contentColor = MaterialTheme.colorScheme.primary)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -495,8 +453,8 @@ fun NewTripHeroCard(onCreateClick: () -> Unit) {
             .height(160.dp)
             .clickable { onCreateClick() },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF00274C), // Michigan Blue
-            contentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.secondary, // Michigan Blue
+            contentColor = MaterialTheme.colorScheme.onSecondary
         ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -505,7 +463,7 @@ fun NewTripHeroCard(onCreateClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
                     contentDescription = null,
-                    tint = Color(0xFFFFCB05), // Maize accent
+                    tint = MaterialTheme.colorScheme.onPrimary, // Maize accent
                     modifier = Modifier.size(48.dp)
                 )
                 Spacer(Modifier.height(8.dp))
@@ -517,7 +475,7 @@ fun NewTripHeroCard(onCreateClick: () -> Unit) {
                 Text(
                     "No trip active. Tap to begin!",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
                 )
             }
         }
@@ -534,15 +492,15 @@ fun UpcomingTripChip(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFFFCB05).copy(alpha = 0.15f), // Faint Maize background
-        border = BorderStroke(1.dp, Color(0xFFFFCB05)),
+        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
         modifier = Modifier.width(140.dp).clickable{onTripClick(trip.id)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF00274C)
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = trip.name,
@@ -566,15 +524,15 @@ fun UpcomingSegmentChip(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFFFCB05).copy(alpha = 0.15f), // Faint Maize background
-        border = BorderStroke(1.dp, Color(0xFFFFCB05)),
+        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
         modifier = Modifier.width(140.dp).clickable{onSegmentClick(segment.id, segment.tripId)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF00274C)
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = tripName,
@@ -628,7 +586,7 @@ fun TripHistoryRow(trip: Trip) {
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF00274C)
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
