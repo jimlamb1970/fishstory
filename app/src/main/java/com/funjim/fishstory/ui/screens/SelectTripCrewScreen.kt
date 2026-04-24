@@ -104,9 +104,7 @@ fun SelectTripCrewScreen(
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        // TODO - Need to refactor trip and segment fisherman cross references
-                        // TODO - As soon as removed from trip, should be removed from segment
-                        tripViewModel.deleteTripFishermanCrossRef(
+                        tripViewModel.removeFishermanCrossRefFromTripAndAllSegments(
                             tripId = tripId,
                             fishermanId = fishermanId
                         )
