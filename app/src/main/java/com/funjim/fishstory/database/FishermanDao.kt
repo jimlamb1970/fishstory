@@ -98,109 +98,97 @@ interface FishermanDao {
 
     @Transaction
     @Query("""
+WITH 
+-- 1. Identify the Largest Fish for this fisherman
+LargestFish AS (
+    SELECT f.length, f.timestamp, sp.name as speciesName
+    FROM fish_table f
+    JOIN species_table sp ON f.speciesId = sp.id
+    WHERE f.fishermanId = :fId
+    ORDER BY f.length DESC, f.timestamp DESC LIMIT 1
+),
+-- 2. Identify the Smallest Fish for this fisherman
+SmallestFish AS (
+    SELECT f.length, f.timestamp, sp.name as speciesName
+    FROM fish_table f
+    JOIN species_table sp ON f.speciesId = sp.id
+    WHERE f.fishermanId = :fId AND f.length > 0
+    ORDER BY f.length ASC, f.timestamp DESC LIMIT 1
+),
+-- 3. Calculate Trip stats (Only for trips that have already started)
+TripStats AS (
     SELECT 
-        f.*,
+        t.name, t.startDate, 
+        COUNT(fish.id) as catchCount,
+        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, t.id DESC) as best_row,
+        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, t.id DESC) as worst_row
+    FROM trip_fisherman_cross_ref tref
+    JOIN trip_table t ON tref.tripId = t.id
+    LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+    WHERE tref.fishermanId = :fId 
+      AND t.startDate <= :currentTime  -- Exclude future trips
+    GROUP BY t.id
+),
+-- 4. Calculate Segment stats (Only for segments that have already started)
+SegmentStats AS (
+    SELECT 
+        s.name, s.startTime, t.name as tripName,
+        COUNT(fish.id) as catchCount,
+        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, s.id DESC) as best_row,
+        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, s.id DESC) as worst_row
+    FROM segment_fisherman_cross_ref sref
+    JOIN segment_table s ON sref.segmentId = s.id
+    JOIN trip_table t ON s.tripId = t.id
+    LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+    WHERE sref.fishermanId = :fId 
+      AND s.startTime <= :currentTime -- Exclude future segments
+    GROUP BY s.id
+)
 
-        -- FISH EXTREMES
-        (SELECT MAX(length) FROM fish_table WHERE fishermanId = :fId) AS largestFishLength,
-        (SELECT timestamp FROM fish_table WHERE fishermanId = :fId 
-         ORDER BY length DESC, timestamp DESC LIMIT 1) AS largestFishTimestamp,
+SELECT 
+    f.*,
+    -- Largest Fish
+    (SELECT length FROM LargestFish) AS largestFishLength,
+    (SELECT timestamp FROM LargestFish) AS largestFishTimestamp,
+    (SELECT speciesName FROM LargestFish) AS largestFishSpecies,
 
-        (SELECT MIN(length) FROM fish_table WHERE fishermanId = :fId AND length > 0) AS smallestFishLength,
-        (SELECT timestamp FROM fish_table WHERE fishermanId = :fId AND length > 0 
-         ORDER BY length ASC, timestamp DESC LIMIT 1) AS smallestFishTimestamp,
+    -- Smallest Fish
+    (SELECT length FROM SmallestFish) AS smallestFishLength,
+    (SELECT timestamp FROM SmallestFish) AS smallestFishTimestamp,
+    (SELECT speciesName FROM SmallestFish) AS smallestFishSpecies,
 
-        -- BEST TRIP
-        (SELECT COUNT(f.id) as c 
-         FROM trip_fisherman_cross_ref tref
-         LEFT JOIN fish_table f ON tref.tripId = f.tripId AND f.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY tref.tripId ORDER BY c DESC LIMIT 1) AS mostTripCatches,
-        (SELECT t.name FROM trip_fisherman_cross_ref tref
-         JOIN trip_table t ON tref.tripId = t.id
-         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY t.id ORDER BY COUNT(fish.id) DESC, t.id DESC LIMIT 1) AS bestTripName,
-        (SELECT t.startDate FROM trip_fisherman_cross_ref tref
-         JOIN trip_table t ON tref.tripId = t.id
-         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY t.id ORDER BY COUNT(fish.id) DESC, t.id DESC LIMIT 1) AS bestTripTime,
+    -- Best Trip
+    (SELECT catchCount FROM TripStats WHERE best_row = 1) AS mostTripCatches,
+    (SELECT name FROM TripStats WHERE best_row = 1) AS bestTripName,
+    (SELECT startDate FROM TripStats WHERE best_row = 1) AS bestTripTime,
 
-        -- BEST SEGMENT & ITS PARENT TRIP
-        (SELECT COUNT(f.id) as c 
-         FROM segment_fisherman_cross_ref sref
-         LEFT JOIN fish_table f ON sref.segmentId = f.segmentId AND f.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY sref.segmentId ORDER BY c DESC LIMIT 1) AS mostSegmentCatches,
-        (SELECT s.name FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentName,
-        (SELECT t.name FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         JOIN trip_table t ON s.tripId = t.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentTripName,
-        (SELECT s.startTime FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) DESC, s.id DESC LIMIT 1) AS bestSegmentTime,
+    -- Worst Trip (Skunk Trip)
+    (SELECT catchCount FROM TripStats WHERE worst_row = 1) AS fewestTripCatches,
+    (SELECT name FROM TripStats WHERE worst_row = 1) AS worstTripName,
+    (SELECT startDate FROM TripStats WHERE worst_row = 1) AS worstTripTime,
 
-        -- WORST TRIP (The "Skunk" Trip)
-        (SELECT COUNT(f.id) as c 
-         FROM trip_fisherman_cross_ref tref
-         LEFT JOIN fish_table f ON tref.tripId = f.tripId AND f.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY tref.tripId ORDER BY c ASC LIMIT 1) AS fewestTripCatches,
-        (SELECT t.name FROM trip_fisherman_cross_ref tref
-         JOIN trip_table t ON tref.tripId = t.id
-         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY t.id ORDER BY COUNT(fish.id) ASC, t.id DESC LIMIT 1) AS worstTripName, 
-        (SELECT t.startDate FROM trip_fisherman_cross_ref tref
-         JOIN trip_table t ON tref.tripId = t.id
-         LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
-         WHERE tref.fishermanId = :fId
-         GROUP BY t.id ORDER BY COUNT(fish.id) ASC, t.id DESC LIMIT 1) AS worstTripTime,
+    -- Best Segment
+    (SELECT catchCount FROM SegmentStats WHERE best_row = 1) AS mostSegmentCatches,
+    (SELECT name FROM SegmentStats WHERE best_row = 1) AS bestSegmentName,
+    (SELECT tripName FROM SegmentStats WHERE best_row = 1) AS bestSegmentTripName,
+    (SELECT startTime FROM SegmentStats WHERE best_row = 1) AS bestSegmentTime,
 
-        -- WORST SEGMENT (The "Skunk" Segment)
-        (SELECT COUNT(f.id) as c 
-         FROM segment_fisherman_cross_ref sref
-         LEFT JOIN fish_table f ON sref.segmentId = f.segmentId AND f.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY sref.segmentId ORDER BY c ASC LIMIT 1) AS fewestSegmentCatches,
-        (SELECT s.name FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentName,
-        (SELECT t.name FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         JOIN trip_table t ON s.tripId = t.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentTripName,
-        (SELECT s.startTime FROM segment_fisherman_cross_ref sref
-         JOIN segment_table s ON sref.segmentId = s.id
-         LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
-         WHERE sref.fishermanId = :fId
-         GROUP BY s.id ORDER BY COUNT(fish.id) ASC, s.id DESC LIMIT 1) AS worstSegmentTime
+    -- Worst Segment (Skunk Segment)
+    (SELECT catchCount FROM SegmentStats WHERE worst_row = 1) AS fewestSegmentCatches,
+    (SELECT name FROM SegmentStats WHERE worst_row = 1) AS worstSegmentName,
+    (SELECT tripName FROM SegmentStats WHERE worst_row = 1) AS worstSegmentTripName,
+    (SELECT startTime FROM SegmentStats WHERE worst_row = 1) AS worstSegmentTime
 
-    FROM fisherman_table AS f
-    WHERE f.id = :fId
+FROM fisherman_table AS f
+WHERE f.id = :fId
 """)
-    fun getFishermanFullStatistics(fId: String): Flow<FishermanFullStatistics?>
+    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanFullStatistics>
 
     @Query("""
     SELECT 
         t.*, 
         COUNT(f.id) AS totalCaught,
         SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
-        0 as totalKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -216,6 +204,72 @@ interface FishermanDao {
     ORDER BY t.startDate DESC
 """)
     fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripSummary>>
+
+    @Query("""
+    SELECT 
+        t.*, 
+        COUNT(f.id) AS totalCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        -1 as fishermanCount,
+        -1 as tackleBoxCount,
+        NULL as bigFishName,
+        "" as bigFishSpecies,
+        0 as bigFishLength,
+        NULL as mostCaughtName,
+        0 as mostCaught
+    FROM trip_table AS t
+    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+    WHERE tref.fishermanId = :fishermanId
+      AND (t.startDate > :currentTime)
+    GROUP BY t.id
+    ORDER BY t.startDate ASC
+""")
+    fun getUpcomingTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
+
+    @Query("""
+    SELECT 
+        t.*, 
+        COUNT(f.id) AS totalCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        -1 as fishermanCount,
+        -1 as tackleBoxCount,
+        NULL as bigFishName,
+        "" as bigFishSpecies,
+        0 as bigFishLength,
+        NULL as mostCaughtName,
+        0 as mostCaught
+    FROM trip_table AS t
+    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+    WHERE tref.fishermanId = :fishermanId
+      AND (t.startDate >= :currentTime) AND (t.endDate <= :currentTime)
+    GROUP BY t.id
+    ORDER BY t.startDate DESC
+""")
+    fun getActiveTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
+
+    @Query("""
+    SELECT 
+        t.*, 
+        COUNT(f.id) AS totalCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        -1 as fishermanCount,
+        -1 as tackleBoxCount,
+        NULL as bigFishName,
+        "" as bigFishSpecies,
+        0 as bigFishLength,
+        NULL as mostCaughtName,
+        0 as mostCaught
+    FROM trip_table AS t
+    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+    WHERE tref.fishermanId = :fishermanId
+      AND (t.endDate < :currentTime)
+    GROUP BY t.id
+    ORDER BY t.startDate DESC
+""")
+    fun getPastTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
 
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

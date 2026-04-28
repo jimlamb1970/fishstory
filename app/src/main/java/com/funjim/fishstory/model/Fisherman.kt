@@ -113,8 +113,10 @@ data class FishermanFullStatistics(
     // Fish Extremes
     val largestFishLength: Double?,
     val largestFishTimestamp: Long?,
+    val largestFishSpecies: String?,
     val smallestFishLength: Double?,
     val smallestFishTimestamp: Long?,
+    val smallestFishSpecies: String?,
 
     // Best Trip
     val mostTripCatches: Int,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,11 +65,15 @@ fun FishermanDetailsScreen(
     }
 
     val context = LocalContext.current
-
     var showEditFishermanDialog by remember { mutableStateOf(false) }
+
+    // Expansion States for Accordion
+    var tackleBoxesExpanded by remember { mutableStateOf(false) }
+    var tripsExpanded by remember { mutableStateOf(true) }
 
     val stats by viewModel.statistics.collectAsStateWithLifecycle()
     val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fishermanPhotos by viewModel.fishermanPhotos.collectAsStateWithLifecycle()
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
@@ -103,6 +109,9 @@ fun FishermanDetailsScreen(
         ) { padding ->
             Column(modifier = Modifier.padding(padding).fillMaxSize()) {
                 stats?.let { details ->
+                    val totalTackleBoxes = details.tackleBoxesWithLures.size
+                    val pagerState = rememberPagerState(pageCount = { totalTackleBoxes })
+
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
                             Text(
@@ -133,20 +142,42 @@ fun FishermanDetailsScreen(
                             }
                             HorizontalDivider()
 
-                            // Use a Row to align the title and the '+' button
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    .clickable { tackleBoxesExpanded = !tackleBoxesExpanded }
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "Tackle Boxes",
-                                    style = MaterialTheme.typography.titleLarge
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (totalTackleBoxes > 1) {
+                                        Icon(
+                                            imageVector =
+                                                if (tackleBoxesExpanded) Icons.Default.ExpandLess
+                                                else Icons.Default.ExpandMore,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Tackle Boxes",
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
 
-                                // The new '+' button
+                                        if (!tackleBoxesExpanded && totalTackleBoxes > 1) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = "(${pagerState.currentPage + 1} of ${totalTackleBoxes})",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+
                                 IconButton(
                                     onClick = {
                                         newTackleBoxName = ""
@@ -163,24 +194,83 @@ fun FishermanDetailsScreen(
                             }
                         }
 
-                        val totalTackleBoxes = details.tackleBoxesWithLures.size
-                        itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
-                            if (tackleBoxWithLures != null) {
-                                TackleBoxCard(
-                                    viewModel,
-                                    tackleBoxWithLures,
-                                    index = index,
-                                    totalItems = totalTackleBoxes,
-                                    modifier = Modifier.padding(
-                                        bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
-                                    ),
-                                    onEdit = {
-                                        navigateToSelectLures(fishermanId, tackleBoxWithLures.tackleBox.id)
-                                    },
-                                    onDelete = {
-                                        viewModel.deleteTackleBox(tackleBoxWithLures.tackleBox)
+                        if (!tackleBoxesExpanded && totalTackleBoxes > 1) {
+                            item {
+                                Column {
+                                    HorizontalPager(
+                                        state = pagerState,
+                                        contentPadding = PaddingValues(horizontal = 32.dp), // Shows a peek of next/prev cards
+                                        pageSpacing = 0.dp,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { page ->
+                                        val tackleBox = details.tackleBoxesWithLures[page]
+
+                                        if (tackleBox != null) {
+                                            TackleBoxCard(
+                                                viewModel,
+                                                tackleBox,
+                                                index = page,
+                                                totalItems = totalTackleBoxes,
+                                                modifier = Modifier.padding(horizontal = 4.dp),
+                                                onEdit = {
+                                                    navigateToSelectLures(
+                                                        fishermanId,
+                                                        tackleBox.tackleBox.id
+                                                    )
+                                                },
+                                                onDelete = {
+                                                    viewModel.deleteTackleBox(tackleBox.tackleBox)
+                                                }
+                                            )
+                                        }
                                     }
-                                )
+
+                                    Row(
+                                        Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        repeat(totalTackleBoxes) { iteration ->
+                                            val isSelected = pagerState.currentPage == iteration
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 3.dp)
+                                                    .size(if (isSelected) 8.dp else 6.dp)
+                                                    .clip(CircleShape)
+                                                    .background(
+                                                        if (isSelected) MaterialTheme.colorScheme.primary
+                                                        else MaterialTheme.colorScheme.primary.copy(
+                                                            alpha = 0.3f
+                                                        )
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
+                                tackleBoxWithLures?.let {
+                                    TackleBoxCard(
+                                        viewModel,
+                                        tackleBoxWithLures,
+                                        index = index,
+                                        totalItems = totalTackleBoxes,
+                                        modifier = Modifier.padding(
+                                            start = 8.dp,
+                                            end = 8.dp,
+                                            bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
+                                        ),
+                                        onEdit = {
+                                            navigateToSelectLures(
+                                                fishermanId,
+                                                tackleBoxWithLures.tackleBox.id
+                                            )
+                                        },
+                                        onDelete = {
+                                            viewModel.deleteTackleBox(tackleBoxWithLures.tackleBox)
+                                        }
+                                    )
+                                }
                             }
                         }
 
@@ -194,29 +284,104 @@ fun FishermanDetailsScreen(
                             )
                         }
 
-                        val totalItems = tripSummaries.size
-                        itemsIndexed(tripSummaries) { index, trip ->
-                            TripItem(
-                                trip = trip,
-                                index = index,
-                                totalItems = totalItems,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                onClick = { navigateToTripDetails(trip.trip.id) },
-                                onAction = { action ->
-                                    when (action) {
-                                        is TripAction.OpenMap -> {
-                                            val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
-                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                            try {
-                                                context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                        else -> {}
+                        item {
+                            if (state.upcomingTrips.isNotEmpty()) {
+                                Text(
+                                    "Upcoming Trips",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    items(state.upcomingTrips) { trip ->
+                                        UpcomingTripChip(
+                                            trip = trip.trip,
+                                            onTripClick = { navigateToTripDetails(trip.trip.id) }
+                                        )
                                     }
                                 }
-                            )
+                            }
+                        }
+
+                        if (state.activeTrips.isNotEmpty()) {
+                            item {
+                                Text(
+                                    "Active Trips",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                            val totalActiveItems = state.activeTrips.size
+                            itemsIndexed(state.activeTrips) { index, trip ->
+                                TripItem(
+                                    trip = trip,
+                                    index = index,
+                                    totalItems = totalActiveItems,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    onClick = { navigateToTripDetails(trip.trip.id) },
+                                    onAction = { action ->
+                                        when (action) {
+                                            is TripAction.OpenMap -> {
+                                                val mapUri =
+                                                    Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Could not open map",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+
+                                            else -> {}
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        if (state.recentTrips.isNotEmpty()) {
+                            item {
+                                Text(
+                                    "Past Trips",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                            val totalActiveItems = state.recentTrips.size
+                            itemsIndexed(state.recentTrips) { index, trip ->
+                                TripItem(
+                                    trip = trip,
+                                    index = index,
+                                    totalItems = totalActiveItems,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    onClick = { navigateToTripDetails(trip.trip.id) },
+                                    onAction = { action ->
+                                        when (action) {
+                                            is TripAction.OpenMap -> {
+                                                val mapUri =
+                                                    Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Could not open map",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+
+                                            else -> {}
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 } ?: run {
@@ -414,7 +579,7 @@ fun TackleBoxCard(
     }
 
     OutlinedCard(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { expanded = !expanded },
+        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
@@ -562,15 +727,16 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             StatItem(
                 label = "LARGEST FISH",
                 value = "${stats.largestFishLength ?: 0.0}\"",
+                description = stats.largestFishSpecies,
                 color = MaterialTheme.colorScheme.onTertiary
             )
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (!stats.bestTripName.isNullOrEmpty()) {
+        if (!stats.bestTripName.isNullOrEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 AchievementItem(
                     icon = Icons.Default.Celebration,
                     label = "Best Trip",
@@ -580,12 +746,12 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
                 )
             }
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (!stats.bestSegmentName.isNullOrEmpty()) {
+        if (!stats.bestSegmentName.isNullOrEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                     label = "Best Segment",
@@ -615,15 +781,17 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
             StatItem(
                 label = "SMALLEST FISH",
                 value = "${stats.smallestFishLength ?: 0.0}\"",
+                description = stats.smallestFishSpecies,
                 color = MaterialTheme.colorScheme.onTertiary
             )
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (!stats.worstTripName.isNullOrEmpty()) {
+
+        if (!stats.worstTripName.isNullOrEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 AchievementItem(
                     icon = Icons.Default.Warning,
                     label = "Worst Trip",
@@ -633,12 +801,12 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
                 )
             }
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (!stats.worstSegmentName.isNullOrEmpty()) {
+        if (!stats.worstSegmentName.isNullOrEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingDown,
                     label = "Worst Segment",

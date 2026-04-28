@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -30,6 +31,34 @@ class FishermanDetailsViewModel(
         .filterNotNull()
         .flatMapLatest { repository.getFishermanFullStatistics(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<FishermanDetailsUiState> = _selectedFishermanId
+        .flatMapLatest { id ->
+            if (id.isNullOrBlank()) {
+                flowOf(FishermanDetailsUiState(isLoading = true))
+            } else {
+                combine(
+                    repository.getActiveTripSummariesForFisherman(id),
+                    repository.getUpcomingTripSummariesForFisherman(id),
+                    repository.getPastTripSummariesForFisherman(id)
+                ) { active, upcoming, previous ->
+                    FishermanDetailsUiState(
+                        activeTrips = active,
+                        upcomingTrips = upcoming,
+                        recentTrips = previous,
+                        // TODO -- add limit of 5 and give the ability to see the full list
+//                        recentTrips = previous.take(5), // Slice here to keep the dashboard lean
+                        isLoading = false
+                    )
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FishermanDetailsUiState(isLoading = true)
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripSummaries: StateFlow<List<TripSummary>> = _selectedFishermanId
@@ -88,6 +117,13 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { repository.deleteTackleBox(tackleBox) }
     }
 }
+data class FishermanDetailsUiState(
+    val activeTrips: List<TripSummary> = emptyList(),
+    val upcomingTrips: List<TripSummary> = emptyList(),
+    val recentTrips: List<TripSummary> = emptyList(),
+    val isLoading: Boolean = false
+)
+
 class FishermanDetailsViewModelFactory(
     private val repository: FishermanRepository
 ) : ViewModelProvider.Factory {

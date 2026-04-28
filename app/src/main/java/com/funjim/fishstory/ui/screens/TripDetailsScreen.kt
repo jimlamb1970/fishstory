@@ -544,6 +544,7 @@ fun TripHighlightCard(
 fun StatItem(
     label: String,
     value: String,
+    description: String? = null,
     color: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -557,6 +558,14 @@ fun StatItem(
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             color = color
         )
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = color,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
     }
 }
 

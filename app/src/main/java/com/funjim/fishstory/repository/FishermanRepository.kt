@@ -4,6 +4,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -22,6 +23,7 @@ class FishermanRepository(
     private val lureDao: LureDao,
     private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao,
+    private val tripDao: TripDao,
 ) {
     val allFishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> =
@@ -55,8 +57,15 @@ class FishermanRepository(
         }
     }
 
-    fun getFishermanFullStatistics(id: String): Flow<FishermanFullStatistics?> =
-        fishermanDao.getFishermanFullStatistics(id)
+    fun getFishermanFullStatistics(id: String): Flow<FishermanFullStatistics> =
+        fishermanDao.getFishermanFullStatistics(id, System.currentTimeMillis()).map { stats ->
+            // Create a copy of the object with the list sorted by name
+            stats.copy(
+                tackleBoxesWithLures = stats.tackleBoxesWithLures.sortedBy {
+                    it?.tackleBox?.name?.lowercase()
+                }
+            )
+        }
 
     suspend fun addFisherman(fisherman: Fisherman) {
         fishermanDao.insert(fisherman)
@@ -85,6 +94,13 @@ class FishermanRepository(
 
     fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
         fishermanDao.getTripSummariesForFisherman(id)
+
+    fun getUpcomingTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
+        fishermanDao.getUpcomingTripSummariesForFisherman(id, System.currentTimeMillis())
+    fun getActiveTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
+        fishermanDao.getActiveTripSummariesForFisherman(id, System.currentTimeMillis())
+    fun getPastTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
+        fishermanDao.getPastTripSummariesForFisherman(id, System.currentTimeMillis())
 
     fun getLureNamesInTackleBox(tackleBoxId: String?): Flow<List<String>> {
         val luresFlow = tackleBoxDao.getLuresInTackleBox(tackleBoxId ?: "")

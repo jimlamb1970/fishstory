@@ -16,7 +16,8 @@ class FishstoryApplication : Application() {
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
             photoDao = database.photoDao(),
-            tackleBoxDao = database.tackleBoxDao()
+            tackleBoxDao = database.tackleBoxDao(),
+            tripDao = database.tripDao()
         )
     }
 

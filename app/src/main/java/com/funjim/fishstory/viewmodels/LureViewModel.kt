@@ -158,7 +158,7 @@ class LureViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxesWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
+    val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())

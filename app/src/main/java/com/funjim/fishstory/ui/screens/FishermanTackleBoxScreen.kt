@@ -36,7 +36,7 @@ fun FishermanTackleBoxScreen(
 
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
-    val luresInBox by viewModel.tackleBoxesWithLures.collectAsState(initial = emptyList())
+    val luresInBox by viewModel.tackleBoxWithLures.collectAsState(initial = emptyList())
     val tackleBox by viewModel.selectedTackleBox.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
