@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
@@ -70,21 +71,24 @@ fun FishermanListScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             // Sort Buttons
-            Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp)) {
-                SortChip("Name", currentOrder == FishermanSortOrder.NAME_AZ) {
-                    viewModel.updateSortOrder(FishermanSortOrder.NAME_AZ)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+                    SortChip("Name", currentOrder == FishermanSortOrder.NAME_AZ) {
+                        viewModel.updateSortOrder(FishermanSortOrder.NAME_AZ)
+                    }
+                    SortChip("Caught", currentOrder == FishermanSortOrder.MOST_CATCHES) {
+                        viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
+                    }
+                    SortChip("Kept", currentOrder == FishermanSortOrder.MOST_KEPT) {
+                        viewModel.updateSortOrder(FishermanSortOrder.MOST_KEPT)
+                    }
+                    SortChip("Trips", currentOrder == FishermanSortOrder.MOST_TRIPS) {
+                        viewModel.updateSortOrder(FishermanSortOrder.MOST_TRIPS)
+                    }
                 }
-                SortChip("Most Catches", currentOrder == FishermanSortOrder.MOST_CATCHES) {
-                    viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
-                }
-                SortChip("Most Released", currentOrder == FishermanSortOrder.MOST_RELEASED) {
-                    viewModel.updateSortOrder(FishermanSortOrder.MOST_RELEASED)
-                }
-                SortChip("Most Trips", currentOrder == FishermanSortOrder.MOST_TRIPS) {
-                    viewModel.updateSortOrder(FishermanSortOrder.MOST_TRIPS)
-                }
-                
-                Spacer(Modifier.weight(1f))
 
                 IconButton(onClick = { viewModel.toggleReverse() }) {
                     Icon(
