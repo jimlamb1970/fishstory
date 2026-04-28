@@ -15,9 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.LureItem
-import com.funjim.fishstory.ui.utils.ManageColorsDialog
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
@@ -28,14 +26,13 @@ fun LureListScreen(
     viewModel: LureViewModel,
     onAdd: () -> Unit,
     onEdit: (String) -> Unit,
+    navigateToManageColors: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-
-    var showManageColorsDialog by remember { mutableStateOf(false) }
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
@@ -56,7 +53,7 @@ fun LureListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { showManageColorsDialog = true }) {
+                    IconButton(onClick = { navigateToManageColors() }) {
                         Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Colors")
                     }
                 }
@@ -150,19 +147,6 @@ fun LureListScreen(
                     }
                 }
             }
-        }
-
-        if (showManageColorsDialog) {
-            ManageColorsDialog(
-                colors = colors,
-                onDismiss = { showManageColorsDialog = false },
-                onAddColor = { colorName ->
-                    scope.launch { viewModel.addLureColor(LureColor(name = colorName)) }
-                },
-                onDeleteColor = { color ->
-                    scope.launch { viewModel.deleteLureColor(color) }
-                }
-            )
         }
     }
 }

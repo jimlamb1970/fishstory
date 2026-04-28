@@ -1,11 +1,8 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,11 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.R
 import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
-import com.funjim.fishstory.ui.utils.ManageSpeciesDialog
 import com.funjim.fishstory.viewmodels.FishViewModel
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,7 +36,8 @@ fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (tripId: String, segmentId: String) -> Unit
+    onNavigateToFishList: (tripId: String, segmentId: String) -> Unit,
+    navigateToManageSpecies: () -> Unit
 ) {
     val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
@@ -72,11 +67,7 @@ fun FishSummaryScreen(
     val caughtCount = fishForScope.size
     val keptCount = fishForScope.count { !it.isReleased }
 
-    val allSpecies by viewModel.species.collectAsStateWithLifecycle(initialValue = emptyList())
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    var showManageSpeciesDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -94,7 +85,7 @@ fun FishSummaryScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { showManageSpeciesDialog = true }) {
+                    IconButton(onClick = { navigateToManageSpecies() }) {
                         Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Species")
                     }
                 }
@@ -243,19 +234,6 @@ fun FishSummaryScreen(
                     Text("Select a trip to get started.")
                 }
             }
-        }
-
-        if (showManageSpeciesDialog) {
-            ManageSpeciesDialog(
-                species = allSpecies,
-                onDismiss = { showManageSpeciesDialog = false },
-                onAddSpecies = { speciesName ->
-                    scope.launch { viewModel.addSpecies(Species(name = speciesName)) }
-                },
-                onDeleteSpecies = { species ->
-                    scope.launch { viewModel.deleteSpecies(species) }
-                }
-            )
         }
     }
 }

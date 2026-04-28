@@ -11,7 +11,6 @@ import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow

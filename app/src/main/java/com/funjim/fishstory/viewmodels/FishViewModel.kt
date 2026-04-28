@@ -155,6 +155,12 @@ class FishViewModel(
         }
     }
 
+    fun upsertSpecies(species: Species) {
+        viewModelScope.launch {
+            repository.upsertSpecies(species)
+        }
+    }
+
     fun deleteSpecies(species: Species) {
         viewModelScope.launch {
             repository.deleteSpecies(species)

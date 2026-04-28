@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -34,24 +35,21 @@ class FishermanDetailsViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<FishermanDetailsUiState> = _selectedFishermanId
+        .filter { !it.isNullOrBlank() } // Only proceed when we have a valid ID
         .flatMapLatest { id ->
-            if (id.isNullOrBlank()) {
-                flowOf(FishermanDetailsUiState(isLoading = true))
-            } else {
-                combine(
-                    repository.getActiveTripSummariesForFisherman(id),
-                    repository.getUpcomingTripSummariesForFisherman(id),
-                    repository.getPastTripSummariesForFisherman(id)
-                ) { active, upcoming, previous ->
-                    FishermanDetailsUiState(
-                        activeTrips = active,
-                        upcomingTrips = upcoming,
-                        recentTrips = previous,
-                        // TODO -- add limit of 5 and give the ability to see the full list
+            combine(
+                repository.getActiveTripSummariesForFisherman(id!!),
+                repository.getUpcomingTripSummariesForFisherman(id),
+                repository.getPastTripSummariesForFisherman(id)
+            ) { active, upcoming, previous ->
+                FishermanDetailsUiState(
+                    activeTrips = active,
+                    upcomingTrips = upcoming,
+                    recentTrips = previous,
+                    // TODO -- add limit of 5 and give the ability to see the full list
 //                        recentTrips = previous.take(5), // Slice here to keep the dashboard lean
-                        isLoading = false
-                    )
-                }
+                    isLoading = false
+                )
             }
         }
         .stateIn(

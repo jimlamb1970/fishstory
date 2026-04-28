@@ -49,6 +49,8 @@ import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
+import com.funjim.fishstory.ui.screens.ManageColorsScreen
+import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
 import com.funjim.fishstory.ui.screens.SelectSegmentCrewScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
@@ -261,6 +263,9 @@ fun AppNavigation(
                 onNavigateToFishList = { tripId, segmentId ->
                     navController.navigate("FishList/$tripId/$segmentId")
                 },
+                navigateToManageSpecies = {
+                    navController.navigate("manage_species")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -317,9 +322,26 @@ fun AppNavigation(
                 onEdit = { lureId ->
                     navController.navigate("add_lure?lureId=$lureId")
                 },
+                navigateToManageColors = {
+                    navController.navigate("manage_colors")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable("manage_colors") {
+            ManageColorsScreen(
+                viewModel = lureViewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("manage_species") {
+            ManageSpeciesScreen(
+                viewModel = fishViewModel,
+                navigateBack = { navController.popBackStack() }
             )
         }
 

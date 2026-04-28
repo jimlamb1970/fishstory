@@ -112,6 +112,12 @@ class LureViewModel(
         }
     }
 
+    fun upsertLureColor(color: LureColor) {
+        viewModelScope.launch {
+            repository.upsertLureColor(color)
+        }
+    }
+
     fun deleteLureColor(color: LureColor) {
         viewModelScope.launch {
             repository.deleteLureColor(color)

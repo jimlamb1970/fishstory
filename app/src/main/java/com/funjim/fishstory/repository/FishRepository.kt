@@ -56,5 +56,6 @@ class FishRepository(
     suspend fun deletePhoto(photo: Photo) = photoDao.deletePhoto(photo)
 
     suspend fun addSpecies(species: Species) = fishDao.insertSpecies(species)
+    suspend fun upsertSpecies(species: Species) = fishDao.upsertSpecies(species)
     suspend fun deleteSpecies(species: Species) = fishDao.deleteSpecies(species)
 }
