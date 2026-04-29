@@ -123,20 +123,20 @@ data class FishermanFullStatistics(
     val bestTripName: String?,
     val bestTripTime: Long?,
 
-    // Best Segment & Its Parent Trip
-    val mostSegmentCatches: Int,
-    val bestSegmentName: String?,
-    val bestSegmentTripName: String?,
-    val bestSegmentTime: Long?,
+    // Best Event & Its Parent Trip
+    val mostEventCatches: Int,
+    val bestEventName: String?,
+    val bestEventTripName: String?,
+    val bestEventTime: Long?,
 
     // Worst Trip
     val fewestTripCatches: Int,
     val worstTripName: String?,
     val worstTripTime: Long?,
 
-    // Worst Segment
-    val fewestSegmentCatches: Int,
-    val worstSegmentName: String?,
-    val worstSegmentTripName: String?,
-    val worstSegmentTime: Long?
+    // Worst Event & Its Parent Trip
+    val fewestEventCatches: Int,
+    val worstEventName: String?,
+    val worstEventTripName: String?,
+    val worstEventTime: Long?
 )

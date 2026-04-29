@@ -3,8 +3,8 @@ package com.funjim.fishstory.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentSummary
+import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.repository.TripRepository
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.time.delay
 
 class DashboardViewModel(
     private val repository: TripRepository
@@ -54,9 +53,9 @@ class DashboardViewModel(
             repository.getSegmentsForActiveTrips(now).map { allSegments ->
                 // Split them into the 3 groups here
                 SegmentGroups(
-                    previous = allSegments.filter { it.segment.endTime < now },
-                    active = allSegments.filter { now in it.segment.startTime..it.segment.endTime },
-                    upcoming = allSegments.filter { it.segment.startTime > now }
+                    previous = allSegments.filter { it.event.endTime < now },
+                    active = allSegments.filter { now in it.event.startTime..it.event.endTime },
+                    upcoming = allSegments.filter { it.event.startTime > now }
                 )
             }
         }
@@ -75,7 +74,7 @@ class DashboardViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentSummaries: StateFlow<List<SegmentSummary>> = _activeTripId
+    val segmentSummaries: StateFlow<List<EventSummary>> = _activeTripId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -91,7 +90,7 @@ class DashboardViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activeSegments: StateFlow<List<Segment>> = _activeTripId
+    val activeSegments: StateFlow<List<Event>> = _activeTripId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -116,9 +115,9 @@ data class DashboardUiState(
 
 // Simple data class to hold our 3 buckets
 data class SegmentGroups(
-    val previous: List<SegmentSummary> = emptyList(),
-    val active: List<SegmentSummary> = emptyList(),
-    val upcoming: List<SegmentSummary> = emptyList()
+    val previous: List<EventSummary> = emptyList(),
+    val active: List<EventSummary> = emptyList(),
+    val upcoming: List<EventSummary> = emptyList()
 )
 
 class DashboardViewModelFactory(

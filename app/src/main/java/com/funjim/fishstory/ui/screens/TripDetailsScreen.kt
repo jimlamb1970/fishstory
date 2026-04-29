@@ -29,13 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.SegmentSummary
+import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
@@ -99,7 +98,7 @@ fun TripDetailsScreen(
         }
     }
 
-    var segmentToUpdateLocation by remember { mutableStateOf<SegmentSummary?>(null) }
+    var segmentToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -119,11 +118,11 @@ fun TripDetailsScreen(
 
     val locationPickerSegment = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentToUpdateLocation?.segment?.latitude,  // Passed from your DB object
-        existingLng = segmentToUpdateLocation?.segment?.longitude,
+        existingLat = segmentToUpdateLocation?.event?.latitude,  // Passed from your DB object
+        existingLng = segmentToUpdateLocation?.event?.longitude,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            segmentToUpdateLocation?.segment?.let { segment ->
+            segmentToUpdateLocation?.event?.let { segment ->
                 scope.launch {
                     viewModel.upsertSegment(segment.copy(latitude = lat, longitude = lng))
                 }
@@ -355,16 +354,16 @@ fun TripDetailsScreen(
                     val totalItems = segmentSummaries.size
                     itemsIndexed(segmentSummaries) { index, segmentSummary ->
                         SegmentItem(
-                            segmentSummary = segmentSummary,
+                            eventSummary = segmentSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             index = index,
                             totalItems = totalItems,
                             onClick = {
-                                navigateToSegmentDetails(segmentSummary.segment.id)
+                                navigateToSegmentDetails(segmentSummary.event.id)
                             },
                             onDelete = {
                                 scope.launch {
-                                    viewModel.deleteSegment(segmentSummary.segment)
+                                    viewModel.deleteSegment(segmentSummary.event)
                                 }
                             },
                             onSetLocation = {
@@ -372,7 +371,7 @@ fun TripDetailsScreen(
                                     scope.launch {
                                         val location = viewModel.getTripCurrentLocation(context)
                                         if (location != null) {
-                                            viewModel.upsertSegment(segmentSummary.segment.copy(latitude = location.latitude, longitude = location.longitude))
+                                            viewModel.upsertSegment(segmentSummary.event.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }
@@ -390,7 +389,7 @@ fun TripDetailsScreen(
                                 {
                                     scope.launch {
                                         viewModel.upsertSegment(
-                                            segmentSummary.segment.copy(
+                                            segmentSummary.event.copy(
                                                 latitude = details.trip.latitude,
                                                 longitude = details.trip.longitude
                                             )
@@ -400,7 +399,7 @@ fun TripDetailsScreen(
                             } else null,
                             onClearLocation = {
                                 scope.launch {
-                                    viewModel.upsertSegment(segmentSummary.segment.copy(latitude = null, longitude = null))
+                                    viewModel.upsertSegment(segmentSummary.event.copy(latitude = null, longitude = null))
                                 }
                             }
                         )

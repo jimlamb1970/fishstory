@@ -28,7 +28,7 @@ class FishermanRepository(
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> =
         fishermanDao.getFishermenForTrip(tripId)
     fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> =
-        fishermanDao.getFishermenForSegment(segmentId)
+        fishermanDao.getFishermenForEvent(segmentId)
 
     // TODO - this really should be from Lure Repo
     val allLureColors = lureDao.getAllLureColors()

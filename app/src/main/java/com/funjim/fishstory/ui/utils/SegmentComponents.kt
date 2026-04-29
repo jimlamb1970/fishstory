@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -19,8 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentSummary
+import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventSummary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,7 +27,7 @@ import java.util.Locale
 // TODO -- update this card to work like TripItem card with regards to menu
 @Composable
 fun SegmentItem(
-    segmentSummary: SegmentSummary,
+    eventSummary: EventSummary,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -40,14 +39,14 @@ fun SegmentItem(
     onClearLocation: (() -> Unit)? = null
 ) {
     SegmentItem(
-        segment = segmentSummary.segment,
+        event = eventSummary.event,
         modifier = modifier,
         index = index,
         totalItems = totalItems,
-        fishermenCount = segmentSummary.fishermanCount,
-        tackleBoxCount = segmentSummary.tackleBoxCount,
-        fishCaught = segmentSummary.fishCaught,
-        fishKept = segmentSummary.fishKept,
+        fishermenCount = eventSummary.fishermanCount,
+        tackleBoxCount = eventSummary.tackleBoxCount,
+        fishCaught = eventSummary.fishCaught,
+        fishKept = eventSummary.fishKept,
         onDelete = onDelete,
         onClick = onClick,
         onSetLocation = onSetLocation,
@@ -59,7 +58,7 @@ fun SegmentItem(
 
 @Composable
 fun SegmentItem(
-    segment: Segment,
+    event: Event,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -79,8 +78,8 @@ fun SegmentItem(
     }
     val now = System.currentTimeMillis()
 
-    val startString = dateTimeFormatter.format(Date(segment.startTime))
-    val endString = dateTimeFormatter.format(Date(segment.endTime))
+    val startString = dateTimeFormatter.format(Date(event.startTime))
+    val endString = dateTimeFormatter.format(Date(event.endTime))
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -111,9 +110,9 @@ fun SegmentItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(segment.name,
+                    Text(event.name,
                         style = MaterialTheme.typography.titleLarge)
-                    if (segment.latitude != null && segment.longitude != null) {
+                    if (event.latitude != null && event.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -123,7 +122,7 @@ fun SegmentItem(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${segment.latitude},${segment.longitude}")
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${event.latitude},${event.longitude}")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
@@ -150,7 +149,7 @@ fun SegmentItem(
                     color = MaterialTheme.colorScheme.onTertiary
                 )
 
-                if (fishCaught != 0 || now >= segment.startTime) {
+                if (fishCaught != 0 || now >= event.startTime) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Fish Summary • $fishCaught Caught • $fishKept Kept",
@@ -186,7 +185,7 @@ fun SegmentItem(
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
                                         )
                                     }
                                 )
@@ -203,7 +202,7 @@ fun SegmentItem(
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
                                         )
                                     }
                                 )
@@ -220,13 +219,13 @@ fun SegmentItem(
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segment.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
                                         )
                                     }
                                 )
                             }
 
-                            if (segment.latitude != null && onClearLocation != null) {
+                            if (event.latitude != null && onClearLocation != null) {
                                 DropdownMenuItem(
                                     text = { Text("Clear Location") },
                                     onClick = {

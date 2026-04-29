@@ -104,7 +104,7 @@ class TripViewModel(
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedSegmentId = MutableStateFlow<String?>(null)
-    private val _draftSegments = MutableStateFlow<List<Segment>>(emptyList())
+    private val _draftSegments = MutableStateFlow<List<Event>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
 
     // --- Data Streams ---
@@ -259,7 +259,7 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentSummaries: StateFlow<List<SegmentSummary>> = _selectedTripId
+    val segmentSummaries: StateFlow<List<EventSummary>> = _selectedTripId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -270,7 +270,7 @@ class TripViewModel(
         }
         .map { list ->
             // Sort by whatever property makes sense for your segments
-            list.sortedBy { it.segment.startTime }
+            list.sortedBy { it.event.startTime }
         }
         .stateIn(
             scope = viewModelScope,
@@ -279,14 +279,14 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedSegmentSummary: StateFlow<SegmentSummary?> = _selectedSegmentId
+    val selectedEventSummary: StateFlow<EventSummary?> = _selectedSegmentId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(null)
             } else {
                 // We watch the master list and filter for the matching ID
                 segmentSummaries.map { list ->
-                    list.find { it.segment.id == id }
+                    list.find { it.event.id == id }
                 }
             }
         }
@@ -349,15 +349,15 @@ class TripViewModel(
         }
     }
 
-    fun upsertSegment(segment: Segment) {
+    fun upsertSegment(event: Event) {
         viewModelScope.launch {
-            tripRepository.upsertSegment(segment)
+            tripRepository.upsertSegment(event)
         }
     }
 
-    fun deleteSegment(segment: Segment) {
+    fun deleteSegment(event: Event) {
         viewModelScope.launch {
-            tripRepository.deleteSegment(segment)
+            tripRepository.deleteSegment(event)
         }
     }
 
@@ -390,14 +390,14 @@ class TripViewModel(
     fun upsertSegmentFishermanCrossRef(segmentId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
             tripRepository.upsertSegmentFishermanCrossRef(
-                SegmentFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
+                EventFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
             )
         }
     }
 
     fun deleteSegmentFishermanCrossRef(segmentId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepository.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+            tripRepository.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(segmentId, fishermanId))
         }
     }
 
@@ -442,7 +442,7 @@ class TripViewModel(
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepository.insertTackleBox(tackleBox)
             tripRepository.upsertSegmentFishermanCrossRef(
-                SegmentFishermanCrossRef(
+                EventFishermanCrossRef(
                     segmentId,
                     fishermanId,
                     tackleBox.id
@@ -451,13 +451,13 @@ class TripViewModel(
         }
     }
 
-    fun upsertDraftSegment(updatedSegment: Segment) {
+    fun upsertDraftSegment(updatedEvent: Event) {
         _draftSegments.update { currentList ->
-            val alreadyExists = currentList.any { it.id == updatedSegment.id }
+            val alreadyExists = currentList.any { it.id == updatedEvent.id }
             if (alreadyExists) {
-                currentList.map { if (it.id == updatedSegment.id) updatedSegment else it }
+                currentList.map { if (it.id == updatedEvent.id) updatedEvent else it }
             } else {
-                currentList + updatedSegment
+                currentList + updatedEvent
             }
         }
     }
@@ -598,12 +598,12 @@ class TripViewModel(
     }
 
     // --- Segment Draft State ---
-    private val _segmentDraft = MutableStateFlow(Segment(id = UUID.randomUUID().toString(), name = "", tripId = ""))
-    val segmentDraft = _segmentDraft.asStateFlow()
+    private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
+    val segmentDraft = _eventDraft.asStateFlow()
 
-    fun updateSegmentDraft(update: (Segment) -> Segment) {
-        _segmentDraft.update(update)
-        _selectedSegmentId.value = _segmentDraft.value.id
+    fun updateSegmentDraft(update: (Event) -> Event) {
+        _eventDraft.update(update)
+        _selectedSegmentId.value = _eventDraft.value.id
     }
 
     // --- Crew Draft State ---

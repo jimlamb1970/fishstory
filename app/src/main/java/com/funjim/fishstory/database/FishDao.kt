@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishDao {
-    @Query("""
+    @Query(
+        """
         SELECT 
             fish_table.id, 
             species_table.name AS speciesName, 
@@ -27,14 +28,14 @@ interface FishDao {
             fish_table.timestamp, 
             fish_table.latitude, 
             fish_table.longitude,
-            fish_table.segmentId,
-            segment_table.name AS segmentName,
+            fish_table.eventId,
+            event_table.name AS eventName,
             fish_table.tripId,
             trip_table.name AS tripName,
             fish_table.holeNumber
         FROM fish_table
         INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN segment_table ON fish_table.segmentId = segment_table.id
+        INNER JOIN event_table ON fish_table.eventId = event_table.id
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
@@ -42,10 +43,12 @@ interface FishDao {
         LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         ORDER BY fish_table.timestamp DESC
-    """)
+    """
+    )
     fun getAllFishWithDetails(): Flow<List<FishWithDetails>>
 
-    @Query("""
+    @Query(
+        """
         SELECT 
             fish_table.id, 
             species_table.name AS speciesName, 
@@ -64,14 +67,14 @@ interface FishDao {
             fish_table.timestamp, 
             fish_table.latitude, 
             fish_table.longitude,
-            fish_table.segmentId,
-            segment_table.name AS segmentName,
+            fish_table.eventId,
+            event_table.name AS eventName,
             fish_table.tripId,
             trip_table.name AS tripName,
             fish_table.holeNumber
         FROM fish_table
         INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN segment_table ON fish_table.segmentId = segment_table.id
+        INNER JOIN event_table ON fish_table.eventId = event_table.id
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
@@ -80,10 +83,12 @@ interface FishDao {
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         WHERE fish_table.tripId = :tripId
         ORDER BY fish_table.timestamp DESC
-    """)
+    """
+    )
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>>
 
-    @Query("""
+    @Query(
+        """
         SELECT 
             fish_table.id, 
             species_table.name AS speciesName, 
@@ -102,14 +107,14 @@ interface FishDao {
             fish_table.timestamp, 
             fish_table.latitude, 
             fish_table.longitude,
-            fish_table.segmentId,
-            segment_table.name AS segmentName,
+            fish_table.eventId,
+            event_table.name AS eventName,
             fish_table.tripId,
             trip_table.name AS tripName,
             fish_table.holeNumber
         FROM fish_table
         INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN segment_table ON fish_table.segmentId = segment_table.id
+        INNER JOIN event_table ON fish_table.eventId = event_table.id
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
@@ -118,10 +123,12 @@ interface FishDao {
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
         WHERE fish_table.fishermanId = :fishermanId
         ORDER BY fish_table.timestamp DESC
-    """)
+    """
+    )
     fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>>
 
-    @Query("""
+    @Query(
+        """
         SELECT 
             fish_table.id, 
             species_table.name AS speciesName, 
@@ -140,24 +147,25 @@ interface FishDao {
             fish_table.timestamp, 
             fish_table.latitude, 
             fish_table.longitude,
-            fish_table.segmentId,
-            segment_table.name AS segmentName,
+            fish_table.eventId,
+            event_table.name AS eventName,
             fish_table.tripId,
             trip_table.name AS tripName,
             fish_table.holeNumber
         FROM fish_table
         INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN segment_table ON fish_table.segmentId = segment_table.id
+        INNER JOIN event_table ON fish_table.eventId = event_table.id
         INNER JOIN species_table ON fish_table.speciesId = species_table.id
         INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
         LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
         LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
         LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
-        WHERE fish_table.segmentId = :segmentId
+        WHERE fish_table.eventId = :eventId
         ORDER BY fish_table.timestamp DESC
-    """)
-    fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>>
+    """
+    )
+    fun getFishForEvent(eventId: String): Flow<List<FishWithDetails>>
 
     @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
     fun getAllFish(): Flow<List<Fish>>

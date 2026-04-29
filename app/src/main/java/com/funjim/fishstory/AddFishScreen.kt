@@ -78,7 +78,7 @@ fun AddFishScreen(
     val tripDetails by produceState<com.funjim.fishstory.model.TripWithDetails?>(initialValue = null) {
         viewModel.getTripWithDetails(tripId).collect { value = it }
     }
-    val segmentDetails by produceState<com.funjim.fishstory.model.SegmentWithDetails?>(initialValue = null) {
+    val segmentDetails by produceState<com.funjim.fishstory.model.EventWithDetails?>(initialValue = null) {
         viewModel.getSegmentWithDetails(segmentId).collect { value = it }
     }
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
@@ -145,8 +145,8 @@ fun AddFishScreen(
         }
     }
 
-    val startTime = segmentDetails?.segment?.startTime ?: timestamp
-    val endTime = segmentDetails?.segment?.endTime ?: timestamp
+    val startTime = segmentDetails?.event?.startTime ?: timestamp
+    val endTime = segmentDetails?.event?.endTime ?: timestamp
 
     if (timestamp < startTime) {
         timestamp = startTime
@@ -687,7 +687,7 @@ fun AddFishScreen(
                                 speciesId = selectedSpeciesId,
                                 fishermanId = selectedFishermanId,
                                 tripId = tripId,
-                                segmentId = segmentId,
+                                eventId = segmentId,
                                 lureId = selectedLureId,
                                 length = lengthStr.toDoubleOrNull() ?: 0.0,
                                 isReleased = released,

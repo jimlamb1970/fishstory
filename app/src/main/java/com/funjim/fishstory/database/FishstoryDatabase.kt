@@ -11,7 +11,7 @@ import com.funjim.fishstory.model.*
         Trip::class, 
         Fisherman::class, 
         TripFishermanCrossRef::class, 
-        Segment::class, 
+        Event::class,
         Lure::class, 
         LureColor::class,
         Fish::class,
@@ -19,15 +19,15 @@ import com.funjim.fishstory.model.*
         Photo::class,
         TackleBox::class,
         TackleBoxLureCrossRef::class,
-        SegmentFishermanCrossRef::class
+        EventFishermanCrossRef::class
     ], 
-    version = 24,
+    version = 25,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
     abstract fun fishermanDao(): FishermanDao
-    abstract fun segmentDao(): SegmentDao
+    abstract fun eventDao(): EventDao
     abstract fun lureDao(): LureDao
     abstract fun fishDao(): FishDao
     abstract fun photoDao(): PhotoDao

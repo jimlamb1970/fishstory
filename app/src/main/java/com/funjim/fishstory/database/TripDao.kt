@@ -179,22 +179,22 @@ ORDER BY t.startDate DESC
     suspend fun deleteAllTripFishermanCrossRefs()
 
     @Transaction
-    suspend fun removeFishermanCrossRefFromTripAndAllSegments(tripId: String, fishermanId: String) {
+    suspend fun removeFishermanCrossRefFromTripAndAllEvents(tripId: String, fishermanId: String) {
         // 1. Remove from the Trip level
         deleteFishermanFromTrip(tripId, fishermanId)
 
-        // 2. Remove from all segments that belong to this specific trip
-        // This uses a subquery to find every segment tied to that tripId
-        deleteFishermanFromSegmentsForTrip(tripId, fishermanId)
+        // 2. Remove from all events that belong to this specific trip
+        // This uses a subquery to find every event tied to that tripId
+        deleteFishermanFromEvents(tripId, fishermanId)
     }
 
     @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
     suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
 
     @Query("""
-    DELETE FROM segment_fisherman_cross_ref 
+    DELETE FROM event_fisherman_cross_ref 
     WHERE fishermanId = :fishermanId 
-    AND segmentId IN (SELECT id FROM segment_table WHERE tripId = :tripId)
+    AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
 """)
-    suspend fun deleteFishermanFromSegmentsForTrip(tripId: String, fishermanId: String)
+    suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
 }

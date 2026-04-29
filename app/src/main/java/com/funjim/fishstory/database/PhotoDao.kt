@@ -25,8 +25,8 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_table WHERE tripId = :tripId")
     fun getPhotosForTrip(tripId: String): Flow<List<Photo>>
 
-    @Query("SELECT * FROM photo_table WHERE segmentId = :segmentId")
-    fun getPhotosForSegment(segmentId: String): Flow<List<Photo>>
+    @Query("SELECT * FROM photo_table WHERE eventId = :eventId")
+    fun getPhotosForEvent(eventId: String): Flow<List<Photo>>
 
     @Query("SELECT * FROM photo_table WHERE lureId = :lureId")
     fun getPhotosForLure(lureId: String): Flow<List<Photo>>

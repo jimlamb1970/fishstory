@@ -6,7 +6,7 @@ import java.util.UUID
 
 @Serializable
 @Entity(
-    tableName = "segment_table",
+    tableName = "event_table",
     foreignKeys = [
         ForeignKey(
             entity = Trip::class,
@@ -17,7 +17,7 @@ import java.util.UUID
     ],
     indices = [Index(value = ["tripId"])]
 )
-data class Segment(
+data class Event(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val tripId: String,
@@ -28,42 +28,42 @@ data class Segment(
     val longitude: Double? = null
 )
 
-data class SegmentWithFishermen(
-    @Embedded val segment: Segment,
+data class EventWithFishermen(
+    @Embedded val event: Event,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = SegmentFishermanCrossRef::class,
-            parentColumn = "segmentId",
+            value = EventFishermanCrossRef::class,
+            parentColumn = "eventId",
             entityColumn = "fishermanId"
         )
     )
     val fishermen: List<Fisherman>
 )
 
-data class SegmentWithDetails(
-    @Embedded val segment: Segment,
+data class EventWithDetails(
+    @Embedded val event: Event,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = SegmentFishermanCrossRef::class,
-            parentColumn = "segmentId",
+            value = EventFishermanCrossRef::class,
+            parentColumn = "eventId",
             entityColumn = "fishermanId"
         )
     )
     val fishermen: List<Fisherman>,
     @Relation(
         parentColumn = "id",
-        entityColumn = "segmentId"
+        entityColumn = "eventId"
     )
     val fish: List<Fish>
 )
 
 // TODO - rename values to better match TripSummary
-data class SegmentSummary(
-    @Embedded val segment: Segment,
+data class EventSummary(
+    @Embedded val event: Event,
     val fishCaught: Int,
     val fishKept: Int,
     val fishermanCount: Int,

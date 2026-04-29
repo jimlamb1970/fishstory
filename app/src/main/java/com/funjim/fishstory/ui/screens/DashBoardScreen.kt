@@ -53,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -61,8 +60,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentSummary
+import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.TripAction
@@ -123,8 +122,8 @@ fun DashboardScreen(
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(activeTripSegments.upcoming) { segment ->
                                 UpcomingSegmentChip(
-                                    tripName = state.activeTrips.find { it.trip.id == segment.segment.tripId }?.trip?.name ?: "Unknown Trip",
-                                    segment = segment.segment,
+                                    tripName = state.activeTrips.find { it.trip.id == segment.event.tripId }?.trip?.name ?: "Unknown Trip",
+                                    event = segment.event,
                                     onSegmentClick = { segmentId, tripId -> onNavigate("segment_details/${segmentId}/${tripId}") }
                                 )
                             }
@@ -208,7 +207,7 @@ fun DashboardScreen(
 @Composable
 fun ActiveTripCard(
     activeTrips: List<TripSummary>,
-    activeSegments: List<SegmentSummary>,
+    activeSegments: List<EventSummary>,
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onSegmentClick: (String, String) -> Unit,
@@ -216,12 +215,12 @@ fun ActiveTripCard(
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     val segment = activeSegments.getOrNull(currentIndex) ?: return
-    val trip = activeTrips.find { it.trip.id == segment.segment.tripId } ?: return
+    val trip = activeTrips.find { it.trip.id == segment.event.tripId } ?: return
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(segment.segment.tripId, segment.segment.id) }
+            .clickable { onClick(segment.event.tripId, segment.event.id) }
             .pointerInput(activeSegments.size) {
                 var dragTotal = 0f
                 detectHorizontalDragGestures(
@@ -317,10 +316,10 @@ fun ActiveTripCard(
             }
 
             Text(
-                text = segment.segment.name,
+                text = segment.event.name,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable( onClick = { onSegmentClick(segment.segment.tripId, segment.segment.id) })
+                modifier = Modifier.clickable( onClick = { onSegmentClick(segment.event.tripId, segment.event.id) })
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = MaterialTheme.colorScheme.primary)
@@ -358,7 +357,7 @@ fun ActiveTripCard(
 
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { onLogFish(segment.segment.tripId, segment.segment.id) },
+                onClick = { onLogFish(segment.event.tripId, segment.event.id) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
@@ -516,17 +515,17 @@ fun UpcomingTripChip(
 @Composable
 fun UpcomingSegmentChip(
     tripName: String,
-    segment: Segment,
+    event: Event,
     onSegmentClick: (String, String) -> Unit
 ) {
     val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
-        .format(java.util.Date(segment.startTime))
+        .format(java.util.Date(event.startTime))
 
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
-        modifier = Modifier.width(140.dp).clickable{onSegmentClick(segment.id, segment.tripId)}
+        modifier = Modifier.width(140.dp).clickable{onSegmentClick(event.id, event.tripId)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -542,7 +541,7 @@ fun UpcomingSegmentChip(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = segment.name,
+                text = event.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,

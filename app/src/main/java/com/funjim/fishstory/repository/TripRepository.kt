@@ -2,13 +2,13 @@ package com.funjim.fishstory.repository
 
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.PhotoDao
-import com.funjim.fishstory.database.SegmentDao
+import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.SegmentFishermanCrossRef
-import com.funjim.fishstory.model.SegmentSummary
-import com.funjim.fishstory.model.SegmentWithDetails
+import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventFishermanCrossRef
+import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.map
 
 class TripRepository(
     private val tripDao: TripDao,
-    private val segmentDao: SegmentDao,
+    private val eventDao: EventDao,
     private val photoDao: PhotoDao,
     private val fishermanDao: FishermanDao
 ) {
@@ -75,36 +75,36 @@ class TripRepository(
         tripDao.getFishermanIdsForTrip(tripId)
 
     // Segment Streams
-    fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> =
-        segmentDao.getSegmentsForTrip(tripId)
-    fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<SegmentSummary>> =
-        segmentDao.getSegmentsForActiveTrips(currentTime)
-    fun getSegmentSummaries(tripId: String): Flow<List<SegmentSummary>> =
-        segmentDao.getSegmentSummaries(tripId)
+    fun getSegmentsForTrip(tripId: String): Flow<List<Event>> =
+        eventDao.getEventsForTrip(tripId)
+    fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> =
+        eventDao.getEventsForActiveTrips(currentTime)
+    fun getSegmentSummaries(tripId: String): Flow<List<EventSummary>> =
+        eventDao.getTripEventSummaries(tripId)
 
-    fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?> =
-        segmentDao.getSegmentWithDetails(segmentId)
+    fun getSegmentWithDetails(segmentId: String): Flow<EventWithDetails?> =
+        eventDao.getEventWithDetails(segmentId)
 
-    fun getActiveSegments(): Flow<List<Segment>> =
-        segmentDao.getAllSegments().map { segments ->
+    fun getActiveSegments(): Flow<List<Event>> =
+        eventDao.getAllEvents().map { segments ->
             val now = System.currentTimeMillis()
             segments.filter { now in it.startTime..it.endTime }
         }
 
-    fun getActiveSegmentsForTrip(tripId: String): Flow<List<Segment>> =
-        segmentDao.getSegmentsForTrip(tripId).map { segments ->
+    fun getActiveSegmentsForTrip(tripId: String): Flow<List<Event>> =
+        eventDao.getEventsForTrip(tripId).map { segments ->
         val now = System.currentTimeMillis()
         segments.filter { now in it.startTime..it.endTime }
     }
 
-    fun getUpcomingSegments(): Flow<List<Segment>> = segmentDao.getAllSegments().map { segments ->
+    fun getUpcomingSegments(): Flow<List<Event>> = eventDao.getAllEvents().map { segments ->
         val now = System.currentTimeMillis()
         segments.filter { it.startTime > now }.sortedBy { it.startTime }
     }
 
     // --- Photo Logic ---
     fun getPhotosForTrip(id: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(id)
-    fun getPhotosForSegment(id: String): Flow<List<Photo>> = photoDao.getPhotosForSegment(id)
+    fun getPhotosForSegment(id: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(id)
     suspend fun addPhoto(photo: Photo) = photoDao.insertPhoto(photo)
     suspend fun deletePhoto(photo: Photo) = photoDao.deletePhoto(photo)
 
@@ -113,33 +113,33 @@ class TripRepository(
     suspend fun deleteTrip(tripId: String) = tripDao.deleteTripById(tripId)
 
     // Segment Operations
-    suspend fun upsertSegment(segment: Segment) = segmentDao.upsertSegment(segment)
-    suspend fun deleteSegment(segment: Segment) = segmentDao.deleteSegment(segment)
-    suspend fun deleteSegment(segmentId: String) = segmentDao.deleteSegmentById(segmentId)
+    suspend fun upsertSegment(event: Event) = eventDao.upsertEvent(event)
+    suspend fun deleteSegment(event: Event) = eventDao.deleteEvent(event)
+    suspend fun deleteSegment(segmentId: String) = eventDao.deleteEventById(segmentId)
 
 
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
         tripDao.upsertTripFishermanCrossRef(crossRef)
-    suspend fun upsertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef) =
-        segmentDao.upsertSegmentFishermanCrossRef(crossRef)
+    suspend fun upsertSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
+        eventDao.upsertEventFishermanCrossRef(crossRef)
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> =
         tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
     fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> =
-        segmentDao.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
+        eventDao.getTackleBoxIdForFisherman(segmentId, fishermanId)
 
     fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> =
         tripDao.getTripFishermenTackleBoxIds(tripId)
     fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> =
-        segmentDao.getSegmentFishermenTackleBoxIds(segmentId)
+        eventDao.getTackleBoxIdsForFishermen(segmentId)
 
     suspend fun deleteTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
         tripDao.deleteTripFishermanCrossRef(crossRef)
-    suspend fun deleteSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef) =
-        segmentDao.deleteSegmentFishermanCrossRef(crossRef)
+    suspend fun deleteSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
+        eventDao.deleteEventFishermanCrossRef(crossRef)
 
     suspend fun removeFishermanCrossRefFromTripAndAllSegments(tripId: String, fishermanId: String) =
-        tripDao.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
+        tripDao.removeFishermanCrossRefFromTripAndAllEvents(tripId, fishermanId)
     suspend fun removeFishermenNotInSet(segmentId: String, newSet: Set<String>) =
-        segmentDao.removeFishermenNotInSet(segmentId, newSet)
+        eventDao.removeFishermenNotInSet(segmentId, newSet)
 }

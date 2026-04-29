@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.R
-import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
@@ -49,7 +49,7 @@ fun FishSummaryScreen(
 
     var tripExpanded by remember { mutableStateOf(false) }
 
-    val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = selectedTrip) {
+    val segmentsForTrip by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTrip) {
         selectedTrip?.let {
             viewModel.segmentsForTrip.collect { value = it }
         } ?: run { value = emptyList() }
@@ -220,7 +220,7 @@ fun FishSummaryScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 FishVisual(
                     trip = selectedTrip,
-                    segment = selectedSegment,
+                    event = selectedSegment,
                     caughtCount = caughtCount,
                     keptCount = keptCount,
                     onClick = {
@@ -241,7 +241,7 @@ fun FishSummaryScreen(
 @Composable
 private fun FishVisual(
     trip: Trip,
-    segment: Segment?,
+    event: Event?,
     caughtCount: Int,
     keptCount: Int,
     onClick: () -> Unit
@@ -250,18 +250,18 @@ private fun FishVisual(
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
-    val startDate = segment?.startTime ?: trip.startDate
-    val endDate = segment?.endTime ?: trip.endDate
-    val hasLocation = if (segment != null) {
-        segment.latitude != null && segment.longitude != null
+    val startDate = event?.startTime ?: trip.startDate
+    val endDate = event?.endTime ?: trip.endDate
+    val hasLocation = if (event != null) {
+        event.latitude != null && event.longitude != null
     } else {
         trip.latitude != null && trip.longitude != null
     }
 
-    val latitude = segment?.latitude ?: trip.latitude
-    val longitude = segment?.longitude ?: trip.longitude
+    val latitude = event?.latitude ?: trip.latitude
+    val longitude = event?.longitude ?: trip.longitude
 
-    val label = segment?.name ?: trip.name
+    val label = event?.name ?: trip.name
 
     Card(
         onClick = onClick,

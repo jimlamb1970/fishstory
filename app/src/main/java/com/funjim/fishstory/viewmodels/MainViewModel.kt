@@ -3,8 +3,6 @@ package com.funjim.fishstory.viewmodels
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,9 +14,7 @@ import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -39,10 +35,10 @@ import kotlin.collections.List
 @Serializable
 data class DatabaseExportData(
     val trips: List<Trip>,
-    val segments: List<Segment>,
+    val events: List<Event>,
     val fishermen: List<Fisherman>,
     val tripFishermanCrossRef: List<TripFishermanCrossRef>,
-    val segmentFishermanCrossRef: List<SegmentFishermanCrossRef>,
+    val eventFishermanCrossRef: List<EventFishermanCrossRef>,
     val lures: List<Lure>,
     val tackleboxes: List<TackleBox>,
     val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
@@ -55,7 +51,7 @@ data class DatabaseExportData(
 class MainViewModel(
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
-    private val segmentDao: SegmentDao,
+    private val eventDao: EventDao,
     private val lureDao: LureDao,
     private val fishDao: FishDao,
     private val photoDao: PhotoDao,
@@ -102,7 +98,7 @@ class MainViewModel(
 
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
-    val activeSegments: Flow<List<Segment>> = segmentDao.getCurrentActiveSegments()
+    val activeSegments: Flow<List<Event>> = eventDao.getActiveEvents()
     val allFish: Flow<List<FishWithDetails>> = fishDao.getAllFishWithDetails()
 
     fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
@@ -117,7 +113,7 @@ class MainViewModel(
 
     fun removeSegmentFishermenNotInSet(segmentId: String, newSet: Set<String>) {
         viewModelScope.launch {
-            segmentDao.removeFishermenNotInSet(segmentId, newSet)
+            eventDao.removeFishermenNotInSet(segmentId, newSet)
         }
     }
 
@@ -226,63 +222,63 @@ class MainViewModel(
         return fishermanDao.getFishermanWithDetails(fishermanId)
     }
 
-    suspend fun addSegment(segment: Segment) {
-        segmentDao.insertSegment(segment)
+    suspend fun addSegment(event: Event) {
+        eventDao.insertEvent(event)
     }
 
-    suspend fun upsertSegment(segment: Segment) {
-        segmentDao.upsertSegment(segment)
+    suspend fun upsertSegment(event: Event) {
+        eventDao.upsertEvent(event)
     }
 
     fun upsertSegmentFishermanCrossRef(segmentId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            segmentDao.upsertSegmentFishermanCrossRef(
-                SegmentFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
+            eventDao.upsertEventFishermanCrossRef(
+                EventFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
             )
         }
     }
 
-    suspend fun upsertSegmentFishermanCrossRef(crossRef: SegmentFishermanCrossRef) {
-        segmentDao.upsertSegmentFishermanCrossRef(crossRef)
+    suspend fun upsertSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) {
+        eventDao.upsertEventFishermanCrossRef(crossRef)
     }
 
-    suspend fun addSegmentWithFishermen(segment: Segment, fishermanIds: Collection<String>) {
-        segmentDao.insertSegment(segment)
+    suspend fun addSegmentWithFishermen(event: Event, fishermanIds: Collection<String>) {
+        eventDao.insertEvent(event)
         fishermanIds.forEach { fid ->
-            segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segment.id, fid))
+            eventDao.insertEventFishermanCrossRef(EventFishermanCrossRef(event.id, fid))
         }
     }
 
-    suspend fun updateSegment(segment: Segment) {
-        segmentDao.updateSegment(segment)
+    suspend fun updateSegment(event: Event) {
+        eventDao.updateEvent(event)
     }
 
-    suspend fun deleteSegment(segment: Segment) {
-        segmentDao.deleteSegment(segment)
+    suspend fun deleteSegment(event: Event) {
+        eventDao.deleteEvent(event)
     }
 
-    fun getSegmentsForTrip(tripId: String): Flow<List<Segment>> {
-        return segmentDao.getSegmentsForTrip(tripId)
+    fun getSegmentsForTrip(tripId: String): Flow<List<Event>> {
+        return eventDao.getEventsForTrip(tripId)
     }
 
-    fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<SegmentWithDetails>> {
-        return segmentDao.getSegmentsWithDetailsForTrip(tripId)
+    fun getSegmentsWithDetailsForTrip(tripId: String): Flow<List<EventWithDetails>> {
+        return eventDao.getEventsWithDetailsForTrip(tripId)
     }
 
-    fun getSegmentWithFishermen(segmentId: String): Flow<SegmentWithFishermen?> {
-        return segmentDao.getSegmentWithFishermen(segmentId)
+    fun getSegmentWithFishermen(segmentId: String): Flow<EventWithFishermen?> {
+        return eventDao.getEventWithFishermen(segmentId)
     }
 
-    fun getSegmentWithDetails(segmentId: String): Flow<SegmentWithDetails?> {
-        return segmentDao.getSegmentWithDetails(segmentId)
+    fun getSegmentWithDetails(segmentId: String): Flow<EventWithDetails?> {
+        return eventDao.getEventWithDetails(segmentId)
     }
 
     suspend fun addFishermanToSegment(segmentId: String, fishermanId: String) {
-        segmentDao.insertSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+        eventDao.insertEventFishermanCrossRef(EventFishermanCrossRef(segmentId, fishermanId))
     }
 
     suspend fun deleteFishermanFromSegment(segmentId: String, fishermanId: String) {
-        segmentDao.deleteSegmentFishermanCrossRef(SegmentFishermanCrossRef(segmentId, fishermanId))
+        eventDao.deleteEventFishermanCrossRef(EventFishermanCrossRef(segmentId, fishermanId))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -290,7 +286,7 @@ class MainViewModel(
         // 1. Create a flow that emits the tackleBoxId
         // Note: This assumes segmentDao returns a Flow.
         // If it's a suspend function, we wrap it in a flow { ... }
-        return segmentDao.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
+        return eventDao.getTackleBoxIdForFisherman(segmentId, fishermanId)
             .flatMapLatest { tackleBoxId ->
                 if (tackleBoxId != null) {
                     tackleBoxDao.getLuresInTackleBox(tackleBoxId)
@@ -369,7 +365,7 @@ class MainViewModel(
 //    }
 
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
-        return fishDao.getFishForSegment(segmentId)
+        return fishDao.getFishForEvent(segmentId)
     }
 
     suspend fun getFishById(id: String): Fish? {
@@ -410,7 +406,7 @@ class MainViewModel(
     }
 
     fun getPhotosForTrip(tripId: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(tripId)
-    fun getPhotosForSegment(segmentId: String): Flow<List<Photo>> = photoDao.getPhotosForSegment(segmentId)
+    fun getPhotosForSegment(segmentId: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(segmentId)
 
     val fishPhotos: StateFlow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
         .map { photos ->
@@ -439,10 +435,10 @@ class MainViewModel(
             try {
                 val allData = DatabaseExportData(
                     trips = tripDao.getAllTrips().firstOrNull() ?: emptyList(),
-                    segments = segmentDao.getAllSegments().firstOrNull() ?: emptyList(),
+                    events = eventDao.getAllEvents().firstOrNull() ?: emptyList(),
                     fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
                     tripFishermanCrossRef = tripDao.getAllTripFishermanCrossRefs().firstOrNull() ?: emptyList(),
-                    segmentFishermanCrossRef = segmentDao.getAllSegmentFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    eventFishermanCrossRef = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
                     lures = lureDao.getAllLures().firstOrNull() ?: emptyList(),
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
                     tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
@@ -469,10 +465,10 @@ class MainViewModel(
                     val data = json_import.decodeFromString<DatabaseExportData>(jsonString)
 
                     tripDao.deleteAllTrips()
-                    segmentDao.deleteAllSegments()
+                    eventDao.deleteAllEvents()
                     fishermanDao.deleteAllFishermen()
                     tripDao.deleteAllTripFishermanCrossRefs()
-                    segmentDao.deleteAllSegmentFishermanCrossRefs()
+                    eventDao.deleteAllEventFishermanCrossRefs()
                     lureDao.deleteAllLures()
                     tackleBoxDao.deleteAllTackleBoxes()
                     tackleBoxDao.deleteAllTackleBoxLureCrossRefs()
@@ -482,11 +478,11 @@ class MainViewModel(
                     photoDao.deleteAllPhotos()
 
                     data.trips.forEach { tripDao.insertTrip(it) }
-                    data.segments.forEach { segmentDao.insertSegment(it) }
+                    data.events.forEach { eventDao.insertEvent(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
-                    data.segmentFishermanCrossRef.forEach { segmentDao.insertSegmentFishermanCrossRef(it) }
+                    data.eventFishermanCrossRef.forEach { eventDao.insertEventFishermanCrossRef(it) }
                     data.colors.forEach { lureDao.insertLureColor(it) }
                     data.lures.forEach { lureDao.insertLure(it) }
                     data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
@@ -507,7 +503,7 @@ class MainViewModel(
 class MainViewModelFactory(
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
-    private val segmentDao: SegmentDao,
+    private val eventDao: EventDao,
     private val lureDao: LureDao,
     private val fishDao: FishDao,
     private val photoDao: PhotoDao,
@@ -516,7 +512,7 @@ class MainViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MainViewModel(tripDao, fishermanDao, segmentDao, lureDao, fishDao, photoDao, tackleBoxDao) as T
+            return MainViewModel(tripDao, fishermanDao, eventDao, lureDao, fishDao, photoDao, tackleBoxDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

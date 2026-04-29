@@ -8,10 +8,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.SegmentSummary
+import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.SegmentItem
@@ -80,7 +78,7 @@ fun AddTripScreen(
 
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val segmentSummaries by tripViewModel.segmentSummaries.collectAsStateWithLifecycle()
-    val segmentSummary by tripViewModel.selectedSegmentSummary.collectAsStateWithLifecycle()
+    val segmentSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
@@ -770,10 +768,10 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             val totalItems = segmentSummaries.size
 
-                            itemsIndexed(segmentSummaries, key = { _, seg -> seg.segment.id }) { index, seg ->
+                            itemsIndexed(segmentSummaries, key = { _, seg -> seg.event.id }) { index, seg ->
                                 // TODO - look into using same card (SegmentItem) from SegmentComponents
-                                val currentSummary = SegmentSummary(
-                                    segment = seg.segment,
+                                val currentSummary = EventSummary(
+                                    event = seg.event,
                                     fishCaught = 0,
                                     fishKept = 0,
                                     fishermanCount = seg.fishermanCount,
@@ -795,8 +793,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     onClick = {
                                         fromReview = true
 
-                                        tripViewModel.selectSegment(seg.segment.id)
-                                        tripViewModel.updateSegmentDraft { seg.segment }
+                                        tripViewModel.selectSegment(seg.event.id)
+                                        tripViewModel.updateSegmentDraft { seg.event }
 
                                         currentStep = WizardStep.SegmentInfo
                                     }

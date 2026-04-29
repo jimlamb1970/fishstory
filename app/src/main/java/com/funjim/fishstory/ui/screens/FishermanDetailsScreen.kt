@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -746,7 +745,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
                 )
             }
         }
-        if (!stats.bestSegmentName.isNullOrEmpty()) {
+        if (!stats.bestEventName.isNullOrEmpty()) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -755,8 +754,8 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                     label = "Best Segment",
-                    name = "${stats.bestSegmentName} - (${stats.bestSegmentTripName})",
-                    description = "(${stats.mostSegmentCatches} fish)",
+                    name = "${stats.bestEventName} - (${stats.bestEventTripName})",
+                    description = "(${stats.mostEventCatches} fish)",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -801,7 +800,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
                 )
             }
         }
-        if (!stats.worstSegmentName.isNullOrEmpty()) {
+        if (!stats.worstEventName.isNullOrEmpty()) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -810,8 +809,8 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingDown,
                     label = "Worst Segment",
-                    name = "${stats.worstSegmentName} - (${stats.worstSegmentTripName})",
-                    description = "(${stats.fewestSegmentCatches} fish)",
+                    name = "${stats.worstEventName} - (${stats.worstEventTripName})",
+                    description = "(${stats.fewestEventCatches} fish)",
                     modifier = Modifier.weight(1f)
                 )
             }

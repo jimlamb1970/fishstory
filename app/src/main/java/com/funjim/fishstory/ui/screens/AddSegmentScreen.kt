@@ -1,19 +1,11 @@
 package com.funjim.fishstory.ui.screens
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -28,20 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Segment
-import com.funjim.fishstory.model.Trip
-import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
-import com.funjim.fishstory.ui.utils.TripAction
-import com.funjim.fishstory.ui.utils.TripItem
-import com.funjim.fishstory.ui.utils.TripMenu
-import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.MainViewModel
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 // ---------------------------------------------------------------------------
@@ -300,7 +284,7 @@ fun AddSegmentScreen(
                                 onClick = {
                                     scope.launch {
                                         // Add the new segment
-                                        val segment = Segment(
+                                        val event = Event(
                                             tripId = tripId,
                                             id = newSegmentId,
                                             name = segmentName,
@@ -309,7 +293,7 @@ fun AddSegmentScreen(
                                             latitude = segmentLat,
                                             longitude = segmentLng
                                         )
-                                        tripViewModel.upsertSegment(segment)
+                                        tripViewModel.upsertSegment(event)
 
                                         if (segmentTackleBoxMap.isEmpty()) {
                                             segmentFishermanIds.forEach { fishermanId ->

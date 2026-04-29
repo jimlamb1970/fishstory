@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
         MainViewModelFactory(
             database.tripDao(),
             database.fishermanDao(),
-            database.segmentDao(),
+            database.eventDao(),
             database.lureDao(),
             database.fishDao(),
             database.photoDao(),

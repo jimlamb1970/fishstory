@@ -1,12 +1,9 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.SegmentFishermanCrossRef
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
-import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
 
 @Dao

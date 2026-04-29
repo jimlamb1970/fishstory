@@ -50,7 +50,7 @@ data class TripWithDetails(
         parentColumn = "id",
         entityColumn = "tripId"
     )
-    val segments: List<Segment>,
+    val events: List<Event>,
     @Relation(
         parentColumn = "id",
         entityColumn = "tripId"
@@ -58,7 +58,7 @@ data class TripWithDetails(
     val fish: List<Fish>
 )
 
-// TODO - rename values to better match SegmentSummary
+// TODO - rename values to better match EventSummary
 data class TripSummary(
     @Embedded val trip: Trip,
     val totalCaught: Int,

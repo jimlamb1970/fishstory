@@ -18,7 +18,7 @@ data class Species(
     val name: String
 )
 
-// TODO -- add the ability to add fish without a trip and/or segment
+// TODO -- add the ability to add fish without a trip and/or event
 @Serializable
 @Entity(
     tableName = "fish_table",
@@ -42,9 +42,9 @@ data class Species(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Segment::class,
+            entity = Event::class,
             parentColumns = ["id"],
-            childColumns = ["segmentId"],
+            childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -58,7 +58,7 @@ data class Species(
         Index(value = ["speciesId"]),
         Index(value = ["fishermanId"]),
         Index(value = ["tripId"]),
-        Index(value = ["segmentId"]),
+        Index(value = ["eventId"]),
         Index(value = ["lureId"])
     ]
 )
@@ -68,7 +68,7 @@ data class Fish(
     val speciesId: String?,
     val fishermanId: String?,
     val tripId: String,
-    val segmentId: String,
+    val eventId: String,
     val lureId: String? = null,
     val length: Double,
     val isReleased: Boolean = true,
@@ -92,8 +92,8 @@ data class FishWithDetails(
     val timestamp: Long,
     val latitude: Double?,
     val longitude: Double?,
-    val segmentId: String,
-    val segmentName: String,
+    val eventId: String,
+    val eventName: String,
     val tripId: String,
     val tripName: String,
     val holeNumber: Int? = null

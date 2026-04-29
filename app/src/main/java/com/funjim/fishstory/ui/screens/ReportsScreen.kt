@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.Segment
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.viewmodels.MainViewModel
 
 // --- Vico 3.x imports ---
@@ -71,7 +71,7 @@ fun ReportsScreen(
         allTrips.find { it.id == selectedTripId }
     }
 
-    val segmentsForTrip by produceState<List<Segment>>(initialValue = emptyList(), key1 = selectedTripId) {
+    val segmentsForTrip by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTripId) {
         selectedTrip?.let { trip ->
             viewModel.getSegmentsForTrip(trip.id).collect { value = it }
         } ?: run { value = emptyList() }

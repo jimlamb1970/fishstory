@@ -5,17 +5,16 @@ import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.LureDao
-import com.funjim.fishstory.database.SegmentDao
+import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.SegmentFishermanCrossRef
+import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import com.funjim.fishstory.model.TripFishermanCrossRef
-import kotlinx.coroutines.flow.forEach
 import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -28,7 +27,7 @@ class FishStoryRepository(
     private val fishDao: FishDao,
     private val fishermanDao: FishermanDao,
     private val lureDao: LureDao,
-    private val segmentDao: SegmentDao,
+    private val eventDao: EventDao,
     private val tackleBoxDao: TackleBoxDao,
     private val tripDao: TripDao
 ) {
@@ -85,7 +84,7 @@ class FishStoryRepository(
                 // 1. Handle the Trip (Year)
                 val tripId = tripDao.getOrCreate(name = row[0])
                 // 2. Handle the Segment (Day)
-                val segmentId = segmentDao.getOrCreate(tripId, name = row[1])
+                val segmentId = eventDao.getOrCreate(tripId, name = row[1])
                 // 3. Handle the Fisherman
                 val fishermanId = fishermanDao.getOrCreate(firstName = row[2], lastName = row[3])
 
@@ -93,8 +92,8 @@ class FishStoryRepository(
                 val tackleBoxId = tackleBoxDao.getOrCreate(fishermanId, tackleBoxName)
 
                 tripDao.upsertTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId, tackleBoxId))
-                segmentDao.upsertSegmentFishermanCrossRef(
-                    SegmentFishermanCrossRef(
+                eventDao.upsertEventFishermanCrossRef(
+                    EventFishermanCrossRef(
                         segmentId,
                         fishermanId,
                         tackleBoxId
@@ -176,7 +175,7 @@ class FishStoryRepository(
                     speciesId = speciesId,
                     fishermanId = fishermanId,
                     tripId = tripId,
-                    segmentId = segmentId,
+                    eventId = segmentId,
                     lureId = lureId,
                     length = length,
                     isReleased = !isKept,

@@ -18,9 +18,9 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Segment::class,
+            entity = Event::class,
             parentColumns = ["id"],
-            childColumns = ["segmentId"],
+            childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -44,7 +44,7 @@ import java.util.UUID
     ],
     indices = [
         Index(value = ["tripId"]),
-        Index(value = ["segmentId"]),
+        Index(value = ["eventId"]),
         Index(value = ["lureId"]),
         Index(value = ["fishermanId"]),
         Index(value = ["fishId"])
@@ -55,7 +55,7 @@ data class Photo(
     val id: String = UUID.randomUUID().toString(),
     val uri: String,
     val tripId: String? = null,
-    val segmentId: String? = null,
+    val eventId: String? = null,
     val lureId: String? = null,
     val fishermanId: String? = null,
     val fishId: String? = null,

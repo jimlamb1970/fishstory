@@ -7,17 +7,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity(
-    tableName = "segment_fisherman_cross_ref",
-    primaryKeys = ["segmentId", "fishermanId"],
+    tableName = "event_fisherman_cross_ref",
+    primaryKeys = ["eventId", "fishermanId"],
     indices = [
         Index(value = ["fishermanId"]),
         Index(value = ["tackleBoxId"])
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Segment::class,
+            entity = Event::class,
             parentColumns = ["id"],
-            childColumns = ["segmentId"],
+            childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -34,8 +34,8 @@ import kotlinx.serialization.Serializable
         )
     ]
 )
-data class SegmentFishermanCrossRef(
-    val segmentId: String,
+data class EventFishermanCrossRef(
+    val eventId: String,
     val fishermanId: String,
     val tackleBoxId: String? = null
 )

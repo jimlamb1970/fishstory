@@ -3,7 +3,7 @@ package com.funjim.fishstory.repository
 import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.PhotoDao
-import com.funjim.fishstory.database.SegmentDao
+import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
@@ -17,7 +17,7 @@ class FishRepository(
     private val fishDao: FishDao,
     private val fishermanDao: FishermanDao,
     private val photoDao: PhotoDao,
-    private val segmentDao: SegmentDao,
+    private val eventDao: EventDao,
     private val tripDao: TripDao
 ) {
     // Basic Data Streams
@@ -25,8 +25,8 @@ class FishRepository(
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
 
     fun getTrip(id: String) = tripDao.getTrip(id)
-    fun getSegmentsForTrip(tripId: String) = segmentDao.getSegmentsForTrip(tripId)
-    fun getSegment(id: String) = segmentDao.getSegment(id)
+    fun getSegmentsForTrip(tripId: String) = eventDao.getEventsForTrip(tripId)
+    fun getSegment(id: String) = eventDao.getEventById(id)
     fun getFisherman(id: String) = fishermanDao.getFisherman(id)
     suspend fun getFish(id: String) = fishDao.getFish(id)
 
@@ -37,7 +37,7 @@ class FishRepository(
         fishermanId: String?
     ): Flow<List<FishWithDetails>> {
         return when {
-            !segmentId.isNullOrBlank() -> fishDao.getFishForSegment(segmentId)
+            !segmentId.isNullOrBlank() -> fishDao.getFishForEvent(segmentId)
             !tripId.isNullOrBlank() -> fishDao.getFishForTrip(tripId)
             !fishermanId.isNullOrBlank() -> fishDao.getFishForFisherman(fishermanId)
             else -> fishDao.getAllFishWithDetails()

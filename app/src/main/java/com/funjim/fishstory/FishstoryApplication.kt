@@ -26,7 +26,7 @@ class FishstoryApplication : Application() {
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
             photoDao = database.photoDao(),
-            segmentDao = database.segmentDao(),
+            eventDao = database.eventDao(),
             tripDao = database.tripDao()
         )
     }
@@ -37,7 +37,7 @@ class FishstoryApplication : Application() {
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
-            segmentDao = database.segmentDao(),
+            eventDao = database.eventDao(),
             tackleBoxDao = database.tackleBoxDao(),
             tripDao = database.tripDao()
         )
@@ -56,7 +56,7 @@ class FishstoryApplication : Application() {
         TripRepository(
             fishermanDao = database.fishermanDao(),
             photoDao = database.photoDao(),
-            segmentDao = database.segmentDao(),
+            eventDao = database.eventDao(),
             tripDao = database.tripDao()
         )
     }

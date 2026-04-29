@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishRepository
-import com.funjim.fishstory.repository.FishermanRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -50,7 +49,7 @@ class FishViewModel(
     val isReversed = _isReversed.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentsForTrip: StateFlow<List<Segment>> = _selectedTripId
+    val segmentsForTrip: StateFlow<List<Event>> = _selectedTripId
         .flatMapLatest { tripId ->
             if (tripId == null) {
                 flowOf(emptyList())

@@ -7,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,15 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import kotlinx.coroutines.launch
@@ -145,7 +141,7 @@ fun FishItem(
                     Text("Trip: ${fish.tripName}", style = MaterialTheme.typography.bodyMedium)
 
                 if (includeSegment)
-                    Text("Segment: ${fish.segmentName}", style = MaterialTheme.typography.bodyMedium)
+                    Text("Segment: ${fish.eventName}", style = MaterialTheme.typography.bodyMedium)
 
                 if (includeFisherman)
                     Text(

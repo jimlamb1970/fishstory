@@ -35,11 +35,11 @@ interface FishermanDao {
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
 
     @Query("""SELECT f.* FROM fisherman_table AS f
-            JOIN segment_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
-            WHERE sref.segmentId = :segmentId
+            JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
+            WHERE sref.eventId = :eventId
             ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
-    fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>>
+    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>>
 
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
@@ -97,7 +97,8 @@ interface FishermanDao {
     fun getFishermanSummaries(): Flow<List<FishermanSummary>>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
 WITH 
 -- 1. Identify the Largest Fish for this fisherman
 LargestFish AS (
@@ -129,19 +130,19 @@ TripStats AS (
       AND t.startDate <= :currentTime  -- Exclude future trips
     GROUP BY t.id
 ),
--- 4. Calculate Segment stats (Only for segments that have already started)
-SegmentStats AS (
+-- 4. Calculate Event stats (Only for events that have already started)
+EventStats AS (
     SELECT 
         s.name, s.startTime, t.name as tripName,
         COUNT(fish.id) as catchCount,
         ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, s.id DESC) as best_row,
         ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, s.id DESC) as worst_row
-    FROM segment_fisherman_cross_ref sref
-    JOIN segment_table s ON sref.segmentId = s.id
+    FROM event_fisherman_cross_ref sref
+    JOIN event_table s ON sref.eventId = s.id
     JOIN trip_table t ON s.tripId = t.id
-    LEFT JOIN fish_table fish ON s.id = fish.segmentId AND fish.fishermanId = :fId
+    LEFT JOIN fish_table fish ON s.id = fish.eventId AND fish.fishermanId = :fId
     WHERE sref.fishermanId = :fId 
-      AND s.startTime <= :currentTime -- Exclude future segments
+      AND s.startTime <= :currentTime -- Exclude future events
     GROUP BY s.id
 )
 
@@ -167,21 +168,22 @@ SELECT
     (SELECT name FROM TripStats WHERE worst_row = 1) AS worstTripName,
     (SELECT startDate FROM TripStats WHERE worst_row = 1) AS worstTripTime,
 
-    -- Best Segment
-    (SELECT catchCount FROM SegmentStats WHERE best_row = 1) AS mostSegmentCatches,
-    (SELECT name FROM SegmentStats WHERE best_row = 1) AS bestSegmentName,
-    (SELECT tripName FROM SegmentStats WHERE best_row = 1) AS bestSegmentTripName,
-    (SELECT startTime FROM SegmentStats WHERE best_row = 1) AS bestSegmentTime,
+    -- Best Event
+    (SELECT catchCount FROM EventStats WHERE best_row = 1) AS mostEventCatches,
+    (SELECT name FROM EventStats WHERE best_row = 1) AS bestEventName,
+    (SELECT tripName FROM EventStats WHERE best_row = 1) AS bestEventTripName,
+    (SELECT startTime FROM EventStats WHERE best_row = 1) AS bestEventTime,
 
-    -- Worst Segment (Skunk Segment)
-    (SELECT catchCount FROM SegmentStats WHERE worst_row = 1) AS fewestSegmentCatches,
-    (SELECT name FROM SegmentStats WHERE worst_row = 1) AS worstSegmentName,
-    (SELECT tripName FROM SegmentStats WHERE worst_row = 1) AS worstSegmentTripName,
-    (SELECT startTime FROM SegmentStats WHERE worst_row = 1) AS worstSegmentTime
+    -- Worst Event (Skunk Event)
+    (SELECT catchCount FROM EventStats WHERE worst_row = 1) AS fewestEventCatches,
+    (SELECT name FROM EventStats WHERE worst_row = 1) AS worstEventName,
+    (SELECT tripName FROM EventStats WHERE worst_row = 1) AS worstEventTripName,
+    (SELECT startTime FROM EventStats WHERE worst_row = 1) AS worstEventTime
 
 FROM fisherman_table AS f
 WHERE f.id = :fId
-""")
+"""
+    )
     fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanFullStatistics>
 
     @Query("""
