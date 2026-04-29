@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -59,17 +58,19 @@ fun TripListScreen(
         if (granted) {
             activeTrip?.let { summary ->
                 scope.launch {
-                    // We add the suppress warning here because we just verified 'granted'
+                    // We add the Suppress warning here because we just verified 'granted'
                     @SuppressLint("MissingPermission")
                     val location = viewModel.getTripCurrentLocation(context)
                     location?.let {
-                        viewModel.saveTrip(summary.trip.copy(latitude = it.latitude, longitude = it.longitude))
+                        viewModel.saveTrip(
+                            summary.trip.copy(latitude = it.latitude, longitude = it.longitude)
+                        )
                     }
                 }
             }
         }
     }
-    // SINGLE Location Picker
+
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
@@ -78,7 +79,7 @@ fun TripListScreen(
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
             activeTrip?.let { summary ->
-                scope.launch { viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng)) }
+                viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng))
             }
         }
     )
@@ -154,7 +155,10 @@ fun TripListScreen(
                 title = { Text("Trips") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -197,7 +201,11 @@ fun TripListScreen(
                                     try {
                                         context.startActivity(intent)
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Could not open map",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                                 else -> {}
@@ -218,7 +226,9 @@ fun TripListScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.MyLocation,
                                         contentDescription = null,
-                                        tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint =
+                                            if (trip.trip.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current)
                                 }
                             )
                             DropdownMenuItem(
@@ -229,7 +239,9 @@ fun TripListScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.Map,
                                         contentDescription = null,
-                                        tint = if (trip.trip.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
+                                        tint =
+                                            if (trip.trip.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current)
                                 }
                             )
                             if (trip.trip.latitude != null) {
@@ -265,6 +277,7 @@ fun TripListScreen(
             }
         }
     }
+
     // DELETE CONFIRMATION
     tripToDelete?.let { item ->
         AlertDialog(

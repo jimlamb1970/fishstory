@@ -259,7 +259,7 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentSummaries: StateFlow<List<EventSummary>> = _selectedTripId
+    val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -285,7 +285,7 @@ class TripViewModel(
                 flowOf(null)
             } else {
                 // We watch the master list and filter for the matching ID
-                segmentSummaries.map { list ->
+                eventSummaries.map { list ->
                     list.find { it.event.id == id }
                 }
             }
@@ -339,31 +339,31 @@ class TripViewModel(
 
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
-            tripRepository.deleteTrip(trip.id)
+            tripRepository.deleteTripById(trip.id)
         }
     }
 
     fun deleteTripById(tripId: String) {
         viewModelScope.launch {
-            tripRepository.deleteTrip(tripId)
+            tripRepository.deleteTripById(tripId)
         }
     }
 
-    fun upsertSegment(event: Event) {
+    fun upsertEvent(event: Event) {
         viewModelScope.launch {
-            tripRepository.upsertSegment(event)
+            tripRepository.upsertEvent(event)
         }
     }
 
-    fun deleteSegment(event: Event) {
+    fun deleteEvent(event: Event) {
         viewModelScope.launch {
-            tripRepository.deleteSegment(event)
+            tripRepository.deleteEvent(event)
         }
     }
 
-    fun deleteSegment(segmentId: String) {
+    fun deleteEventById(eventId: String) {
         viewModelScope.launch {
-            tripRepository.deleteSegment(segmentId)
+            tripRepository.deleteEventById(eventId)
         }
     }
 

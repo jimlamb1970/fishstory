@@ -110,13 +110,12 @@ class TripRepository(
 
     // Trip Operations
     suspend fun upsertTrip(trip: Trip) = tripDao.upsertTrip(trip)
-    suspend fun deleteTrip(tripId: String) = tripDao.deleteTripById(tripId)
+    suspend fun deleteTripById(tripId: String) = tripDao.deleteTripById(tripId)
 
     // Segment Operations
-    suspend fun upsertSegment(event: Event) = eventDao.upsertEvent(event)
-    suspend fun deleteSegment(event: Event) = eventDao.deleteEvent(event)
-    suspend fun deleteSegment(segmentId: String) = eventDao.deleteEventById(segmentId)
-
+    suspend fun upsertEvent(event: Event) = eventDao.upsertEvent(event)
+    suspend fun deleteEvent(event: Event) = eventDao.deleteEvent(event)
+    suspend fun deleteEventById(segmentId: String) = eventDao.deleteEventById(segmentId)
 
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =

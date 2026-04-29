@@ -87,7 +87,7 @@ fun SegmentDetailsScreen(
                     val location = viewModel.getTripCurrentLocation(context)
                     if (location != null) {
                         segmentSummary?.event?.let { segment ->
-                            viewModel.upsertSegment(
+                            viewModel.upsertEvent(
                                 segment.copy(
                                     latitude = location.latitude,
                                     longitude = location.longitude
@@ -114,7 +114,7 @@ fun SegmentDetailsScreen(
         onLocationConfirmed = { lat, lng ->
             segmentSummary?.event?.let { segment ->
                 scope.launch {
-                    viewModel.upsertSegment(
+                    viewModel.upsertEvent(
                         segment.copy(
                             latitude = lat,
                             longitude = lng
@@ -165,7 +165,7 @@ fun SegmentDetailsScreen(
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
                                                 segmentSummary?.event?.let { segment ->
-                                                    viewModel.upsertSegment(
+                                                    viewModel.upsertEvent(
                                                         segment.copy(
                                                             latitude = location.latitude,
                                                             longitude = location.longitude
@@ -208,7 +208,7 @@ fun SegmentDetailsScreen(
                                         menuExpanded = false
                                         scope.launch {
                                             segmentSummary?.event?.let { segment ->
-                                                viewModel.upsertSegment(
+                                                viewModel.upsertEvent(
                                                     segment.copy(
                                                         latitude = tripSummary?.trip?.latitude,
                                                         longitude = tripSummary?.trip?.longitude
@@ -255,7 +255,7 @@ fun SegmentDetailsScreen(
                                         menuExpanded = false
                                         segmentSummary?.event?.let { segment ->
                                             scope.launch {
-                                                viewModel.upsertSegment(
+                                                viewModel.upsertEvent(
                                                     segment.copy(latitude = null, longitude = null)
                                                 )
                                                 Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
@@ -449,7 +449,7 @@ fun SegmentDetailsScreen(
                         confirmButton = {
                             Button(onClick = {
                                 scope.launch {
-                                    viewModel.upsertSegment(details.event.copy(
+                                    viewModel.upsertEvent(details.event.copy(
                                         name = segmentName,
                                         startTime = startDateMillis,
                                         endTime = endDateMillis

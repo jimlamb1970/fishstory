@@ -63,7 +63,8 @@ fun TripDetailsScreen(
     }
 
     val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val segmentSummaries by viewModel.segmentSummaries.collectAsStateWithLifecycle()
+    val eventSummaries by viewModel.eventSummaries.collectAsStateWithLifecycle()
+    var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
 
     val tripPhotos by viewModel.tripPhotos.collectAsState(initial = emptyList())
 
@@ -98,7 +99,7 @@ fun TripDetailsScreen(
         }
     }
 
-    var segmentToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
+    var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -116,15 +117,15 @@ fun TripDetailsScreen(
         }
     )
 
-    val locationPickerSegment = rememberLocationPickerState(
+    val locationPickerEvent = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentToUpdateLocation?.event?.latitude,  // Passed from your DB object
-        existingLng = segmentToUpdateLocation?.event?.longitude,
+        existingLat = eventToUpdateLocation?.event?.latitude,  // Passed from your DB object
+        existingLng = eventToUpdateLocation?.event?.longitude,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            segmentToUpdateLocation?.event?.let { segment ->
+            eventToUpdateLocation?.event?.let { event ->
                 scope.launch {
-                    viewModel.upsertSegment(segment.copy(latitude = lat, longitude = lng))
+                    viewModel.upsertEvent(event.copy(latitude = lat, longitude = lng))
                 }
             }
         }
@@ -302,15 +303,9 @@ fun TripDetailsScreen(
                         PhotoPickerRow(
                             photos = tripPhotos,
                             onPhotoSelected = { uri ->
-                                scope.launch {
-                                    viewModel.addPhoto(Photo(uri = uri.toString(), tripId = tripId))
-                                }
+                                viewModel.addPhoto(Photo(uri = uri.toString(), tripId = tripId))
                             },
-                            onPhotoDeleted = { photo ->
-                                scope.launch {
-                                    viewModel.deletePhoto(photo)
-                                }
-                            }
+                            onPhotoDeleted = { photo -> viewModel.deletePhoto(photo) }
                         )
 
                         if (details.totalCaught != 0 || now >= details.trip.startDate) {
@@ -339,39 +334,32 @@ fun TripDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Segments",
+                                text = "Events",
                                 style = MaterialTheme.typography.titleLarge
                             )
                             IconButton(onClick = {
                                 navigateToAddSegment(tripId)
                             }) {
-                                Icon(Icons.Default.Add, contentDescription = "Add Segment")
+                                Icon(Icons.Default.Add, contentDescription = "Add Event")
                             }
                         }
                     }
 
-                    // TODO - order segments by date
-                    val totalItems = segmentSummaries.size
-                    itemsIndexed(segmentSummaries) { index, segmentSummary ->
+                    val totalItems = eventSummaries.size
+                    itemsIndexed(eventSummaries) { index, eventSummary ->
                         SegmentItem(
-                            eventSummary = segmentSummary,
+                            eventSummary = eventSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             index = index,
                             totalItems = totalItems,
-                            onClick = {
-                                navigateToSegmentDetails(segmentSummary.event.id)
-                            },
-                            onDelete = {
-                                scope.launch {
-                                    viewModel.deleteSegment(segmentSummary.event)
-                                }
-                            },
+                            onClick = { navigateToSegmentDetails(eventSummary.event.id) },
+                            onDelete = { eventToDelete = eventSummary },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
                                         val location = viewModel.getTripCurrentLocation(context)
                                         if (location != null) {
-                                            viewModel.upsertSegment(segmentSummary.event.copy(latitude = location.latitude, longitude = location.longitude))
+                                            viewModel.upsertEvent(eventSummary.event.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                         }
                                     }
@@ -382,14 +370,14 @@ fun TripDetailsScreen(
                                 }
                             },
                             onSelectLocation = {
-                                segmentToUpdateLocation = segmentSummary
-                                locationPickerSegment.openPicker()
+                                eventToUpdateLocation = eventSummary
+                                locationPickerEvent.openPicker()
                             },
                             onUseTripLocation = if (details.trip.latitude != null) {
                                 {
                                     scope.launch {
-                                        viewModel.upsertSegment(
-                                            segmentSummary.event.copy(
+                                        viewModel.upsertEvent(
+                                            eventSummary.event.copy(
                                                 latitude = details.trip.latitude,
                                                 longitude = details.trip.longitude
                                             )
@@ -399,7 +387,7 @@ fun TripDetailsScreen(
                             } else null,
                             onClearLocation = {
                                 scope.launch {
-                                    viewModel.upsertSegment(segmentSummary.event.copy(latitude = null, longitude = null))
+                                    viewModel.upsertEvent(eventSummary.event.copy(latitude = null, longitude = null))
                                 }
                             }
                         )
@@ -479,6 +467,35 @@ fun TripDetailsScreen(
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
         }
+    }
+
+    // DELETE CONFIRMATION
+    eventToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { eventToDelete = null },
+            title = { Text("Delete Event?") },
+            text = { Text("""Are you sure you want to delete '${item.event.name}'?
+
+This cannot be undone.
+
+All fish (${item.fishCaught}) associated with this event will also be deleted.""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteEvent(item.event)
+                        eventToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { eventToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

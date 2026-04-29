@@ -8,8 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -183,9 +186,11 @@ fun SegmentItem(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.LocationOn,
+                                            imageVector = Icons.Default.MyLocation,
                                             contentDescription = null,
-                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint =
+                                                if (event.latitude != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
                                         )
                                     }
                                 )
@@ -200,9 +205,11 @@ fun SegmentItem(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.LocationOn,
+                                            imageVector = Icons.Default.Map,
                                             contentDescription = null,
-                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint =
+                                                if (event.latitude != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
                                         )
                                     }
                                 )
@@ -219,7 +226,9 @@ fun SegmentItem(
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (event.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                            tint =
+                                                if (event.latitude != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
                                         )
                                     }
                                 )
@@ -234,7 +243,7 @@ fun SegmentItem(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.LocationOn,
+                                            Icons.Default.LocationOff,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.error
                                         )

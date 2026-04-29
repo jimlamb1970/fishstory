@@ -77,7 +77,7 @@ fun AddTripScreen(
     }
 
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val segmentSummaries by tripViewModel.segmentSummaries.collectAsStateWithLifecycle()
+    val segmentSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
     val segmentSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
@@ -565,7 +565,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             onClick = {
                                 scope.launch {
                                     // Add the new segment
-                                    tripViewModel.upsertSegment(segmentDraft)
+                                    tripViewModel.upsertEvent(segmentDraft)
 
                                     if (segmentFishermanIds.isEmpty()) {
                                         tripViewModel.updateSegmentFishermanIds(tripFishermanIds)

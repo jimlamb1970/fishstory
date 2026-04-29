@@ -112,7 +112,7 @@ fun AddSegmentScreen(
     fun cancelAndExit() {
         scope.launch {
             // CASCADE deletes will clean up fisherman cross-refs and segments
-            tripViewModel.deleteSegment(newSegmentId)
+            tripViewModel.deleteEventById(newSegmentId)
         }
         tripViewModel.clearTrip()
         tripViewModel.clearSegment()
@@ -293,7 +293,7 @@ fun AddSegmentScreen(
                                             latitude = segmentLat,
                                             longitude = segmentLng
                                         )
-                                        tripViewModel.upsertSegment(event)
+                                        tripViewModel.upsertEvent(event)
 
                                         if (segmentTackleBoxMap.isEmpty()) {
                                             segmentFishermanIds.forEach { fishermanId ->
