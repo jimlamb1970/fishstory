@@ -14,12 +14,15 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
@@ -33,6 +36,8 @@ fun FishermanListScreen(
     navigateBack: () -> Unit
 ) {
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    var fishermanToDelete by remember { mutableStateOf<FishermanSummary?>(null) }
+
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
@@ -106,9 +111,7 @@ fun FishermanListScreen(
                         fisherman = fisherman,
                         index = index,
                         totalItems = totalItems,
-                        onDelete = {
-                            viewModel.deleteFisherman(fisherman.fisherman)
-                        },
+                        onDelete = { fishermanToDelete = fisherman },
                         onClick = {
                             navigateToFishermanDetails(fisherman.fisherman.id)
                         }
@@ -171,6 +174,36 @@ fun FishermanListScreen(
                 }
             )
         }
+    }
+    // DELETE CONFIRMATION
+    fishermanToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { fishermanToDelete = null },
+            title = { Text("Delete Fisherman?") },
+            text = { Text("""Are you sure you want to delete '${item.fisherman.fullName}'?
+
+This cannot be undone.
+
+If you delete ${item.fisherman.fullName}, they will be removed from all trips (${item.totalTrips}) and events.
+
+Tackle boxes and fish (${item.totalCatches}) logged for ${item.fisherman.fullName} will also be deleted.""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteFisherman(item.fisherman)
+                        fishermanToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { fishermanToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

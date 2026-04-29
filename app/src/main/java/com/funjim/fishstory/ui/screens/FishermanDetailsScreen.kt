@@ -43,7 +43,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
+import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -77,6 +79,7 @@ fun FishermanDetailsScreen(
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
+    var tackleBoxToDelete by remember { mutableStateOf<TackleBox?>(null) }
 
     if (stats == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -217,9 +220,7 @@ fun FishermanDetailsScreen(
                                                         tackleBox.tackleBox.id
                                                     )
                                                 },
-                                                onDelete = {
-                                                    viewModel.deleteTackleBox(tackleBox.tackleBox)
-                                                }
+                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox }
                                             )
                                         }
                                     }
@@ -265,9 +266,7 @@ fun FishermanDetailsScreen(
                                                 tackleBoxWithLures.tackleBox.id
                                             )
                                         },
-                                        onDelete = {
-                                            viewModel.deleteTackleBox(tackleBoxWithLures.tackleBox)
-                                        }
+                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox }
                                     )
                                 }
                             }
@@ -436,6 +435,39 @@ fun FishermanDetailsScreen(
                 }
             }
         }
+    }
+
+    // DELETE CONFIRMATION
+    tackleBoxToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { tackleBoxToDelete = null },
+            title = { Text("Delete Tackle Box?") },
+            text = { Text("""Are you sure you want to delete '${item.name}'?
+
+This cannot be undone.
+
+Tackle Boxes are mostly for historical purposes.  They are associated with trips and events. 
+
+They are also used to selecting the 'Lure Used' when logging a fish/catch.
+
+If you delete a tackle box, you may not be able to select a lure when logging a fish/catch for a particular event""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteTackleBox(item)
+                        tackleBoxToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { tackleBoxToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -628,7 +660,7 @@ fun TackleBoxCard(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("Delete") },
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Delete,

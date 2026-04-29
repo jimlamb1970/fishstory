@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -66,6 +68,8 @@ fun FishListScreen(
     val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
+
+    var fishToDelete by remember { mutableStateOf<Fish?>(null) }
 
     var permissionGranted by remember { mutableStateOf(false) }
 
@@ -270,10 +274,7 @@ fun FishListScreen(
                             },
                             onDelete = {
                                 scope.launch {
-                                    val fishObj = viewModel.getFish(fishDetails.id)
-                                    if (fishObj != null) {
-                                        viewModel.deleteFish(fishObj)
-                                    }
+                                    fishToDelete = viewModel.getFish(fishDetails.id)
                                 }
                             },
                             onSetLocation = {
@@ -342,5 +343,32 @@ fun FishListScreen(
                 }
             }
         }
+    }
+
+    // DELETE CONFIRMATION
+    fishToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { fishToDelete = null },
+            title = { Text("Delete Fish?") },
+            text = { Text("""Are you sure you want to delete this fish?
+
+This cannot be undone.""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteFish(item)
+                        fishToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { fishToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

@@ -146,12 +146,19 @@ fun ManageColorsScreen(
         }
     }
 
+    // TODO - see if there are lures using the color to be deleted?
     // DELETE CONFIRMATION
     colorToDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { colorToDelete = null },
             title = { Text("Delete Color?") },
-            text = { Text("Are you sure you want to delete '${item.name}'? This cannot be undone.") },
+            text = { Text("""Are you sure you want to delete '${item.name}'?
+
+This cannot be undone.
+
+Lures that were using this color may not have a color assigned to them.
+"""
+            ) },
             confirmButton = {
                 Button(
                     onClick = {

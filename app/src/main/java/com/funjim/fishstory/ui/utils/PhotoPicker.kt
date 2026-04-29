@@ -51,6 +51,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import android.provider.MediaStore
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.funjim.fishstory.model.Photo
@@ -228,13 +230,14 @@ fun PhotoPickerRow(
             title = { Text("Delete Photo") },
             text = { Text("Are you sure you want to delete this photo from the app?") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         onPhotoDeleted(photo)
                         photoToDelete = null
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text("Delete")
                 }
             },
             dismissButton = {

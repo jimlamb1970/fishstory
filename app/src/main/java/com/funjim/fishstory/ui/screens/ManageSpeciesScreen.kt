@@ -141,12 +141,16 @@ fun ManageSpeciesScreen(
         }
     }
 
+    // TODO -- prevent deletion of species that are in use
     // DELETE CONFIRMATION
     speciesToDelete?.let { species ->
         AlertDialog(
             onDismissRequest = { speciesToDelete = null },
             title = { Text("Delete Species?") },
-            text = { Text("Are you sure you want to delete '${species.name}'? This cannot be undone.") },
+            text = { Text("""Are you sure you want to delete '${species.name}'?
+
+This cannot be undone."""
+            ) },
             confirmButton = {
                 Button(
                     onClick = {

@@ -11,10 +11,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
@@ -30,7 +33,8 @@ fun LureListScreen(
     navigateBack: () -> Unit
 ) {
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
-    val colors by viewModel.lureColors.collectAsState(initial = emptyList())
+    var lureToDelete by remember { mutableStateOf<Lure?>(null) }
+
     val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
@@ -69,7 +73,9 @@ fun LureListScreen(
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -142,12 +148,45 @@ fun LureListScreen(
                             onDeletePhoto = { photo -> scope.launch { viewModel.deletePhoto(photo) } },
                              */
                             onEdit = { onEdit(item.lure.id) },
-                            onDelete = { scope.launch { viewModel.deleteLure(item.lure) } }
+                            onDelete = { lureToDelete = item.lure }
                         )
                     }
                 }
             }
         }
+    }
+
+    // TODO - get fish counts and tackle box counts for lures
+    // DELETE CONFIRMATION
+    lureToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { lureToDelete = null },
+            title = { Text("Delete Lure?") },
+            text = { Text("""Are you sure you want to delete '${item.name}'?
+
+This cannot be undone.
+
+If you delete this lure, it will be removed from all fish that were caught with it.
+
+It will also be removed from all tackle boxes that contained it.
+""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteLure(item)
+                        lureToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { lureToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
