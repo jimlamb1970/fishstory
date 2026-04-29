@@ -14,8 +14,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
@@ -182,9 +185,11 @@ fun FishItem(
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Default.LocationOn,
+                                        imageVector = Icons.Default.MyLocation,
                                         contentDescription = null,
-                                        tint = if (fish.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                        tint =
+                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
                                     )
                                 }
                             )
@@ -192,16 +197,18 @@ fun FishItem(
 
                         if (onSelectLocation != null) {
                             DropdownMenuItem(
-                                text = { Text("Select Location") },
+                                text = { Text("Select on Map") },
                                 onClick = {
                                     menuExpanded = false
                                     onSelectLocation()
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Default.LocationOn,
+                                        imageVector = Icons.Default.Map,
                                         contentDescription = null,
-                                        tint = if (fish.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                        tint =
+                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
                                     )
                                 }
                             )
@@ -218,7 +225,9 @@ fun FishItem(
                                     Icon(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (fish.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                        tint =
+                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
                                     )
                                 }
                             )
@@ -235,7 +244,9 @@ fun FishItem(
                                     Icon(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = if (fish.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
+                                        tint =
+                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
                                     )
                                 }
                             )
@@ -243,14 +254,14 @@ fun FishItem(
 
                         if (fish.latitude != null && onClearLocation != null) {
                             DropdownMenuItem(
-                                text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                text = { Text("Clear Location") },
                                 onClick = {
                                     menuExpanded = false
                                     onClearLocation()
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        Icons.Default.LocationOn,
+                                        Icons.Default.LocationOff,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.error
                                     )

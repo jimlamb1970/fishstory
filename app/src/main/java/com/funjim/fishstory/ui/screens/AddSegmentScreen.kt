@@ -166,7 +166,10 @@ fun AddSegmentScreen(
                             DropdownMenu(expanded = locationMenuExpanded, onDismissRequest = { locationMenuExpanded = false }) {
                                 DropdownMenuItem(
                                     text = { Text("Use Current Location") },
-                                    leadingIcon = { Icon(Icons.Default.MyLocation, null) },
+                                    leadingIcon = { Icon(
+                                        Icons.Default.MyLocation,
+                                        null)
+                                    },
                                     onClick = {
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -183,7 +186,9 @@ fun AddSegmentScreen(
                                 if (tripSummary?.trip?.latitude != null) {
                                     DropdownMenuItem(
                                         text = { Text("Use Trip Location") },
-                                        leadingIcon = { Icon(Icons.Default.LocationOn, null) },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.LocationOn, null)
+                                        },
                                         onClick = {
                                             locationMenuExpanded = false
                                             segmentLat = tripSummary?.trip?.latitude; segmentLng = tripSummary?.trip?.longitude
@@ -192,7 +197,9 @@ fun AddSegmentScreen(
                                 }
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
-                                    leadingIcon = { Icon(Icons.Default.Map, null) },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Map, null)
+                                    },
                                     onClick = {
                                         locationMenuExpanded = false
                                         locationPicker.openPicker()
@@ -200,8 +207,14 @@ fun AddSegmentScreen(
                                 )
                                 if (hasLocation) {
                                     DropdownMenuItem(
-                                        text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
-                                        leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) },
+                                        text = { Text("Clear Location") },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.LocationOff,
+                                                null,
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        },
                                         onClick = {
                                             locationMenuExpanded = false
                                             segmentLat = null; segmentLng = null

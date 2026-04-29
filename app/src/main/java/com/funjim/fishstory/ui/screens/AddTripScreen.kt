@@ -321,8 +321,14 @@ fun AddTripScreen(
                                 )
                                 if (hasLocation) {
                                     DropdownMenuItem(
-                                        text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
-                                        leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) },
+                                        text = { Text("Clear Location") },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.LocationOff,
+                                                null,
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        },
                                         onClick = {
                                             locationMenuExpanded = false
                                             if (onTripStep) {
@@ -713,7 +719,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Select Location") },
+                                    text = { Text("Select on Map") },
                                     onClick = {
                                         onTripAction(TripAction.SelectLocation(tripSummary = currentTrip))
                                     },

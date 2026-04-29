@@ -198,7 +198,7 @@ fun EventItem(
 
                             if (onSelectLocation != null) {
                                 DropdownMenuItem(
-                                    text = { Text("Select Location") },
+                                    text = { Text("Select on Map") },
                                     onClick = {
                                         menuExpanded = false
                                         onSelectLocation()

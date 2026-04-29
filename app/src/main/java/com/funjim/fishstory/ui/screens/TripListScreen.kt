@@ -232,7 +232,7 @@ fun TripListScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Select Location") },
+                                text = { Text("Select on Map") },
                                 onClick = {
                                     onAction(TripAction.SelectLocation(trip))
                                 },

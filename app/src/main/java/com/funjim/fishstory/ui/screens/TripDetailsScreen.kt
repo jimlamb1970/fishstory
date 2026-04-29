@@ -15,8 +15,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -197,20 +200,20 @@ fun TripDetailsScreen(
                                     }
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.LocationOn,
+                                    Icon(Icons.Default.MyLocation,
                                         contentDescription = null,
                                         tint = if (tripSummary?.trip?.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current)
                                 }
                             )
 
                             DropdownMenuItem(
-                                text = { Text("Select Location") },
+                                text = { Text("Select on Map") },
                                 onClick = {
                                     menuExpanded = false
                                     locationPicker.openPicker()
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.LocationOn,
+                                    Icon(Icons.Default.Map,
                                         contentDescription = null,
                                         tint = if (tripSummary?.trip?.latitude != null)
                                             Color(0xFF4CAF50)
@@ -221,7 +224,7 @@ fun TripDetailsScreen(
 
                             if (tripSummary?.trip?.latitude != null) {
                                 DropdownMenuItem(
-                                    text = { Text("Clear Location", color = MaterialTheme.colorScheme.error) },
+                                    text = { Text("Clear Location") },
                                     onClick = {
                                         menuExpanded = false
                                         tripSummary?.trip?.let { trip ->
@@ -235,7 +238,7 @@ fun TripDetailsScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.LocationOn,
+                                            Icons.Default.LocationOff,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.error
                                         )
