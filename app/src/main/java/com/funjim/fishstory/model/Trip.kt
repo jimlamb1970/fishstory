@@ -61,6 +61,7 @@ data class TripWithDetails(
 // TODO - rename values to better match EventSummary
 data class TripSummary(
     @Embedded val trip: Trip,
+    val eventCount: Int,
     val totalCaught: Int,
     val totalKept: Int,
     val fishermanCount: Int,

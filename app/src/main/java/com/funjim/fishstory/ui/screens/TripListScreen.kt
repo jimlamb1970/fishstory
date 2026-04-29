@@ -43,6 +43,7 @@ fun TripListScreen(
     navigateBack: () -> Unit
 ) {
     val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+    var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -142,9 +143,7 @@ fun TripListScreen(
             }
             is TripAction.Delete -> {
                 showMenu = false
-                scope.launch {
-                    viewModel.deleteTrip(action.tripSummary.trip)
-                }
+                tripToDelete = action.tripSummary
             }
         }
     }
@@ -265,5 +264,33 @@ fun TripListScreen(
                 }
             }
         }
+    }
+    // DELETE CONFIRMATION
+    tripToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { tripToDelete = null },
+            title = { Text("Delete Trip?") },
+            text = { Text("""Are you sure you want to delete '${item.trip.name}'?
+
+This cannot be undone.
+
+All events (${item.eventCount}) and fish (${item.totalCaught}) associated with this trip will also be deleted.""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteTrip(item.trip)
+                        tripToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { tripToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

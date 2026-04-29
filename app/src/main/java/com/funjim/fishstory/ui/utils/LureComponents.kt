@@ -214,7 +214,7 @@ fun LureItem(
                         colors.add(secondaryColorName)
                     }
                     if (colors.isNotEmpty()) {
-                        sb.append(" ${colors.joinToString("/")}")
+                        sb.append(colors.joinToString("/"))
                         Text(
                             text = sb.toString(),
                             style = MaterialTheme.typography.bodyMedium,
@@ -225,7 +225,7 @@ fun LureItem(
                     if (lure.glows) {
                         val sb = StringBuilder("Glows")
                         if (!glowColorName.isNullOrBlank()) {
-                            sb.append(" : $glowColorName")
+                            sb.append(": $glowColorName")
                         }
                         Text(
                             text = sb.toString(),

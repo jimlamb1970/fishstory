@@ -144,26 +144,6 @@ class MainViewModel(
         return tripDao.getTripWithDetails(tripId)
     }
 
-    suspend fun addTrip(trip: Trip) {
-        tripDao.insertTrip(trip)
-    }
-
-    suspend fun upsertTrip(trip: Trip) {
-        tripDao.upsertTrip(trip)
-    }
-
-    suspend fun updateTrip(trip: Trip) {
-        tripDao.updateTrip(trip)
-    }
-
-    suspend fun deleteTrip(trip: Trip) {
-        tripDao.deleteTrip(trip)
-    }
-
-    suspend fun deleteTripById(tripId: String) {
-        tripDao.deleteTripById(tripId)
-    }
-
     suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
         // Check if the fisherman already exists
         val fishermanByName = fishermanDao.getFishermanByName(firstName, lastName, nickname)

@@ -655,6 +655,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         // Trip summary card
                         val currentTrip = TripSummary(
                             trip = tripDraft,
+                            eventCount = 0,
                             totalCaught = 0,
                             totalKept = 0,
                             fishermanCount = tripFishermanIds.size,

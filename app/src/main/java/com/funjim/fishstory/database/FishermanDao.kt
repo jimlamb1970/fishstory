@@ -189,6 +189,7 @@ WHERE f.id = :fId
     @Query("""
     SELECT 
         t.*, 
+        0 as eventCount,
         COUNT(f.id) AS totalCaught,
         SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
         -1 as fishermanCount,
@@ -210,6 +211,7 @@ WHERE f.id = :fId
     @Query("""
     SELECT 
         t.*, 
+        0 as eventCount,
         COUNT(f.id) AS totalCaught,
         SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
         -1 as fishermanCount,
@@ -232,6 +234,7 @@ WHERE f.id = :fId
     @Query("""
     SELECT 
         t.*, 
+        0 as eventCount,
         COUNT(f.id) AS totalCaught,
         SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
         -1 as fishermanCount,
@@ -254,6 +257,7 @@ WHERE f.id = :fId
     @Query("""
     SELECT 
         t.*, 
+        0 as eventCount,
         COUNT(f.id) AS totalCaught,
         SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
         -1 as fishermanCount,
