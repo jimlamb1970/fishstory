@@ -48,7 +48,7 @@ class DashboardViewModel(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activeTripSegments: StateFlow<SegmentGroups> = currentTime
+    val activeTripEvents: StateFlow<SegmentGroups> = currentTime
         .flatMapLatest { now ->
             repository.getSegmentsForActiveTrips(now).map { allSegments ->
                 // Split them into the 3 groups here

@@ -74,7 +74,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val activeTripSegments by viewModel.activeTripSegments.collectAsStateWithLifecycle()
+    val activeTripEvents by viewModel.activeTripEvents.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -91,14 +91,14 @@ fun DashboardScreen(
         ) {
             // 1. ACTIVE TRIP (The Hero)
             item {
-                if (state.activeTrips.isNotEmpty() && activeTripSegments.active.isNotEmpty()) {
+                if (state.activeTrips.isNotEmpty() && activeTripEvents.active.isNotEmpty()) {
                     ActiveTripCard(
                         activeTrips = state.activeTrips,
-                        activeSegments = activeTripSegments.active,
+                        activeEvents = activeTripEvents.active,
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
-                        onSegmentClick = { tripId, segmentId -> onNavigate("segment_details/$segmentId/$tripId") },
-                        onClick = { tripId, segmentId -> onNavigate("segment_details/$segmentId/$tripId") },
-                        onLogFish = { tripId, segmentId -> onNavigate("add_fish/$tripId/$segmentId") }
+                        onEventClick = { tripId, eventId -> onNavigate("segment_details/$eventId/$tripId") },
+                        onClick = { tripId, eventId -> onNavigate("segment_details/$eventId/$tripId") },
+                        onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
                     )
                 } else {
                     // Empty state leads user to create new trip
@@ -112,19 +112,19 @@ fun DashboardScreen(
             }
 
             // 2. UPCOMING TRIPS (Horizontal Row)
-            if ((activeTripSegments.upcoming.isNotEmpty() || state.upcomingTrips.isNotEmpty())) {
+            if ((activeTripEvents.upcoming.isNotEmpty() || state.upcomingTrips.isNotEmpty())) {
                 item {
                     Text("Upcoming Adventures", style = MaterialTheme.typography.titleLarge)
 
-                    if (activeTripSegments.upcoming.isNotEmpty()) {
+                    if (activeTripEvents.upcoming.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Upcoming Segments", style = MaterialTheme.typography.titleSmall)
+                        Text("Upcoming Events", style = MaterialTheme.typography.titleSmall)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(activeTripSegments.upcoming) { segment ->
-                                UpcomingSegmentChip(
-                                    tripName = state.activeTrips.find { it.trip.id == segment.event.tripId }?.trip?.name ?: "Unknown Trip",
-                                    event = segment.event,
-                                    onSegmentClick = { segmentId, tripId -> onNavigate("segment_details/${segmentId}/${tripId}") }
+                            items(activeTripEvents.upcoming) { upcomingEvent ->
+                                UpcomingEventChip(
+                                    tripName = state.activeTrips.find { it.trip.id == upcomingEvent.event.tripId }?.trip?.name ?: "Unknown Trip",
+                                    event = upcomingEvent.event,
+                                    onEventClick = { eventId, tripId -> onNavigate("segment_details/${eventId}/${tripId}") }
                                 )
                             }
                         }
@@ -207,27 +207,27 @@ fun DashboardScreen(
 @Composable
 fun ActiveTripCard(
     activeTrips: List<TripSummary>,
-    activeSegments: List<EventSummary>,
+    activeEvents: List<EventSummary>,
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
-    onSegmentClick: (String, String) -> Unit,
+    onEventClick: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
-    val segment = activeSegments.getOrNull(currentIndex) ?: return
-    val trip = activeTrips.find { it.trip.id == segment.event.tripId } ?: return
+    val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
+    val trip = activeTrips.find { it.trip.id == currentEvent.event.tripId } ?: return
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(segment.event.tripId, segment.event.id) }
-            .pointerInput(activeSegments.size) {
+            .clickable { onClick(currentEvent.event.tripId, currentEvent.event.id) }
+            .pointerInput(activeEvents.size) {
                 var dragTotal = 0f
                 detectHorizontalDragGestures(
                     onDragStart = { dragTotal = 0f },
                     onDragEnd = {
                         when {
-                            dragTotal < -50f && currentIndex < activeSegments.size - 1 -> currentIndex++
+                            dragTotal < -50f && currentIndex < activeEvents.size - 1 -> currentIndex++
                             dragTotal > 50f && currentIndex > 0 -> currentIndex--
                         }
                         dragTotal = 0f
@@ -256,9 +256,9 @@ fun ActiveTripCard(
                     Spacer(Modifier.width(8.dp))
                     Text("LIVE TRIP", style = MaterialTheme.typography.labelLarge)
                 }
-                if (activeSegments.size > 1) {
+                if (activeEvents.size > 1) {
                     Text(
-                        text = "${currentIndex + 1} / ${activeSegments.size}",
+                        text = "${currentIndex + 1} / ${activeEvents.size}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                     )
@@ -271,7 +271,7 @@ fun ActiveTripCard(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable( onClick = { onTripClick(trip.trip.id) })
             )
-            if (trip.totalCaught != segment.fishCaught) {
+            if (trip.totalCaught != currentEvent.fishCaught) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -302,31 +302,35 @@ fun ActiveTripCard(
                         icon = Icons.Default.Person,
                         label = "Most Caught",
                         name = trip.mostCaughtName,
-                        description = "(${trip.mostCaught} fish)",
+                        description =
+                            if (trip.mostCaught == null) ""
+                            else "(${trip.mostCaught} fish)",
                         modifier = Modifier.weight(1f)
                     )
                     AchievementItem(
                         icon = Icons.Default.Person,
                         label = "Biggest Fish",
                         name = trip.bigFishName,
-                        description = "(${trip.bigFishLength}\" : ${trip.bigFishSpecies})",
+                        description =
+                            if (trip.bigFishLength == null) ""
+                            else "(${trip.bigFishLength} : ${trip.bigFishSpecies})",
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
             Text(
-                text = segment.event.name,
+                text = currentEvent.event.name,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable( onClick = { onSegmentClick(segment.event.tripId, segment.event.id) })
+                modifier = Modifier.clickable( onClick = { onEventClick(currentEvent.event.tripId, currentEvent.event.id) })
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(label = "CAUGHT", value = "${segment.fishCaught}", color = MaterialTheme.colorScheme.primary)
-                StatItem(label = "KEPT", value = "${segment.fishKept}", color = MaterialTheme.colorScheme.primary) // Harvest Green
+                StatItem(label = "CAUGHT", value = "${currentEvent.fishCaught}", color = MaterialTheme.colorScheme.primary)
+                StatItem(label = "KEPT", value = "${currentEvent.fishKept}", color = MaterialTheme.colorScheme.primary) // Harvest Green
             }
 
-            if (segment.mostCaught != 0) {
+            if (currentEvent.mostCaught != null && currentEvent.mostCaught != 0) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
@@ -340,16 +344,18 @@ fun ActiveTripCard(
                     AchievementItem(
                         icon = Icons.Default.Person,
                         label = "Most Caught",
-                        name = segment.mostCaughtName,
-                        description = "(${segment.mostCaught} fish)",
+                        name = currentEvent.mostCaughtName,
+                        description = "(${currentEvent.mostCaught} fish)",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
                     AchievementItem(
                         icon = Icons.Default.Person,
                         label = "Biggest Fish",
-                        name = segment.bigFishName,
-                        description = "(${segment.bigFishLength}\" : ${segment.bigFishSpecies})",
+                        name = currentEvent.bigFishName,
+                        description =
+                            if (currentEvent.bigFishLength == null) ""
+                            else "(${currentEvent.bigFishLength} : ${currentEvent.bigFishSpecies})",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -357,7 +363,7 @@ fun ActiveTripCard(
 
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { onLogFish(segment.event.tripId, segment.event.id) },
+                onClick = { onLogFish(currentEvent.event.tripId, currentEvent.event.id) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
@@ -366,14 +372,14 @@ fun ActiveTripCard(
             ) {
                 Text("LOG A CATCH")
             }
-            if (activeSegments.size > 1) {
+            if (activeEvents.size > 1) {
                 Spacer(Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    activeSegments.forEachIndexed { index, _ ->
+                    activeEvents.forEachIndexed { index, _ ->
                         Box(
                             modifier = Modifier
                                 .padding(horizontal = 3.dp)
@@ -513,10 +519,10 @@ fun UpcomingTripChip(
 }
 
 @Composable
-fun UpcomingSegmentChip(
+fun UpcomingEventChip(
     tripName: String,
     event: Event,
-    onSegmentClick: (String, String) -> Unit
+    onEventClick: (String, String) -> Unit
 ) {
     val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
         .format(java.util.Date(event.startTime))
@@ -525,7 +531,7 @@ fun UpcomingSegmentChip(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
-        modifier = Modifier.width(140.dp).clickable{onSegmentClick(event.id, event.tripId)}
+        modifier = Modifier.width(140.dp).clickable{onEventClick(event.id, event.tripId)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(

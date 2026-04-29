@@ -57,11 +57,11 @@ fun AddSegmentScreen(
 
     LaunchedEffect(tripId) {
         tripViewModel.selectTrip(tripId)
-        tripViewModel.selectSegment(newSegmentId)
+        tripViewModel.selectEvent(newSegmentId)
     }
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
+    val segmentTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
 
     var segmentName by remember { mutableStateOf("") }
 
@@ -115,7 +115,7 @@ fun AddSegmentScreen(
             tripViewModel.deleteEventById(newSegmentId)
         }
         tripViewModel.clearTrip()
-        tripViewModel.clearSegment()
+        tripViewModel.clearEvent()
         navigateBack()
     }
 
@@ -297,8 +297,8 @@ fun AddSegmentScreen(
 
                                         if (segmentTackleBoxMap.isEmpty()) {
                                             segmentFishermanIds.forEach { fishermanId ->
-                                                tripViewModel.upsertSegmentFishermanCrossRef(
-                                                    segmentId = newSegmentId,
+                                                tripViewModel.upsertEventFishermanCrossRef(
+                                                    eventId = newSegmentId,
                                                     fishermanId = fishermanId,
                                                     tackleBoxId = tripTackleBoxMap[fishermanId]
                                                 )
@@ -332,22 +332,22 @@ fun AddSegmentScreen(
                             onSelectionChanged = { fishermanId, selected ->
                                 if (selected) {
                                     segmentFishermanIds = segmentFishermanIds + fishermanId
-                                    tripViewModel.upsertSegmentFishermanCrossRef(
-                                        segmentId = newSegmentId,
+                                    tripViewModel.upsertEventFishermanCrossRef(
+                                        eventId = newSegmentId,
                                         fishermanId = fishermanId,
                                         tackleBoxId = segmentTackleBoxMap[fishermanId]
                                     )
                                 } else {
                                     segmentFishermanIds = segmentFishermanIds - fishermanId
-                                    tripViewModel.deleteSegmentFishermanCrossRef(
-                                        segmentId = newSegmentId,
+                                    tripViewModel.deleteEventFishermanCrossRef(
+                                        eventId = newSegmentId,
                                         fishermanId = fishermanId
                                     )
                                 }
                             },
                             onTackleBoxChanged = { fishermanId, boxId ->
-                                tripViewModel.upsertSegmentFishermanCrossRef(
-                                    segmentId = newSegmentId,
+                                tripViewModel.upsertEventFishermanCrossRef(
+                                    eventId = newSegmentId,
                                     fishermanId = fishermanId,
                                     tackleBoxId = boxId
                                 )
@@ -356,13 +356,13 @@ fun AddSegmentScreen(
                             confirmLabel = "Done",
                             onConfirm = {
                                 tripViewModel.clearTrip()
-                                tripViewModel.clearSegment()
+                                tripViewModel.clearEvent()
                                 navigateBack()
                             },
                             onAddTackleBox = { tackleBoxName, fishermanId ->
-                                scope.launch { tripViewModel.createAndAssignSegmentTackleBox(
+                                scope.launch { tripViewModel.createAndAssignEventTackleBox(
                                     fishermanId = fishermanId,
-                                    segmentId = newSegmentId,
+                                    eventId = newSegmentId,
                                     name = tackleBoxName
                                 ) }
                             }

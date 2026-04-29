@@ -39,7 +39,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.SegmentItem
+import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -347,7 +347,7 @@ fun TripDetailsScreen(
 
                     val totalItems = eventSummaries.size
                     itemsIndexed(eventSummaries) { index, eventSummary ->
-                        SegmentItem(
+                        EventItem(
                             eventSummary = eventSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             index = index,

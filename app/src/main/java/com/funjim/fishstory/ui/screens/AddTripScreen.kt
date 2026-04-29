@@ -30,7 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
-import com.funjim.fishstory.ui.utils.SegmentItem
+import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -59,33 +59,33 @@ fun AddTripScreen(
     val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
     val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
-    // TODO -- can tripDraft and segmentDraft be replaced by tripSummary and segmentSummary?
+    // TODO -- can tripDraft and eventDraft be replaced by tripSummary and eventSummary?
     val tripDraft by tripViewModel.tripDraft.collectAsStateWithLifecycle()
-    val segmentDraft by tripViewModel.segmentDraft.collectAsStateWithLifecycle()
+    val eventDraft by tripViewModel.eventDraft.collectAsStateWithLifecycle()
 
-    // tripFishermen and segmentFishermen are not really used. But they are being collected
-    // because when selecting a trip and/or segment, those flows have a side effect of updating
-    // the tripFishermanIds and segmentFishermanIds to reflect the trip and segment selections
+    // tripFishermen and eventFishermen are not really used. But they are being collected
+    // because when selecting a trip and/or event, those flows have a side effect of updating
+    // the tripFishermenIds and eventFishermenIds to reflect the trip and event selections
     val tripFishermen by tripViewModel.tripFishermen.collectAsStateWithLifecycle()
-    val tripFishermanIds by tripViewModel.tripFishermanIds.collectAsStateWithLifecycle()
-    val segmentFishermen by tripViewModel.segmentFishermen.collectAsStateWithLifecycle()
-    val segmentFishermanIds by tripViewModel.segmentFishermanIds.collectAsStateWithLifecycle()
+    val tripFishermenIds by tripViewModel.tripFishermenIds.collectAsStateWithLifecycle()
+    val eventFishermen by tripViewModel.eventFishermen.collectAsStateWithLifecycle()
+    val eventFishermenIds by tripViewModel.eventFishermenIds.collectAsStateWithLifecycle()
 
     LaunchedEffect(tripDraft.id) {
         tripViewModel.selectTrip(tripDraft.id)
-        tripViewModel.selectSegment(segmentDraft.id)
+        tripViewModel.selectEvent(eventDraft.id)
     }
 
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val segmentSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
-    val segmentSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
+    val eventSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
+    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val segmentTackleBoxMap by tripViewModel.segmentTackleBoxMap.collectAsState()
+    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
 
     // ── Wizard step ─────────────────────────────────────────────────────────
     var currentStep by remember { mutableStateOf(WizardStep.TripInfo) }
-    var isFirstSegment by remember { mutableStateOf(true) }
+    var isFirstEvent by remember { mutableStateOf(true) }
     var fromReview by remember { mutableStateOf(false) }
 
     var showTripMenu by remember { mutableStateOf(false) }
@@ -105,13 +105,13 @@ fun AddTripScreen(
         }
     )
 
-    val segmentLocationPicker = rememberLocationPickerState(
+    val eventLocationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentDraft.latitude,
-        existingLng = segmentDraft.longitude,
+        existingLat = eventDraft.latitude,
+        existingLng = eventDraft.longitude,
         onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            tripViewModel.updateSegmentDraft { it.copy(latitude = lat, longitude = lng) }
+            tripViewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
     )
 
@@ -127,8 +127,8 @@ fun AddTripScreen(
                                 latitude = loc.latitude,
                                 longitude = loc.longitude)
                         }
-                    } else if (currentStep == WizardStep.SegmentInfo) {
-                        tripViewModel.updateSegmentDraft {
+                    } else if (currentStep == WizardStep.EventInfo) {
+                        tripViewModel.updateEventDraft {
                             it.copy(
                                 latitude = loc.latitude,
                                 longitude = loc.longitude)
@@ -141,17 +141,17 @@ fun AddTripScreen(
 
     // Helper: delete the trip row if user cancels mid-wizard
     fun cancelAndExit() {
-        scope.launch {
-            // CASCADE deletes will clean up fisherman cross-refs and segments
-            tripViewModel.deleteTripById(tripDraft.id)
-        }
+        // CASCADE deletes will clean up fisherman cross-refs and events
+        tripViewModel.deleteTripById(tripDraft.id)
         tripViewModel.clearTrip()
-        tripViewModel.clearSegment()
+        tripViewModel.clearTripDraft()
+        tripViewModel.clearEvent()
+        tripViewModel.clearEventDraft()
         navigateBack()
     }
 
     // Progress indicator
-    val stepLabels = listOf("Trip", "Crew & Boxes", "Segment", "Seg. Crew & Boxes", "Review")
+    val stepLabels = listOf("Trip", "Crew & Boxes", "Event", "Seg. Crew & Boxes", "Review")
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
     val onTripAction: (TripAction) -> Unit = { action ->
@@ -237,25 +237,25 @@ fun AddTripScreen(
                         when (currentStep) {
                             WizardStep.TripInfo    -> cancelAndExit()
                             WizardStep.TripCrew    -> currentStep = WizardStep.TripInfo
-                            WizardStep.SegmentInfo -> {
+                            WizardStep.EventInfo -> {
                                 // Logic depends on whether this is the start of the trip or a later addition
-                                currentStep = if (isFirstSegment) {
+                                currentStep = if (isFirstEvent) {
                                     WizardStep.TripCrew
                                 } else {
                                     WizardStep.Review
                                 }
                             }
-                            WizardStep.SegmentCrew -> currentStep = WizardStep.SegmentInfo
-                            WizardStep.Review      -> currentStep = WizardStep.SegmentInfo
+                            WizardStep.EventCrew -> currentStep = WizardStep.EventInfo
+                            WizardStep.Review    -> currentStep = WizardStep.EventCrew
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    if (currentStep == WizardStep.TripInfo || currentStep == WizardStep.SegmentInfo) {
+                    if (currentStep == WizardStep.TripInfo || currentStep == WizardStep.EventInfo) {
                         val onTripStep = currentStep == WizardStep.TripInfo
-                        val hasLocation = if (onTripStep) tripDraft.latitude != null else segmentDraft.latitude != null
+                        val hasLocation = if (onTripStep) tripDraft.latitude != null else eventDraft.latitude != null
                         Box {
                             IconButton(onClick = { locationMenuExpanded = true }) {
                                 Icon(
@@ -282,7 +282,7 @@ fun AddTripScreen(
                                                         }
                                                     }
                                                     else {
-                                                        tripViewModel.updateSegmentDraft {
+                                                        tripViewModel.updateEventDraft {
                                                             it.copy(
                                                                 latitude = loc.latitude,
                                                                 longitude = loc.longitude
@@ -302,7 +302,7 @@ fun AddTripScreen(
                                         leadingIcon = { Icon(Icons.Default.LocationOn, null) },
                                         onClick = {
                                             locationMenuExpanded = false
-                                            tripViewModel.updateSegmentDraft {
+                                            tripViewModel.updateEventDraft {
                                                 it.copy(
                                                     latitude = tripDraft.latitude,
                                                     longitude = tripDraft.longitude
@@ -316,7 +316,7 @@ fun AddTripScreen(
                                     leadingIcon = { Icon(Icons.Default.Map, null) },
                                     onClick = {
                                         locationMenuExpanded = false
-                                        if (onTripStep) tripLocationPicker.openPicker() else segmentLocationPicker.openPicker()
+                                        if (onTripStep) tripLocationPicker.openPicker() else eventLocationPicker.openPicker()
                                     }
                                 )
                                 if (hasLocation) {
@@ -329,7 +329,7 @@ fun AddTripScreen(
                                                 tripViewModel.updateTripDraft { it.copy(latitude = null, longitude = null) }
                                             }
                                             else {
-                                                tripViewModel.updateSegmentDraft { it.copy(latitude = null, longitude = null) }
+                                                tripViewModel.updateEventDraft { it.copy(latitude = null, longitude = null) }
                                             }
                                         }
                                     )
@@ -407,9 +407,9 @@ fun AddTripScreen(
                                 scope.launch {
                                     tripViewModel.saveTrip(tripDraft)
 
-                                    // Seed segment defaults
-                                    tripViewModel.updateSegmentDraft{
-                                        segmentDraft.copy(startTime = tripDraft.startDate, endTime = tripDraft.endDate)
+                                    // Seed event defaults
+                                    tripViewModel.updateEventDraft{
+                                        eventDraft.copy(startTime = tripDraft.startDate, endTime = tripDraft.endDate)
                                     }
                                     currentStep = WizardStep.TripCrew
                                 }
@@ -430,10 +430,10 @@ fun AddTripScreen(
                         title = "Crew & Tackle Boxes",
                         subtitle = """
 Select who's on the boat and which tackle box each person will use.
-If a fisherman is removed from the trip, the fisherman will also be removed from all segments.
+If a fisherman is removed from the trip, the fisherman will also be removed from all events.
 """,
                         eligibleFishermen = sortedFishermen,
-                        selectedIds = tripFishermanIds,
+                        selectedIds = tripFishermenIds,
                         tackleBoxSelections = tripTackleBoxMap,
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleTripFisherman(fishermanId)
@@ -444,7 +444,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     tackleBoxId = tripTackleBoxMap[fishermanId]
                                 )
                             } else {
-                                tripViewModel.removeFishermanCrossRefFromTripAndAllSegments(
+                                tripViewModel.removeFishermanCrossRefFromTripAndAllEvents(
                                     tripId = tripDraft.id,
                                     fishermanId = fishermanId
                                 )
@@ -458,10 +458,10 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             )
                         },
                         tripViewModel = tripViewModel,
-                        confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Segment",
+                        confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Event",
                         onConfirm = {
-                            scope.launch {
-                                tripViewModel.updateSegmentDraft {
+                            if (!fromReview) {
+                                tripViewModel.updateEventDraft {
                                     it.copy(
                                         name = "",
                                         tripId = tripDraft.id,
@@ -471,10 +471,10 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         longitude = null
                                     )
                                 }
-
-                                currentStep =
-                                    if (fromReview) WizardStep.Review else WizardStep.SegmentInfo
                             }
+
+                            currentStep =
+                                if (fromReview) WizardStep.Review else WizardStep.EventInfo
                         },
                         onAddFisherman = { first, last, nick ->
                             scope.launch { tripViewModel.addFisherman(first, last, nick) }
@@ -491,8 +491,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                     )
                 }
 
-                // ── Step 3: Segment info ─────────────────────────────────────
-                WizardStep.SegmentInfo -> {
+                // ── Step 3: Event info ─────────────────────────────────────
+                WizardStep.EventInfo -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -500,38 +500,38 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text("Segment Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("Event Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(
-                            "A segment is a single fishing session — e.g. morning run, afternoon drift.",
+                            "An event is a single fishing session — e.g. morning run, afternoon drift.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         OutlinedTextField(
-                            value = segmentDraft.name,
+                            value = eventDraft.name,
                             onValueChange = { name ->
-                                tripViewModel.updateSegmentDraft { segmentDraft.copy(name = name) }
+                                tripViewModel.updateEventDraft { eventDraft.copy(name = name) }
                             },
-                            label = { Text("Segment Name") },
+                            label = { Text("Event Name") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("Start", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "start", millis = segmentDraft.startTime, modifier = Modifier.weight(1f)) { new ->
+                            DateTimePickerButton(label = "start", millis = eventDraft.startTime, modifier = Modifier.weight(1f)) { new ->
                                 when {
                                     new < tripDraft.startDate ->
                                         Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
                                     new > tripDraft.endDate ->
                                         Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
                                     else -> {
-                                        tripViewModel.updateSegmentDraft {
-                                            segmentDraft.copy(startTime = new)
+                                        tripViewModel.updateEventDraft {
+                                            eventDraft.copy(startTime = new)
                                         }
-                                        if (new > segmentDraft.endTime) {
-                                            tripViewModel.updateSegmentDraft {
-                                                segmentDraft.copy(endTime = new)
+                                        if (new > eventDraft.endTime) {
+                                            tripViewModel.updateEventDraft {
+                                                eventDraft.copy(endTime = new)
                                             }
                                         }
                                     }
@@ -541,21 +541,21 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text("End", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                            DateTimePickerButton(label = "end", millis = segmentDraft.endTime, modifier = Modifier.weight(1f)) { new ->
+                            DateTimePickerButton(label = "end", millis = eventDraft.endTime, modifier = Modifier.weight(1f)) { new ->
                                 when {
-                                    new < segmentDraft.startTime ->
+                                    new < eventDraft.startTime ->
                                         Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
                                     new > tripDraft.endDate ->
                                         Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
                                     else ->
-                                        tripViewModel.updateSegmentDraft {
-                                            segmentDraft.copy(endTime = new)
+                                        tripViewModel.updateEventDraft {
+                                            eventDraft.copy(endTime = new)
                                         }
                                 }
                             }
                         }
 
-                        if (segmentDraft.latitude != null) {
+                        if (eventDraft.latitude != null) {
                             LocationSetRow()
                         }
 
@@ -564,14 +564,14 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         Button(
                             onClick = {
                                 scope.launch {
-                                    // Add the new segment
-                                    tripViewModel.upsertEvent(segmentDraft)
+                                    // Add the new event
+                                    tripViewModel.upsertEvent(eventDraft)
 
-                                    if (segmentFishermanIds.isEmpty()) {
-                                        tripViewModel.updateSegmentFishermanIds(tripFishermanIds)
-                                        tripFishermanIds.forEach { fishermanId ->
-                                            tripViewModel.upsertSegmentFishermanCrossRef(
-                                                segmentId = segmentDraft.id,
+                                    if (eventFishermenIds.isEmpty()) {
+                                        tripViewModel.updateEventFishermanIds(tripFishermenIds)
+                                        tripFishermenIds.forEach { fishermanId ->
+                                            tripViewModel.upsertEventFishermanCrossRef(
+                                                eventId = eventDraft.id,
                                                 fishermanId = fishermanId,
                                                 tackleBoxId = tripTackleBoxMap[fishermanId]
                                             )
@@ -579,47 +579,51 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     }
                                 }
 
-                                currentStep = WizardStep.SegmentCrew
+                                currentStep = WizardStep.EventCrew
                             },
-                            enabled = segmentDraft.name.isNotBlank(),
+                            enabled = eventDraft.name.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Next: Select Segment Crew")
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                            Text("Next: Select Event Crew")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                null,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
                         }
                     }
                 }
 
-                // ── Step 4: Segment crew + tackle boxes ──────────────────────
-                WizardStep.SegmentCrew -> {
-                    val eligibleFishermen = remember(sortedFishermen, tripFishermanIds) {
-                        sortedFishermen.filter { it.id in tripFishermanIds }
+                // ── Step 4: Event crew + tackle boxes ──────────────────────
+                WizardStep.EventCrew -> {
+                    val eligibleFishermen = remember(sortedFishermen, tripFishermenIds) {
+                        sortedFishermen.filter { it.id in tripFishermenIds }
                     }
                     Spacer(Modifier.height(16.dp))
                     TripViewModelCrewPickerBridge(
-                        title = "Segment Crew & Tackle Boxes",
-                        subtitle = "Who's fishing \"${segmentDraft.name}\"? Tackle boxes default to trip selections.",
+                        title = "Event Crew & Tackle Boxes",
+                        subtitle = "Who's fishing \"${eventDraft.name}\"? Tackle boxes default to trip selections.",
                         eligibleFishermen = eligibleFishermen,
-                        selectedIds = segmentFishermanIds,
-                        tackleBoxSelections = segmentTackleBoxMap,
+                        selectedIds = eventFishermenIds,
+                        tackleBoxSelections = eventTackleBoxMap,
                         onSelectionChanged = { fishermanId, selected ->
-                            tripViewModel.toggleSegmentFisherman(fishermanId)
+                            tripViewModel.toggleEventFisherman(fishermanId)
                             if (selected) {
-                                tripViewModel.upsertSegmentFishermanCrossRef(
-                                    segmentId = segmentDraft.id,
+                                tripViewModel.upsertEventFishermanCrossRef(
+                                    eventId = eventDraft.id,
                                     fishermanId = fishermanId,
-                                    tackleBoxId = segmentTackleBoxMap[fishermanId]
+                                    tackleBoxId = eventTackleBoxMap[fishermanId]
                                 )
                             } else {
-                                tripViewModel.deleteSegmentFishermanCrossRef(
-                                    segmentId = segmentDraft.id,
+                                tripViewModel.deleteEventFishermanCrossRef(
+                                    eventId = eventDraft.id,
                                     fishermanId = fishermanId
                                 )
                             }
                         },
                         onTackleBoxChanged = { fishermanId, boxId ->
-                            tripViewModel.upsertSegmentFishermanCrossRef(
-                                segmentId = segmentDraft.id,
+                            tripViewModel.upsertEventFishermanCrossRef(
+                                eventId = eventDraft.id,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )
@@ -630,9 +634,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             currentStep = WizardStep.Review
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
-                            scope.launch { tripViewModel.createAndAssignSegmentTackleBox(
+                            scope.launch { tripViewModel.createAndAssignEventTackleBox(
                                 fishermanId = fishermanId,
-                                segmentId = segmentDraft.id,
+                                eventId = eventDraft.id,
                                 name = tackleBoxName
                             ) }
                         }
@@ -658,7 +662,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             eventCount = 0,
                             totalCaught = 0,
                             totalKept = 0,
-                            fishermanCount = tripFishermanIds.size,
+                            fishermanCount = tripFishermenIds.size,
                             tackleBoxCount = tripTackleBoxMap.size,
                             bigFishName = null,
                             bigFishSpecies = "",
@@ -743,10 +747,10 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically) {
-                            Text("Segments (${segmentSummaries.size})", style = MaterialTheme.typography.titleMedium)
+                            Text("Events (${eventSummaries.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
-                                // Reset segment fields for a new one
-                                tripViewModel.updateSegmentDraft {
+                                // Reset event fields for a new one
+                                tripViewModel.updateEventDraft {
                                     it.copy(
                                         id = UUID.randomUUID().toString(),
                                         name = "",
@@ -756,21 +760,20 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         longitude = null
                                     )
                                 }
-                                tripViewModel.selectSegment(segmentDraft.id)
+                                tripViewModel.selectEvent(eventDraft.id)
 
-                                currentStep = WizardStep.SegmentInfo
+                                currentStep = WizardStep.EventInfo
                             }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
-                                Text("Add segment")
+                                Text("Add event")
                             }
                         }
 
                         LazyColumn(modifier = Modifier.weight(1f)) {
-                            val totalItems = segmentSummaries.size
+                            val totalItems = eventSummaries.size
 
-                            itemsIndexed(segmentSummaries, key = { _, seg -> seg.event.id }) { index, seg ->
-                                // TODO - look into using same card (SegmentItem) from SegmentComponents
+                            itemsIndexed(eventSummaries, key = { _, seg -> seg.event.id }) { index, seg ->
                                 val currentSummary = EventSummary(
                                     event = seg.event,
                                     fishCaught = 0,
@@ -784,7 +787,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     mostCaught = 0
                                 )
 
-                                SegmentItem(
+                                EventItem(
                                     currentSummary,
                                     modifier = Modifier.padding(
                                         vertical = 4.dp
@@ -794,18 +797,18 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     onClick = {
                                         fromReview = true
 
-                                        tripViewModel.selectSegment(seg.event.id)
-                                        tripViewModel.updateSegmentDraft { seg.event }
+                                        tripViewModel.selectEvent(seg.event.id)
+                                        tripViewModel.updateEventDraft { seg.event }
 
-                                        currentStep = WizardStep.SegmentInfo
+                                        currentStep = WizardStep.EventInfo
                                     }
                                 )
                             }
 
-                            if (segmentSummaries.isEmpty()) {
+                            if (eventSummaries.isEmpty()) {
                                 item {
                                     Text(
-                                        "No segments yet.",
+                                        "No events yet.",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(vertical = 8.dp)
@@ -815,16 +818,18 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 
                         }
 
-                        // Done — trip + crew + segments are already in DB.
+                        // Done — trip + crew + events are already in DB.
                         // Just navigate back; nothing left to save.
                         Button(
                             onClick = {
                                 tripViewModel.clearTrip()
-                                tripViewModel.clearSegment()
+                                tripViewModel.clearTripDraft()
+                                tripViewModel.clearEvent()
+                                tripViewModel.clearEventDraft()
                                 navigateBack()
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = segmentSummaries.isNotEmpty()
+                            enabled = eventSummaries.isNotEmpty()
                         ) {
                             Icon(Icons.Default.Check, null, modifier = Modifier.padding(end = 8.dp))
                             Text("Done")

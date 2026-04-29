@@ -29,7 +29,7 @@ import java.util.Locale
 
 // TODO -- update this card to work like TripItem card with regards to menu
 @Composable
-fun SegmentItem(
+fun EventItem(
     eventSummary: EventSummary,
     modifier: Modifier = Modifier,
     index: Int = 0,
@@ -41,7 +41,7 @@ fun SegmentItem(
     onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
-    SegmentItem(
+    EventItem(
         event = eventSummary.event,
         modifier = modifier,
         index = index,
@@ -60,7 +60,7 @@ fun SegmentItem(
 }
 
 @Composable
-fun SegmentItem(
+fun EventItem(
     event: Event,
     modifier: Modifier = Modifier,
     index: Int = 0,

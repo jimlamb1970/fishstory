@@ -35,8 +35,8 @@ import kotlin.collections.sorted
 enum class WizardStep {
     TripInfo,           // Step 1 – name, dates, location
     TripCrew,           // Step 2 – fishermen + tackle boxes for trip
-    SegmentInfo,        // Step 3 – segment name, dates, location
-    SegmentCrew,        // Step 4 – fishermen + tackle boxes for segment
+    EventInfo,        // Step 3 – segment name, dates, location
+    EventCrew,        // Step 4 – fishermen + tackle boxes for segment
     Review              // Step 5 – list segments, add another or finish
 }
 
@@ -103,7 +103,7 @@ class TripViewModel(
     // --- Draft Logic (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
-    private val _selectedSegmentId = MutableStateFlow<String?>(null)
+    private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _draftSegments = MutableStateFlow<List<Event>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
 
@@ -149,7 +149,7 @@ class TripViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentFishermen: StateFlow<List<Fisherman>> = _selectedSegmentId
+    val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -210,7 +210,7 @@ class TripViewModel(
 
     // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentTackleBoxMap: StateFlow<Map<String, String?>> = _selectedSegmentId
+    val eventTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyMap()) // This clears the map when you set id to null
@@ -279,7 +279,7 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventSummary: StateFlow<EventSummary?> = _selectedSegmentId
+    val selectedEventSummary: StateFlow<EventSummary?> = _selectedEventId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(null)
@@ -303,7 +303,7 @@ class TripViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentPhotos: StateFlow<List<Photo>> = _selectedSegmentId
+    val segmentPhotos: StateFlow<List<Photo>> = _selectedEventId
         .filterNotNull()
         .flatMapLatest { tripRepository.getPhotosForSegment(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -381,23 +381,23 @@ class TripViewModel(
         }
     }
 
-    fun removeFishermanCrossRefFromTripAndAllSegments(tripId: String, fishermanId: String) {
+    fun removeFishermanCrossRefFromTripAndAllEvents(tripId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepository.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
         }
     }
 
-    fun upsertSegmentFishermanCrossRef(segmentId: String, fishermanId: String, tackleBoxId: String?) {
+    fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
             tripRepository.upsertSegmentFishermanCrossRef(
-                EventFishermanCrossRef(segmentId, fishermanId, tackleBoxId)
+                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
             )
         }
     }
 
-    fun deleteSegmentFishermanCrossRef(segmentId: String, fishermanId: String) {
+    fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepository.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(segmentId, fishermanId))
+            tripRepository.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
         }
     }
 
@@ -437,13 +437,13 @@ class TripViewModel(
             )
         }
     }
-    fun createAndAssignSegmentTackleBox(fishermanId: String, segmentId: String, name: String) {
+    fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepository.insertTackleBox(tackleBox)
             tripRepository.upsertSegmentFishermanCrossRef(
                 EventFishermanCrossRef(
-                    segmentId,
+                    eventId,
                     fishermanId,
                     tackleBox.id
                 )
@@ -477,16 +477,16 @@ class TripViewModel(
     fun clearTrip() {
         _selectedTripId.value = null
     }
-    fun clearSegment() {
-        _selectedSegmentId.value = null
+    fun clearEvent() {
+        _selectedEventId.value = null
     }
 
     fun selectTrip(id: String) {
         _selectedTripId.value = id
     }
 
-    fun selectSegment(id: String) {
-        _selectedSegmentId.value = id
+    fun selectEvent(id: String) {
+        _selectedEventId.value = id
     }
 
     // TODO - refactor Add Segment logic so that it does not use these drafts
@@ -591,6 +591,10 @@ class TripViewModel(
     private val _tripDraft = MutableStateFlow(Trip(id = UUID.randomUUID().toString(), name = ""))
     val tripDraft = _tripDraft.asStateFlow()
 
+    fun clearTripDraft() {
+        _tripDraft.value = Trip(id = UUID.randomUUID().toString(), name = "")
+    }
+
     fun updateTripDraft(update: (Trip) -> Trip) {
         _tripDraft.update(update)
         // Synchronize the selected ID for your other flows
@@ -599,29 +603,33 @@ class TripViewModel(
 
     // --- Segment Draft State ---
     private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
-    val segmentDraft = _eventDraft.asStateFlow()
+    val eventDraft = _eventDraft.asStateFlow()
 
-    fun updateSegmentDraft(update: (Event) -> Event) {
+    fun clearEventDraft() {
+        _eventDraft.value = Event(id = UUID.randomUUID().toString(), name = "", tripId = "")
+    }
+
+    fun updateEventDraft(update: (Event) -> Event) {
         _eventDraft.update(update)
-        _selectedSegmentId.value = _eventDraft.value.id
+        _selectedEventId.value = _eventDraft.value.id
     }
 
     // --- Crew Draft State ---
     private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val tripFishermanIds = _tripFishermanIds.asStateFlow()
+    val tripFishermenIds = _tripFishermanIds.asStateFlow()
 
     fun toggleTripFisherman(id: String) {
         _tripFishermanIds.update { if (it.contains(id)) it - id else it + id }
     }
 
     private val _segmentFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val segmentFishermanIds = _segmentFishermanIds.asStateFlow()
+    val eventFishermenIds = _segmentFishermanIds.asStateFlow()
 
-    fun toggleSegmentFisherman(id: String) {
+    fun toggleEventFisherman(id: String) {
         _segmentFishermanIds.update { if (it.contains(id)) it - id else it + id }
     }
 
-    fun updateSegmentFishermanIds(ids: Set<String>) {
+    fun updateEventFishermanIds(ids: Set<String>) {
         _segmentFishermanIds.value = ids
     }
 }

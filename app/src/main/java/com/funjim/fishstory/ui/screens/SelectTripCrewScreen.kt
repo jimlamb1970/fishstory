@@ -104,7 +104,7 @@ fun SelectTripCrewScreen(
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        tripViewModel.removeFishermanCrossRefFromTripAndAllSegments(
+                        tripViewModel.removeFishermanCrossRefFromTripAndAllEvents(
                             tripId = tripId,
                             fishermanId = fishermanId
                         )

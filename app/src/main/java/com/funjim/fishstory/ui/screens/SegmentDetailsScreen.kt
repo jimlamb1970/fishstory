@@ -57,7 +57,7 @@ fun SegmentDetailsScreen(
 ) {
     LaunchedEffect(segmentId) {
         viewModel.selectTrip(tripId)
-        viewModel.selectSegment(segmentId)
+        viewModel.selectEvent(segmentId)
     }
 
     val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
