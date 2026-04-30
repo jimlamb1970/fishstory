@@ -81,7 +81,7 @@ fun TripDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
-Fix     var updateTripLocation by remember { mutableStateOf(false) }
+    var updateTripLocation by remember { mutableStateOf(false) }
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
