@@ -57,7 +57,7 @@ class MainViewModel(
     private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao
 ) : ViewModel() {
-    // A simple flow to broadcast volume key directions: 1 for Up, -1 for Down
+    // A simple flow to broadcast volume key directions: 1 for Down, Select for Up
     private val _volumeKeyEvent = MutableStateFlow(0)
     val volumeKeyEvent = _volumeKeyEvent.asStateFlow()
 

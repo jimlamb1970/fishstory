@@ -414,7 +414,7 @@ fun AddFishScreen(
                                         Log.d(TAG, "type: $keyEvent.type, keycode: $keyEvent.nativeKeyEvent.keyCode")
                                         when (keyEvent.nativeKeyEvent.keyCode) {
                                             // VOLUME UP: Move to the next item
-                                            KeyEvent.KEYCODE_VOLUME_UP -> {
+                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
                                                 if (speciesSelectedIndex == speciesList.lastIndex) {
                                                     speciesSelectedIndex = 0
                                                 } else {
@@ -426,7 +426,7 @@ fun AddFishScreen(
                                                 true // Consumes the event so the system volume doesn't change
                                             }
                                             // VOLUME DOWN: Select the current item
-                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                                            KeyEvent.KEYCODE_VOLUME_UP -> {
                                                 // Trigger the selection logic
                                                 selectedSpeciesId = speciesList.getOrNull(speciesSelectedIndex)?.id
                                                 speciesExpanded = false
@@ -436,7 +436,7 @@ fun AddFishScreen(
                                         }
                                     } else {
                                         false
-                                    }                                    // Check if the key pressed is Volume Up or Down
+                                    } // Check if the key pressed is Volume Up or Down
                                 }
                                 .focusable()
                         )
@@ -495,12 +495,12 @@ fun AddFishScreen(
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown) {
                                         when (keyEvent.nativeKeyEvent.keyCode) {
-                                            KeyEvent.KEYCODE_VOLUME_UP -> {
+                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
                                                 fishermanSelectedIndex = if (fishermanSelectedIndex == fishermen.lastIndex) 0
                                                 else fishermanSelectedIndex + 1
                                                 true
                                             }
-                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                                            KeyEvent.KEYCODE_VOLUME_UP -> {
                                                 selectedFishermanId = fishermen.getOrNull(fishermanSelectedIndex)?.id
                                                 selectedLureId = null
                                                 fishermanExpanded = false
@@ -559,12 +559,12 @@ fun AddFishScreen(
                                 .onKeyEvent { keyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyDown) {
                                         when (keyEvent.nativeKeyEvent.keyCode) {
-                                            KeyEvent.KEYCODE_VOLUME_UP -> {
+                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
                                                 lureSelectedIndex = if (lureSelectedIndex == luresSorted.lastIndex) 0
                                                 else lureSelectedIndex + 1
                                                 true
                                             }
-                                            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                                            KeyEvent.KEYCODE_VOLUME_UP -> {
                                                 selectedLureId = luresSorted.getOrNull(lureSelectedIndex)?.first?.id
                                                 lureExpanded = false
                                                 lengthDecrementRequester.requestFocus()
@@ -816,11 +816,11 @@ fun StepperField(
                     .onKeyEvent { event ->
                         if (event.type == KeyEventType.KeyDown) {
                             when (event.nativeKeyEvent.keyCode) {
-                                KeyEvent.KEYCODE_VOLUME_UP -> {
+                                KeyEvent.KEYCODE_VOLUME_DOWN -> {
                                     incrementRequester.requestFocus()
                                     true
                                 }
-                                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                                KeyEvent.KEYCODE_VOLUME_UP -> {
                                     onDecrement()
                                     true
                                 }
@@ -867,11 +867,11 @@ fun StepperField(
                     .onKeyEvent { event ->
                         if (event.type == KeyEventType.KeyDown) {
                             when (event.nativeKeyEvent.keyCode) {
-                                KeyEvent.KEYCODE_VOLUME_UP -> {
+                                KeyEvent.KEYCODE_VOLUME_DOWN -> {
                                     nextRequester?.requestFocus()
                                     true
                                 }
-                                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                                KeyEvent.KEYCODE_VOLUME_UP -> {
                                     onIncrement()
                                     true
                                 }

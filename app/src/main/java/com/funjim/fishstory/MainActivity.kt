@@ -105,11 +105,11 @@ class MainActivity : ComponentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                viewModel.onVolumeKeyPressed(direction = 1) // Move Focus
+                viewModel.triggerSelect() // Open Dropdown or Select Item
                 true
             }
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                viewModel.triggerSelect() // Open Dropdown or Select Item
+                viewModel.onVolumeKeyPressed(direction = 1) // Move Focus
                 true
             }
             else -> super.onKeyDown(keyCode, event)
