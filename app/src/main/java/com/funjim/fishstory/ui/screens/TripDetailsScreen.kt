@@ -81,6 +81,10 @@ fun TripDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
+Fix     var updateTripLocation by remember { mutableStateOf(false) }
+    var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -89,10 +93,26 @@ fun TripDetailsScreen(
             scope.launch {
                 val location = viewModel.getTripCurrentLocation(context)
                 if (location != null) {
-                    tripSummary?.trip?.let { trip ->
-                        viewModel.saveTrip(trip.copy(latitude = location.latitude, longitude = location.longitude))
-                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                    if (updateTripLocation) {
+                        tripSummary?.trip?.let { trip ->
+                            viewModel.saveTrip(
+                                trip.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                        }
+                    } else {
+                        eventToUpdateLocation?.event?.let { event ->
+                            viewModel.upsertEvent(
+                                event.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                        }
                     }
+                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
                 }
@@ -102,9 +122,6 @@ fun TripDetailsScreen(
         }
     }
 
-    var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
-
-    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
@@ -367,8 +384,12 @@ fun TripDetailsScreen(
                                         }
                                     }
                                 } else {
+                                    eventToUpdateLocation = eventSummary
                                     permissionLauncher.launch(
-                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
                                     )
                                 }
                             },

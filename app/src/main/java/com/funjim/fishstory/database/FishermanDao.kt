@@ -248,7 +248,7 @@ WHERE f.id = :fId
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
     WHERE tref.fishermanId = :fishermanId
-      AND (t.startDate >= :currentTime) AND (t.endDate <= :currentTime)
+      AND (t.startDate <= :currentTime) AND (t.endDate >= :currentTime)
     GROUP BY t.id
     ORDER BY t.startDate DESC
 """)
