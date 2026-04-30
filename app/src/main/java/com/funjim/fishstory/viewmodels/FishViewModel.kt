@@ -36,6 +36,8 @@ class FishViewModel(
     // Exposed State for the UI
     val trips = repository.allTrips
     val species = repository.allSpecies
+    val speciesSummaries = repository.speciesSummaries
+
     val fishPhotos = repository.fishPhotos.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),

@@ -4,6 +4,7 @@ import androidx.room.*
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.SpeciesSummary
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -207,4 +208,17 @@ interface FishDao {
 
     @Delete
     suspend fun deleteSpecies(species: Species)
+
+    @Query("""
+    SELECT 
+        s.*, 
+        COUNT(f.id) AS caughtCount,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS keptCount,
+        MAX(f.length) AS largestFish,
+        MIN(f.length) AS smallest
+    FROM species_table AS s
+    LEFT JOIN fish_table AS f ON s.id = f.speciesId
+    GROUP BY s.id
+""")
+    fun getSpeciesSummaries(): Flow<List<SpeciesSummary>>
 }

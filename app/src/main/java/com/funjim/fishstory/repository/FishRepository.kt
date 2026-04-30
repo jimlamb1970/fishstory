@@ -9,6 +9,7 @@ import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,7 @@ class FishRepository(
     // Basic Data Streams
     val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
+    val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
     fun getTrip(id: String) = tripDao.getTrip(id)
     fun getSegmentsForTrip(tripId: String) = eventDao.getEventsForTrip(tripId)

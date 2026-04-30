@@ -1,5 +1,6 @@
 package com.funjim.fishstory.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -108,3 +109,11 @@ data class FishWithDetails(
             return if (colors.isEmpty()) "$lureName$glow" else "$lureName ($colors)$glow"
         }
 }
+
+data class SpeciesSummary(
+    @Embedded val species: Species,
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallest: Double
+)

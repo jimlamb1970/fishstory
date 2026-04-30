@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
@@ -47,24 +49,27 @@ fun ManageSpeciesScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit
 ) {
-    val speciesList by viewModel.species.collectAsStateWithLifecycle(initialValue = emptyList())
+//    val speciesList by viewModel.species.collectAsStateWithLifecycle(initialValue = emptyList())
+    val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
     var editName by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
     // 1. Logic: Filter list based on search query
-    val filteredSpecies = remember(searchQuery, speciesList) {
-        speciesList.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
-        }.sortedBy { it.name }
+    val filteredSpecies = remember(searchQuery, speciesSummaries) {
+        speciesSummaries.filter {
+            it.species.name.contains(searchQuery, ignoreCase = true)
+        }.sortedBy { it.species.name }
     }
 
     // 2. Logic: Should we show the "Add" button?
     // Show if the query isn't empty and doesn't exactly match an existing name
     val showAddButton = searchQuery.isNotBlank() &&
-            speciesList.none { it.name.equals(searchQuery.trim(), ignoreCase = true) }
+            speciesSummaries.none { it.species.name.equals(searchQuery.trim(), ignoreCase = true) }
 
     Scaffold(
         topBar = {
@@ -107,27 +112,46 @@ fun ManageSpeciesScreen(
 
             // THE LIST
             LazyColumn(modifier = Modifier.weight(1f)) {
-                itemsIndexed(filteredSpecies, key = { _, s -> s.id }) { index, species ->
+                itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, species ->
                     // Your Zebra Striping
                     val backgroundColor = if (index % 2 == 0) MaterialTheme.colorScheme.surface
                     else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
 
                     ListItem(
                         modifier = Modifier.background(backgroundColor),
-                        headlineContent = { Text(species.name) },
+                        headlineContent = { Text(species.species.name) },
+                        supportingContent = {
+                            Text("Caught: ${species.caughtCount}, Kept: ${species.keptCount}")
+                        },
                         trailingContent = {
                             Row {
+                                val preventDelete = species.caughtCount > 0 || species.keptCount > 0
+
                                 IconButton(onClick = {
-                                    speciesToEdit = species
-                                    editName = species.name
+                                    speciesToEdit = species.species
+                                    editName = species.species.name
                                 }) {
                                     Icon(Icons.Default.Edit, contentDescription = "Edit")
                                 }
-                                IconButton(onClick = { speciesToDelete = species }) {
+                                IconButton(
+                                    onClick = {
+                                        if (preventDelete) {
+                                            Toast.makeText(
+                                                context,
+                                                "Can't delete this species. There are fish logged for it.",
+                                                Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            speciesToDelete = species.species
+                                        }
+                                    }
+                                ) {
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.error)
+                                        tint =
+                                            if (!preventDelete) MaterialTheme.colorScheme.error
+                                            else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
+                                    )
                                 }
                             }
                         },
