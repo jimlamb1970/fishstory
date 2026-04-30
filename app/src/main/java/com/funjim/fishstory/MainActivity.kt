@@ -32,11 +32,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.funjim.fishstory.ui.AddFishScreen
-import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
+import com.funjim.fishstory.ui.screens.AddFishScreenNew
 import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.AddSegmentScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
@@ -52,8 +51,9 @@ import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
-import com.funjim.fishstory.ui.screens.SelectSegmentCrewScreen
 import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
+import com.funjim.fishstory.ui.screens.SelectSegmentCrewScreen
+import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 
@@ -77,8 +77,11 @@ class MainActivity : ComponentActivity() {
         DashboardViewModelFactory(repository)
     }
     private val fishViewModel: FishViewModel by viewModels {
-        val repository = (application as FishstoryApplication).fishRepository
-        FishViewModelFactory(repository)
+        val fishRepo = (application as FishstoryApplication).fishRepository
+        val lureRepo = (application as FishstoryApplication).lureRepository
+        val tripRepo = (application as FishstoryApplication).tripRepository
+
+        FishViewModelFactory(fishRepo = fishRepo, lureRepo = lureRepo, tripRepo = tripRepo)
     }
 
     private val importViewModel: ImportViewModel by viewModels {
@@ -197,16 +200,14 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: ""
-            val fishIdStr = backStackEntry.arguments?.getString("fishId")
+            val fishId = backStackEntry.arguments?.getString("fishId")
 
-            AddFishScreen(
-                viewModel = viewModel,
+            AddFishScreenNew(
+                viewModel = fishViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
-                fishId = fishIdStr,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
+                fishId = fishId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

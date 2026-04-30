@@ -5,6 +5,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.model.EventWithFishermen
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
@@ -23,12 +24,17 @@ class FishRepository(
 ) {
     // Basic Data Streams
     val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
+
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
+    fun getSegmentWithFishermen(segmentId: String): Flow<EventWithFishermen?> {
+        return eventDao.getEventWithFishermen(segmentId)
+    }
+
     fun getTrip(id: String) = tripDao.getTrip(id)
-    fun getSegmentsForTrip(tripId: String) = eventDao.getEventsForTrip(tripId)
-    fun getSegment(id: String) = eventDao.getEventById(id)
+    fun getEventsForTrip(tripId: String) = eventDao.getEventsForTrip(tripId)
+    fun getEventById(id: String) = eventDao.getEventById(id)
     fun getFisherman(id: String) = fishermanDao.getFisherman(id)
     suspend fun getFish(id: String) = fishDao.getFish(id)
 

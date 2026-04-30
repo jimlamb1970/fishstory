@@ -178,7 +178,6 @@ class LureViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
 }
 
 class LureViewModelFactory(

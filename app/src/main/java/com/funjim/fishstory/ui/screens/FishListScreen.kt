@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
@@ -47,7 +46,7 @@ fun FishListScreen(
 ) {
     LaunchedEffect(key1 = tripId, key2 = segmentId, key3 = fishermanId) {
         viewModel.updateSelectedTrip(tripId)
-        viewModel.updateSelectedSegment(segmentId)
+        viewModel.updateSelectedEvent(segmentId)
         viewModel.updateSelectedFisherman(fishermanId)
     }
 
@@ -60,7 +59,7 @@ fun FishListScreen(
       options can not be picked.
      */
     val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
-    val segment by viewModel.selectedSegment.collectAsStateWithLifecycle()
+    val segment by viewModel.selectedEvent.collectAsStateWithLifecycle()
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val screenTitle = "Fish Log"
 
@@ -96,7 +95,7 @@ fun FishListScreen(
         onLocationConfirmed = { lat, lng ->
             fishToUpdateLocation?.let { fishDetails ->
                 scope.launch {
-                    val fish = viewModel.getFish(fishDetails.id)
+                    val fish = viewModel.getFishById(fishDetails.id)
                     if (fish != null) {
                         viewModel.upsertFish(fish.copy(latitude = lat, longitude = lng))
                     }
@@ -274,7 +273,7 @@ fun FishListScreen(
                             },
                             onDelete = {
                                 scope.launch {
-                                    fishToDelete = viewModel.getFish(fishDetails.id)
+                                    fishToDelete = viewModel.getFishById(fishDetails.id)
                                 }
                             },
                             onSetLocation = {
@@ -284,7 +283,7 @@ fun FishListScreen(
                                     scope.launch {
                                         val location = viewModel.getFishCurrentLocation(context)
                                         if (location != null) {
-                                            val fish = viewModel.getFish(fishDetails.id)
+                                            val fish = viewModel.getFishById(fishDetails.id)
                                             if (fish != null) {
                                                 viewModel.upsertFish(fish.copy(
                                                     latitude = location.latitude,
@@ -303,7 +302,7 @@ fun FishListScreen(
                             onUseTripLocation = if (trip?.latitude != null) {
                                 {
                                     scope.launch {
-                                        val fish = viewModel.getFish(fishDetails.id)
+                                        val fish = viewModel.getFishById(fishDetails.id)
                                         if (fish != null) {
                                             viewModel.upsertFish(fish.copy(
                                                 latitude = trip?.latitude,
@@ -316,7 +315,7 @@ fun FishListScreen(
                             onUseSegmentLocation = if (segment?.latitude != null) {
                                 {
                                     scope.launch {
-                                        val fish = viewModel.getFish(fishDetails.id)
+                                        val fish = viewModel.getFishById(fishDetails.id)
                                         if (fish != null) {
                                             viewModel.upsertFish(fish.copy(
                                                 latitude = segment?.latitude,
@@ -332,7 +331,7 @@ fun FishListScreen(
                             },
                             onClearLocation = {
                                 scope.launch {
-                                    val fish = viewModel.getFish(fishDetails.id)
+                                    val fish = viewModel.getFishById(fishDetails.id)
                                     if (fish != null) {
                                         viewModel.upsertFish(fish.copy(latitude = null, longitude = null))
                                     }

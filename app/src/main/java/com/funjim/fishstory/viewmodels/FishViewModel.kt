@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishRepository
+import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -24,39 +26,54 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class FishViewModel(
-    private val repository: FishRepository
+    private val fishRepo: FishRepository,
+    private val lureRepo: LureRepository,
+    private val tripRepo: TripRepository
 ) : ViewModel() {
     // UI State flows
     private val _selectedTripId = MutableStateFlow<String?>(null)
-    private val _selectedSegmentId = MutableStateFlow<String?>(null)
+    private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
+    private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
+
     private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
     private val _isReversed = MutableStateFlow(false)
 
     // Exposed State for the UI
-    val trips = repository.allTrips
-    val species = repository.allSpecies
-    val speciesSummaries = repository.speciesSummaries
+    val trips = fishRepo.allTrips
+    val species = fishRepo.allSpecies
+    val speciesSummaries = fishRepo.speciesSummaries
 
-    val fishPhotos = repository.fishPhotos.stateIn(
+    private val _lureColors = lureRepo.allLureColors
+    val lureColors = _lureColors
+
+    val fishPhotos = fishRepo.fishPhotos.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         emptyMap()
     )
 
     val selectedTripId = _selectedTripId.asStateFlow()
-    val selectedSegmentId = _selectedSegmentId.asStateFlow()
+    val selectedEventId = _selectedEventId.asStateFlow()
     val selectedFishermanId = _selectedFishermanId.asStateFlow()
+    val selectedTackleBoxId = _selectedFishermanId.asStateFlow()
+
     val sortOrder = _sortOrder.asStateFlow()
     val isReversed = _isReversed.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentsForTrip: StateFlow<List<Event>> = _selectedTripId
+    val selectedTrip = _selectedTripId
+        .filterNotNull()
+        .flatMapLatest { id -> fishRepo.getTrip(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tripEvents: StateFlow<List<Event>> = _selectedTripId
         .flatMapLatest { tripId ->
             if (tripId == null) {
                 flowOf(emptyList())
             } else {
-                repository.getSegmentsForTrip(tripId)
+                fishRepo.getEventsForTrip(tripId)
             }
         }
         .stateIn(
@@ -66,27 +83,62 @@ class FishViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedTrip = _selectedTripId
+    val selectedEvent = _selectedEventId
         .filterNotNull()
-        .flatMapLatest { id -> repository.getTrip(id) }
+        .flatMapLatest { id -> fishRepo.getEventById(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedSegment = _selectedSegmentId
-        .filterNotNull()
-        .flatMapLatest { id -> repository.getSegment(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
+        .flatMapLatest { id ->
+            if (id.isNullOrBlank()) flowOf(emptyList())
+            else tripRepo.getEventFishermen(id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishermanTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
+        .flatMapLatest { id ->
+            if (id.isNullOrBlank()) flowOf(emptyMap())
+            else tripRepo.getFishermanTackleBoxMapping(id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedFisherman = _selectedFishermanId
         .filterNotNull()
-        .flatMapLatest { id -> repository.getFisherman(id) }
+        .flatMapLatest { id -> fishRepo.getFisherman(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                // This query only runs for the currently selected trip
+                lureRepo.getLuresInTackleBox(id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishForScope: StateFlow<List<FishWithDetails>> = combine(
         _selectedTripId,
-        _selectedSegmentId,
+        _selectedEventId,
         _selectedFishermanId,
         _sortOrder,
         _isReversed
@@ -94,7 +146,7 @@ class FishViewModel(
         // Helper to pass params
         FilterParams(trip, seg, fish, sort, rev)
     }.flatMapLatest { params ->
-        repository.getFilteredFish(params.tripId, params.segmentId, params.fishermanId)
+        fishRepo.getFilteredFish(params.tripId, params.eventId, params.fishermanId)
             .map { list -> applySorting(list, params.sortOrder, params.isReversed) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -114,14 +166,18 @@ class FishViewModel(
     // UI Events
     fun updateSelectedTrip(id: String?) {
         _selectedTripId.value = id
-        _selectedSegmentId.value = null // Reset segment if trip changes
+        _selectedEventId.value = null // Reset event if trip changes
     }
-    fun updateSelectedSegment(id: String?) {
-        _selectedSegmentId.value = id
+    fun updateSelectedEvent(id: String?) {
+        _selectedEventId.value = id
     }
 
     fun updateSelectedFisherman(id: String?) {
         _selectedFishermanId.value = id
+    }
+
+    fun updateSelectedTackleBox(id: String?) {
+        _selectedTackleBoxId.value = id
     }
 
     fun toggleReverse() { _isReversed.value = !_isReversed.value }
@@ -129,42 +185,42 @@ class FishViewModel(
 
     private data class FilterParams(
         val tripId: String?,
-        val segmentId: String?,
+        val eventId: String?,
         val fishermanId: String?,
         val sortOrder: FishSortOrder,
         val isReversed: Boolean
     )
 
-    suspend fun getFish(id: String): Fish? {
-        return repository.getFish(id)
+    suspend fun getFishById(id: String): Fish? {
+        return fishRepo.getFish(id)
     }
     fun upsertFish(fish: Fish) {
         viewModelScope.launch {
-            repository.upsertFish(fish)
+            fishRepo.upsertFish(fish)
         }
     }
 
     fun deleteFish(fish: Fish) {
         viewModelScope.launch {
-            repository.deleteFish(fish)
+            fishRepo.deleteFish(fish)
         }
     }
 
     fun addSpecies(species: Species) {
         viewModelScope.launch {
-            repository.addSpecies(species)
+            fishRepo.addSpecies(species)
         }
     }
 
     fun upsertSpecies(species: Species) {
         viewModelScope.launch {
-            repository.upsertSpecies(species)
+            fishRepo.upsertSpecies(species)
         }
     }
 
     fun deleteSpecies(species: Species) {
         viewModelScope.launch {
-            repository.deleteSpecies(species)
+            fishRepo.deleteSpecies(species)
         }
     }
 
@@ -214,12 +270,14 @@ class FishViewModel(
 }
 
 class FishViewModelFactory(
-    private val repository: FishRepository
+    private val fishRepo: FishRepository,
+    private val lureRepo: LureRepository,
+    private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishViewModel(repository) as T
+            return FishViewModel(fishRepo, lureRepo, tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

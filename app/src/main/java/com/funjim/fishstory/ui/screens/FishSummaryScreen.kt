@@ -41,7 +41,7 @@ fun FishSummaryScreen(
 ) {
     val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
-    val selectedSegmentId by viewModel.selectedSegmentId.collectAsStateWithLifecycle()
+    val selectedSegmentId by viewModel.selectedEventId.collectAsStateWithLifecycle()
 
     val selectedTrip = remember(allTrips, selectedTripId) {
         allTrips.find { it.id == selectedTripId }
@@ -51,7 +51,7 @@ fun FishSummaryScreen(
 
     val segmentsForTrip by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTrip) {
         selectedTrip?.let {
-            viewModel.segmentsForTrip.collect { value = it }
+            viewModel.tripEvents.collect { value = it }
         } ?: run { value = emptyList() }
     }
 
@@ -148,7 +148,7 @@ fun FishSummaryScreen(
                             text = { Text(trip.name) },
                             onClick = {
                                 viewModel.updateSelectedTrip(trip.id)
-                                viewModel.updateSelectedSegment(null)
+                                viewModel.updateSelectedEvent(null)
                                 tripExpanded = false
                             },
                             modifier = Modifier.background(itemBackground)
@@ -187,7 +187,7 @@ fun FishSummaryScreen(
                     DropdownMenuItem(
                         text = { Text("All segments") },
                         onClick = {
-                            viewModel.updateSelectedSegment(null)
+                            viewModel.updateSelectedEvent(null)
                             segmentExpanded = false
                         }
                     )
@@ -202,7 +202,7 @@ fun FishSummaryScreen(
                         DropdownMenuItem(
                             text = { Text(segment.name) },
                             onClick = {
-                                viewModel.updateSelectedSegment(segment.id)
+                                viewModel.updateSelectedEvent(segment.id)
                                 segmentExpanded = false
                             },
                             modifier = Modifier.background(itemBackground)

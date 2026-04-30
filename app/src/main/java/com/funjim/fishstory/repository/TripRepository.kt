@@ -9,6 +9,7 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithDetails
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
@@ -129,8 +130,11 @@ class TripRepository(
 
     fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> =
         tripDao.getTripFishermenTackleBoxIds(tripId)
-    fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> =
-        eventDao.getTackleBoxIdsForFishermen(segmentId)
+    fun getFishermanTackleBoxMapping(eventId: String): Flow<Map<String, String?>> =
+        eventDao.getFishermanTackleBoxMapping(eventId)
+
+    fun getEventFishermen(eventId: String): Flow<List<Fisherman>> =
+        eventDao.getFishermenForEvent(eventId)
 
     suspend fun deleteTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
         tripDao.deleteTripFishermanCrossRef(crossRef)

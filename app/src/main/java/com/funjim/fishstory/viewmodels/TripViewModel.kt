@@ -229,7 +229,7 @@ class TripViewModel(
     }
 
     fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> {
-        return tripRepository.getSegmentFishermenTackleBoxIds(segmentId)
+        return tripRepository.getFishermanTackleBoxMapping(segmentId)
     }
 
     // TODO -- add sorting on Trip summaries

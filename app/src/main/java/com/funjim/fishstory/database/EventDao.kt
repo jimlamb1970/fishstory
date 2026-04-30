@@ -109,6 +109,13 @@ ORDER BY s.startTime ASC
     @Query("SELECT * FROM event_table WHERE id = :eventId")
     fun getEventWithFishermen(eventId: String): Flow<EventWithFishermen?>
 
+    @Query("""
+    SELECT DISTINCT f.* FROM fisherman_table AS f
+    JOIN event_fisherman_cross_ref AS xr ON f.id = xr.fishermanId
+    WHERE xr.eventId = :eventId
+""")
+    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>>
+
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :eventId")
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?>
@@ -235,7 +242,7 @@ ORDER BY s.startTime DESC"""
     WHERE eventId = :eventId
 """
     )
-    fun getTackleBoxIdsForFishermen(eventId: String): Flow<Map<
+    fun getFishermanTackleBoxMapping(eventId: String): Flow<Map<
             @MapColumn(columnName = "fishermanId") String,
             @MapColumn(columnName = "tackleBoxId") String?
             >>
