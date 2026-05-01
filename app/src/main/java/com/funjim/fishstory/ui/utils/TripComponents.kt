@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocationOn
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -41,7 +43,8 @@ fun TripItem(
     actions: @Composable () -> Unit = {}
 ) {
     val dateTimeFormatter = remember {
-        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+//        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     }
 
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
@@ -90,8 +93,25 @@ fun TripItem(
                     }
                 }
 
-                Text("$startString  →  $endString",
-                    style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                ) {
+                    Text(
+                        "$startString",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Fish",
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        "$endString",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
 
                 val fishermanCount = trip.fishermanCount
                 val tackleBoxCount = trip.tackleBoxCount
@@ -99,50 +119,64 @@ fun TripItem(
                 val keptCount = trip.totalKept
                 val now = System.currentTimeMillis()
 
-                if (fishermanCount != -1) {
+                if (caughtCount != 0 || now >= trip.trip.startDate || fishermanCount != -1) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Groups,
-                            contentDescription = "Fishermen count",
-                            tint = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = fishermanCount.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiary
-                        )
-                        Text(
-                            text = ":",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiary
-                        )
-                        Icon(
-                            imageVector = Icons.Default.Inventory,
-                            contentDescription = "Tackle Box count",
-                            tint = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = tackleBoxCount.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiary
-                        )
-                    }
-                }
+                        if (caughtCount != 0 || now >= trip.trip.startDate) {
+                            Icon(
+                                imageVector = AppIcons.Default.LeapingFish2,
+                                contentDescription = "Fish",
+                                tint = MaterialTheme.colorScheme.onTertiary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Kept $keptCount of $caughtCount",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (fishermanCount != -1) {
+                                Text(
+                                    text = " : ",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onTertiary
+                                )
+                            }
+                        }
 
-                if (caughtCount != 0 || now >= trip.trip.startDate) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Fish Summary • $caughtCount Caught • $keptCount Kept",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        fontWeight = FontWeight.Bold
-                    )
+                        if (fishermanCount != -1) {
+                            Icon(
+                                imageVector = Icons.Default.Groups,
+                                contentDescription = "Fishermen count",
+                                tint = MaterialTheme.colorScheme.onTertiary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = fishermanCount.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiary
+                            )
+                            Text(
+                                text = " : ",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiary
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Inventory,
+                                contentDescription = "Tackle Box count",
+                                tint = MaterialTheme.colorScheme.onTertiary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = tackleBoxCount.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiary
+                            )
+                        }
+                    }
                 }
             }
 

@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,8 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.DashboardViewModel
+import com.funjim.fishstory.R
+import com.funjim.fishstory.ui.theme.AppIcons
 
 @Composable
 fun DashboardScreen(
@@ -411,7 +414,7 @@ fun DashboardGrid(
 ) {
     val items = listOf(
         Triple("Trips", Icons.Default.Map, onTripsClick),
-        Triple("Fish", Icons.Default.Waves, onFishClick),
+        Triple("Fish", AppIcons.Default.LeapingFish2, onFishClick),
         Triple("Fishermen", Icons.Default.Groups, onFishermenClick),
         Triple("Lures", Icons.Default.Inventory, onLuresClick), // Or a custom hook icon
         Triple("Reports", Icons.Default.AutoGraph, onReportsClick), // Or a custom hook icon
