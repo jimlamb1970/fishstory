@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +44,7 @@ fun TripListScreen(
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
 
     val scope = rememberCoroutineScope()
@@ -152,7 +155,17 @@ fun TripListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Trips") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Trips")
+                        Spacer(Modifier.width(4.dp))
+                        val totalTrips = state.activeTrips.size + state.upcomingTrips.size + state.recentTrips.size
+                        Text(
+                            text = "($totalTrips trip${if (totalTrips != 1) "s" else ""})",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
@@ -184,94 +197,128 @@ fun TripListScreen(
             .fillMaxSize()
             .padding(padding)
         ) {
+            val sections = listOf(
+                "Upcoming Trips" to state.upcomingTrips,
+                "Active Trips" to state.activeTrips,
+                "Past Trips" to state.recentTrips
+            )
+
+            // TODO - rename 'Active' to 'Live'
+            val upcomingPagerState = rememberPagerState(pageCount = { state.upcomingTrips.size })
+            val livePagerState = rememberPagerState(pageCount = { state.activeTrips.size })
+
             LazyColumn {
-                val totalItems = tripSummaries.size
-                itemsIndexed(tripSummaries) { index, trip ->
-                    TripItem(
-                        trip = trip,
-                        index = index,
-                        totalItems = totalItems,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        onClick = { navigateToTripDetails(trip.trip.id) },
-                        onAction = { action ->
-                            when (action) {
-                                is TripAction.OpenMap -> {
-                                    val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                                else -> {}
+                if (state.upcomingTrips.isNotEmpty()) {
+                    item {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(16.dp, 4.dp)
+                        ) {
+                            Text(
+                                "Upcoming Trips",
+                                style = MaterialTheme.typography.titleMedium)
+                            if (state.upcomingTrips.size > 1) {
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "(${upcomingPagerState.currentPage + 1} of ${state.upcomingTrips.size})",
+                                    style = MaterialTheme.typography.titleSmall)
                             }
                         }
-                    ) {
-                        // Define the dropdown menu to be used with the TripItem card
-                        TripMenu(
-                            expanded = showMenu && activeTrip?.trip?.id == trip.trip.id,
-                            onMenuClick = { onAction(TripAction.Menu(tripSummary = trip)) },
-                            onDismiss = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Use Current Location") },
-                                onClick = {
-                                    onAction(TripAction.UseCurrentLocation(trip))
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.MyLocation,
-                                        contentDescription = null,
-                                        tint =
-                                            if (trip.trip.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Select on Map") },
-                                onClick = {
-                                    onAction(TripAction.SelectLocation(trip))
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Map,
-                                        contentDescription = null,
-                                        tint =
-                                            if (trip.trip.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current)
-                                }
-                            )
-                            if (trip.trip.latitude != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Clear Location") },
-                                    onClick = {
-                                        onAction(TripAction.ClearLocation(trip))
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.LocationOff,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
+
+                        Column {
+                            HorizontalPager(
+                                state = upcomingPagerState,
+                                contentPadding = PaddingValues(horizontal = 32.dp), // Shows a peek of next/prev cards
+                                pageSpacing = 0.dp,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { page ->
+                                val tripSummary = state.upcomingTrips[page]
+
+                                TripItemWithMenu(
+                                    tripSummary = tripSummary,
+                                    index = page,
+                                    totalItems = state.upcomingTrips.size,
+                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    onNavigateToDetails = navigateToTripDetails,
+                                    onAction = onAction,
+                                    showMenu = showMenu && activeTrip?.trip?.id == tripSummary.trip.id,
+                                    onMenuDismiss = { showMenu = false }
                                 )
                             }
-                            DropdownMenuItem(
-                                text = { Text("Delete") },
-                                onClick = {
-                                    onAction(TripAction.Delete(trip))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error)
-                                }
-                            )
                         }
+                    }
+                }
+
+                if (state.activeTrips.isNotEmpty()) {
+                    item {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(16.dp, 4.dp)
+                        ) {
+                            Text(
+                                "Live Trips",
+                                style = MaterialTheme.typography.titleMedium)
+                            if (state.activeTrips.size > 1) {
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "(${livePagerState.currentPage + 1} of ${state.activeTrips.size})",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
+
+                        Column {
+                            HorizontalPager(
+                                state = livePagerState,
+                                contentPadding = PaddingValues(horizontal = 32.dp), // Shows a peek of next/prev cards
+                                pageSpacing = 0.dp,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { page ->
+                                val tripSummary = state.activeTrips[page]
+
+                                TripItemWithMenu(
+                                    tripSummary = tripSummary,
+                                    index = page,
+                                    totalItems = state.activeTrips.size,
+                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    onNavigateToDetails = navigateToTripDetails,
+                                    onAction = onAction,
+                                    showMenu = showMenu && activeTrip?.trip?.id == tripSummary.trip.id,
+                                    onMenuDismiss = { showMenu = false }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (state.recentTrips.isNotEmpty()) {
+                    item {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(16.dp, 4.dp)
+                        ) {
+                            Text(
+                                "Past Trips",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "(${state.upcomingTrips.size})",
+                                style = MaterialTheme.typography.titleSmall)
+                        }
+                    }
+
+                    itemsIndexed(state.recentTrips) { index, trip ->
+                        TripItemWithMenu(
+                            tripSummary = trip,
+                            index = index,
+                            totalItems = state.recentTrips.size,
+                            modifier = Modifier.padding(16.dp, 4.dp),
+                            onNavigateToDetails = navigateToTripDetails,
+                            onAction = onAction,
+                            showMenu = showMenu && activeTrip?.trip?.id == trip.trip.id,
+                            onMenuDismiss = { showMenu = false }
+                        )
                     }
                 }
             }
@@ -305,5 +352,57 @@ All events (${item.eventCount}) and fish (${item.totalCaught}) associated with t
                 }
             }
         )
+    }
+}
+
+@Composable
+fun TripItemWithMenu(
+    tripSummary: TripSummary,
+    index: Int,
+    totalItems: Int,
+    modifier: Modifier = Modifier,
+    onNavigateToDetails: (String) -> Unit,
+    onAction: (TripAction) -> Unit,
+    showMenu: Boolean,
+    onMenuDismiss: () -> Unit
+) {
+    TripItem(
+        trip = tripSummary,
+        index = index,
+        totalItems = totalItems,
+        modifier = modifier,
+        onClick = { onNavigateToDetails(tripSummary.trip.id) },
+        onAction = { action -> /* Your existing OpenMap logic here */ }
+    ) {
+        TripMenu(
+            expanded = showMenu,
+            onMenuClick = { onAction(TripAction.Menu(tripSummary)) },
+            onDismiss = onMenuDismiss
+        ) {
+            // Centralized Menu Actions
+            val lat = tripSummary.trip.latitude
+            DropdownMenuItem(
+                text = { Text("Use Current Location") },
+                onClick = { onAction(TripAction.UseCurrentLocation(tripSummary)) },
+                leadingIcon = { Icon(Icons.Default.MyLocation, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
+            )
+            DropdownMenuItem(
+                text = { Text("Select on Map") },
+                onClick = { onAction(TripAction.SelectLocation(tripSummary)) },
+                leadingIcon = { Icon(Icons.Default.Map, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
+            )
+            if (lat != null) {
+                DropdownMenuItem(
+                    text = { Text("Clear Location") },
+                    onClick = { onAction(TripAction.ClearLocation(tripSummary)) },
+                    leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) }
+                )
+            }
+            DropdownMenuItem(
+                text = { Text("Delete") },
+                onClick = { onAction(TripAction.Delete(tripSummary)) },
+                leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
+            )
+        }
     }
 }

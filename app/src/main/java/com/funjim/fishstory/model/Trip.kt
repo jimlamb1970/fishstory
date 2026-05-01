@@ -61,11 +61,11 @@ data class TripWithDetails(
 // TODO - rename values to better match EventSummary
 data class TripSummary(
     @Embedded val trip: Trip,
-    val eventCount: Int,
-    val totalCaught: Int,
-    val totalKept: Int,
-    val fishermanCount: Int,
-    val tackleBoxCount: Int,
+    val eventCount: Int = 0,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0,
+    val fishermanCount: Int = 0,
+    val tackleBoxCount: Int = 0,
     val bigFishName: String? = null,
     val bigFishSpecies: String? = null,
     val bigFishLength: Double? = null,

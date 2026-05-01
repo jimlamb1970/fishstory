@@ -350,12 +350,12 @@ fun FishermanDetailsScreen(
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }
-                            val totalActiveItems = state.recentTrips.size
+                            val tripsSize = state.recentTrips.size
                             itemsIndexed(state.recentTrips) { index, trip ->
                                 TripItem(
                                     trip = trip,
                                     index = index,
-                                    totalItems = totalActiveItems,
+                                    totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onAction = { action ->

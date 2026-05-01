@@ -38,6 +38,7 @@ class TripRepository(
         val now = System.currentTimeMillis()
         trips.firstOrNull { now in it.startDate..it.endDate }
     }
+
     fun getActiveTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
         trips.filter { now in it.startDate..it.endDate }
@@ -45,7 +46,7 @@ class TripRepository(
 
     fun getActiveTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { now in it.trip.startDate..it.trip.endDate }
+        trips.filter { now in it.trip.startDate..it.trip.endDate }.sortedByDescending { it.trip.startDate }
     }
 
     /**
@@ -55,6 +56,12 @@ class TripRepository(
         val now = System.currentTimeMillis()
         trips.filter { it.startDate > now }.sortedBy { it.startDate }
     }
+
+    fun getUpcomingTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
+        val now = System.currentTimeMillis()
+        trips.filter { it.trip.startDate > now }.sortedBy { it.trip.startDate }
+    }
+
 
     /**
      * Previous trips are in the past (end date < now).

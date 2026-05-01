@@ -4,8 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -98,12 +101,38 @@ fun TripItem(
 
                 if (fishermanCount != -1) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} • " +
-                                "$tackleBoxCount with a tacklebox",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Groups,
+                            contentDescription = "Fishermen count",
+                            tint = MaterialTheme.colorScheme.onTertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = fishermanCount.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                        Text(
+                            text = ":",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Inventory,
+                            contentDescription = "Tackle Box count",
+                            tint = MaterialTheme.colorScheme.onTertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = tackleBoxCount.toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
                 }
 
                 if (caughtCount != 0 || now >= trip.trip.startDate) {

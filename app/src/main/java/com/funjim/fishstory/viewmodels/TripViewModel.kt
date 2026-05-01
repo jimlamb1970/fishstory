@@ -41,8 +41,8 @@ enum class WizardStep {
 }
 
 class TripViewModel(
-    private val tripRepository: TripRepository,
-    private val fishermanRepository: FishermanRepository
+    private val tripRepo: TripRepository,
+    private val fishermanRepo: FishermanRepository
 ) : ViewModel() {
     // --- Location Logic ---
     private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
@@ -100,21 +100,38 @@ class TripViewModel(
         }
     }
 
-    // --- Draft Logic (UI State) ---
+    // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _draftSegments = MutableStateFlow<List<Event>>(emptyList())
     val draftSegments = _draftSegments.asStateFlow()
 
+    val uiState: StateFlow<TripUiState> = combine(
+        tripRepo.getActiveTripSummaries(),
+        tripRepo.getUpcomingTripSummaries(),
+        tripRepo.getPreviousTripSummaries()
+    ) { active, upcoming, previous ->
+        TripUiState(
+            activeTrips = active,
+            upcomingTrips = upcoming,
+            recentTrips = previous,
+            isLoading = false
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TripUiState(isLoading = true)
+    )
+
     // --- Data Streams ---
-    private val allTripSummaries = tripRepository.allTripSummaries
-    val allTrips = tripRepository.allTrips
+    private val allTripSummaries = tripRepo.allTripSummaries
+    val allTrips = tripRepo.allTrips
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getSegmentsForTrip(tripId: String) = tripRepository.getSegmentsForTrip(tripId)
+    fun getSegmentsForTrip(tripId: String) = tripRepo.getSegmentsForTrip(tripId)
 
-    val fishermen: Flow<List<Fisherman>> = fishermanRepository.allFishermen
+    val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripFishermen: StateFlow<List<Fisherman>> = _selectedTripId
@@ -122,7 +139,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyList())
             } else {
-                fishermanRepository.getFishermenForTrip(id)
+                fishermanRepo.getFishermenForTrip(id)
             }
         }
         .map { list ->
@@ -142,10 +159,10 @@ class TripViewModel(
         )
 
     fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
-        return tripRepository.getFishermanIdsForTrip(tripId)
+        return tripRepo.getFishermanIdsForTrip(tripId)
     }
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
-        return fishermanRepository.getFishermenForTrip(tripId)
+        return fishermanRepo.getFishermenForTrip(tripId)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -154,7 +171,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyList())
             } else {
-                fishermanRepository.getFishermenForSegment(id)
+                fishermanRepo.getFishermenForSegment(id)
             }
         }
         .map { list ->
@@ -174,22 +191,22 @@ class TripViewModel(
         )
 
     fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> {
-        return fishermanRepository.getFishermenForSegment(segmentId)
+        return fishermanRepo.getFishermenForSegment(segmentId)
     }
 
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> {
-        return tripRepository.getTripFishermanTackleBoxId(tripId, fishermanId)
+        return tripRepo.getTripFishermanTackleBoxId(tripId, fishermanId)
     }
     fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> {
-        return tripRepository.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
+        return tripRepo.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
     }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
-        return fishermanRepository.getTackleBoxesForFisherman(fishermanId)
+        return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
 
     fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
-        return fishermanRepository.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
+        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
 
     // TODO -- check flows where filterNotNul is and see if they need to be changed
@@ -225,11 +242,11 @@ class TripViewModel(
         )
 
     fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> {
-        return tripRepository.getTripFishermenTackleBoxIds(tripId)
+        return tripRepo.getTripFishermenTackleBoxIds(tripId)
     }
 
     fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> {
-        return tripRepository.getFishermanTackleBoxMapping(segmentId)
+        return tripRepo.getFishermanTackleBoxMapping(segmentId)
     }
 
     // TODO -- add sorting on Trip summaries
@@ -265,7 +282,7 @@ class TripViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                tripRepository.getSegmentSummaries(id)
+                tripRepo.getSegmentSummaries(id)
             }
         }
         .map { list ->
@@ -299,20 +316,20 @@ class TripViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripPhotos: StateFlow<List<Photo>> = _selectedTripId
         .filterNotNull()
-        .flatMapLatest { tripRepository.getPhotosForTrip(it) }
+        .flatMapLatest { tripRepo.getPhotosForTrip(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val segmentPhotos: StateFlow<List<Photo>> = _selectedEventId
         .filterNotNull()
-        .flatMapLatest { tripRepository.getPhotosForSegment(it) }
+        .flatMapLatest { tripRepo.getPhotosForSegment(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // TODO -- get this from somehwere else
-    var lureColors: Flow<List<LureColor>> = fishermanRepository.allLureColors
+    var lureColors: Flow<List<LureColor>> = fishermanRepo.allLureColors
 
     fun getLureNamesInTackleBox(tackleBoxId: String?): Flow<List<String>> {
-        val luresFlow = fishermanRepository.getLuresInTackleBox(tackleBoxId ?: "")
+        val luresFlow = fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
 
         // Combine the two flows: lures and colors
         return combine(luresFlow, lureColors) { lures, colors ->
@@ -333,43 +350,43 @@ class TripViewModel(
     // --- Actions ---
     fun saveTrip(trip: Trip) {
         viewModelScope.launch {
-            tripRepository.upsertTrip(trip)
+            tripRepo.upsertTrip(trip)
         }
     }
 
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
-            tripRepository.deleteTripById(trip.id)
+            tripRepo.deleteTripById(trip.id)
         }
     }
 
     fun deleteTripById(tripId: String) {
         viewModelScope.launch {
-            tripRepository.deleteTripById(tripId)
+            tripRepo.deleteTripById(tripId)
         }
     }
 
     fun upsertEvent(event: Event) {
         viewModelScope.launch {
-            tripRepository.upsertEvent(event)
+            tripRepo.upsertEvent(event)
         }
     }
 
     fun deleteEvent(event: Event) {
         viewModelScope.launch {
-            tripRepository.deleteEvent(event)
+            tripRepo.deleteEvent(event)
         }
     }
 
     fun deleteEventById(eventId: String) {
         viewModelScope.launch {
-            tripRepository.deleteEventById(eventId)
+            tripRepo.deleteEventById(eventId)
         }
     }
 
     fun upsertTripFishermanCrossRef(tripId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepository.upsertTripFishermanCrossRef(
+            tripRepo.upsertTripFishermanCrossRef(
                 TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
             )
         }
@@ -377,19 +394,19 @@ class TripViewModel(
 
     fun deleteTripFishermanCrossRef(tripId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepository.deleteTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId))
+            tripRepo.deleteTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId))
         }
     }
 
     fun removeFishermanCrossRefFromTripAndAllEvents(tripId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepository.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
+            tripRepo.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
         }
     }
 
     fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepository.upsertSegmentFishermanCrossRef(
+            tripRepo.upsertSegmentFishermanCrossRef(
                 EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
             )
         }
@@ -397,38 +414,38 @@ class TripViewModel(
 
     fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepository.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+            tripRepo.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
         }
     }
 
     fun removeSegmentFishermenNotInSet(segmentId: String, newSet: Set<String>) {
         viewModelScope.launch {
-            tripRepository.removeFishermenNotInSet(segmentId, newSet)
+            tripRepo.removeFishermenNotInSet(segmentId, newSet)
         }
     }
 
     suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
         // Check if the fisherman already exists
-        val fisherman = fishermanRepository.getFishermanByName(firstName, lastName, nickname)
+        val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
 
         // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
         if (fisherman == null) {
             val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-            fishermanRepository.addFisherman(fisherman)
+            fishermanRepo.addFisherman(fisherman)
         }
     }
 
     fun insertTackleBox(tackleBox: TackleBox) {
         viewModelScope.launch {
-            fishermanRepository.insertTackleBox(tackleBox)
+            fishermanRepo.insertTackleBox(tackleBox)
         }
     }
 
     fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-            fishermanRepository.insertTackleBox(tackleBox)
-            tripRepository.upsertTripFishermanCrossRef(
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.upsertTripFishermanCrossRef(
                 TripFishermanCrossRef(
                     tripId,
                     fishermanId,
@@ -440,8 +457,8 @@ class TripViewModel(
     fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-            fishermanRepository.insertTackleBox(tackleBox)
-            tripRepository.upsertSegmentFishermanCrossRef(
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.upsertSegmentFishermanCrossRef(
                 EventFishermanCrossRef(
                     eventId,
                     fishermanId,
@@ -464,13 +481,13 @@ class TripViewModel(
 
     fun addPhoto(photo: Photo) {
         viewModelScope.launch {
-            tripRepository.addPhoto(photo)
+            tripRepo.addPhoto(photo)
         }
     }
 
     fun deletePhoto(photo: Photo) {
         viewModelScope.launch {
-            tripRepository.deletePhoto(photo)
+            tripRepo.deletePhoto(photo)
         }
     }
 
@@ -487,96 +504,6 @@ class TripViewModel(
 
     fun selectEvent(id: String) {
         _selectedEventId.value = id
-    }
-
-    // TODO - refactor Add Segment logic so that it does not use these drafts
-    private val _draftTripStartDate = MutableStateFlow(System.currentTimeMillis())
-    val draftTripStartDate = _draftTripStartDate.asStateFlow()
-
-    private val _draftTripEndDate = MutableStateFlow(System.currentTimeMillis())
-    val draftTripEndDate = _draftTripEndDate.asStateFlow()
-
-    fun updateDraftTripStartDate(dateMillis: Long) {
-        _draftTripStartDate.value = dateMillis
-    }
-
-    fun updateDraftTripEndDate(dateMillis: Long) {
-        _draftTripEndDate.value = dateMillis
-    }
-
-    private val _draftLatitude = MutableStateFlow<Double?>(null)
-    val draftLatitude = _draftLatitude.asStateFlow()
-
-    private val _draftLongitude = MutableStateFlow<Double?>(null)
-    val draftLongitude = _draftLongitude.asStateFlow()
-
-    fun updateDraftLocation(lat: Double?, lon: Double?) {
-        _draftLatitude.value = lat
-        _draftLongitude.value = lon
-    }
-
-    private val _draftSegmentId = MutableStateFlow("")
-    val draftSegmentId = _draftSegmentId.asStateFlow()
-
-    private val _draftSegmentName = MutableStateFlow("")
-    val draftSegmentName = _draftSegmentName.asStateFlow()
-
-    private val _draftSegmentStartDate = MutableStateFlow(System.currentTimeMillis())
-    val draftSegmentStartDate = _draftSegmentStartDate.asStateFlow()
-
-    private val _draftSegmentEndDate = MutableStateFlow(System.currentTimeMillis())
-    val draftSegmentEndDate = _draftSegmentEndDate.asStateFlow()
-
-    private val _draftSegmentLatitude = MutableStateFlow<Double?>(null)
-    val draftSegmentLatitude = _draftSegmentLatitude.asStateFlow()
-
-    private val _draftSegmentLongitude = MutableStateFlow<Double?>(null)
-    val draftSegmentLongitude = _draftSegmentLongitude.asStateFlow()
-
-    fun clearDraftSegment() {
-        _draftSegmentName.value = ""
-        val now = System.currentTimeMillis()
-        _draftSegmentStartDate.value = now
-        _draftSegmentEndDate.value = now
-        _draftSegmentLatitude.value = null
-        _draftSegmentLongitude.value = null
-    }
-
-    fun updateDraftSegmentName(name: String) {
-        _draftSegmentName.value = name
-    }
-
-    fun updateDraftSegmentStartDate(dateMillis: Long) {
-        _draftSegmentStartDate.value = dateMillis
-    }
-
-    fun updateDraftSegmentEndDate(dateMillis: Long) {
-        _draftSegmentEndDate.value = dateMillis
-    }
-
-    fun updateDraftSegmentLocation(lat: Double?, lon: Double?) {
-        _draftSegmentLatitude.value = lat
-        _draftSegmentLongitude.value = lon
-    }
-
-    private val _draftFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val draftFishermanIds = _draftFishermanIds.asStateFlow()
-
-    fun setDraftFisherman(fishermanIds: Set<String>) {
-        _draftFishermanIds.update { fishermanIds }
-    }
-
-    private val _draftSegmentFishermanIds = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
-    val draftSegmentFishermanIds = _draftSegmentFishermanIds.asStateFlow()
-
-    fun setDraftSegmentFisherman(fishermanIds: Set<String>) {
-        _draftSegmentFishermanIds.update { it + (draftSegmentId.value to fishermanIds) }
-    }
-    fun addDraftSegmentFisherman(segmentId: String, fishermanId: String) {
-        _draftSegmentFishermanIds.update { currentMap ->
-            val current = currentMap[segmentId] ?: emptySet()
-            currentMap + (segmentId to current + fishermanId)
-        }
     }
 
     // --- Wizard Navigation State ---
@@ -633,6 +560,13 @@ class TripViewModel(
         _segmentFishermanIds.value = ids
     }
 }
+
+data class TripUiState(
+    val activeTrips: List<TripSummary> = emptyList(),
+    val upcomingTrips: List<TripSummary> = emptyList(),
+    val recentTrips: List<TripSummary> = emptyList(),
+    val isLoading: Boolean = false
+)
 
 class TripViewModelFactory(
     private val tripRepository: TripRepository,
