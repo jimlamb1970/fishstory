@@ -41,15 +41,12 @@ class LureRepository(
             }
     }
 
-    suspend fun addLureToTackleBox(fishermanId: String, lureId: String) {
-        val tackleBox = getOrCreateTackleBox(fishermanId)
-        tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBox.id, lureId))
+    suspend fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
+        tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
     }
 
-    suspend fun removeLureFromTackleBox(fishermanId: String, lureId: String) {
-        tackleBoxDao.getExistingTackleBoxForFisherman(fishermanId)?.let {
-            tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(it.id, lureId))
-        }
+    suspend fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
+        tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
     }
 
     // Lure Operations

@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
@@ -168,9 +167,9 @@ fun FishermanTackleBoxScreen(
                             onCheckedChange = { checked ->
                                 scope.launch {
                                     if (checked) {
-                                        viewModel.addLureToFishermanTackleBox(fishermanId, item.lure.id)
+                                        viewModel.addLureToTackleBox(tackleBoxId, item.lure.id)
                                     } else {
-                                        viewModel.removeLureFromFishermanTackleBox(fishermanId, item.lure.id)
+                                        viewModel.removeLureFromTackleBox(tackleBoxId, item.lure.id)
                                     }
                                 }
                             }

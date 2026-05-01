@@ -82,15 +82,15 @@ class LureViewModel(
     fun toggleReverse() { _isReversed.value = !_isReversed.value }
     fun setSortOrder(order: LureSortOrder) { _sortOrder.value = order }
 
-    fun addLureToFishermanTackleBox(fishermanId: String, lureId: String) {
+    fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
         viewModelScope.launch {
-            repository.addLureToTackleBox(fishermanId, lureId)
+            repository.addLureToTackleBox(tackleBoxId, lureId)
         }
     }
 
-    fun removeLureFromFishermanTackleBox(fishermanId: String, lureId: String) {
+    fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
         viewModelScope.launch {
-            repository.removeLureFromTackleBox(fishermanId, lureId)
+            repository.removeLureFromTackleBox(tackleBoxId, lureId)
         }
     }
 

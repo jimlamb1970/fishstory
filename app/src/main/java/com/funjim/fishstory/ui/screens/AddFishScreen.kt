@@ -2,7 +2,6 @@ package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.DateTimeUtils.toLocalDateTime
 import com.funjim.fishstory.ui.utils.DateTimeUtils.updateDate
@@ -35,13 +33,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
@@ -67,10 +65,25 @@ fun AddFishScreenNew(
     navigateToSelectLures: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    LaunchedEffect(segmentId) {
-        viewModel.updateSelectedEvent(segmentId)
-        viewModel.updateSelectedFisherman("")
-        viewModel.updateSelectedTackleBox("")
+    val draftFish by viewModel.draftFish.collectAsState()
+
+    LaunchedEffect(fishId, segmentId) {
+        if (draftFish == null) {
+            if (fishId != null) {
+                val fish = viewModel.getFishById(fishId)
+                fish?.let { fish ->
+                    viewModel.initDraftFish(fish, fish.tripId, fish.eventId)
+                    viewModel.updateSelectedEvent(fish.eventId)
+                    viewModel.updateSelectedFisherman(fish.fishermanId)
+                    viewModel.updateSelectedTackleBox("")
+                }
+            } else {
+                viewModel.initDraftFish(null, tripId, segmentId)
+                viewModel.updateSelectedEvent(segmentId)
+                viewModel.updateSelectedFisherman("")
+                viewModel.updateSelectedTackleBox("")
+            }
+        }
     }
 
     // Data from ViewModel
@@ -86,19 +99,24 @@ fun AddFishScreenNew(
     val context = LocalContext.current
 
     // Form State
-    var selectedSpecies by remember { mutableStateOf<Species?>(null) }
-    var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
-    var selectedLure by remember { mutableStateOf<Lure?>(null) }
+    val selectedSpecies = remember(draftFish, speciesList) {
+        speciesList.find { it.id == draftFish?.speciesId }
+    }
+    val selectedFisherman = remember(draftFish, eventFishermen) {
+        eventFishermen.find { it.id == draftFish?.fishermanId }
+    }
 
-    var released by remember { mutableStateOf(true) }
-    var timestamp by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var latitude by remember { mutableStateOf<Double?>(null) }
-    var longitude by remember { mutableStateOf<Double?>(null) }
+    LaunchedEffect(selectedFisherman) {
+        viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[selectedFisherman?.id])
+    }
 
-    // Initialize length and hole number to appropriate values when adding
-    // a fish. Could always set them because they will be overridden if editing
-    var lengthStr by remember { mutableStateOf(if (fishId == null) "10.0" else "") }
-    var holeNumberStr by remember { mutableStateOf(if (fishId == null) "1" else "") }
+    val selectedLure = remember(draftFish, rawLures) {
+        rawLures.find { it.id == draftFish?.lureId }
+    }
+
+    val timestamp = remember(draftFish) {
+        draftFish?.timestamp ?: System.currentTimeMillis()
+    }
 
     // Check for both FINE and COARSE location permissions
     val hasLocationPermission = remember {
@@ -106,28 +124,11 @@ fun AddFishScreenNew(
         context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
-    // Default to false
-    // TODO - store last selected state in view model?
-    var useCurrentLocation by remember { mutableStateOf(false) }
-
     // Load data if editing
     LaunchedEffect(fishId, speciesList, rawLures) {
         if (fishId != null) {
             val fish = viewModel.getFishById(fishId) // Ensure this exists in your ViewModel
             fish?.let { fish ->
-                selectedSpecies = speciesList.find { it.id == fish.speciesId }
-                selectedFisherman = eventFishermen.find { it.id == fish.fishermanId }
-                selectedLure = rawLures.find { it.id == fish.lureId }
-                lengthStr = fish.length.toString()
-                released = fish.isReleased
-                timestamp = fish.timestamp
-                latitude = fish.latitude
-                longitude = fish.longitude
-                holeNumberStr = fish.holeNumber.toString()
-                useCurrentLocation = false
-
-                viewModel.updateSelectedEvent(fish.eventId)
-                viewModel.updateSelectedFisherman(fish.fishermanId)
                 viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[fish.fishermanId])
             }
         }
@@ -135,13 +136,7 @@ fun AddFishScreenNew(
 
     val startTime = selectedEvent?.startTime ?: timestamp
     val endTime = selectedEvent?.endTime ?: timestamp
-
-    if (timestamp < startTime) {
-        timestamp = startTime
-    }
-    if (timestamp > endTime) {
-        timestamp = endTime
-    }
+    viewModel.updateTimestamp(timestamp, startTime, endTime)
 
     val luresSorted = remember(rawLures, colors) {
         rawLures.map { lure ->
@@ -171,7 +166,7 @@ fun AddFishScreenNew(
 
     val datePickerState = key(showDatePicker) {
         rememberDatePickerState(
-            initialSelectedDateMillis = timestamp.toUtcMidnight(),
+            initialSelectedDateMillis = draftFish?.timestamp?.toUtcMidnight(),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                     val startMidnight = startTime.toUtcMidnight()
@@ -206,7 +201,8 @@ fun AddFishScreenNew(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        timestamp = updateDate(timestamp, it)
+                        val newDate = updateDate(timestamp, it)
+                        viewModel.updateTimestamp(newDate, startTime, endTime)
                     }
                     showDatePicker = false
                 }) { Text("OK") }
@@ -219,9 +215,8 @@ fun AddFishScreenNew(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    val candidate = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
-                    // Clamp to the valid range
-                    timestamp = candidate.coerceIn(startTime, endTime)
+                    val newTime = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
+                    viewModel.updateTimestamp(newTime, startTime, endTime)
                     showTimePicker = false
                 }) { Text("OK") }
             },
@@ -250,166 +245,189 @@ fun AddFishScreenNew(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = {
+                        viewModel.clearDraftFish()
+                        navigateBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            SpeciesSelectionField(
-                items = speciesList,
-                selectedItem = selectedSpecies,
-                onSelected = { selectedSpecies = it },
-                onAdd = { addNewSpecies = true },
-                modifier = Modifier.fillMaxWidth()
-            )
+        draftFish?.let { fish ->
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SpeciesSelectionField(
+                    items = speciesList,
+                    selectedItem = selectedSpecies,
+                    onSelected = { species -> viewModel.updateSpecies(species) },
+                    onAdd = { addNewSpecies = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            FishermanSelectionField(
-                items = eventFishermen,
-                selectedItem = selectedFisherman,
-                onSelected = {
-                    selectedFisherman = it
-                    selectedLure = null
-                    viewModel.updateSelectedFisherman(selectedFisherman?.id ?: "")
-                    viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[selectedFisherman?.id] ?: "")
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
+                FishermanSelectionField(
+                    items = eventFishermen,
+                    selectedItem = selectedFisherman,
+                    onSelected = { fisherman ->
+                        viewModel.updateFisherman(fisherman)
+                        viewModel.updateLure(null)
+                        viewModel.updateSelectedFisherman(fisherman.id)
+                        viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[fisherman.id] ?: "")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            selectedFisherman?.let { fisherman ->
-                fishermanTackleBoxMap[fisherman.id]?.let { tackleBoxId ->
-                    LureSelectionField(
-                        items = luresSorted,
-                        selectedItem = selectedLure,
-                        onSelected = { selectedLure = it },
-                        onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
-                        modifier = Modifier.fillMaxWidth()
+                selectedFisherman?.let { fisherman ->
+                    fishermanTackleBoxMap[fisherman.id]?.let { tackleBoxId ->
+                        LureSelectionField(
+                            items = luresSorted,
+                            selectedItem = selectedLure,
+                            onSelected = { lure -> viewModel.updateLure(lure) },
+                            onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // Length and Hole Number
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StepperField(
+                        label = "Length (in)",
+                        value = fish.length.toString(),
+                        onValueChange = { length ->
+                            viewModel.updateLength(length.toDoubleOrNull() ?: 0.0)
+                        },
+                        onIncrement = {
+                            viewModel.updateLength(fish.length + 0.25)
+                        },
+                        onDecrement = {
+                            viewModel.updateLength(fish.length - 0.25)
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    StepperField(
+                        label = "Hole #",
+                        value = fish.holeNumber.toString(),
+                        onValueChange = { hole -> viewModel.updateHoleNumber(hole.toIntOrNull() ?: 0) },
+                        onIncrement = {
+                            viewModel.updateHoleNumber(fish.holeNumber?.plus(1) ?: 1)
+                        },
+                        onDecrement = {
+                            val current = fish.holeNumber ?: 0
+                            if (current > 1) {
+                                viewModel.updateHoleNumber(fish.holeNumber?.minus(1) ?: 1)
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
                     )
                 }
-            }
 
-            // Length and Hole Number
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                StepperField(
-                    label = "Length (in)",
-                    value = lengthStr,
-                    onValueChange = { lengthStr = it },
-                    onIncrement = {
-                        val current = lengthStr.toDoubleOrNull() ?: 0.0
-                        lengthStr = (current + 0.25).toString()
-                    },
-                    onDecrement = {
-                        val current = lengthStr.toDoubleOrNull() ?: 0.0
-                        if (current > 0) lengthStr = (current - 0.25).toString()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-
-                StepperField(
-                    label = "Hole #",
-                    value = holeNumberStr,
-                    onValueChange = { holeNumberStr = it },
-                    onIncrement = {
-                        val current = holeNumberStr.toIntOrNull() ?: 0
-                        holeNumberStr = (current + 1).toString()
-                    },
-                    onDecrement = {
-                        val current = holeNumberStr.toIntOrNull() ?: 0
-                        if (current > 1) holeNumberStr = (current - 1).toString()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Date & Time Buttons
-            // The Date & Time Buttons do not participate in focus switching with volume keys
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.weight(1f)
+                // Date & Time Buttons
+                // The Date & Time Buttons do not participate in focus switching with volume keys
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(timestamp)))
-                }
-                OutlinedButton(
-                    onClick = { showTimePicker = true },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Schedule, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text(SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(timestamp)))
-                }
-            }
-
-            CheckBoxWithText(
-                label = "Use Current Location",
-                checked = useCurrentLocation,
-                onCheckedChange = { useCurrentLocation = it },
-                enabled = hasLocationPermission
-            )
-
-            CheckBoxWithText(
-                label = "Released",
-                checked = released,
-                onCheckedChange = { released = it },
-                enabled = true
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    if (selectedSpecies != null && selectedFisherman != null) {
-                        scope.launch {
-                            // Check both the state AND the actual permission
-                            val location = if (useCurrentLocation && hasLocationPermission) {
-                                getCurrentLocation(context)
-                            } else {
-                                null
-                            }
-
-                            viewModel.upsertFish(
-                                Fish(
-                                    id = fishId ?: UUID.randomUUID().toString(),
-                                    speciesId = selectedSpecies?.id,
-                                    fishermanId = selectedFisherman?.id,
-                                    tripId = tripId,
-                                    eventId = segmentId,
-                                    lureId = selectedLure?.id,
-                                    length = lengthStr.toDoubleOrNull() ?: 0.0,
-                                    isReleased = released,
-                                    timestamp = timestamp,
-                                    holeNumber = holeNumberStr.toIntOrNull(),
-                                    latitude = location?.first ?: latitude,
-                                    longitude = location?.second ?: longitude
-                                )
-                            )
-
-                            navigateBack()
-                        }
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            SimpleDateFormat(
+                                "MMM dd",
+                                Locale.getDefault()
+                            ).format(Date(timestamp))
+                        )
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                enabled = selectedSpecies != null && selectedFisherman != null,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text( if (fishId == null) "Add Fish" else "Edit Fish" )
+                    OutlinedButton(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Schedule, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            SimpleDateFormat(
+                                "hh:mm a",
+                                Locale.getDefault()
+                            ).format(Date(timestamp))
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (fish.latitude != null && fish.longitude != null) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "GPS Location",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    OutlinedButton(
+                        enabled = hasLocationPermission,
+                        onClick = {
+                            if (hasLocationPermission) {
+                                scope.launch {
+                                    val location = getCurrentLocation(context)
+                                    viewModel.updateLocation(location?.first ?: 0.0, location?.second ?: 0.0)
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.MyLocation, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Use Current Location")
+                    }
+                }
+
+                CheckBoxWithText(
+                    label = "Released",
+                    checked = fish.isReleased,
+                    onCheckedChange = { released -> viewModel.updateReleased(released) },
+                    enabled = true
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = {
+                        if (selectedSpecies != null && selectedFisherman != null) {
+                            scope.launch {
+                                viewModel.upsertFish(fish)
+                                viewModel.clearDraftFish()
+                                navigateBack()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    enabled = selectedSpecies != null && selectedFisherman != null,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (fishId == null) "Add Fish" else "Edit Fish")
+                }
             }
         }
     }
@@ -432,7 +450,7 @@ fun AddFishScreenNew(
                         scope.launch {
                             val species = Species(name = addSpeciesName)
                             viewModel.addSpecies(species)
-                            selectedSpecies = species
+                            viewModel.updateSpecies(species)
                             addNewSpecies = false
                             addSpeciesName = ""
                         }
