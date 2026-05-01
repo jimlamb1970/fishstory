@@ -64,7 +64,8 @@ fun AddFishScreenNew(
     tripId: String,
     segmentId: String,
     fishId: String? = null, // Pass null for "Add", pass ID for "Edit"
-    onNavigateBack: () -> Unit
+    navigateToSelectLures: (String, String) -> Unit,
+    navigateBack: () -> Unit
 ) {
     LaunchedEffect(segmentId) {
         viewModel.updateSelectedEvent(segmentId)
@@ -249,7 +250,7 @@ fun AddFishScreenNew(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -271,18 +272,10 @@ fun AddFishScreenNew(
                 onAdd = { addNewSpecies = true },
                 modifier = Modifier.fillMaxWidth()
             )
-/*
-            SpeciesDropdown(
-                speciesList,
-                selectedSpecies,
-                onSelected = { selectedSpecies = it },
-                onAdd = { addNewSpecies = true },
-                modifier = Modifier.fillMaxWidth()
-            )
-*/
-            FishermanDropdown(
-                eventFishermen,
-                selectedFisherman,
+
+            FishermanSelectionField(
+                items = eventFishermen,
+                selectedItem = selectedFisherman,
                 onSelected = {
                     selectedFisherman = it
                     selectedLure = null
@@ -292,13 +285,17 @@ fun AddFishScreenNew(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            LureDropdown(
-                luresSorted,
-                selectedLure,
-                onSelected = { selectedLure = it },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = selectedFisherman != null && luresSorted.isNotEmpty(),
-            )
+            selectedFisherman?.let { fisherman ->
+                fishermanTackleBoxMap[fisherman.id]?.let { tackleBoxId ->
+                    LureSelectionField(
+                        items = luresSorted,
+                        selectedItem = selectedLure,
+                        onSelected = { selectedLure = it },
+                        onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
 
             // Length and Hole Number
             Row(
@@ -401,7 +398,7 @@ fun AddFishScreenNew(
                                 )
                             )
 
-                            onNavigateBack()
+                            navigateBack()
                         }
                     }
                 },
@@ -553,263 +550,6 @@ fun CheckBoxWithText(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpeciesDropdown(
-    items: List<Species>,
-    selectedItem: Species?,
-    onSelected: (Species) -> Unit,
-    onAdd: () -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String = "Search..."
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-
-    val filtered = remember(query, items) {
-        if (query.isBlank()) items
-        else items.filter { it.name.contains(query, ignoreCase = true) }
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            label = { Text("Species") },
-            value = if (expanded) query else selectedItem?.name ?: "",
-            onValueChange = { query = it },
-            //placeholder = { Text(placeholder) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            singleLine = true,
-            readOnly = true,
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
-                .fillMaxWidth(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                query = ""
-            }
-        ) {
-            if (filtered.isNotEmpty()) {
-                val totalSpecies = filtered.size
-
-                filtered.forEachIndexed { index, item ->
-                    val backgroundColor = if ((index % 2 == 0) || (totalSpecies < 4)) {
-                        MaterialTheme.colorScheme.surface
-                    } else {
-                        // Use a very light tint of your primary or surfaceVariant
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                    }
-
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = item.name,
-                                fontWeight =
-                                    if (item == selectedItem) FontWeight.Bold
-                                    else FontWeight.Normal
-                            )
-                        },
-                        modifier = Modifier.background(backgroundColor),
-                        onClick = {
-                            onSelected(item)
-                            expanded = false
-                            query = ""
-                        }
-                    )
-                }
-            } else {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            "Add species...",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    onClick = {
-                        expanded = false
-                        query = ""
-                        // TODO - return what has been entered
-                        onAdd()
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FishermanDropdown(
-    items: List<Fisherman>,
-    selectedItem: Fisherman?,
-    onSelected: (Fisherman) -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String = "Search..."
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-
-    val filtered = remember(query, items) {
-        if (query.isBlank()) items
-        else items
-            .filter { it.fullName.contains(query, ignoreCase = true) }
-    }.sortedBy { it.fullName }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            label = { Text("Fisherman") },
-            value = if (expanded) query else selectedItem?.fullName ?: "",
-            onValueChange = { query = it },
-            //placeholder = { Text(placeholder) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            singleLine = true,
-            readOnly = true,
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
-                .fillMaxWidth(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-        )
-
-        if (filtered.isNotEmpty()) {
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = {
-                    expanded = false
-                    query = ""
-                }
-            ) {
-                val totalSpecies = filtered.size
-
-                filtered.forEachIndexed { index, item ->
-                    val backgroundColor = if ((index % 2 == 0) || (totalSpecies < 4)) {
-                        MaterialTheme.colorScheme.surface
-                    } else {
-                        // Use a very light tint of your primary or surfaceVariant
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                    }
-
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = item.fullName,
-                                fontWeight =
-                                    if (item == selectedItem) FontWeight.Bold
-                                    else FontWeight.Normal
-                            )
-                        },
-                        modifier = Modifier.background(backgroundColor),
-                        onClick = {
-                            onSelected(item)
-                            expanded = false
-                            query = ""
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LureDropdown(
-    items: List<Pair<Lure, String>>,
-    selectedItem: Lure?,
-    onSelected: (Lure) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    placeholder: String = "Search..."
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-
-    val filtered = remember(query, items) {
-        if (query.isBlank()) items
-        else items
-            .filter { it.second.contains(query, ignoreCase = true) }
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        val lureName = filtered.find { it.first == selectedItem }?.second
-
-        OutlinedTextField(
-            label = { Text("Lure") },
-            value = if (expanded) query else lureName ?: "",
-            onValueChange = { query = it },
-            //placeholder = { Text(placeholder) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            singleLine = true,
-            readOnly = true,
-            enabled = enabled,
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
-                .fillMaxWidth(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-        )
-
-        if (filtered.isNotEmpty()) {
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = {
-                    expanded = false
-                    query = ""
-                }
-            ) {
-                val totalSpecies = filtered.size
-
-                filtered.forEachIndexed { index, (lure, displayName) ->
-                    val backgroundColor = if ((index % 2 == 0) || (totalSpecies < 4)) {
-                        MaterialTheme.colorScheme.surface
-                    } else {
-                        // Use a very light tint of your primary or surfaceVariant
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                    }
-
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = displayName ?: "",
-                                fontWeight =
-                                    if (lure == selectedItem) FontWeight.Bold
-                                    else FontWeight.Normal
-                            )
-                        },
-                        modifier = Modifier.background(backgroundColor),
-                        onClick = {
-                            onSelected(lure)
-                            expanded = false
-                            query = ""
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun SpeciesSelectionField(
     items: List<Species>,
     selectedItem: Species?,
@@ -882,6 +622,169 @@ fun SpeciesSelectionField(
                         HorizontalDivider()
                         ListItem(
                             headlineContent = { Text("Add new species...", color = MaterialTheme.colorScheme.primary) },
+                            leadingContent = { Icon(Icons.Default.Add, null) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onAdd()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FishermanSelectionField(
+    items: List<Fisherman>,
+    selectedItem: Fisherman?,
+    onSelected: (Fisherman) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Display for the current selection
+    OutlinedTextField(
+        value = selectedItem?.fullName ?: "Select Fisherman",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false, // Prevents focus/keyboard on the main text field
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Fisherman") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                // Search bar inside the sheet
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Fishermen...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // List inside the sheet
+                val filtered = items.filter {
+                    it.fullName.contains(searchQuery, ignoreCase = true)
+                }.sortedBy { it.fullName }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.fullName) },
+                            modifier = Modifier.clickable {
+                                onSelected(item)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LureSelectionField(
+    items: List<Pair<Lure, String>>,
+    selectedItem: Lure?,
+    onSelected: (Lure) -> Unit,
+    onAdd: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Display for the current selection
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Lure",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false, // Prevents focus/keyboard on the main text field
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Lure") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                // Search bar inside the sheet
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Lures...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // List inside the sheet
+                val filtered = items.filter { it.second.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.second) },
+                            modifier = Modifier.clickable {
+                                onSelected(item.first)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+                    // "Add New" option
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = { Text("Add lures to tackle box...", color = MaterialTheme.colorScheme.primary) },
                             leadingContent = { Icon(Icons.Default.Add, null) },
                             modifier = Modifier.clickable {
                                 showSheet = false
