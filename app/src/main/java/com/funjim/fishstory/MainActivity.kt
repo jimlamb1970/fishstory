@@ -207,7 +207,10 @@ fun AppNavigation(
                 tripId = tripId,
                 segmentId = segmentId,
                 fishId = fishId,
-                onNavigateBack = { navController.popBackStack() }
+                navigateToSelectLures = { fishermanId, tackleBoxId ->
+                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                },
+                navigateBack = { navController.popBackStack() }
             )
         }
 
@@ -245,7 +248,6 @@ fun AppNavigation(
             )
         }
 
-        // TODO - refactor to only need TripViewModel?
         composable("add_trip") {
             AddTripScreen(
                 tripViewModel = tripViewModel,
