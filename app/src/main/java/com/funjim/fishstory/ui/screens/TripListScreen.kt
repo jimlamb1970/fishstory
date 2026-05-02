@@ -2,16 +2,23 @@ package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -24,10 +31,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -51,7 +62,7 @@ fun TripListScreen(
     val context = LocalContext.current
 
     // State to keep track of which trip we are currently modifying
-    var activeTrip by remember { mutableStateOf<TripSummary?>(null) }
+    var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
     var showMenu by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -59,7 +70,7 @@ fun TripListScreen(
     ) { permissions ->
         val granted = permissions.entries.all { it.value }
         if (granted) {
-            activeTrip?.let { summary ->
+            selectedTrip?.let { summary ->
                 scope.launch {
                     // We add the Suppress warning here because we just verified 'granted'
                     @SuppressLint("MissingPermission")
@@ -77,11 +88,11 @@ fun TripListScreen(
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = activeTrip?.trip?.latitude,
-        existingLng = activeTrip?.trip?.longitude,
+        existingLat = selectedTrip?.trip?.latitude,
+        existingLng = selectedTrip?.trip?.longitude,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            activeTrip?.let { summary ->
+            selectedTrip?.let { summary ->
                 viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng))
             }
         }
@@ -92,7 +103,7 @@ fun TripListScreen(
             is TripAction.View -> {}
             is TripAction.Menu -> {
                 showMenu = true
-                activeTrip = action.tripSummary
+                selectedTrip = action.tripSummary
             }
             is TripAction.OpenMap -> {}
             is TripAction.UseCurrentLocation -> {
@@ -159,7 +170,7 @@ fun TripListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Trips")
                         Spacer(Modifier.width(4.dp))
-                        val totalTrips = state.activeTrips.size + state.upcomingTrips.size + state.recentTrips.size
+                        val totalTrips = state.liveTrips.size + state.upcomingTrips.size + state.recentTrips.size
                         Text(
                             text = "($totalTrips trip${if (totalTrips != 1) "s" else ""})",
                             style = MaterialTheme.typography.bodySmall
@@ -174,6 +185,21 @@ fun TripListScreen(
                         )
                     }
                 },
+                actions = {
+                    TextButton(
+                        onClick = navigateToAddTrip,
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Add")
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -181,33 +207,20 @@ fun TripListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = navigateToAddTrip,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Trip")
-            }
         }
     ) {
         padding ->
+
+        val listState = rememberLazyListState()
+
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(padding)
         ) {
-            val sections = listOf(
-                "Upcoming Trips" to state.upcomingTrips,
-                "Active Trips" to state.activeTrips,
-                "Past Trips" to state.recentTrips
-            )
-
-            // TODO - rename 'Active' to 'Live'
             val upcomingPagerState = rememberPagerState(pageCount = { state.upcomingTrips.size })
-            val livePagerState = rememberPagerState(pageCount = { state.activeTrips.size })
+            val livePagerState = rememberPagerState(pageCount = { state.liveTrips.size })
 
-            LazyColumn {
+            LazyColumn(state = listState) {
                 if (state.upcomingTrips.isNotEmpty()) {
                     item {
                         Row(
@@ -241,7 +254,7 @@ fun TripListScreen(
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
-                                    showMenu = showMenu && activeTrip?.trip?.id == tripSummary.trip.id,
+                                    showMenu = showMenu && selectedTrip?.trip?.id == tripSummary.trip.id,
                                     onMenuDismiss = { showMenu = false }
                                 )
                             }
@@ -249,7 +262,7 @@ fun TripListScreen(
                     }
                 }
 
-                if (state.activeTrips.isNotEmpty()) {
+                if (state.liveTrips.isNotEmpty()) {
                     item {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -258,10 +271,10 @@ fun TripListScreen(
                             Text(
                                 "Live Trips",
                                 style = MaterialTheme.typography.titleMedium)
-                            if (state.activeTrips.size > 1) {
+                            if (state.liveTrips.size > 1) {
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "(${livePagerState.currentPage + 1} of ${state.activeTrips.size})",
+                                    text = "(${livePagerState.currentPage + 1} of ${state.liveTrips.size})",
                                     style = MaterialTheme.typography.titleSmall
                                 )
                             }
@@ -274,16 +287,16 @@ fun TripListScreen(
                                 pageSpacing = 0.dp,
                                 modifier = Modifier.fillMaxWidth()
                             ) { page ->
-                                val tripSummary = state.activeTrips[page]
+                                val tripSummary = state.liveTrips[page]
 
                                 TripItemWithMenu(
                                     tripSummary = tripSummary,
                                     index = page,
-                                    totalItems = state.activeTrips.size,
+                                    totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
-                                    showMenu = showMenu && activeTrip?.trip?.id == tripSummary.trip.id,
+                                    showMenu = showMenu && selectedTrip?.trip?.id == tripSummary.trip.id,
                                     onMenuDismiss = { showMenu = false }
                                 )
                             }
@@ -303,7 +316,7 @@ fun TripListScreen(
                             )
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                text = "(${state.upcomingTrips.size})",
+                                text = "(${state.recentTrips.size})",
                                 style = MaterialTheme.typography.titleSmall)
                         }
                     }
@@ -316,12 +329,21 @@ fun TripListScreen(
                             modifier = Modifier.padding(16.dp, 4.dp),
                             onNavigateToDetails = navigateToTripDetails,
                             onAction = onAction,
-                            showMenu = showMenu && activeTrip?.trip?.id == trip.trip.id,
+                            showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                             onMenuDismiss = { showMenu = false }
                         )
                     }
                 }
             }
+
+            // TODO - don't show scroll bar if everything is visible
+            VerticalScrollbar(
+                state = listState,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight()
+                    .padding(vertical = 4.dp, horizontal = 0.dp)
+            )
         }
     }
 
@@ -402,6 +424,89 @@ fun TripItemWithMenu(
                 text = { Text("Delete") },
                 onClick = { onAction(TripAction.Delete(tripSummary)) },
                 leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
+            )
+        }
+    }
+}
+
+@Composable
+fun VerticalScrollbar(
+    state: LazyListState,
+    modifier: Modifier = Modifier,
+    thumbColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+    trackColor: Color = Color.Transparent
+) {
+    val thumbSizeDp = 32.dp
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    var trackHeightPx by remember { mutableStateOf(0f) }
+    val thumbSizePx = with(density) { thumbSizeDp.toPx() } // <-- here
+
+    val thumbOffsetFraction by remember {
+        derivedStateOf {
+            val info = state.layoutInfo
+            val totalItems = info.totalItemsCount.takeIf { it > 0 } ?: return@derivedStateOf 0f
+            val visibleItems = info.visibleItemsInfo.size
+            val firstVisible = state.firstVisibleItemIndex
+            val firstVisibleOffset = state.firstVisibleItemScrollOffset.toFloat()
+            val itemSize = info.visibleItemsInfo.firstOrNull()?.size?.toFloat() ?: 1f
+
+            // The scrollable range is only (totalItems - visibleItems), not totalItems
+            // When firstVisible == totalItems - visibleItems, we're at the bottom
+            val scrollableItems = (totalItems - visibleItems).coerceAtLeast(1)
+            val smoothIndex = firstVisible + (firstVisibleOffset / itemSize)
+            (smoothIndex / scrollableItems).coerceIn(0f, 1f)
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .width(thumbSizeDp)
+            .fillMaxHeight()                   // <-- this is what was missing
+            .background(trackColor, RoundedCornerShape(50))
+    ) {
+        Box(
+            modifier = Modifier                    // <-- fresh Modifier, not the passed-in one
+                .width(thumbSizeDp)
+                .fillMaxHeight()                   // <-- this is what was missing
+                .background(trackColor, RoundedCornerShape(8.dp))
+                .onGloballyPositioned { trackHeightPx = it.size.height.toFloat() }
+        )
+
+        Box(
+            modifier = Modifier
+                .size(thumbSizeDp)
+                .offset {
+                    // trackHeightPx is the full container height
+                    // 32.dp.toPx() is the thumb size
+                    // If you want it to hit the very bottom, the range is 0 to (trackHeight - thumbSize)
+                    val thumbSizePx = 32.dp.toPx()
+                    val maxOffset = trackHeightPx - thumbSizePx
+
+                    // Ensure we don't calculate negative values
+                    val currentOffset = (thumbOffsetFraction * maxOffset).coerceAtLeast(0f)
+
+                    IntOffset(0, currentOffset.toInt())
+                }
+                .background(thumbColor, RoundedCornerShape(8.dp))
+                .draggable(
+                    orientation = Orientation.Vertical,
+                    state = rememberDraggableState { delta ->
+                        if (trackHeightPx == 0f) return@rememberDraggableState
+                        val scrollableTrack = trackHeightPx - thumbSizePx
+                        val totalItems = state.layoutInfo.totalItemsCount
+                        val itemSize = state.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.toFloat() ?: 0f
+                        val scrollAmount = (delta / scrollableTrack) * totalItems * itemSize
+                        coroutineScope.launch {
+                            state.scrollBy(scrollAmount)
+                        }
+                    }
+                )
+        ) {
+            Icon(imageVector = AppIcons.Default.LeapingFish2,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
             )
         }
     }

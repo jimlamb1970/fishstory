@@ -113,7 +113,7 @@ class TripViewModel(
         tripRepo.getPreviousTripSummaries()
     ) { active, upcoming, previous ->
         TripUiState(
-            activeTrips = active,
+            liveTrips = active,
             upcomingTrips = upcoming,
             recentTrips = previous,
             isLoading = false
@@ -562,7 +562,7 @@ class TripViewModel(
 }
 
 data class TripUiState(
-    val activeTrips: List<TripSummary> = emptyList(),
+    val liveTrips: List<TripSummary> = emptyList(),
     val upcomingTrips: List<TripSummary> = emptyList(),
     val recentTrips: List<TripSummary> = emptyList(),
     val isLoading: Boolean = false
