@@ -469,10 +469,10 @@ fun AppNavigation(
                 navigateToFishList = {
                     navController.navigate("FishList/$tripId/")
                 },
-                navigateToAddSegment = { id ->
+                navigateToAddEvent = { id ->
                     navController.navigate("add_segment/$id")
                 },
-                navigateToSegmentDetails = { segmentId ->
+                navigateToEventDetails = { segmentId ->
                     navController.navigate("segment_details/$segmentId/$tripId")
                 },
                 navigateBack = {

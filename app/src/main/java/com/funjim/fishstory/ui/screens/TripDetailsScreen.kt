@@ -57,8 +57,8 @@ fun TripDetailsScreen(
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
     navigateToFishList: () -> Unit,
-    navigateToAddSegment: (String) -> Unit,
-    navigateToSegmentDetails: (String) -> Unit,
+    navigateToAddEvent: (String) -> Unit,
+    navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(tripId) {
@@ -358,7 +358,7 @@ fun TripDetailsScreen(
                                 style = MaterialTheme.typography.titleLarge
                             )
                             IconButton(onClick = {
-                                navigateToAddSegment(tripId)
+                                navigateToAddEvent(tripId)
                             }) {
                                 Icon(Icons.Default.Add, contentDescription = "Add Event")
                             }
@@ -372,7 +372,7 @@ fun TripDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             index = index,
                             totalItems = totalItems,
-                            onClick = { navigateToSegmentDetails(eventSummary.event.id) },
+                            onClick = { navigateToEventDetails(eventSummary.event.id) },
                             onDelete = { eventToDelete = eventSummary },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
