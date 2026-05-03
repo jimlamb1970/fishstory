@@ -60,7 +60,6 @@ fun AddTripScreen(
     val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
     val sortedFishermen = remember(allFishermen) { allFishermen.sortedBy { it.fullName } }
 
-    // TODO -- can tripDraft and eventDraft be replaced by tripSummary and eventSummary?
     val tripDraft by tripViewModel.tripDraft.collectAsStateWithLifecycle()
     val eventDraft by tripViewModel.eventDraft.collectAsStateWithLifecycle()
 
@@ -77,15 +76,15 @@ fun AddTripScreen(
         tripViewModel.selectEvent(eventDraft.id)
     }
 
-    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
+//    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val eventSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
-    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
+//    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
 
     // ── Wizard step ─────────────────────────────────────────────────────────
-    var currentStep by remember { mutableStateOf(WizardStep.TripInfo) }
+    val currentStep by tripViewModel.currentWizardStep.collectAsStateWithLifecycle()
     var isFirstEvent by remember { mutableStateOf(true) }
     var fromReview by remember { mutableStateOf(false) }
 
@@ -237,17 +236,18 @@ fun AddTripScreen(
                     IconButton(onClick = {
                         when (currentStep) {
                             WizardStep.TripInfo    -> cancelAndExit()
-                            WizardStep.TripCrew    -> currentStep = WizardStep.TripInfo
+                            WizardStep.TripCrew    -> tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             WizardStep.EventInfo -> {
                                 // Logic depends on whether this is the start of the trip or a later addition
-                                currentStep = if (isFirstEvent) {
+                                val nextStep = if (isFirstEvent) {
                                     WizardStep.TripCrew
                                 } else {
                                     WizardStep.Review
                                 }
+                                tripViewModel.updateWizardStep(nextStep)
                             }
-                            WizardStep.EventCrew -> currentStep = WizardStep.EventInfo
-                            WizardStep.Review    -> currentStep = WizardStep.EventCrew
+                            WizardStep.EventCrew -> tripViewModel.updateWizardStep(WizardStep.EventInfo)
+                            WizardStep.Review    -> tripViewModel.updateWizardStep(WizardStep.EventCrew)
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -419,7 +419,7 @@ fun AddTripScreen(
                                     tripViewModel.updateEventDraft{
                                         eventDraft.copy(startTime = tripDraft.startDate, endTime = tripDraft.endDate)
                                     }
-                                    currentStep = WizardStep.TripCrew
+                                    tripViewModel.updateWizardStep(WizardStep.TripCrew)
                                 }
                             },
                             enabled = tripDraft.name.isNotBlank(),
@@ -483,8 +483,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 }
                             }
 
-                            currentStep =
-                                if (fromReview) WizardStep.Review else WizardStep.EventInfo
+                            tripViewModel.updateWizardStep(
+                                if (fromReview) WizardStep.Review
+                                else WizardStep.EventInfo)
                         },
                         onAddFisherman = { first, last, nick ->
                             scope.launch { tripViewModel.addFisherman(first, last, nick) }
@@ -589,7 +590,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     }
                                 }
 
-                                currentStep = WizardStep.EventCrew
+                                tripViewModel.updateWizardStep(WizardStep.EventCrew)
                             },
                             enabled = eventDraft.name.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
@@ -642,7 +643,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         tripViewModel = tripViewModel,
                         confirmLabel = "Review",
                         onConfirm = {
-                            currentStep = WizardStep.Review
+                            tripViewModel.updateWizardStep(WizardStep.Review)
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
                             scope.launch { tripViewModel.createAndAssignEventTackleBox(
@@ -687,7 +688,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             modifier = Modifier.padding(),
                             onClick = {
                                 fromReview = true
-                                currentStep = WizardStep.TripInfo
+                                tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             },
                             onAction = { action ->
                                 when (action) {
@@ -773,7 +774,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 }
                                 tripViewModel.selectEvent(eventDraft.id)
 
-                                currentStep = WizardStep.EventInfo
+                                tripViewModel.updateWizardStep(WizardStep.EventInfo)
                             }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
@@ -811,7 +812,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         tripViewModel.selectEvent(event.event.id)
                                         tripViewModel.updateEventDraft { event.event }
 
-                                        currentStep = WizardStep.EventInfo
+                                        tripViewModel.updateWizardStep(WizardStep.EventInfo)
                                     }
                                 )
                             }

@@ -77,7 +77,9 @@ fun TripItem(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(trip.trip.name,
-                        style = MaterialTheme.typography.titleLarge)
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -103,7 +105,7 @@ fun TripItem(
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Fish",
+                        contentDescription = "Arrow",
                         tint = MaterialTheme.colorScheme.onTertiary,
                         modifier = Modifier.size(16.dp)
                     )
@@ -132,11 +134,10 @@ fun TripItem(
                                 tint = MaterialTheme.colorScheme.onTertiary,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Text(
+                            BoldingNumbersText(
                                 text = "Kept $keptCount of $caughtCount",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onTertiary,
-                                fontWeight = FontWeight.Bold
                             )
                             if (fishermanCount != -1) {
                                 Text(

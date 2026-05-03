@@ -55,7 +55,7 @@ fun SelectSegmentCrewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Load Boat") },
+                title = { Text("Crew & Tackle Boxes") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,9 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.theme.FishstoryTheme
 
 @Composable
 fun FishermanItem(
@@ -63,17 +68,44 @@ fun FishermanItem(
                     fisherman.fisherman.fullName,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Trips: $tripCount",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    "Fish: $caughtCount (Released: $releasedCount, Kept: $keptCount)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                if (tripCount != 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = "Trip",
+                            tint = MaterialTheme.colorScheme.onTertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            "$tripCount",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                if (caughtCount != 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.LeapingFish2,
+                            contentDescription = "Fish",
+                            tint = MaterialTheme.colorScheme.onTertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        BoldingNumbersText(
+                            text = "Kept $keptCount of $caughtCount",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiary,
+                        )
+                    }
+                }
             }
             Box {
                 IconButton(onClick = { expanded = true }) {
@@ -159,5 +191,22 @@ fun FishermanSummary(
                 modifier = Modifier.size(48.dp)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FishermanItemPreview() {
+    FishstoryTheme {
+        FishermanItem(
+            fisherman = FishermanSummary(
+                fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
+                totalCatches = 10,
+                totalReleased = 2,
+                totalTrips = 5
+            ),
+            onDelete = {},
+            onClick = {}
+        )
     }
 }

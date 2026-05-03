@@ -5,8 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
@@ -35,6 +37,8 @@ fun SelectTripCrewScreen(
         tripViewModel.selectTrip(tripId)
     }
 
+    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
+
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
 
@@ -50,7 +54,7 @@ fun SelectTripCrewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Load Boat") },
+                title = { Text("Crew & Tackle Boxes") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -75,7 +79,7 @@ fun SelectTripCrewScreen(
         ) {
             Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
-                title = "Crew & Tackle Boxes",
+                title = tripSummary?.trip?.name ?: "Trip",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,
