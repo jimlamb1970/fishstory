@@ -242,6 +242,9 @@ fun AppNavigation(
             AddSegmentScreen(
                 tripViewModel = tripViewModel,
                 tripId = tripId,
+                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
+                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 },
@@ -251,6 +254,9 @@ fun AppNavigation(
         composable("add_trip") {
             AddTripScreen(
                 tripViewModel = tripViewModel,
+                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
+                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                },
                 navigateBack = { navController.popBackStack() }
             )
         }
@@ -390,6 +396,9 @@ fun AppNavigation(
                 tripViewModel = tripViewModel,
                 tripId = tripId,
                 segmentId = segmentId,
+                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
+                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -413,6 +422,9 @@ fun AppNavigation(
                 tripId = tripId,
                 eligibleFishermen = allFishermen,
                 initialCrew = initialCrew,
+                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
+                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }

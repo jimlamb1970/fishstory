@@ -22,6 +22,7 @@ fun SelectTripCrewScreen(
     tripId: String,
     eligibleFishermen: List<Fisherman>,
     initialCrew: List<Fisherman>,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
@@ -100,6 +101,7 @@ fun SelectTripCrewScreen(
                 onTackleBoxChanged = { fishermanId, boxId ->
                     workingTackleBoxMap[fishermanId] = boxId
                 },
+                navigateToEditTackleBox = navigateToEditTackleBox,
                 tripViewModel = tripViewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {

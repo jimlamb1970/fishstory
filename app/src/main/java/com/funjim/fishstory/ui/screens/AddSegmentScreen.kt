@@ -44,6 +44,7 @@ private enum class SegmentWizardStep {
 fun AddSegmentScreen(
     tripViewModel: TripViewModel,
     tripId: String,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
@@ -365,6 +366,7 @@ fun AddSegmentScreen(
                                     tackleBoxId = boxId
                                 )
                             },
+                            navigateToEditTackleBox = navigateToEditTackleBox,
                             tripViewModel = tripViewModel,
                             confirmLabel = "Done",
                             onConfirm = {

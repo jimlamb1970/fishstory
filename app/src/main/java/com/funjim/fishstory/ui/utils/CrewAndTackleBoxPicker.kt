@@ -1,13 +1,20 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
@@ -16,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.screens.SpeciesSelectionField
 import com.funjim.fishstory.viewmodels.TripViewModel
 
 // ---------------------------------------------------------------------------
@@ -62,6 +71,7 @@ fun CrewAndTackleBoxPicker(
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
     // Called when a fisherman's tackle box selection changes.
     onTackleBoxChanged: (fishermanId: String, tackleBoxId: String) -> Unit,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     // Provides available tackle boxes for a given fisherman.
     // Kept as a lambda so callers can back it with any data source.
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
@@ -147,6 +157,9 @@ fun CrewAndTackleBoxPicker(
                         onTackleBoxChanged = { boxId ->
                             onTackleBoxChanged(entry.fisherman.id, boxId)
                         },
+                        navigateToEditTackleBox = { boxId ->
+                            navigateToEditTackleBox(entry.fisherman.id, boxId)
+                        },
                         onAddTackleBox = onAddTackleBox
                     )
                     HorizontalDivider()
@@ -188,11 +201,11 @@ private fun FishermanCrewRow(
     lures: List<String>,
     onSelectionChanged: (Boolean) -> Unit,
     onTackleBoxChanged: (String) -> Unit,
+    navigateToEditTackleBox: (String) -> Unit,
     onAddTackleBox: ((tackleBoxName: String, fishermanId: String) -> Unit)? = null
 ) {
     val selectedBox = availableBoxes.find { it.id == entry.selectedTackleBoxId }
-    var dropdownExpanded by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
+    var luresExpanded by remember { mutableStateOf(false) }
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
@@ -213,7 +226,7 @@ private fun FishermanCrewRow(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .animateContentSize(), // Smoothly animates the expansion
-        onClick = { if (selectedBox != null) expanded = !expanded },
+        onClick = { if (selectedBox != null) luresExpanded = !luresExpanded },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.onTertiary
@@ -246,74 +259,78 @@ private fun FishermanCrewRow(
             }
             // Tackle box dropdown — only visible when fisherman is selected
             if (entry.isSelected) {
-                ExposedDropdownMenuBox(
-                    expanded = dropdownExpanded,
-                    onExpandedChange = {
-                        if (availableBoxes.isNotEmpty()) dropdownExpanded = !dropdownExpanded
-                    },
+                // If onAddTackleBox was not passed in, then we don't want to show
+                // the option to add a new tackle box
+                val onAddAction: (() -> Unit)? = if (onAddTackleBox != null) {
+                    {
+                        newTackleBoxName = ""
+                        showCreateDialog = true
+                    }
+                } else {
+                    null
+                }
+
+                TackleBoxSelectionField(
+                    items = availableBoxes,
+                    selectedItem = selectedBox,
+                    onSelected = { tackleBox -> onTackleBoxChanged(tackleBox.id) },
+                    onAdd = onAddAction,
                     modifier = Modifier.padding(start = 56.dp, end = 8.dp, bottom = 4.dp)
-                ) {
-                    OutlinedTextField(
-                        value = selectedBox?.name
-                            ?: if (availableBoxes.isEmpty()) "No boxes available" else "Select tackle box",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Tackle Box") },
-                        trailingIcon = {
-                            if (availableBoxes.isNotEmpty())
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
-                        },
-                        supportingText = if (entry.selectedTackleBoxId != null) {
-                            { Text("$lureCount lure${if (lureCount != 1) "s" else ""}") }
-                        } else null,
-                        enabled = availableBoxes.isNotEmpty(),
+                )
+
+                if (entry.selectedTackleBoxId != null) {
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
-                        textStyle = MaterialTheme.typography.bodySmall
-                    )
-
-                    if (availableBoxes.isNotEmpty()) {
-                        ExposedDropdownMenu(
-                            expanded = dropdownExpanded,
-                            onDismissRequest = { dropdownExpanded = false }
+                            // We use minHeight here so it doesn't clip if the text is large
+                            .padding(start = 0.dp, end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 1. Reserved space for the button.
+                        // Even when 'selectedBox' is null, this 56.dp gap remains, so text won't jump.
+                        Box(
+                            modifier = Modifier.width(56.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            availableBoxes.forEach { box ->
-                                DropdownMenuItem(
-                                    text = { Text(box.name) },
-                                    onClick = {
-                                        onTackleBoxChanged(box.id)
-                                        dropdownExpanded = false
-                                    }
-                                )
-                            }
+                            Icon(
+                                imageVector = if (luresExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = "Toggle Lures"
+                            )
+                        }
 
-                            if (onAddTackleBox != null) {
-                                HorizontalDivider()
+                        // 2. Text aligns perfectly with the button's center
+                        Text(
+                            text = "$lureCount lure${if (lureCount != 1) "s" else ""}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f)
+                        )
 
-                                DropdownMenuItem(
-                                    text = { Text("Create new tackle box...", color = MaterialTheme.colorScheme.primary) },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.Add,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    },
-                                    onClick = {
-                                        dropdownExpanded = false
-                                        newTackleBoxName = ""
-                                        showCreateDialog = true
-                                    }
-                                )
-                            }
+                        IconButton(onClick = {
+                            navigateToEditTackleBox(entry.selectedTackleBoxId)
+                        }) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit Tackle Box")
                         }
                     }
                 }
+            }
 
-                if (expanded) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    lures.forEach { lure ->
+            // TODO -- Limit the number of lures visible?
+            AnimatedVisibility(visible = luresExpanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 4.dp),
+                    thickness = 1.dp
+                )
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    if (lures.isEmpty())
+                        Text(
+                            text = "No lures in this box",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 32.dp, bottom = 4.dp)
+                        )
+                    else lures.forEach { lure ->
                         Text(
                             text = "• $lure",
                             style = MaterialTheme.typography.bodySmall,
@@ -440,6 +457,7 @@ fun TripViewModelCrewPickerBridge(
     tackleBoxSelections: Map<String, String?>,
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
     onTackleBoxChanged: (fishermanId: String, tackleBoxId: String) -> Unit,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     tripViewModel: TripViewModel,
     confirmLabel: String,
     onConfirm: () -> Unit,
@@ -458,6 +476,7 @@ fun TripViewModelCrewPickerBridge(
         crewEntries = crewEntries,
         onSelectionChanged = onSelectionChanged,
         onTackleBoxChanged = onTackleBoxChanged,
+        navigateToEditTackleBox = navigateToEditTackleBox,
         getTackleBoxesForFisherman = { fishermanId ->
             tripViewModel.getTackleBoxesForFisherman(fishermanId)
                 .collectAsState(initial = emptyList()).value
@@ -475,4 +494,100 @@ fun TripViewModelCrewPickerBridge(
         onAddFisherman = onAddFisherman,
         onAddTackleBox = onAddTackleBox
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TackleBoxSelectionField(
+    items: List<TackleBox>,
+    selectedItem: TackleBox?,
+    onSelected: (TackleBox) -> Unit,
+    onAdd: (() -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Display for the current selection
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Tackle Box",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false, // Prevents focus/keyboard on the main text field
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Tackle Box") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                // Search bar inside the sheet
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Tackle Boxes...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // List inside the sheet
+                val filtered = items.filter {
+                    it.name.contains(searchQuery, ignoreCase = true)
+                }.sortedBy { it.name }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.name) },
+                            modifier = Modifier.clickable {
+                                onSelected(item)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+                    // "Add New" option
+                    if (onAdd != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Create new tackle box...",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                leadingContent = { Icon(Icons.Default.Add, null) },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onAdd()
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

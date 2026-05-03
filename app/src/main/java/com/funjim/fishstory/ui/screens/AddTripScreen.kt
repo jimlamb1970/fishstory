@@ -50,6 +50,7 @@ import java.util.*
 @Composable
 fun AddTripScreen(
     tripViewModel: TripViewModel,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -151,7 +152,7 @@ fun AddTripScreen(
     }
 
     // Progress indicator
-    val stepLabels = listOf("Trip", "Crew & Boxes", "Event", "Seg. Crew & Boxes", "Review")
+    val stepLabels = listOf("Trip", "Crew & Boxes", "Event", "Event Crew & Boxes", "Review")
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
     val onTripAction: (TripAction) -> Unit = { action ->
@@ -401,6 +402,7 @@ fun AddTripScreen(
 
                         // TODO -- add duration
 
+                        // TODO -- change this to put the icon next to 'Trip Details'
                         if (tripDraft.latitude != null) {
                             LocationSetRow()
                         }
@@ -431,13 +433,14 @@ fun AddTripScreen(
 
                 // ── Step 2: Trip crew + tackle boxes ────────────────────────
                 WizardStep.TripCrew -> {
+                    // TODO -- Add a Help Dialog to explain Tackle Boxes
                     Spacer(Modifier.height(16.dp))
                     TripViewModelCrewPickerBridge(
-                        title = "Crew & Tackle Boxes",
-                        subtitle = """
-Select who's on the boat and which tackle box each person will use.
-If a fisherman is removed from the trip, the fisherman will also be removed from all events.
-""",
+                        title = "Trip Crew & Tackle Boxes",
+                        subtitle = """Select who's fishing and which tackle box each person will use.
+
+If a fisherman is removed from the trip, the fisherman will also be removed from all events."""
+                            .trimMargin(),
                         eligibleFishermen = sortedFishermen,
                         selectedIds = tripFishermenIds,
                         tackleBoxSelections = tripTackleBoxMap,
@@ -463,6 +466,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 tackleBoxId = boxId
                             )
                         },
+                        navigateToEditTackleBox = navigateToEditTackleBox,
                         tripViewModel = tripViewModel,
                         confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Event",
                         onConfirm = {
@@ -634,6 +638,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 tackleBoxId = boxId
                             )
                         },
+                        navigateToEditTackleBox = navigateToEditTackleBox,
                         tripViewModel = tripViewModel,
                         confirmLabel = "Review",
                         onConfirm = {
@@ -779,13 +784,13 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             val totalItems = eventSummaries.size
 
-                            itemsIndexed(eventSummaries, key = { _, seg -> seg.event.id }) { index, seg ->
+                            itemsIndexed(eventSummaries, key = { _, event -> event.event.id }) { index, event ->
                                 val currentSummary = EventSummary(
-                                    event = seg.event,
+                                    event = event.event,
                                     fishCaught = 0,
                                     fishKept = 0,
-                                    fishermanCount = seg.fishermanCount,
-                                    tackleBoxCount = seg.tackleBoxCount,
+                                    fishermanCount = event.fishermanCount,
+                                    tackleBoxCount = event.tackleBoxCount,
                                     bigFishName = null,
                                     bigFishSpecies = "",
                                     bigFishLength = 0.0,
@@ -803,8 +808,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     onClick = {
                                         fromReview = true
 
-                                        tripViewModel.selectEvent(seg.event.id)
-                                        tripViewModel.updateEventDraft { seg.event }
+                                        tripViewModel.selectEvent(event.event.id)
+                                        tripViewModel.updateEventDraft { event.event }
 
                                         currentStep = WizardStep.EventInfo
                                     }

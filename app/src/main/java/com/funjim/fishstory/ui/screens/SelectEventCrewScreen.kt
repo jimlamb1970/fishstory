@@ -23,6 +23,7 @@ fun SelectSegmentCrewScreen(
     tripViewModel: TripViewModel,
     tripId: String,
     segmentId: String,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(tripId) {
@@ -106,6 +107,7 @@ fun SelectSegmentCrewScreen(
                 onTackleBoxChanged = { fishermanId, boxId ->
                     workingTackleBoxMap[fishermanId] = boxId
                 },
+                navigateToEditTackleBox = navigateToEditTackleBox,
                 tripViewModel = tripViewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {

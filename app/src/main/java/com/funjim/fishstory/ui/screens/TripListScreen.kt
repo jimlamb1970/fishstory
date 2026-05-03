@@ -5,20 +5,13 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -31,18 +24,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
+import com.funjim.fishstory.ui.utils.VerticalScrollbar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -424,89 +414,6 @@ fun TripItemWithMenu(
                 text = { Text("Delete") },
                 onClick = { onAction(TripAction.Delete(tripSummary)) },
                 leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
-            )
-        }
-    }
-}
-
-@Composable
-fun VerticalScrollbar(
-    state: LazyListState,
-    modifier: Modifier = Modifier,
-    thumbColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-    trackColor: Color = Color.Transparent
-) {
-    val thumbSizeDp = 32.dp
-    val coroutineScope = rememberCoroutineScope()
-    val density = LocalDensity.current
-    var trackHeightPx by remember { mutableStateOf(0f) }
-    val thumbSizePx = with(density) { thumbSizeDp.toPx() } // <-- here
-
-    val thumbOffsetFraction by remember {
-        derivedStateOf {
-            val info = state.layoutInfo
-            val totalItems = info.totalItemsCount.takeIf { it > 0 } ?: return@derivedStateOf 0f
-            val visibleItems = info.visibleItemsInfo.size
-            val firstVisible = state.firstVisibleItemIndex
-            val firstVisibleOffset = state.firstVisibleItemScrollOffset.toFloat()
-            val itemSize = info.visibleItemsInfo.firstOrNull()?.size?.toFloat() ?: 1f
-
-            // The scrollable range is only (totalItems - visibleItems), not totalItems
-            // When firstVisible == totalItems - visibleItems, we're at the bottom
-            val scrollableItems = (totalItems - visibleItems).coerceAtLeast(1)
-            val smoothIndex = firstVisible + (firstVisibleOffset / itemSize)
-            (smoothIndex / scrollableItems).coerceIn(0f, 1f)
-        }
-    }
-
-    Box(
-        modifier = modifier
-            .width(thumbSizeDp)
-            .fillMaxHeight()                   // <-- this is what was missing
-            .background(trackColor, RoundedCornerShape(50))
-    ) {
-        Box(
-            modifier = Modifier                    // <-- fresh Modifier, not the passed-in one
-                .width(thumbSizeDp)
-                .fillMaxHeight()                   // <-- this is what was missing
-                .background(trackColor, RoundedCornerShape(8.dp))
-                .onGloballyPositioned { trackHeightPx = it.size.height.toFloat() }
-        )
-
-        Box(
-            modifier = Modifier
-                .size(thumbSizeDp)
-                .offset {
-                    // trackHeightPx is the full container height
-                    // 32.dp.toPx() is the thumb size
-                    // If you want it to hit the very bottom, the range is 0 to (trackHeight - thumbSize)
-                    val thumbSizePx = 32.dp.toPx()
-                    val maxOffset = trackHeightPx - thumbSizePx
-
-                    // Ensure we don't calculate negative values
-                    val currentOffset = (thumbOffsetFraction * maxOffset).coerceAtLeast(0f)
-
-                    IntOffset(0, currentOffset.toInt())
-                }
-                .background(thumbColor, RoundedCornerShape(8.dp))
-                .draggable(
-                    orientation = Orientation.Vertical,
-                    state = rememberDraggableState { delta ->
-                        if (trackHeightPx == 0f) return@rememberDraggableState
-                        val scrollableTrack = trackHeightPx - thumbSizePx
-                        val totalItems = state.layoutInfo.totalItemsCount
-                        val itemSize = state.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.toFloat() ?: 0f
-                        val scrollAmount = (delta / scrollableTrack) * totalItems * itemSize
-                        coroutineScope.launch {
-                            state.scrollBy(scrollAmount)
-                        }
-                    }
-                )
-        ) {
-            Icon(imageVector = AppIcons.Default.LeapingFish2,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
             )
         }
     }
