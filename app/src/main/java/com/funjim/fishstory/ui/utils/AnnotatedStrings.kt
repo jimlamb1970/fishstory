@@ -36,6 +36,8 @@ fun BoldingNumbersText(
 
     Text(
         text = annotatedString,
-        modifier = modifier
+        modifier = modifier,
+        style = style,
+        color = color
     )
 }
