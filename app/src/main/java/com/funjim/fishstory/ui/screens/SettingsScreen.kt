@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     viewModel: MainViewModel,
     importViewModel: ImportViewModel,
+    navigateToManageColors: () -> Unit,
+    navigateToManageSpecies: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -126,6 +128,22 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Fish from CSV")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { navigateToManageColors() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manage Colors")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { navigateToManageSpecies() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manage Species")
             }
         }
     }

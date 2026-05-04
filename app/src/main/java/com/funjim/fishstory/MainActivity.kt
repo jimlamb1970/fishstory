@@ -331,9 +331,6 @@ fun AppNavigation(
                 onEdit = { lureId ->
                     navController.navigate("add_lure?lureId=$lureId")
                 },
-                navigateToManageColors = {
-                    navController.navigate("manage_colors")
-                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -463,6 +460,12 @@ fun AppNavigation(
             SettingsScreen(
                 viewModel = viewModel,
                 importViewModel = importViewModel,
+                navigateToManageColors = {
+                    navController.navigate("manage_colors")
+                },
+                navigateToManageSpecies = {
+                    navController.navigate("manage_species")
+                },
                 navigateBack = { navController.popBackStack() }
             )
         }

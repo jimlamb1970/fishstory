@@ -5,11 +5,14 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -192,45 +195,62 @@ fun FishListScreen(
                 }
 
                 // Sort Buttons
-                Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-                    SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
-                        viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
-                    }
-                    if (tripId.isNullOrEmpty()) {
-                        SortChip("Trip", currentOrder == FishSortOrder.TRIP_AZ) {
-                            viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState())) {
+                        SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
+                            viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                         }
-                    }
-                    if (segmentId.isNullOrEmpty()) {
-                        SortChip("Segment", currentOrder == FishSortOrder.SEGMENT_AZ) {
-                            viewModel.updateSortOrder(FishSortOrder.SEGMENT_AZ)
+                        if (tripId.isNullOrEmpty()) {
+                            SortChip("Trip", currentOrder == FishSortOrder.TRIP_AZ) {
+                                viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
+                            }
                         }
-                    }
-                    if (fishermanId.isNullOrEmpty()) {
-                        SortChip("Fisherman", currentOrder == FishSortOrder.FISHERMAN_AZ) {
-                            viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
+                        if (segmentId.isNullOrEmpty()) {
+                            SortChip("Segment", currentOrder == FishSortOrder.SEGMENT_AZ) {
+                                viewModel.updateSortOrder(FishSortOrder.SEGMENT_AZ)
+                            }
                         }
-                    }
-                    SortChip("Species", currentOrder == FishSortOrder.SPECIES_AZ) {
-                        viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
-                    }
-                    SortChip("Length", currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
-                        viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
-                    }
-                    SortChip("Released", currentOrder == FishSortOrder.RELEASED) {
-                        viewModel.updateSortOrder(FishSortOrder.RELEASED)
-                    }
-                    SortChip("Lure", currentOrder == FishSortOrder.LURE) {
-                        viewModel.updateSortOrder(FishSortOrder.LURE)
+                        if (fishermanId.isNullOrEmpty()) {
+                            SortChip("Fisherman", currentOrder == FishSortOrder.FISHERMAN_AZ) {
+                                viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
+                            }
+                        }
+                        SortChip("Species", currentOrder == FishSortOrder.SPECIES_AZ) {
+                            viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
+                        }
+                        SortChip("Length", currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
+                            viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
+                        }
+                        SortChip("Released", currentOrder == FishSortOrder.RELEASED) {
+                            viewModel.updateSortOrder(FishSortOrder.RELEASED)
+                        }
+                        SortChip("Lure", currentOrder == FishSortOrder.LURE) {
+                            viewModel.updateSortOrder(FishSortOrder.LURE)
+                        }
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.width(4.dp))
 
-                    IconButton(onClick = { viewModel.toggleReverse() }) {
+                    IconButton(
+                        onClick = { viewModel.toggleReverse() },
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(8.dp)
+                            ).size(34.dp)
+                    ) {
                         Icon(
                             imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                             contentDescription = "Reverse Sort",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
