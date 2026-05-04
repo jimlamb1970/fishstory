@@ -3,6 +3,10 @@ package com.funjim.fishstory.database
 import androidx.room.*
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureSummary
+import com.funjim.fishstory.model.LureSummaryWithNamesTuple
+import com.funjim.fishstory.model.LureWithNamesTuple
+import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
 
@@ -74,4 +78,35 @@ interface LureDao {
 
     @Delete
     suspend fun deleteLureColor(color: LureColor)
+
+    @Query("""
+    SELECT *, 
+           p.name AS primaryName, 
+           s.name AS secondaryName, 
+           g.name AS glowName
+    FROM lure_table
+    LEFT JOIN lure_color_table p ON primaryColorId = p.id
+    LEFT JOIN lure_color_table s ON secondaryColorId = s.id
+    LEFT JOIN lure_color_table g ON glowColorId = g.id
+""")
+    fun getLuresWithNames(): Flow<List<LureWithNamesTuple>>
+
+    @Query("""
+    SELECT 
+        l.*, 
+        p.name AS primaryName, 
+        s.name AS secondaryName, 
+        g.name AS glowName,
+        COUNT(f.id) AS caughtCount,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS keptCount,
+        MAX(f.length) AS largestFish,
+        MIN(f.length) AS smallest
+    FROM lure_table AS l
+    LEFT JOIN lure_color_table p ON l.primaryColorId = p.id
+    LEFT JOIN lure_color_table s ON l.secondaryColorId = s.id
+    LEFT JOIN lure_color_table g ON l.glowColorId = g.id
+    LEFT JOIN fish_table AS f ON l.id = f.lureId
+    GROUP BY l.id
+""")
+    fun getLureSummariesWithNames(): Flow<List<LureSummaryWithNamesTuple>>
 }

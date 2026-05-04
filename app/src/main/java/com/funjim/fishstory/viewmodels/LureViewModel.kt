@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
-import com.funjim.fishstory.ui.screens.LureWithDisplay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,9 +36,12 @@ class LureViewModel(
             initialValue = emptyMap() // <--- This ensures 'by' always has a non-null map to read
         )
 
+    val luresWithName: StateFlow<List<LureWithName>> = repository.getAllLures()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Combine lures, colors, and photos into the UI model
-    val luresWithDisplay: StateFlow<List<LureWithDisplay>> = combine(
-        repository.allLures,
+    val luresWithDisplay: StateFlow<List<LureSummaryWithColors>> = combine(
+        repository.getAllLureSummaries(),
         repository.allLureColors,
         repository.lurePhotos,
         _sortOrder,
@@ -48,15 +50,11 @@ class LureViewModel(
         val colorMap = colors.associateBy { it.id }
 
         val displayList = lures.map { lure ->
-            LureWithDisplay(
-                lure = lure,
-                primaryColorName = colorMap[lure.primaryColorId]?.name,
-                secondaryColorName = colorMap[lure.secondaryColorId]?.name,
-                glowColorName = colorMap[lure.glowColorId]?.name,
-                displayName = lure.getDisplayName(
-                    colorMap[lure.primaryColorId]?.name,
-                    colorMap[lure.secondaryColorId]?.name,
-                    colorMap[lure.glowColorId]?.name),
+            LureSummaryWithColors(
+                lureSummary = lure,
+                primaryColorName = colorMap[lure.lure.primaryColorId]?.name,
+                secondaryColorName = colorMap[lure.lure.secondaryColorId]?.name,
+                glowColorName = colorMap[lure.lure.glowColorId]?.name,
                 // TODO - enable photos
             )
         }
@@ -68,14 +66,14 @@ class LureViewModel(
         SharingStarted.WhileSubscribed(5000),
         emptyList())
 
-    private fun applySorting(list: List<LureWithDisplay>, order: LureSortOrder): List<LureWithDisplay> {
+    private fun applySorting(list: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
         return when (order) {
-            LureSortOrder.NAME -> list.sortedBy { it.lure.name }
+            LureSortOrder.NAME -> list.sortedBy { it.lureSummary.lure.name }
             LureSortOrder.PRIMARY_COLOR -> list.sortedBy { it.primaryColorName }
             LureSortOrder.SECONDARY_COLOR -> list.sortedBy { it.secondaryColorName }
             LureSortOrder.GLOW_COLOR -> list.sortedBy { it.glowColorName }
-            LureSortOrder.GLOW -> list.sortedBy { it.lure.glows }
-            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hasSingleHook }
+            LureSortOrder.GLOW -> list.sortedBy { it.lureSummary.lure.glows }
+            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lureSummary.lure.hasSingleHook }
         }
     }
 

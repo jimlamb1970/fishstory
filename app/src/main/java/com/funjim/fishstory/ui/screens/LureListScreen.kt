@@ -16,12 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,10 +129,10 @@ fun LureListScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     val totalItems = allLures.size
-                    itemsIndexed(allLures, key = { _, item -> item.lure.id }) { index, item ->
-                        val photos = allPhotos[item.lure.id] ?: emptyList()
+                    itemsIndexed(allLures, key = { _, item -> item.lureSummary.lure.id }) { index, item ->
+                        val photos = allPhotos[item.lureSummary.lure.id] ?: emptyList()
                         LureItem(
-                            lure = item.lure,
+                            item = item.lureSummary,
                             index = index,
                             totalItems = totalItems,
                             primaryColorName = item.primaryColorName,
@@ -147,8 +145,8 @@ fun LureListScreen(
                             onAddPhoto = { photo -> scope.launch { viewModel.addPhoto(photo) } },
                             onDeletePhoto = { photo -> scope.launch { viewModel.deletePhoto(photo) } },
                              */
-                            onEdit = { onEdit(item.lure.id) },
-                            onDelete = { lureToDelete = item.lure }
+                            onEdit = { onEdit(item.lureSummary.lure.id) },
+                            onDelete = { lureToDelete = item.lureSummary.lure }
                         )
                     }
                 }
@@ -189,11 +187,3 @@ It will also be removed from all tackle boxes that contained it.
         )
     }
 }
-
-data class LureWithDisplay(
-    val lure: com.funjim.fishstory.model.Lure,
-    val primaryColorName: String?,
-    val secondaryColorName: String?,
-    val glowColorName: String?,
-    val displayName: String
-)

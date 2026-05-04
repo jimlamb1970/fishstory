@@ -1,5 +1,6 @@
 package com.funjim.fishstory.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -47,6 +48,7 @@ data class LureColor(
         Index(value = ["glowColorId"])
     ]
 )
+
 data class Lure(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
@@ -82,4 +84,59 @@ data class Lure(
     }
 }
 
-// TODO - Need a version of lure that has the full name already built
+data class LureWithNamesTuple(
+    @Embedded val lure: Lure,
+    val primaryName: String?,
+    val secondaryName: String?,
+    val glowName: String?
+)
+
+data class LureWithName(
+    val lure: Lure,
+    val displayName: String
+)
+
+fun LureWithNamesTuple.toLureWithName(): LureWithName {
+    return LureWithName(
+        lure = lure,
+        displayName = lure.getDisplayName(primaryName, secondaryName, glowName)
+    )
+}
+
+data class LureSummaryWithNamesTuple(
+    @Embedded val lure: Lure,
+    val primaryName: String?,
+    val secondaryName: String?,
+    val glowName: String?,
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallest: Double
+)
+
+data class LureSummary(
+    val lure: Lure,
+    val displayName: String,
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallest: Double
+)
+
+fun LureSummaryWithNamesTuple.toLureSummary(): LureSummary {
+    return LureSummary(
+        lure = lure,
+        displayName = lure.getDisplayName(primaryName, secondaryName, glowName),
+        caughtCount = caughtCount,
+        keptCount = keptCount,
+        largestFish = largestFish,
+        smallest = smallest
+    )
+}
+
+data class LureSummaryWithColors(
+    val lureSummary: LureSummary,
+    val primaryColorName: String?,
+    val secondaryColorName: String?,
+    val glowColorName: String?
+)

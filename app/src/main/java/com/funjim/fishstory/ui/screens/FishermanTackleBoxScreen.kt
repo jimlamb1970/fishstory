@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.LureSummaryWithColors
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
@@ -159,17 +160,17 @@ fun FishermanTackleBoxScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(allLures, key = { it.lure.id }) { item ->
-                        val inBox = item.lure.id in luresInBoxIds
+                    items(allLures, key = { it.lureSummary.lure.id }) { item ->
+                        val inBox = item.lureSummary.lure.id in luresInBoxIds
                         LureTackleBoxItem(
                             item = item,
                             inTackleBox = inBox,
                             onCheckedChange = { checked ->
                                 scope.launch {
                                     if (checked) {
-                                        viewModel.addLureToTackleBox(tackleBoxId, item.lure.id)
+                                        viewModel.addLureToTackleBox(tackleBoxId, item.lureSummary.lure.id)
                                     } else {
-                                        viewModel.removeLureFromTackleBox(tackleBoxId, item.lure.id)
+                                        viewModel.removeLureFromTackleBox(tackleBoxId, item.lureSummary.lure.id)
                                     }
                                 }
                             }
@@ -219,7 +220,7 @@ fun FishermanTackleBoxScreen(
 
 @Composable
 private fun LureTackleBoxItem(
-    item: LureWithDisplay,
+    item: LureSummaryWithColors,
     inTackleBox: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -236,14 +237,14 @@ private fun LureTackleBoxItem(
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = item.displayName,
+                text = item.lureSummary.displayName,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
             )
             // Secondary details row
             val details = buildList {
-                if (item.lure.glows) add("Glows${if (!item.glowColorName.isNullOrBlank()) " (${item.glowColorName})" else ""}")
-                add(if (item.lure.hasSingleHook) "Single hook" else "Treble hook")
+                if (item.lureSummary.lure.glows) add("Glows${if (!item.glowColorName.isNullOrBlank()) " (${item.glowColorName})" else ""}")
+                add(if (item.lureSummary.lure.hasSingleHook) "Single hook" else "Treble hook")
             }
             if (details.isNotEmpty()) {
                 Text(

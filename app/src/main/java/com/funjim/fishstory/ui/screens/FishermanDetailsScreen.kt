@@ -73,7 +73,6 @@ fun FishermanDetailsScreen(
     var tripsExpanded by remember { mutableStateOf(true) }
 
     val stats by viewModel.statistics.collectAsStateWithLifecycle()
-    val tripSummaries by viewModel.tripSummaries.collectAsStateWithLifecycle()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fishermanPhotos by viewModel.fishermanPhotos.collectAsStateWithLifecycle()
 

@@ -6,9 +6,13 @@ import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureSummary
+import com.funjim.fishstory.model.LureWithName
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
+import com.funjim.fishstory.model.toLureSummary
+import com.funjim.fishstory.model.toLureWithName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,13 +23,24 @@ class LureRepository(
     private val fishermanDao: FishermanDao
 ) {
     // Data Streams
-    val allLures: Flow<List<Lure>> = lureDao.getAllLures()
     val allLureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
 
     val lurePhotos: Flow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
         .map { photos ->
             photos.filter { it.lureId != null }.groupBy { it.lureId!! }
         }
+
+    fun getAllLures(): Flow<List<LureWithName>> {
+        return lureDao.getLuresWithNames().map { tupleList ->
+            tupleList.map { it.toLureWithName() }
+        }
+    }
+
+    fun getAllLureSummaries(): Flow<List<LureSummary>> {
+        return lureDao.getLureSummariesWithNames().map { tupleList ->
+            tupleList.map { it.toLureSummary() }
+        }
+    }
 
     suspend fun getLureById(id: String): Lure? = lureDao.getLureById(id)
 

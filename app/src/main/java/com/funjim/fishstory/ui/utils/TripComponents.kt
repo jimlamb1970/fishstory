@@ -122,7 +122,6 @@ fun TripItem(
                 val now = System.currentTimeMillis()
 
                 if (caughtCount != 0 || now >= trip.trip.startDate || fishermanCount != -1) {
-                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text

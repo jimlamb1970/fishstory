@@ -1,10 +1,8 @@
 package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,9 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.ui.theme.AppIcons
 
 @Composable
 fun ManageColorsDialog(
@@ -159,7 +157,7 @@ fun ManageColorsDialog(
 
 @Composable
 fun LureItem(
-    lure: Lure,
+    item: LureSummary,
     index: Int = 0,
     totalItems: Int = 0,
     primaryColorName: String?,
@@ -168,7 +166,7 @@ fun LureItem(
     photos: List<Photo>,
     onAddPhoto: ((Photo) -> Unit)? = null,
     onDeletePhoto: ((Photo) -> Unit)? = null,
-    onEdit: () -> Unit, 
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -200,12 +198,11 @@ fun LureItem(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = lure.name,
+                        text = item.lure.name,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    val sb = StringBuilder("Colors: ")
                     val colors = mutableListOf<String>()
                     if (!primaryColorName.isNullOrBlank()) {
                         colors.add(primaryColorName)
@@ -214,6 +211,7 @@ fun LureItem(
                         colors.add(secondaryColorName)
                     }
                     if (colors.isNotEmpty()) {
+                        val sb = StringBuilder(if (colors.size == 1) "Color: " else "Colors: ")
                         sb.append(colors.joinToString("/"))
                         Text(
                             text = sb.toString(),
@@ -222,7 +220,7 @@ fun LureItem(
                         )
                     }
 
-                    if (lure.glows) {
+                    if (item.lure.glows) {
                         val sb = StringBuilder("Glows")
                         if (!glowColorName.isNullOrBlank()) {
                             sb.append(": $glowColorName")
@@ -234,10 +232,29 @@ fun LureItem(
                     }
 
                     Text(
-                        text = if (lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
+
+                    if (item.caughtCount != 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Default.LeapingFish2,
+                                contentDescription = "Fish",
+                                tint = MaterialTheme.colorScheme.onTertiary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            BoldingNumbersText(
+                                text = "Kept ${item.keptCount} of ${item.caughtCount}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiary,
+                            )
+                        }
+                    }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -285,7 +302,7 @@ fun LureItem(
                 PhotoPickerRow(
                     photos = photos,
                     onPhotoSelected = { uri ->
-                        onAddPhoto(Photo(uri = uri.toString(), lureId = lure.id))
+                        onAddPhoto(Photo(uri = uri.toString(), lureId = item.lure.id))
                     },
                     onPhotoDeleted = { photo ->
                         onDeletePhoto(photo)
