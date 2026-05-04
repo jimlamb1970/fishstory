@@ -349,17 +349,35 @@ fun TripDetailsScreen(
                         HorizontalDivider()
 
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Events",
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            IconButton(onClick = {
-                                navigateToAddEvent(tripId)
-                            }) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = "Events",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "(${eventSummaries.size})",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    navigateToAddEvent(tripId)
+                                },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                modifier = Modifier.size(24.dp)
+                            ) {
                                 Icon(Icons.Default.Add, contentDescription = "Add Event")
                             }
                         }
