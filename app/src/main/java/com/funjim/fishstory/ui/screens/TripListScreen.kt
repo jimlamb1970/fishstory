@@ -326,11 +326,13 @@ fun TripListScreen(
                 }
             }
 
-            // TODO - don't show scroll bar if everything is visible
+            var isLeftAligned by remember { mutableStateOf(false) }
+
             VerticalScrollbar(
                 state = listState,
+                onToggleAlignment = { isLeftAligned = !isLeftAligned },
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
+                    .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
                     .fillMaxHeight()
                     .padding(vertical = 4.dp, horizontal = 0.dp)
             )
