@@ -51,7 +51,7 @@ import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
-import com.funjim.fishstory.ui.screens.SegmentDetailsScreen
+import com.funjim.fishstory.ui.screens.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.SelectSegmentCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
@@ -438,11 +438,11 @@ fun AppNavigation(
         ) { backStackEntry ->
             val segmentId = backStackEntry.arguments?.getString("segmentId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            SegmentDetailsScreen(
+            EventDetailsScreen(
                 viewModel = tripViewModel,
                 tripId = tripId,
-                segmentId = segmentId,
-                navigateToSelectSegmentCrew = {  ->
+                eventId = segmentId,
+                navigateToSelectEventCrew = {  ->
                     navController.navigate("select_segment_crew/$segmentId/$tripId")
                 },
                 navigateToFishList = {
