@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.LureItem
+import com.funjim.fishstory.ui.utils.VerticalScrollbar
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
@@ -143,28 +145,50 @@ fun LureListScreen(
                     Text("No lures found. Add one!")
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    val totalItems = allLures.size
-                    itemsIndexed(allLures, key = { _, item -> item.lureSummary.lure.id }) { index, item ->
-                        val photos = allPhotos[item.lureSummary.lure.id] ?: emptyList()
-                        LureItem(
-                            item = item.lureSummary,
-                            index = index,
-                            totalItems = totalItems,
-                            primaryColorName = item.primaryColorName,
-                            secondaryColorName = item.secondaryColorName,
-                            glowColorName = item.glowColorName,
-                            photos = photos,
-                            onAddPhoto = null,
-                            onDeletePhoto = null,
-                            /* TODO - enable photos for lures
+                val listState = rememberLazyListState()
+
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val totalItems = allLures.size
+                        itemsIndexed(
+                            allLures,
+                            key = { _, item -> item.lureSummary.lure.id }) { index, item ->
+                            val photos = allPhotos[item.lureSummary.lure.id] ?: emptyList()
+                            LureItem(
+                                item = item.lureSummary,
+                                index = index,
+                                totalItems = totalItems,
+                                primaryColorName = item.primaryColorName,
+                                secondaryColorName = item.secondaryColorName,
+                                glowColorName = item.glowColorName,
+                                photos = photos,
+                                onAddPhoto = null,
+                                onDeletePhoto = null,
+                                /* TODO - enable photos for lures
                             onAddPhoto = { photo -> scope.launch { viewModel.addPhoto(photo) } },
                             onDeletePhoto = { photo -> scope.launch { viewModel.deletePhoto(photo) } },
                              */
-                            onEdit = { onEdit(item.lureSummary.lure.id) },
-                            onDelete = { lureToDelete = item.lureSummary.lure }
-                        )
+                                onEdit = { onEdit(item.lureSummary.lure.id) },
+                                onDelete = { lureToDelete = item.lureSummary.lure }
+                            )
+                        }
                     }
+
+                    var isLeftAligned by remember { mutableStateOf(false) }
+
+                    VerticalScrollbar(
+                        state = listState,
+                        onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                        modifier = Modifier
+                            .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                            .fillMaxHeight()
+                            .padding(vertical = 4.dp, horizontal = 0.dp)
+                    )
                 }
             }
         }

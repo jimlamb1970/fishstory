@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.ui.utils.VerticalScrollbar
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
@@ -189,26 +191,54 @@ fun FishermanTackleBoxScreen(
                     Text("No lures in inventory.")
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    val totalItems = allLures.size
-                    itemsIndexed(allLures, key = { _, item -> item.lureSummary.lure.id }) { index, item ->
-                        val inBox = item.lureSummary.lure.id in luresInBoxIds
-                        LureTackleBoxItem(
-                            item = item,
-                            index = index,
-                            totalItems = totalItems,
-                            inTackleBox = inBox,
-                            onCheckedChange = { checked ->
-                                scope.launch {
-                                    if (checked) {
-                                        viewModel.addLureToTackleBox(tackleBoxId, item.lureSummary.lure.id)
-                                    } else {
-                                        viewModel.removeLureFromTackleBox(tackleBoxId, item.lureSummary.lure.id)
+                val listState = rememberLazyListState()
+
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val totalItems = allLures.size
+                        itemsIndexed(
+                            allLures,
+                            key = { _, item -> item.lureSummary.lure.id }) { index, item ->
+                            val inBox = item.lureSummary.lure.id in luresInBoxIds
+                            LureTackleBoxItem(
+                                item = item,
+                                index = index,
+                                totalItems = totalItems,
+                                inTackleBox = inBox,
+                                onCheckedChange = { checked ->
+                                    scope.launch {
+                                        if (checked) {
+                                            viewModel.addLureToTackleBox(
+                                                tackleBoxId,
+                                                item.lureSummary.lure.id
+                                            )
+                                        } else {
+                                            viewModel.removeLureFromTackleBox(
+                                                tackleBoxId,
+                                                item.lureSummary.lure.id
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
+
+                    var isLeftAligned by remember { mutableStateOf(false) }
+
+                    VerticalScrollbar(
+                        state = listState,
+                        onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                        modifier = Modifier
+                            .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                            .fillMaxHeight()
+                            .padding(vertical = 4.dp, horizontal = 0.dp)
+                    )
                 }
             }
         }

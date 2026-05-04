@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,6 +25,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.FishermanItem
+import com.funjim.fishstory.ui.utils.VerticalScrollbar
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
 import kotlinx.coroutines.launch
@@ -115,20 +117,38 @@ fun FishermanListScreen(
                     )
                 }
             }
+            val listState = rememberLazyListState()
 
-            LazyColumn {
-                val totalItems = fishermanSummaries.size
-                itemsIndexed(fishermanSummaries) { index, fisherman ->
-                    FishermanItem(
-                        fisherman = fisherman,
-                        index = index,
-                        totalItems = totalItems,
-                        onDelete = { fishermanToDelete = fisherman },
-                        onClick = {
-                            navigateToFishermanDetails(fisherman.fisherman.id)
-                        }
-                    )
+            Box(modifier = Modifier
+                .fillMaxSize()
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val totalItems = fishermanSummaries.size
+                    itemsIndexed(fishermanSummaries) { index, fisherman ->
+                        FishermanItem(
+                            fisherman = fisherman,
+                            index = index,
+                            totalItems = totalItems,
+                            onDelete = { fishermanToDelete = fisherman },
+                            onClick = {
+                                navigateToFishermanDetails(fisherman.fisherman.id)
+                            }
+                        )
+                    }
                 }
+                var isLeftAligned by remember { mutableStateOf(false) }
+
+                VerticalScrollbar(
+                    state = listState,
+                    onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                    modifier = Modifier
+                        .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp, horizontal = 0.dp)
+                )
             }
         }
 
