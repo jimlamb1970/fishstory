@@ -22,9 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.R
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -274,7 +274,7 @@ private fun FishVisual(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF023E58))
+                .background(MaterialTheme.colorScheme.secondary)
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -284,10 +284,10 @@ private fun FishVisual(
             ) {
                 // Fish icon — using drawable resource
                 Icon(
-                    painter = painterResource(id = R.mipmap.fish_foreground),
+                    imageVector = AppIcons.Default.LeapingFish2,
                     contentDescription = "Fish",
                     modifier = Modifier.size(120.dp),
-                    tint = Color.Unspecified
+                    tint = MaterialTheme.colorScheme.onSecondary
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
