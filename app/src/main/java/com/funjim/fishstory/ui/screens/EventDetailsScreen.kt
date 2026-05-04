@@ -49,26 +49,26 @@ import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SegmentDetailsScreen(
+fun EventDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
-    segmentId: String,
-    navigateToSelectSegmentCrew: () -> Unit,
+    eventId: String,
+    navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    LaunchedEffect(segmentId) {
+    LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
-        viewModel.selectEvent(segmentId)
+        viewModel.selectEvent(eventId)
     }
 
     val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val segmentSummary by viewModel.selectedEventSummary.collectAsStateWithLifecycle()
+    val eventSummary by viewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
-    val segmentPhotos by viewModel.segmentPhotos.collectAsState(initial = emptyList())
+    val eventPhotos by viewModel.eventPhotos.collectAsState(initial = emptyList())
     
-    var showEditSegmentDialog by remember { mutableStateOf(false) }
+    var showEditEventDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
@@ -89,9 +89,9 @@ fun SegmentDetailsScreen(
                 scope.launch {
                     val location = viewModel.getTripCurrentLocation(context)
                     if (location != null) {
-                        segmentSummary?.event?.let { segment ->
+                        eventSummary?.event?.let { event ->
                             viewModel.upsertEvent(
-                                segment.copy(
+                                event.copy(
                                     latitude = location.latitude,
                                     longitude = location.longitude
                                 )
@@ -111,19 +111,19 @@ fun SegmentDetailsScreen(
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = segmentSummary?.event?.latitude,  // Passed from your DB object
-        existingLng = segmentSummary?.event?.longitude,
+        existingLat = eventSummary?.event?.latitude,  // Passed from your DB object
+        existingLng = eventSummary?.event?.longitude,
         onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
         onLocationConfirmed = { lat, lng ->
-            segmentSummary?.event?.let { segment ->
+            eventSummary?.event?.let { event ->
                 scope.launch {
                     viewModel.upsertEvent(
-                        segment.copy(
+                        event.copy(
                             latitude = lat,
                             longitude = lng
                         )
                     )
-                    Toast.makeText(context, "Segment location updated", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Event location updated", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -132,7 +132,7 @@ fun SegmentDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Segment Details") },
+                title = { Text("Event Details") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -145,8 +145,8 @@ fun SegmentDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showEditSegmentDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Segment")
+                    IconButton(onClick = { showEditEventDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Event")
                     }
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
@@ -167,9 +167,9 @@ fun SegmentDetailsScreen(
                                         scope.launch {
                                             val location = viewModel.getTripCurrentLocation(context)
                                             if (location != null) {
-                                                segmentSummary?.event?.let { segment ->
+                                                eventSummary?.event?.let { event ->
                                                     viewModel.upsertEvent(
-                                                        segment.copy(
+                                                        event.copy(
                                                             latitude = location.latitude,
                                                             longitude = location.longitude
                                                         )
@@ -197,7 +197,7 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.MyLocation,
                                         contentDescription = null,
-                                        tint = if (segmentSummary?.event?.latitude != null)
+                                        tint = if (eventSummary?.event?.latitude != null)
                                             Color(0xFF4CAF50)
                                         else
                                             LocalContentColor.current)
@@ -210,9 +210,9 @@ fun SegmentDetailsScreen(
                                     onClick = {
                                         menuExpanded = false
                                         scope.launch {
-                                            segmentSummary?.event?.let { segment ->
+                                            eventSummary?.event?.let { event ->
                                                 viewModel.upsertEvent(
-                                                    segment.copy(
+                                                    event.copy(
                                                         latitude = tripSummary?.trip?.latitude,
                                                         longitude = tripSummary?.trip?.longitude
                                                     )
@@ -227,7 +227,7 @@ fun SegmentDetailsScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.LocationOn,
                                             contentDescription = null,
-                                            tint = if (segmentSummary?.event?.latitude != null)
+                                            tint = if (eventSummary?.event?.latitude != null)
                                                 Color(0xFF4CAF50)
                                             else
                                                 LocalContentColor.current)
@@ -244,22 +244,22 @@ fun SegmentDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.Map,
                                         contentDescription = null,
-                                        tint = if (segmentSummary?.event?.latitude != null)
+                                        tint = if (eventSummary?.event?.latitude != null)
                                             Color(0xFF4CAF50)
                                         else
                                             LocalContentColor.current)
                                 }
                             )
 
-                            if (segmentSummary?.event?.latitude != null) {
+                            if (eventSummary?.event?.latitude != null) {
                                 DropdownMenuItem(
                                     text = { Text("Clear Location") },
                                     onClick = {
                                         menuExpanded = false
-                                        segmentSummary?.event?.let { segment ->
+                                        eventSummary?.event?.let { event ->
                                             scope.launch {
                                                 viewModel.upsertEvent(
-                                                    segment.copy(latitude = null, longitude = null)
+                                                    event.copy(latitude = null, longitude = null)
                                                 )
                                                 Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
                                             }
@@ -292,7 +292,7 @@ fun SegmentDetailsScreen(
         Column(
             modifier = Modifier.padding(padding).fillMaxSize(),
             horizontalAlignment = Alignment.Start) {
-            segmentSummary?.let { details ->
+            eventSummary?.let { details ->
                 LazyColumn(horizontalAlignment = Alignment.Start) {
                     item {
                         Row(
@@ -343,10 +343,10 @@ fun SegmentDetailsScreen(
                         )
 
                         PhotoPickerRow(
-                            photos = segmentPhotos,
+                            photos = eventPhotos,
                             onPhotoSelected = { uri ->
                                 scope.launch {
-                                    viewModel.addPhoto(Photo(uri = uri.toString(), eventId = segmentId))
+                                    viewModel.addPhoto(Photo(uri = uri.toString(), eventId = eventId))
                                 }
                             },
                             onPhotoDeleted = { photo ->
@@ -359,7 +359,7 @@ fun SegmentDetailsScreen(
                         if (details.fishCaught != 0 || now >= details.event.startTime) {
                             HorizontalDivider()
 
-                            SegmentHighlightCard(
+                            EventHighlightCard(
                                 summary = details,
                                 onClick = { navigateToFishList() }
                             )
@@ -370,13 +370,13 @@ fun SegmentDetailsScreen(
                         FishermanSummary(
                             fishermanCount = details.fishermanCount,
                             tackleBoxCount = details.tackleBoxCount,
-                            onClick = { navigateToSelectSegmentCrew() }
+                            onClick = { navigateToSelectEventCrew() }
                         )
                     }
                 }
 
-                if (showEditSegmentDialog) {
-                    var segmentName by remember { mutableStateOf(details.event.name) }
+                if (showEditEventDialog) {
+                    var eventName by remember { mutableStateOf(details.event.name) }
                     var startDateMillis by remember { mutableLongStateOf(details.event.startTime) }
                     var endDateMillis by remember { mutableLongStateOf(details.event.endTime) }
 
@@ -384,15 +384,15 @@ fun SegmentDetailsScreen(
                     var tripEndDateMillis by remember { mutableLongStateOf(tripSummary?.trip?.endDate?: 0L) }
 
                     AlertDialog(
-                        onDismissRequest = { showEditSegmentDialog = false },
-                        title = { Text("Edit Segment Details") },
+                        onDismissRequest = { showEditEventDialog = false },
+                        title = { Text("Edit Event Details") },
                         text = {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 // TODO - put limit on number of characters
                                 OutlinedTextField(
-                                    value = segmentName,
-                                    onValueChange = { segmentName = it },
-                                    label = { Text("Segment Name") },
+                                    value = eventName,
+                                    onValueChange = { eventName = it },
+                                    label = { Text("Event Name") },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true
                                 )
@@ -453,18 +453,18 @@ fun SegmentDetailsScreen(
                             Button(onClick = {
                                 scope.launch {
                                     viewModel.upsertEvent(details.event.copy(
-                                        name = segmentName,
+                                        name = eventName,
                                         startTime = startDateMillis,
                                         endTime = endDateMillis
                                     ))
-                                    showEditSegmentDialog = false
+                                    showEditEventDialog = false
                                 }
                             }) {
                                 Text("Save")
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showEditSegmentDialog = false }) {
+                            TextButton(onClick = { showEditEventDialog = false }) {
                                 Text("Cancel")
                             }
                         }
@@ -477,7 +477,7 @@ fun SegmentDetailsScreen(
     }
 }
 @Composable
-fun SegmentHighlightCard(
+fun EventHighlightCard(
     summary: EventSummary,
     onClick: () -> Unit
 ) {

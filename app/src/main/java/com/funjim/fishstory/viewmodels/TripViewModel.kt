@@ -320,7 +320,7 @@ class TripViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentPhotos: StateFlow<List<Photo>> = _selectedEventId
+    val eventPhotos: StateFlow<List<Photo>> = _selectedEventId
         .filterNotNull()
         .flatMapLatest { tripRepo.getPhotosForSegment(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
