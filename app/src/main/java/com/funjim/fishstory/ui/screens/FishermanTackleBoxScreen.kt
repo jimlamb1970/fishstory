@@ -1,12 +1,18 @@
 package com.funjim.fishstory.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +33,7 @@ fun FishermanTackleBoxScreen(
     viewModel: LureViewModel,
     fishermanId: String,
     tackleBoxId: String,
+    onAdd: () -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(fishermanId) {
@@ -85,6 +92,19 @@ fun FishermanTackleBoxScreen(
                     }) {
                         Icon(Icons.Default.Edit, contentDescription = "Rename Tackle Box")
                     }
+                    TextButton(
+                        onClick = onAdd,
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Add")
+                        }
+                    }
                 }
             )
         }
@@ -108,48 +128,58 @@ fun FishermanTackleBoxScreen(
                 )
             }
 
-            // Sort chips
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val chips = listOf(
-                    LureSortOrder.NAME to "Name",
-                    LureSortOrder.PRIMARY_COLOR to "Primary Color",
-                    LureSortOrder.SECONDARY_COLOR to "Secondary Color",
-                    LureSortOrder.GLOW_COLOR to "Glow Color",
-                    LureSortOrder.GLOW to "Glows",
-                    LureSortOrder.HOOK_TYPE to "Hook Type"
-                )
-                items(chips) { (field, label) ->
-                    val selected = currentOrder == field
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            if (currentOrder == field) {
-                                viewModel.toggleReverse()
-                            } else {
-                                viewModel.setSortOrder(field)
-                                if (reversed) {
-                                    viewModel.toggleReverse()
-                                }
-                            }
-                        },
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = selected,
-                            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
-                            selectedBorderWidth = 2.dp,
-                            borderColor = MaterialTheme.colorScheme.primary,
-                            borderWidth = 1.dp
-                        ),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-                            selectedLabelColor = MaterialTheme.colorScheme.onTertiary
-                        ),
-                        label = {
-                            Text(if (selected) "$label ${if (reversed) "↑" else "↓"}" else label)
-                        }
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    SortChip("Name",
+                        currentOrder == LureSortOrder.NAME) {
+                        viewModel.setSortOrder(LureSortOrder.NAME)
+                    }
+                    SortChip("Primary Color",
+                        currentOrder == LureSortOrder.PRIMARY_COLOR) {
+                        viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
+                    }
+                    SortChip("Secondary Color",
+                        currentOrder == LureSortOrder.SECONDARY_COLOR) {
+                        viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
+                    }
+                    SortChip("Glow Color",
+                        currentOrder == LureSortOrder.GLOW_COLOR) {
+                        viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
+                    }
+                    SortChip("Glows",
+                        currentOrder == LureSortOrder.GLOW) {
+                        viewModel.setSortOrder(LureSortOrder.GLOW)
+                    }
+                    SortChip("Hook Type",
+                        currentOrder == LureSortOrder.HOOK_TYPE) {
+                        viewModel.setSortOrder(LureSortOrder.HOOK_TYPE)
+                    }
+                }
+
+                Spacer(Modifier.width(4.dp))
+
+                IconButton(
+                    onClick = { viewModel.toggleReverse() },
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        ).size(34.dp)
+                ) {
+                    Icon(
+                        imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                        contentDescription = "Reverse Sort",
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -160,10 +190,13 @@ fun FishermanTackleBoxScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(allLures, key = { it.lureSummary.lure.id }) { item ->
+                    val totalItems = allLures.size
+                    itemsIndexed(allLures, key = { _, item -> item.lureSummary.lure.id }) { index, item ->
                         val inBox = item.lureSummary.lure.id in luresInBoxIds
                         LureTackleBoxItem(
                             item = item,
+                            index = index,
+                            totalItems = totalItems,
                             inTackleBox = inBox,
                             onCheckedChange = { checked ->
                                 scope.launch {
@@ -175,7 +208,6 @@ fun FishermanTackleBoxScreen(
                                 }
                             }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     }
                 }
             }
@@ -221,37 +253,60 @@ fun FishermanTackleBoxScreen(
 @Composable
 private fun LureTackleBoxItem(
     item: LureSummaryWithColors,
+    index: Int = 0,
+    totalItems: Int = 0,
     inTackleBox: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+
+    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+    }
+    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
-        Checkbox(
-            checked = inTackleBox,
-            onCheckedChange = onCheckedChange
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.lureSummary.displayName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = inTackleBox,
+                onCheckedChange = onCheckedChange
             )
-            // Secondary details row
-            val details = buildList {
-                if (item.lureSummary.lure.glows) add("Glows${if (!item.glowColorName.isNullOrBlank()) " (${item.glowColorName})" else ""}")
-                add(if (item.lureSummary.lure.hasSingleHook) "Single hook" else "Treble hook")
-            }
-            if (details.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = details.joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = item.lureSummary.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
                 )
+                // Secondary details row
+                val details = buildList {
+                    if (item.lureSummary.lure.glows) add("Glows${if (!item.glowColorName.isNullOrBlank()) " (${item.glowColorName})" else ""}")
+                    add(if (item.lureSummary.lure.hasSingleHook) "Single hook" else "Treble hook")
+                }
+                if (details.isNotEmpty()) {
+                    Text(
+                        text = details.joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

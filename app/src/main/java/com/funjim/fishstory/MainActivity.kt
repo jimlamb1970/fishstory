@@ -373,6 +373,7 @@ fun AppNavigation(
                 viewModel = lureViewModel,
                 fishermanId = fishermanId ?: "",
                 tackleBoxId = tackleBoxId ?: "",
+                onAdd = { navController.navigate("add_lure") },
                 navigateBack = {
                     navController.popBackStack()
                 }
