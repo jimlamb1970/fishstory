@@ -35,9 +35,14 @@ import kotlin.collections.sorted
 enum class WizardStep {
     TripInfo,           // Step 1 – name, dates, location
     TripCrew,           // Step 2 – fishermen + tackle boxes for trip
-    EventInfo,        // Step 3 – segment name, dates, location
-    EventCrew,        // Step 4 – fishermen + tackle boxes for segment
+    EventInfo,          // Step 3 – event name, dates, location
+    EventCrew,          // Step 4 – fishermen + tackle boxes for event
     Review              // Step 5 – list segments, add another or finish
+}
+
+enum class EventWizardStep {
+    EventInfo,          // Step 1 – event name, dates, location
+    EventCrew           // Step 2 – fishermen + tackle boxes for event
 }
 
 class TripViewModel(
@@ -514,12 +519,20 @@ class TripViewModel(
         _currentWizardStep.value = step
     }
 
+    private val _currentEventWizardStep = MutableStateFlow(EventWizardStep.EventInfo)
+    val currentEventWizardStep = _currentEventWizardStep.asStateFlow()
+
+    fun updateEventWizardStep(step: EventWizardStep) {
+        _currentEventWizardStep.value = step
+    }
+
     // --- Trip Draft State ---
     private val _tripDraft = MutableStateFlow(Trip(id = UUID.randomUUID().toString(), name = ""))
     val tripDraft = _tripDraft.asStateFlow()
 
     fun clearTripDraft() {
         _tripDraft.value = Trip(id = UUID.randomUUID().toString(), name = "")
+        _currentWizardStep.value = WizardStep.TripInfo
     }
 
     fun updateTripDraft(update: (Trip) -> Trip) {
@@ -534,6 +547,7 @@ class TripViewModel(
 
     fun clearEventDraft() {
         _eventDraft.value = Event(id = UUID.randomUUID().toString(), name = "", tripId = "")
+        _currentEventWizardStep.value = EventWizardStep.EventInfo
     }
 
     fun updateEventDraft(update: (Event) -> Event) {
