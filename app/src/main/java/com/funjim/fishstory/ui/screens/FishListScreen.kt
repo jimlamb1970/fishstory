@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -41,15 +40,15 @@ import kotlinx.coroutines.launch
 fun FishListScreen(
     viewModel: FishViewModel,
     tripId: String?,
-    segmentId: String?,   // empty string means trip-level (no segment selected)
+    eventId: String?,   // empty string means trip-level (no segment selected)
     fishermanId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = tripId, key2 = segmentId, key3 = fishermanId) {
+    LaunchedEffect(key1 = tripId, key2 = eventId, key3 = fishermanId) {
         viewModel.updateSelectedTrip(tripId)
-        viewModel.updateSelectedEvent(segmentId)
+        viewModel.updateSelectedEvent(eventId)
         viewModel.updateSelectedFisherman(fishermanId)
     }
 
@@ -135,11 +134,11 @@ fun FishListScreen(
             )
         },
         floatingActionButton = {
-            if (!segmentId.isNullOrEmpty()) {
+            if (!eventId.isNullOrEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         if (tripId != null) {
-                            onAddFish(tripId, segmentId, null)
+                            onAddFish(tripId, eventId, null)
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -182,7 +181,7 @@ fun FishListScreen(
                 }
 
                 // TODO - make this a drop down menu for all the segments in the trip?
-                if (!segmentId.isNullOrEmpty()) {
+                if (!eventId.isNullOrEmpty()) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically)
@@ -212,7 +211,7 @@ fun FishListScreen(
                                 viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
                             }
                         }
-                        if (segmentId.isNullOrEmpty()) {
+                        if (eventId.isNullOrEmpty()) {
                             SortChip("Segment", currentOrder == FishSortOrder.SEGMENT_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.SEGMENT_AZ)
                             }
@@ -266,7 +265,7 @@ fun FishListScreen(
                             index = index,
                             totalItems = totalItems,
                             includeTrip = tripId.isNullOrEmpty(),
-                            includeSegment = segmentId.isNullOrEmpty(),
+                            includeSegment = eventId.isNullOrEmpty(),
                             includeFisherman = fishermanId.isNullOrEmpty(),
                             photos = photos,
                             onAddPhoto = null,

@@ -19,20 +19,20 @@ import kotlin.collections.set
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectSegmentCrewScreen(
+fun SelectEventCrewScreen(
     tripViewModel: TripViewModel,
     tripId: String,
-    segmentId: String,
+    eventId: String,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(tripId) {
         tripViewModel.selectTrip(tripId)
-        tripViewModel.selectEvent(segmentId)
+        tripViewModel.selectEvent(eventId)
     }
 
     val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
-    val initialCrew by tripViewModel.getFishermenForSegment(segmentId).collectAsState(emptyList())
+    val initialCrew by tripViewModel.getFishermenForSegment(eventId).collectAsState(emptyList())
 
     val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
     var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
@@ -113,13 +113,13 @@ fun SelectSegmentCrewScreen(
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
                         tripViewModel.deleteEventFishermanCrossRef(
-                            eventId = segmentId,
+                            eventId = eventId,
                             fishermanId = fishermanId
                         )
                     }
                     addSet.forEach { fishermanId ->
                         tripViewModel.upsertEventFishermanCrossRef(
-                            eventId = segmentId,
+                            eventId = eventId,
                             fishermanId = fishermanId,
                             tackleBoxId = workingTackleBoxMap[fishermanId]
                         )
@@ -127,7 +127,7 @@ fun SelectSegmentCrewScreen(
                     workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
                             tripViewModel.upsertEventFishermanCrossRef(
-                                eventId = segmentId,
+                                eventId = eventId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )

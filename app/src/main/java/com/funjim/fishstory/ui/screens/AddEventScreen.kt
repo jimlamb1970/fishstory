@@ -41,7 +41,7 @@ private enum class SegmentWizardStep {
 // ---------------------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddSegmentScreen(
+fun AddEventScreen(
     tripViewModel: TripViewModel,
     tripId: String,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),

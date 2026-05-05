@@ -60,14 +60,14 @@ fun Long.toUtcMidnight(): Long =
 fun AddFishScreenNew(
     viewModel: FishViewModel,
     tripId: String,
-    segmentId: String,
+    eventId: String,
     fishId: String? = null, // Pass null for "Add", pass ID for "Edit"
     navigateToSelectLures: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val draftFish by viewModel.draftFish.collectAsState()
 
-    LaunchedEffect(fishId, segmentId) {
+    LaunchedEffect(fishId, eventId) {
         if (draftFish == null) {
             if (fishId != null) {
                 val fish = viewModel.getFishById(fishId)
@@ -78,8 +78,8 @@ fun AddFishScreenNew(
                     viewModel.updateSelectedTackleBox("")
                 }
             } else {
-                viewModel.initDraftFish(null, tripId, segmentId)
-                viewModel.updateSelectedEvent(segmentId)
+                viewModel.initDraftFish(null, tripId, eventId)
+                viewModel.updateSelectedEvent(eventId)
                 viewModel.updateSelectedFisherman("")
                 viewModel.updateSelectedTackleBox("")
             }
