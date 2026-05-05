@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,33 +34,33 @@ import java.util.Locale
 fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
-    onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (tripId: String, segmentId: String) -> Unit,
+    onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
+    onNavigateToFishList: (tripId: String, eventId: String) -> Unit,
     navigateToManageSpecies: () -> Unit
 ) {
     val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
-    val selectedSegmentId by viewModel.selectedEventId.collectAsStateWithLifecycle()
+    val selectedEventId by viewModel.selectedEventId.collectAsStateWithLifecycle()
 
     val selectedTrip = remember(allTrips, selectedTripId) {
         allTrips.find { it.id == selectedTripId }
     }
 
-    var tripExpanded by remember { mutableStateOf(false) }
+    var tripsExpanded by remember { mutableStateOf(false) }
 
-    val segmentsForTrip by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTrip) {
+    val tripEvents by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTrip) {
         selectedTrip?.let {
             viewModel.tripEvents.collect { value = it }
         } ?: run { value = emptyList() }
     }
 
-    val selectedSegment = remember(segmentsForTrip, selectedSegmentId) {
-        segmentsForTrip.find { it.id == selectedSegmentId }
+    val selectedEvent = remember(tripEvents, selectedEventId) {
+        tripEvents.find { it.id == selectedEventId }
     }
 
-    var segmentExpanded by remember { mutableStateOf(false) }
+    var eventsExpanded by remember { mutableStateOf(false) }
 
-    // Fish counts — trip-level or segment-level depending on selection
+    // Fish counts — trip-level or event-level depending on selection
     val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
 
     val caughtCount = fishForScope.size
@@ -92,13 +91,13 @@ fun FishSummaryScreen(
             )
         },
         floatingActionButton = {
-            // Log Fish button is only enabled when a segment is selected
+            // Log Fish button is only enabled when a event is selected
             // TODO - enable all time (allow fish to just be associated with a trip or no trip at all
-            if (selectedSegment != null) {
+            if (selectedEvent != null) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        val tripId = selectedSegment.tripId
-                        val segId = selectedSegment.id
+                        val tripId = selectedEvent.tripId
+                        val segId = selectedEvent.id
                         onAddFish(tripId, segId, null)
                     },
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -116,8 +115,8 @@ fun FishSummaryScreen(
         ) {
             // Trip Dropdown
             ExposedDropdownMenuBox(
-                expanded = tripExpanded,
-                onExpandedChange = { tripExpanded = !tripExpanded },
+                expanded = tripsExpanded,
+                onExpandedChange = { tripsExpanded = !tripsExpanded },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
@@ -127,14 +126,14 @@ fun FishSummaryScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Trip") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripExpanded) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripsExpanded) },
                     modifier = Modifier
                         .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = tripExpanded,
-                    onDismissRequest = { tripExpanded = false }
+                    expanded = tripsExpanded,
+                    onDismissRequest = { tripsExpanded = false }
                 ) {
                     val numberOfTrips = allTrips.size
                     allTrips.forEachIndexed { index, trip ->
@@ -149,7 +148,7 @@ fun FishSummaryScreen(
                             onClick = {
                                 viewModel.updateSelectedTrip(trip.id)
                                 viewModel.updateSelectedEvent(null)
-                                tripExpanded = false
+                                tripsExpanded = false
                             },
                             modifier = Modifier.background(itemBackground)
                         )
@@ -157,11 +156,11 @@ fun FishSummaryScreen(
                 }
             }
 
-            // Segment Dropdown
+            // Event Dropdown
             ExposedDropdownMenuBox(
-                expanded = segmentExpanded,
+                expanded = eventsExpanded,
                 onExpandedChange = {
-                    if (selectedTrip != null) segmentExpanded = !segmentExpanded
+                    if (selectedTrip != null) eventsExpanded = !eventsExpanded
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -169,41 +168,41 @@ fun FishSummaryScreen(
                     .fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = selectedSegment?.name ?: "Select Segment (optional)",
+                    value = selectedEvent?.name ?: "Select Event (optional)",
                     onValueChange = {},
                     readOnly = true,
                     enabled = selectedTrip != null,
-                    label = { Text("Segment") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = segmentExpanded) },
+                    label = { Text("Event") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = eventsExpanded) },
                     modifier = Modifier
                         .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = segmentExpanded,
-                    onDismissRequest = { segmentExpanded = false }
+                    expanded = eventsExpanded,
+                    onDismissRequest = { eventsExpanded = false }
                 ) {
-                    // Option to clear segment selection
+                    // Option to clear event selection
                     DropdownMenuItem(
-                        text = { Text("All segments") },
+                        text = { Text("All Events") },
                         onClick = {
                             viewModel.updateSelectedEvent(null)
-                            segmentExpanded = false
+                            eventsExpanded = false
                         }
                     )
-                    val numberOfSegments = segmentsForTrip.size
-                    segmentsForTrip.forEachIndexed { index, segment ->
-                        val itemBackground = if ((numberOfSegments < 3) || (index % 2 == 1)) {
+                    val eventCount = tripEvents.size
+                    tripEvents.forEachIndexed { index, event ->
+                        val itemBackground = if ((eventCount < 3) || (index % 2 == 1)) {
                             Color.Transparent
                         } else {
                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
                         }
 
                         DropdownMenuItem(
-                            text = { Text(segment.name) },
+                            text = { Text(event.name) },
                             onClick = {
-                                viewModel.updateSelectedEvent(segment.id)
-                                segmentExpanded = false
+                                viewModel.updateSelectedEvent(event.id)
+                                eventsExpanded = false
                             },
                             modifier = Modifier.background(itemBackground)
                         )
@@ -220,12 +219,12 @@ fun FishSummaryScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 FishVisual(
                     trip = selectedTrip,
-                    event = selectedSegment,
+                    event = selectedEvent,
                     caughtCount = caughtCount,
                     keptCount = keptCount,
                     onClick = {
-                        val tripId = selectedSegment?.tripId ?: selectedTrip.id
-                        val segId = selectedSegment?.id ?: ""
+                        val tripId = selectedEvent?.tripId ?: selectedTrip.id
+                        val segId = selectedEvent?.id ?: ""
                         onNavigateToFishList(tripId, segId)
                     }
                 )

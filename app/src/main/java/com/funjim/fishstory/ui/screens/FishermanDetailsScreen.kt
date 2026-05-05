@@ -784,7 +784,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             ) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    label = "Best Segment",
+                    label = "Best Event",
                     name = "${stats.bestEventName} - (${stats.bestEventTripName})",
                     description = "(${stats.mostEventCatches} fish)",
                     modifier = Modifier.weight(1f)
@@ -839,7 +839,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
             ) {
                 AchievementItem(
                     icon = Icons.AutoMirrored.Filled.TrendingDown,
-                    label = "Worst Segment",
+                    label = "Worst Event",
                     name = "${stats.worstEventName} - (${stats.worstEventTripName})",
                     description = "(${stats.fewestEventCatches} fish)",
                     modifier = Modifier.weight(1f)

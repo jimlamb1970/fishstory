@@ -40,10 +40,10 @@ import kotlinx.coroutines.launch
 fun FishListScreen(
     viewModel: FishViewModel,
     tripId: String?,
-    eventId: String?,   // empty string means trip-level (no segment selected)
+    eventId: String?,   // empty string means trip-level (no event selected)
     fishermanId: String?,
     navigateBack: () -> Unit,
-    onAddFish: (tripId: String, segmentId: String, fishId: String?) -> Unit,
+    onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
     LaunchedEffect(key1 = tripId, key2 = eventId, key3 = fishermanId) {
@@ -56,12 +56,12 @@ fun FishListScreen(
     val context = LocalContext.current
 
     /*
-     TODO - need to look into location behavior for when trip and/or segment
+     TODO - need to look into location behavior for when trip and/or event
       is not specified for location selection.  If they are not specified, those
       options can not be picked.
      */
     val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
-    val segment by viewModel.selectedEvent.collectAsStateWithLifecycle()
+    val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val screenTitle = "Fish Log"
 
@@ -180,14 +180,14 @@ fun FishListScreen(
                     }
                 }
 
-                // TODO - make this a drop down menu for all the segments in the trip?
+                // TODO - make this a drop down menu for all the events in the trip?
                 if (!eventId.isNullOrEmpty()) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically)
                     {
                         Text(
-                            text = segment?.name ?: "All Segments",
+                            text = event?.name ?: "All Events",
                             style = MaterialTheme.typography.headlineSmall
                         )
                     }
@@ -212,8 +212,8 @@ fun FishListScreen(
                             }
                         }
                         if (eventId.isNullOrEmpty()) {
-                            SortChip("Segment", currentOrder == FishSortOrder.SEGMENT_AZ) {
-                                viewModel.updateSortOrder(FishSortOrder.SEGMENT_AZ)
+                            SortChip("Event", currentOrder == FishSortOrder.EVENT_AZ) {
+                                viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
                             }
                         }
                         if (fishermanId.isNullOrEmpty()) {
@@ -265,7 +265,7 @@ fun FishListScreen(
                             index = index,
                             totalItems = totalItems,
                             includeTrip = tripId.isNullOrEmpty(),
-                            includeSegment = eventId.isNullOrEmpty(),
+                            includeEvent = eventId.isNullOrEmpty(),
                             includeFisherman = fishermanId.isNullOrEmpty(),
                             photos = photos,
                             onAddPhoto = null,
@@ -331,14 +331,14 @@ fun FishListScreen(
                                     }
                                 }
                             } else null,
-                            onUseSegmentLocation = if (segment?.latitude != null) {
+                            onUseEventLocation = if (event?.latitude != null) {
                                 {
                                     scope.launch {
                                         val fish = viewModel.getFishById(fishDetails.id)
                                         if (fish != null) {
                                             viewModel.upsertFish(fish.copy(
-                                                latitude = segment?.latitude,
-                                                longitude = segment?.longitude))
+                                                latitude = event?.latitude,
+                                                longitude = event?.longitude))
                                         }
                                         Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                     }

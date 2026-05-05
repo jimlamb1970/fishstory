@@ -32,7 +32,7 @@ fun SelectEventCrewScreen(
     }
 
     val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
-    val initialCrew by tripViewModel.getFishermenForSegment(eventId).collectAsState(emptyList())
+    val initialCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(emptyList())
 
     val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
     var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
@@ -40,13 +40,13 @@ fun SelectEventCrewScreen(
     var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
 
-    val segmentTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
+    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
     val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
 
-    LaunchedEffect(segmentTackleBoxMap) {
+    LaunchedEffect(eventTackleBoxMap) {
         // Only initialize if the map is currently empty and we have data to put in it
-        if (workingTackleBoxMap.isEmpty() && segmentTackleBoxMap.isNotEmpty()) {
-            segmentTackleBoxMap.forEach { (fisherman, tackleBoxId) ->
+        if (workingTackleBoxMap.isEmpty() && eventTackleBoxMap.isNotEmpty()) {
+            eventTackleBoxMap.forEach { (fisherman, tackleBoxId) ->
                 workingTackleBoxMap[fisherman] = tackleBoxId
             }
         }

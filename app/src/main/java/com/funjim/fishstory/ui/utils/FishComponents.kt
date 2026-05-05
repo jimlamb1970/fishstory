@@ -47,7 +47,7 @@ fun FishItem(
     index: Int = 0,
     totalItems: Int = 0,
     includeTrip: Boolean = false,
-    includeSegment: Boolean = false,
+    includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
     photos: List<Photo>,
     onAddPhoto: ((Photo) -> Unit)? = null,
@@ -58,7 +58,7 @@ fun FishItem(
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
-    onUseSegmentLocation: (() -> Unit)? = null,
+    onUseEventLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
@@ -143,7 +143,7 @@ fun FishItem(
                 if (includeTrip)
                     Text("Trip: ${fish.tripName}", style = MaterialTheme.typography.bodyMedium)
 
-                if (includeSegment)
+                if (includeEvent)
                     Text("Segment: ${fish.eventName}", style = MaterialTheme.typography.bodyMedium)
 
                 if (includeFisherman)
@@ -233,12 +233,12 @@ fun FishItem(
                             )
                         }
 
-                        if (onUseSegmentLocation != null) {
+                        if (onUseEventLocation != null) {
                             DropdownMenuItem(
                                 text = { Text("Use Segment Location") },
                                 onClick = {
                                     menuExpanded = false
-                                    onUseSegmentLocation()
+                                    onUseEventLocation()
                                 },
                                 leadingIcon = {
                                     Icon(

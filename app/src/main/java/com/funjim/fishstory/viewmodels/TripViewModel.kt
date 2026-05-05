@@ -195,7 +195,7 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    fun getFishermenForSegment(segmentId: String): Flow<List<Fisherman>> {
+    fun getFishermenForEvent(segmentId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForSegment(segmentId)
     }
 

@@ -99,8 +99,8 @@ fun DashboardScreen(
                         activeTrips = state.activeTrips,
                         activeEvents = activeTripEvents.active,
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
-                        onEventClick = { tripId, eventId -> onNavigate("segment_details/$eventId/$tripId") },
-                        onClick = { tripId, eventId -> onNavigate("segment_details/$eventId/$tripId") },
+                        onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
+                        onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
                     )
                 } else {
@@ -127,7 +127,7 @@ fun DashboardScreen(
                                 UpcomingEventChip(
                                     tripName = state.activeTrips.find { it.trip.id == upcomingEvent.event.tripId }?.trip?.name ?: "Unknown Trip",
                                     event = upcomingEvent.event,
-                                    onEventClick = { eventId, tripId -> onNavigate("segment_details/${eventId}/${tripId}") }
+                                    onEventClick = { eventId, tripId -> onNavigate("event_details/${eventId}/${tripId}") }
                                 )
                             }
                         }

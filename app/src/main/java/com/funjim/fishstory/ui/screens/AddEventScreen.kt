@@ -116,10 +116,10 @@ fun AddEventScreen(
         }
     }
 
-    // Helper: delete the segment row if user cancels mid-wizard
+    // Helper: delete the evert if user cancels mid-wizard
     fun cancelAndExit() {
         scope.launch {
-            // CASCADE deletes will clean up fisherman cross-refs and segments
+            // CASCADE deletes will clean up fisherman cross-refs and event
             tripViewModel.deleteEventById(eventDraft.id)
         }
         tripViewModel.clearTrip()
@@ -263,7 +263,7 @@ fun AddEventScreen(
             )
             tripSummary?.let { tripSummary ->
                 when (currentStep) {
-                    // ── Step 3: Segment info ─────────────────────────────────────
+                    // ── Step 3: Event info ─────────────────────────────────────
                     EventWizardStep.EventInfo -> {
                         Column(
                             modifier = Modifier
@@ -271,9 +271,9 @@ fun AddEventScreen(
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("Segment Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Text("Event Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             Text(
-                                "A segment is a single fishing session — e.g. morning run, afternoon drift.",
+                                "An event is a single fishing session — e.g. morning run, afternoon drift.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -283,7 +283,7 @@ fun AddEventScreen(
                                 onValueChange = { name ->
                                     tripViewModel.updateEventDraft { eventDraft.copy(name = name) }
                                 },
-                                label = { Text("Segment Name") },
+                                label = { Text("Event Name") },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )
@@ -364,7 +364,7 @@ fun AddEventScreen(
                         }
                     }
 
-                    // ── Step 4: Segment crew + tackle boxes ──────────────────────
+                    // ── Step 4: Event crew + tackle boxes ──────────────────────
                     EventWizardStep.EventCrew -> {
                         Spacer(Modifier.height(16.dp))
                         TripViewModelCrewPickerBridge(
