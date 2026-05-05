@@ -35,7 +35,7 @@ import androidx.navigation.navArgument
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
-import com.funjim.fishstory.ui.screens.AddFishScreenNew
+import com.funjim.fishstory.ui.screens.AddFishScreen
 import com.funjim.fishstory.ui.screens.AddLureScreen
 import com.funjim.fishstory.ui.screens.AddEventScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
@@ -76,6 +76,14 @@ class MainActivity : ComponentActivity() {
         val repository = (application as FishstoryApplication).tripRepository
         DashboardViewModelFactory(repository)
     }
+    private val addFishViewModel: AddFishViewModel by viewModels {
+        val fishRepo = (application as FishstoryApplication).fishRepository
+        val lureRepo = (application as FishstoryApplication).lureRepository
+        val tripRepo = (application as FishstoryApplication).tripRepository
+
+        AddFishViewModelFactory(fishRepo = fishRepo, lureRepo = lureRepo, tripRepo = tripRepo)
+    }
+
     private val fishViewModel: FishViewModel by viewModels {
         val fishRepo = (application as FishstoryApplication).fishRepository
         val lureRepo = (application as FishstoryApplication).lureRepository
@@ -97,11 +105,7 @@ class MainActivity : ComponentActivity() {
     private val tripViewModel: TripViewModel by viewModels {
         val tripRepository = (application as FishstoryApplication).tripRepository
         val fishermanRepository = (application as FishstoryApplication).fishermanRepository
-
-        val database = (application as FishstoryApplication).database
-        TripViewModelFactory(
-            tripRepository,
-            fishermanRepository
+        TripViewModelFactory(tripRepository, fishermanRepository
         )
     }
 
@@ -139,7 +143,15 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
-                        AppNavigation(navController, viewModel, dashboardViewModel, importViewModel, tripViewModel, fishViewModel, lureViewModel)
+                        AppNavigation(
+                            navController,
+                            addFishViewModel = addFishViewModel,
+                            dashboardViewModel = dashboardViewModel,
+                            fishViewModel = fishViewModel,
+                            importViewModel = importViewModel,
+                            lureViewModel = lureViewModel,
+                            tripViewModel = tripViewModel,
+                            viewModel = viewModel)
                     }
                 }
             }
@@ -167,6 +179,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
+    addFishViewModel: AddFishViewModel,
     viewModel: MainViewModel,
     dashboardViewModel: DashboardViewModel,
     importViewModel: ImportViewModel,
@@ -202,8 +215,8 @@ fun AppNavigation(
             val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
             val fishId = backStackEntry.arguments?.getString("fishId")
 
-            AddFishScreenNew(
-                viewModel = fishViewModel,
+            AddFishScreen(
+                viewModel = addFishViewModel,
                 tripId = tripId,
                 eventId = eventId,
                 fishId = fishId,

@@ -95,7 +95,7 @@ fun ManageSpeciesScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                placeholder = { Text("Search or add species...") },
+                placeholder = { Text("Search or add new species...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (showAddButton) {
@@ -103,7 +103,10 @@ fun ManageSpeciesScreen(
                             viewModel.addSpecies(Species(name = searchQuery.trim()))
                             searchQuery = ""
                         }) {
-                            Icon(Icons.Default.AddCircle, contentDescription = "Add", tint = MaterialTheme.colorScheme.primary)
+                            Icon(
+                                Icons.Default.AddCircle,
+                                contentDescription = "Add New",
+                                tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 },

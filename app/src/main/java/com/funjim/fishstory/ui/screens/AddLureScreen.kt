@@ -197,7 +197,7 @@ fun AddLureScreen(
                             newColorName = ""
                         }
                     }
-                }) { Text("Add") }
+                }) { Text("New") }
             }
         )
     }

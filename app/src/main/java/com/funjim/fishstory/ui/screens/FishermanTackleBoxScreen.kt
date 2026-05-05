@@ -104,7 +104,7 @@ fun FishermanTackleBoxScreen(
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Add")
+                            Text("New")
                         }
                     }
                 }

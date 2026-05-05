@@ -73,7 +73,7 @@ fun FishermanListScreen(
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Add")
+                            Text("New")
                         }
                     }
                 },
@@ -164,7 +164,7 @@ fun FishermanListScreen(
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
-                title = { Text("Add Fisherman") },
+                title = { Text("New Fisherman") },
                 text = {
                     Column {
                         TextField(
@@ -205,7 +205,7 @@ fun FishermanListScreen(
                             }
                         }
                     }) {
-                        Text("Add")
+                        Text("Create")
                     }
                 },
                 dismissButton = {

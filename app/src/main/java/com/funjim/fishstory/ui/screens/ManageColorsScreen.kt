@@ -92,7 +92,7 @@ fun ManageColorsScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                placeholder = { Text("Search or add color...") },
+                placeholder = { Text("Search or add new color...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (showAddButton) {
@@ -102,7 +102,7 @@ fun ManageColorsScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add",
+                                contentDescription = "Add New",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
