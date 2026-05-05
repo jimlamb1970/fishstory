@@ -10,6 +10,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
+import com.funjim.fishstory.ui.utils.VerticalScrollbar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.FishViewModel
@@ -132,31 +134,26 @@ fun FishListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    if (fishForScope.size > 1) {
-                        Text(
-                            text = "${fishForScope.size} Fish",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
+                    if (tripId != null && eventId != null) {
+                        TextButton(
+                            onClick = {
+                                onAddFish(tripId, eventId, null)
+                            },
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Add")
+                            }
+                        }
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            if (!eventId.isNullOrEmpty()) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        if (tripId != null) {
-                            onAddFish(tripId, eventId, null)
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Log Fish") }
-                )
-            }
         }
     ) { padding ->
         if (fishForScope.isEmpty()) {
@@ -266,21 +263,32 @@ fun FishListScreen(
 
                 val allPhotos by viewModel.fishPhotos.collectAsStateWithLifecycle()
 
-                LazyColumn {
-                    val totalItems = fishForScope.size
-                    itemsIndexed(fishForScope) { index, fishDetails ->
-                        val photos = allPhotos[fishDetails.id] ?: emptyList()
-                        FishItem(
-                            fish = fishDetails,
-                            index = index,
-                            totalItems = totalItems,
-                            includeTrip = tripId.isNullOrEmpty(),
-                            includeEvent = eventId.isNullOrEmpty(),
-                            includeFisherman = fishermanId.isNullOrEmpty(),
-                            photos = photos,
-                            onAddPhoto = null,
-                            onDeletePhoto = null,
-                            /* TODO - enable photos for fish cards
+                val listState = rememberLazyListState()
+
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val totalItems = fishForScope.size
+                        itemsIndexed(
+                            fishForScope,
+                            key = { _, item -> item.id }
+                        ) { index, fishDetails ->
+                            val photos = allPhotos[fishDetails.id] ?: emptyList()
+                            FishItem(
+                                fish = fishDetails,
+                                index = index,
+                                totalItems = totalItems,
+                                includeTrip = tripId.isNullOrEmpty(),
+                                includeEvent = eventId.isNullOrEmpty(),
+                                includeFisherman = fishermanId.isNullOrEmpty(),
+                                photos = photos,
+                                onAddPhoto = null,
+                                onDeletePhoto = null,
+                                /* TODO - enable photos for fish cards
                             onAddPhoto = { photo ->
                                 viewModel.addPhoto(photo)
                             },
@@ -288,86 +296,128 @@ fun FishListScreen(
                                 viewModel.deletePhoto(photo)
                             },
                             */
-                            onClick = {
-                                navigateToFishDetails(fishDetails.id)
-                            },
-                            onEdit = {
-                                scope.launch {
-                                    onAddFish(
-                                        fishDetails.tripId,
-                                        fishDetails.eventId,
-                                        fishDetails.id
-                                    )
-                                }
-                            },
-                            onDelete = {
-                                scope.launch {
-                                    fishToDelete = viewModel.getFishById(fishDetails.id)
-                                }
-                            },
-                            onSetLocation = {
-                                if (ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                onClick = {
+                                    navigateToFishDetails(fishDetails.id)
+                                },
+                                onEdit = {
                                     scope.launch {
-                                        val location = viewModel.getFishCurrentLocation(context)
-                                        if (location != null) {
+                                        onAddFish(
+                                            fishDetails.tripId,
+                                            fishDetails.eventId,
+                                            fishDetails.id
+                                        )
+                                    }
+                                },
+                                onDelete = {
+                                    scope.launch {
+                                        fishToDelete = viewModel.getFishById(fishDetails.id)
+                                    }
+                                },
+                                onSetLocation = {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        scope.launch {
+                                            val location = viewModel.getFishCurrentLocation(context)
+                                            if (location != null) {
+                                                val fish = viewModel.getFishById(fishDetails.id)
+                                                if (fish != null) {
+                                                    viewModel.upsertFish(
+                                                        fish.copy(
+                                                            latitude = location.latitude,
+                                                            longitude = location.longitude
+                                                        )
+                                                    )
+                                                }
+                                                Toast.makeText(
+                                                    context,
+                                                    "Location updated",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    } else {
+                                        permissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                    }
+                                },
+                                onUseTripLocation = if (trip?.latitude != null) {
+                                    {
+                                        scope.launch {
                                             val fish = viewModel.getFishById(fishDetails.id)
                                             if (fish != null) {
-                                                viewModel.upsertFish(fish.copy(
-                                                    latitude = location.latitude,
-                                                    longitude = location.longitude))
+                                                viewModel.upsertFish(
+                                                    fish.copy(
+                                                        latitude = trip?.latitude,
+                                                        longitude = trip?.longitude
+                                                    )
+                                                )
                                             }
-                                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Location updated",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
-                                } else {
-                                    permissionLauncher.launch(
-                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_COARSE_LOCATION)
-                                    )
-                                }
-                            },
-                            onUseTripLocation = if (trip?.latitude != null) {
-                                {
+                                } else null,
+                                onUseEventLocation = if (event?.latitude != null) {
+                                    {
+                                        scope.launch {
+                                            val fish = viewModel.getFishById(fishDetails.id)
+                                            if (fish != null) {
+                                                viewModel.upsertFish(
+                                                    fish.copy(
+                                                        latitude = event?.latitude,
+                                                        longitude = event?.longitude
+                                                    )
+                                                )
+                                            }
+                                            Toast.makeText(
+                                                context,
+                                                "Location updated",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                } else null,
+                                onSelectLocation = {
+                                    fishToUpdateLocation = fishDetails
+                                    locationPickerFish.openPicker()
+                                },
+                                onClearLocation = {
                                     scope.launch {
                                         val fish = viewModel.getFishById(fishDetails.id)
                                         if (fish != null) {
-                                            viewModel.upsertFish(fish.copy(
-                                                latitude = trip?.latitude,
-                                                longitude = trip?.longitude))
+                                            viewModel.upsertFish(
+                                                fish.copy(
+                                                    latitude = null,
+                                                    longitude = null
+                                                )
+                                            )
                                         }
-                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                            } else null,
-                            onUseEventLocation = if (event?.latitude != null) {
-                                {
-                                    scope.launch {
-                                        val fish = viewModel.getFishById(fishDetails.id)
-                                        if (fish != null) {
-                                            viewModel.upsertFish(fish.copy(
-                                                latitude = event?.latitude,
-                                                longitude = event?.longitude))
-                                        }
-                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            } else null,
-                            onSelectLocation = {
-                                fishToUpdateLocation = fishDetails
-                                locationPickerFish.openPicker()
-                            },
-                            onClearLocation = {
-                                scope.launch {
-                                    val fish = viewModel.getFishById(fishDetails.id)
-                                    if (fish != null) {
-                                        viewModel.upsertFish(fish.copy(latitude = null, longitude = null))
-                                    }
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
+
+                    var isLeftAligned by remember { mutableStateOf(false) }
+
+                    VerticalScrollbar(
+                        state = listState,
+                        onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                        modifier = Modifier
+                            .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                            .fillMaxHeight()
+                            .padding(vertical = 4.dp, horizontal = 0.dp)
+                    )
                 }
             }
         }

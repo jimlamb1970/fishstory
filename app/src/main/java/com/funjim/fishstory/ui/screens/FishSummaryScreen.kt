@@ -82,25 +82,28 @@ fun FishSummaryScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    if (selectedEvent != null) {
+                        TextButton(
+                            onClick = {
+                                onAddFish(selectedEvent.tripId, selectedEvent.id, null)
+                            },
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Add")
+                            }
+                        }
+                    }
+                }
             )
-        },
-        floatingActionButton = {
-            // Log Fish button is only enabled when a event is selected
-            // TODO - enable all time (allow fish to just be associated with a trip or no trip at all
-            if (selectedEvent != null) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        val tripId = selectedEvent.tripId
-                        val segId = selectedEvent.id
-                        onAddFish(tripId, segId, null)
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Log Fish") }
-                )
-            }
         }
     ) { padding ->
         Column(

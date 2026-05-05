@@ -80,7 +80,7 @@ fun AddFishScreenNew(
             } else {
                 viewModel.initDraftFish(null, tripId, eventId)
                 viewModel.selectEvent(eventId)
-                viewModel.selectFisherman("")
+                viewModel.selectFisherman(null)
                 viewModel.selectTackleBox("")
             }
         }
