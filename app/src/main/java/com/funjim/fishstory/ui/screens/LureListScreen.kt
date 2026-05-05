@@ -50,7 +50,17 @@ fun LureListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Lures") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Lures")
+                        Spacer(Modifier.width(4.dp))
+                        val total = allLures.size
+                        Text(
+                            text = "($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

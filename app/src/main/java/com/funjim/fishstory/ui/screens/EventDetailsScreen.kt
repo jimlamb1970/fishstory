@@ -55,7 +55,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: () -> Unit,
+    navigateToFishList: (String?, String?) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(eventId) {
@@ -361,7 +361,7 @@ fun EventDetailsScreen(
 
                             EventHighlightCard(
                                 summary = details,
-                                onClick = { navigateToFishList() }
+                                onClick = { navigateToFishList(tripId, eventId) }
                             )
                         }
 

@@ -1,10 +1,16 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
+import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.FishermanWithCounts
+import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
+import com.funjim.fishstory.model.SpeciesWithCounts
+import com.funjim.fishstory.model.TripWithCounts
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -43,10 +49,13 @@ interface FishDao {
         LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
         LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
         LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
+        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+          AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
         ORDER BY fish_table.timestamp DESC
     """
     )
-    fun getAllFishWithDetails(): Flow<List<FishWithDetails>>
+    fun getFishWithDetails(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<FishWithDetails>>
 
     @Query(
         """
@@ -221,4 +230,136 @@ interface FishDao {
     GROUP BY s.id
 """)
     fun getSpeciesSummaries(): Flow<List<SpeciesSummary>>
+
+    @Query("""
+    SELECT 
+        COUNT(fish_table.id) AS totalCaught,
+        SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        COUNT(DISTINCT fish_table.tripId) AS tripCount,
+        COUNT(DISTINCT fish_table.eventId) AS eventCount,
+        COUNT(DISTINCT fish_table.fishermanId) AS fishermanCount,
+        COUNT(DISTINCT fish_table.lureId) AS lureCount
+    FROM fish_table
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+""")
+    fun getFishCounts(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<FishCounts>
+
+    @Query("""
+    SELECT trip_table.*, 
+           COUNT(fish_table.id) AS totalCaught,
+           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+    FROM trip_table
+    JOIN fish_table ON trip_table.id = fish_table.lureId
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+    GROUP BY trip_table.id
+    ORDER BY totalCaught DESC
+    LIMIT 1
+""")
+    fun getTopTrip(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<TripWithCounts?>
+
+    @Query("""
+    SELECT event_table.*, 
+           COUNT(fish_table.id) AS totalCaught,
+           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+    FROM event_table
+    JOIN fish_table ON event_table.id = fish_table.lureId
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+    GROUP BY event_table.id
+    ORDER BY totalCaught DESC
+    LIMIT 1
+""")
+    fun getTopEvent(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<EventWithCounts?>
+
+    @Query("""
+    SELECT fisherman_table.*, 
+           COUNT(fish_table.id) AS totalCaught,
+           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+    FROM fisherman_table
+    JOIN fish_table ON fisherman_table.id = fish_table.lureId
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+    GROUP BY fisherman_table.id
+    ORDER BY totalCaught DESC
+    LIMIT 1
+""")
+    fun getTopFisherman(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<FishermanWithCounts?>
+
+    @Query("""
+    SELECT species_table.*, 
+           COUNT(fish_table.id) AS totalCaught,
+           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+    FROM species_table
+    JOIN fish_table ON species_table.id = fish_table.lureId
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+    GROUP BY species_table.id
+    ORDER BY totalCaught DESC
+    LIMIT 1
+""")
+    fun getTopSpecies(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<SpeciesWithCounts?>
+
+    @Query("""
+    SELECT lure_table.*, 
+           p.name AS primaryName, 
+           s.name AS secondaryName, 
+           g.name AS glowName,
+           COUNT(fish_table.id) AS totalCaught,
+           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+    FROM lure_table
+    LEFT JOIN lure_color_table p ON primaryColorId = p.id
+    LEFT JOIN lure_color_table s ON secondaryColorId = s.id
+    LEFT JOIN lure_color_table g ON glowColorId = g.id
+    JOIN fish_table ON lure_table.id = fish_table.lureId
+    WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+      AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+      AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+      AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+    GROUP BY lure_table.id
+    ORDER BY totalCaught DESC
+    LIMIT 1
+""")
+    fun getTopLure(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<LureWithCounts?>
 }

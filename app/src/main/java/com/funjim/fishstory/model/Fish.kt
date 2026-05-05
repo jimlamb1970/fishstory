@@ -117,3 +117,53 @@ data class SpeciesSummary(
     val largestFish: Double,
     val smallest: Double
 )
+
+data class FishCounts(
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0,
+    val tripCount: Int = 0,
+    val eventCount: Int = 0,
+    val fishermanCount: Int = 0,
+    val lureCount: Int = 0,
+)
+
+data class TripWithCounts(
+    @Embedded val trip: Trip,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0
+)
+
+data class EventWithCounts(
+    @Embedded val event: Event,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0
+)
+
+data class FishermanWithCounts(
+    @Embedded val fisherman: Fisherman,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0
+)
+
+data class SpeciesWithCounts(
+    @Embedded val species: Species,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0
+)
+
+data class LureWithCounts(
+    @Embedded val lure: LureWithNamesTuple,
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0
+)
+
+data class FishSummary(
+    val counts: FishCounts = FishCounts(),
+//    @Embedded val biggestFish: Fish,
+//    @Embedded val smallestFish: Fish,
+    val topTrip: TripWithCounts? = null,
+    val topEvent: EventWithCounts? = null,
+    val topFisherman: FishermanWithCounts? = null,
+    val topSpecies: SpeciesWithCounts? = null,
+    val topLure: LureWithCounts? = null
+)

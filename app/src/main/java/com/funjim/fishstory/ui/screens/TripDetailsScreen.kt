@@ -56,7 +56,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: () -> Unit,
+    navigateToFishList: (String?) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
@@ -333,7 +333,7 @@ fun TripDetailsScreen(
 
                             TripHighlightCard(
                                 tripSummary = details,
-                                onClick = { navigateToFishList() }
+                                onClick = { navigateToFishList(tripId) }
                             )
                         }
 
@@ -603,13 +603,14 @@ fun StatItem(
     label: String,
     value: String,
     description: String? = null,
+    labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     color: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = labelColor
         )
         Text(
             text = value,

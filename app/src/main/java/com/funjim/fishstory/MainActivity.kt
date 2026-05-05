@@ -269,11 +269,55 @@ fun AppNavigation(
                         if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
                     navController.navigate(route)
                 },
-                onNavigateToFishList = { tripId, eventId ->
-                    navController.navigate("FishList/$tripId/$eventId")
+                onNavigateToFishList = { tripId, eventId, fishermanId ->
+                    val route = buildString {
+                        append("fish_list?")
+                        if (tripId != null) append("tripId=$tripId&")
+                        if (eventId != null) append("eventId=$eventId&")
+                        if (fishermanId != null) append("fishermanId=$fishermanId")
+                    }.removeSuffix("&")
+
+                    navController.navigate(route)
                 },
-                navigateToManageSpecies = {
-                    navController.navigate("manage_species")
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "fish_list?tripId={tripId}&eventId={eventId}&fishermanId={fishermanId}",
+            arguments = listOf(
+                navArgument("tripId") {
+                    type = NavType.StringType
+                    defaultValue = "null"
+                },
+                navArgument("eventId") {
+                    type = NavType.StringType
+                    defaultValue = "null"
+                },
+                navArgument("fishermanId") {
+                    type = NavType.StringType
+                    defaultValue = "null"
+                }
+            )
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getString("tripId")?.takeIf { it != "null" }
+            val eventId = backStackEntry.arguments?.getString("eventId")?.takeIf { it != "null" }
+            val fishermanId = backStackEntry.arguments?.getString("fishermanId")?.takeIf { it != "null" }
+
+            FishListScreen(
+                viewModel = fishViewModel,
+                tripId = tripId,
+                eventId = eventId,
+                fishermanId = fishermanId,
+                onAddFish = { tripId, eventId, fishId ->
+                    val route =
+                        if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
+                    navController.navigate(route)
+                },
+                navigateToFishDetails = { fishId ->
+                    navController.navigate("fishDetails/$fishId")
                 },
                 navigateBack = {
                     navController.popBackStack()
@@ -445,8 +489,14 @@ fun AppNavigation(
                 navigateToSelectEventCrew = {  ->
                     navController.navigate("select_event_crew/$eventId/$tripId")
                 },
-                navigateToFishList = {
-                    navController.navigate("FishList/$tripId/$eventId")
+                navigateToFishList = { tripId, eventId ->
+                    val route = buildString {
+                        append("fish_list?")
+                        if (tripId != null) append("tripId=$tripId&")
+                        if (eventId != null) append("eventId=$eventId")
+                    }.removeSuffix("&")
+
+                    navController.navigate(route)
                 },
                 navigateToAddFish = {
                     navController.navigate("add_fish/$tripId/$eventId")
@@ -482,8 +532,13 @@ fun AppNavigation(
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
                 },
-                navigateToFishList = {
-                    navController.navigate("FishList/$tripId/")
+                navigateToFishList = { tripId ->
+                    val route = buildString {
+                        append("fish_list?")
+                        if (tripId != null) append("tripId=$tripId&")
+                    }.removeSuffix("&")
+
+                    navController.navigate(route)
                 },
                 navigateToAddEvent = { id ->
                     navController.navigate("add_event/$id")
@@ -505,35 +560,6 @@ fun AppNavigation(
                 },
                 navigateToAddTrip = {
                     navController.navigate("add_trip")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = "FishList/{tripId}/{eventId}",
-            arguments = listOf(
-                navArgument("tripId") { type = NavType.StringType },
-                navArgument("eventId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
-            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
-
-            FishListScreen(
-                viewModel = fishViewModel,
-                tripId = tripId,
-                eventId = eventId,
-                fishermanId = null,
-                onAddFish = { tripId, eventId, fishId ->
-                    val route =
-                        if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
-                    navController.navigate(route)
-                },
-                navigateToFishDetails = { fishId ->
-                    navController.navigate("fishDetails/$fishId")
                 },
                 navigateBack = {
                     navController.popBackStack()

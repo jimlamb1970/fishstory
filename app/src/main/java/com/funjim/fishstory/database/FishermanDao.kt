@@ -13,6 +13,7 @@ import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithDetails
 import com.funjim.fishstory.model.FishermanWithTrips
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
 import kotlinx.coroutines.flow.Flow
@@ -282,4 +283,14 @@ WHERE f.id = :fId
 
     @Delete
     suspend fun deleteCrossRef(crossRef: com.funjim.fishstory.model.TripFishermanCrossRef)
+
+    @Query("""
+        SELECT fisherman_table.* FROM fisherman_table 
+        INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId 
+        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+          AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+        GROUP BY fisherman_table.id
+    """)
+    fun getFishermenWithFish(tripId: String?, eventId: String?, lureId: String?): Flow<List<Fisherman>>
 }

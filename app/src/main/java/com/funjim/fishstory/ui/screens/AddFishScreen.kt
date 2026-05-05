@@ -73,15 +73,15 @@ fun AddFishScreenNew(
                 val fish = viewModel.getFishById(fishId)
                 fish?.let { fish ->
                     viewModel.initDraftFish(fish, fish.tripId, fish.eventId)
-                    viewModel.updateSelectedEvent(fish.eventId)
-                    viewModel.updateSelectedFisherman(fish.fishermanId)
-                    viewModel.updateSelectedTackleBox("")
+                    viewModel.selectEvent(fish.eventId)
+                    viewModel.selectFisherman(fish.fishermanId)
+                    viewModel.selectTackleBox("")
                 }
             } else {
                 viewModel.initDraftFish(null, tripId, eventId)
-                viewModel.updateSelectedEvent(eventId)
-                viewModel.updateSelectedFisherman("")
-                viewModel.updateSelectedTackleBox("")
+                viewModel.selectEvent(eventId)
+                viewModel.selectFisherman("")
+                viewModel.selectTackleBox("")
             }
         }
     }
@@ -107,7 +107,7 @@ fun AddFishScreenNew(
     }
 
     LaunchedEffect(selectedFisherman) {
-        viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[selectedFisherman?.id])
+        viewModel.selectTackleBox(fishermanTackleBoxMap[selectedFisherman?.id])
     }
 
     val selectedLure = remember(draftFish, rawLures) {
@@ -129,7 +129,7 @@ fun AddFishScreenNew(
         if (fishId != null) {
             val fish = viewModel.getFishById(fishId) // Ensure this exists in your ViewModel
             fish?.let { fish ->
-                viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[fish.fishermanId])
+                viewModel.selectTackleBox(fishermanTackleBoxMap[fish.fishermanId])
             }
         }
     }
@@ -278,8 +278,8 @@ fun AddFishScreenNew(
                     onSelected = { fisherman ->
                         viewModel.updateFisherman(fisherman)
                         viewModel.updateLure(null)
-                        viewModel.updateSelectedFisherman(fisherman.id)
-                        viewModel.updateSelectedTackleBox(fishermanTackleBoxMap[fisherman.id] ?: "")
+                        viewModel.selectFisherman(fisherman.id)
+                        viewModel.selectTackleBox(fishermanTackleBoxMap[fisherman.id] ?: "")
                     },
                     modifier = Modifier.fillMaxWidth()
                 )

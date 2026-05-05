@@ -6,9 +6,13 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingBag
@@ -22,6 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.FishSummary
+import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.viewmodels.FishViewModel
@@ -35,38 +42,31 @@ fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (tripId: String, eventId: String) -> Unit,
-    navigateToManageSpecies: () -> Unit
+    onNavigateToFishList: (String?, String?, String?) -> Unit
 ) {
-    val allTrips by viewModel.trips.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
     val selectedEventId by viewModel.selectedEventId.collectAsStateWithLifecycle()
+    val selectedFishermanId by viewModel.selectedFishermanId.collectAsStateWithLifecycle()
 
+    val allTrips by viewModel.tripsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTrip = remember(allTrips, selectedTripId) {
         allTrips.find { it.id == selectedTripId }
     }
 
-    var tripsExpanded by remember { mutableStateOf(false) }
-
-    val tripEvents by produceState<List<Event>>(initialValue = emptyList(), key1 = selectedTrip) {
-        selectedTrip?.let {
-            viewModel.tripEvents.collect { value = it }
-        } ?: run { value = emptyList() }
+    val events by viewModel.eventsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
+    val selectedEvent = remember(events, selectedEventId) {
+        events.find { it.id == selectedEventId }
     }
 
-    val selectedEvent = remember(tripEvents, selectedEventId) {
-        tripEvents.find { it.id == selectedEventId }
+    val fishermen by viewModel.fishermenWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
+    val selectedFisherman = remember(fishermen, selectedFishermanId) {
+        fishermen.find { it.id == selectedFishermanId }
     }
 
-    var eventsExpanded by remember { mutableStateOf(false) }
+    val summary by viewModel.fishSummary.collectAsStateWithLifecycle()
 
-    // Fish counts — trip-level or event-level depending on selection
-    val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
-
-    val caughtCount = fishForScope.size
-    val keptCount = fishForScope.count { !it.isReleased }
-
-    val scope = rememberCoroutineScope()
+    val caughtCount = summary.counts.totalCaught
+    val keptCount = summary.counts.totalKept
 
     Scaffold(
         topBar = {
@@ -82,12 +82,7 @@ fun FishSummaryScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                actions = {
-                    IconButton(onClick = { navigateToManageSpecies() }) {
-                        Icon(Icons.Default.ShoppingBag, contentDescription = "Manage Species")
-                    }
-                }
+                )
             )
         },
         floatingActionButton = {
@@ -113,134 +108,206 @@ fun FishSummaryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Trip Dropdown
-            ExposedDropdownMenuBox(
-                expanded = tripsExpanded,
-                onExpandedChange = { tripsExpanded = !tripsExpanded },
+            TripSelectionField(
+                items = allTrips,
+                selectedItem = selectedTrip,
+                onSelected = { trip ->
+                    viewModel.selectTrip(trip.id)
+                    viewModel.selectEvent(null)
+                },
+                onClear = {
+                    viewModel.selectTrip(null)
+                    viewModel.selectEvent(null)
+                },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = selectedTrip?.name ?: "Select Trip",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Trip") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripsExpanded) },
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = tripsExpanded,
-                    onDismissRequest = { tripsExpanded = false }
-                ) {
-                    val numberOfTrips = allTrips.size
-                    allTrips.forEachIndexed { index, trip ->
-                        val itemBackground = if ((numberOfTrips < 4) || (index % 2 == 0)) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
+            )
 
-                        DropdownMenuItem(
-                            text = { Text(trip.name) },
-                            onClick = {
-                                viewModel.updateSelectedTrip(trip.id)
-                                viewModel.updateSelectedEvent(null)
-                                tripsExpanded = false
-                            },
-                            modifier = Modifier.background(itemBackground)
-                        )
-                    }
-                }
-            }
-
-            // Event Dropdown
-            ExposedDropdownMenuBox(
-                expanded = eventsExpanded,
-                onExpandedChange = {
-                    if (selectedTrip != null) eventsExpanded = !eventsExpanded
+            EventSelectionField(
+                items = events,
+                selectedItem = selectedEvent,
+                onSelected = { event ->
+                    viewModel.selectEvent(event.id)
+                },
+                onClear = {
+                    viewModel.selectEvent(null)
                 },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .padding(bottom = 8.dp)
                     .fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = selectedEvent?.name ?: "Select Event (optional)",
-                    onValueChange = {},
-                    readOnly = true,
-                    enabled = selectedTrip != null,
-                    label = { Text("Event") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = eventsExpanded) },
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = eventsExpanded,
-                    onDismissRequest = { eventsExpanded = false }
-                ) {
-                    // Option to clear event selection
-                    DropdownMenuItem(
-                        text = { Text("All Events") },
-                        onClick = {
-                            viewModel.updateSelectedEvent(null)
-                            eventsExpanded = false
-                        }
-                    )
-                    val eventCount = tripEvents.size
-                    tripEvents.forEachIndexed { index, event ->
-                        val itemBackground = if ((eventCount < 3) || (index % 2 == 1)) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
+            )
 
-                        DropdownMenuItem(
-                            text = { Text(event.name) },
-                            onClick = {
-                                viewModel.updateSelectedEvent(event.id)
-                                eventsExpanded = false
-                            },
-                            modifier = Modifier.background(itemBackground)
-                        )
-                    }
-                }
-            }
+            FishermanSelectionField(
+                items = fishermen,
+                selectedItem = selectedFisherman,
+                onSelected = { fisherman ->
+                    viewModel.selectFisherman(fisherman.id)
+                },
+                onClear = {
+                    viewModel.selectFisherman(null)
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth()
+            )
 
             HorizontalDivider()
 
-            // Fish Visual — only shown when a trip is selected
-            // TODO -- add more information to summaries so that more information can be displayed
-            // TODO -- refactor the visual to be more color theme aware
-            if (selectedTrip != null) {
-                Spacer(modifier = Modifier.height(24.dp))
-                FishVisual(
-                    trip = selectedTrip,
-                    event = selectedEvent,
-                    caughtCount = caughtCount,
-                    keptCount = keptCount,
-                    onClick = {
-                        val tripId = selectedEvent?.tripId ?: selectedTrip.id
-                        val segId = selectedEvent?.id ?: ""
-                        onNavigateToFishList(tripId, segId)
-                    }
-                )
-            } else {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Select a trip to get started.")
+            Spacer(modifier = Modifier.height(24.dp))
+            FishVisual(
+                summary = summary,
+                trip = selectedTrip,
+                event = selectedEvent,
+                onClick = {
+                    onNavigateToFishList(selectedTripId, selectedEventId, selectedFishermanId)
                 }
-            }
+            )
         }
     }
 }
 
 @Composable
 private fun FishVisual(
-    trip: Trip,
+    summary: FishSummary,
+    trip: Trip?,
     event: Event?,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+
+    val startDate = event?.startTime ?: trip?.startDate
+    val endDate = event?.endTime ?: trip?.endDate
+    val hasLocation = if (event != null) {
+        event.latitude != null && event.longitude != null
+    } else if (trip != null) {
+        trip.latitude != null && trip.longitude != null
+    } else {
+        false
+    }
+
+    val latitude = event?.latitude ?: trip?.latitude
+    val longitude = event?.longitude ?: trip?.longitude
+
+    val label = event?.name ?: trip?.name ?: "All Fish"
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.secondary)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    StatItem(
+                        label = "CAUGHT",
+                        value = "${summary.counts.totalCaught}",
+                        labelColor = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onPrimary)
+                    Icon(
+                        imageVector = AppIcons.Default.LeapingFish2,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                    StatItem(
+                        label = "KEPT",
+                        value = "${summary.counts.totalKept}",
+                        labelColor = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onPrimary)
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    if (hasLocation) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "View on map",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clickable {
+                                    val mapUri =
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not open map",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        )
+                    }
+                }
+
+                if (startDate != null && endDate != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                    ) {
+                        Text(
+                            "${dateFormatter.format(Date(startDate))}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Arrow",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            "${dateFormatter.format(Date(endDate))}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.3f)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Tap to view fish",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FishVisual2(
     caughtCount: Int,
     keptCount: Int,
     onClick: () -> Unit
@@ -248,19 +315,6 @@ private fun FishVisual(
     val context = LocalContext.current
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-
-    val startDate = event?.startTime ?: trip.startDate
-    val endDate = event?.endTime ?: trip.endDate
-    val hasLocation = if (event != null) {
-        event.latitude != null && event.longitude != null
-    } else {
-        trip.latitude != null && trip.longitude != null
-    }
-
-    val latitude = event?.latitude ?: trip.latitude
-    val longitude = event?.longitude ?: trip.longitude
-
-    val label = event?.name ?: trip.name
 
     Card(
         onClick = onClick,
@@ -291,43 +345,12 @@ private fun FishVisual(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = label,
+                        text = "All Fish",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
-                    if (hasLocation) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                        )
-                    }
                 }
-
-                // Dates
-                Text(
-                    text = "${dateFormatter.format(Date(startDate))}  →  ${dateFormatter.format(Date(endDate))}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
-                )
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp),
@@ -372,6 +395,253 @@ private fun FishVisual(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TripSelectionField(
+    items: List<Trip>,
+    selectedItem: Trip?,
+    onSelected: (Trip) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Trip (optional)",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false, // Prevents focus/keyboard on the main text field
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Trip") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Trips...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.name) },
+                            modifier = Modifier.clickable {
+                                onSelected(item)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = { Text("All Trips", color = MaterialTheme.colorScheme.primary) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onClear()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EventSelectionField(
+    items: List<Event>,
+    selectedItem: Event?,
+    onSelected: (Event) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Event (optional)",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false,
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Event") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Trips...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.name) },
+                            modifier = Modifier.clickable {
+                                onSelected(item)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = { Text("All Events", color = MaterialTheme.colorScheme.primary) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onClear()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FishermanSelectionField(
+    items: List<Fisherman>,
+    selectedItem: Fisherman?,
+    onSelected: (Fisherman) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = selectedItem?.fullName ?: "Select Fisherman (optional)",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false,
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Event") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Fishermen...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter { it.fullName.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.fullName) },
+                            modifier = Modifier.clickable {
+                                onSelected(item)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = { Text("All Fishermen", color = MaterialTheme.colorScheme.primary) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onClear()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

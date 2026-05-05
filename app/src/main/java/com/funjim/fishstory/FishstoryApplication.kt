@@ -25,6 +25,7 @@ class FishstoryApplication : Application() {
         FishRepository(
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
+            lureDao = database.lureDao(),
             photoDao = database.photoDao(),
             eventDao = database.eventDao(),
             tripDao = database.tripDao()

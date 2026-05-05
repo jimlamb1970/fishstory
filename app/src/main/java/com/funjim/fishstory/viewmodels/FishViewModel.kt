@@ -1,6 +1,7 @@
 package com.funjim.fishstory.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,7 +12,9 @@ import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +23,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,12 +42,12 @@ class FishViewModel(
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
+    private val _selectedLureId = MutableStateFlow<String?>(null)
 
     private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
     private val _isReversed = MutableStateFlow(false)
 
     // Exposed State for the UI
-    val trips = fishRepo.allTrips
     val species = fishRepo.allSpecies
     val speciesSummaries = fishRepo.speciesSummaries
 
@@ -58,7 +63,8 @@ class FishViewModel(
     val selectedTripId = _selectedTripId.asStateFlow()
     val selectedEventId = _selectedEventId.asStateFlow()
     val selectedFishermanId = _selectedFishermanId.asStateFlow()
-    val selectedTackleBoxId = _selectedFishermanId.asStateFlow()
+    val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
+    val selectedLureId = _selectedLureId.asStateFlow()
 
     val sortOrder = _sortOrder.asStateFlow()
     val isReversed = _isReversed.asStateFlow()
@@ -70,25 +76,115 @@ class FishViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tripEvents: StateFlow<List<Event>> = _selectedTripId
-        .flatMapLatest { tripId ->
-            if (tripId == null) {
-                flowOf(emptyList())
-            } else {
-                fishRepo.getEventsForTrip(tripId)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val selectedEvent = _selectedEventId
         .filterNotNull()
         .flatMapLatest { id -> fishRepo.getEventById(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedFisherman = _selectedFishermanId
+        .filterNotNull()
+        .flatMapLatest { id -> fishRepo.getFisherman(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedLure = _selectedLureId
+        .filterNotNull()
+        .flatMapLatest { id -> fishRepo.getLure(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishSummary: StateFlow<FishSummary> = combine(
+        _selectedTripId,
+        _selectedEventId,
+        _selectedFishermanId,
+        _selectedLureId
+    ) { tripId, eventId, fishermanId, lureId ->
+        val flow1 = fishRepo.getFishCounts(tripId, eventId, fishermanId, lureId)
+        val flow2 = fishRepo.getTopTrip(tripId, eventId, fishermanId, lureId)
+        val flow3 = fishRepo.getTopEvent(tripId, eventId, fishermanId, lureId)
+
+        // Combine 4-6
+        val flow4 = fishRepo.getTopFisherman(tripId, eventId, fishermanId, lureId)
+        val flow5 = fishRepo.getTopSpecies(tripId, eventId, fishermanId, lureId)
+        val flow6 = fishRepo.getTopLure(tripId, eventId, fishermanId, lureId)
+
+        combine(flow1, flow2, flow3) {
+            c1, c2, c3 -> Triple(c1, c2, c3)
+        }.combine(combine(flow4, flow5, flow6) {
+            c4, c5, c6 -> Triple(c4, c5, c6)
+        }) { t1, t2 ->
+            FishSummary(
+                counts = t1.first,
+                topTrip = t1.second,
+                topEvent = t1.third,
+                topFisherman = t2.first,
+                topSpecies = t2.second,
+                topLure = t2.third
+            )
+        }
+    }.flatMapLatest { it }
+    .flowOn(Dispatchers.IO)
+    .onEach { summary ->
+        Log.d("FishSummaryDebug", "Summary emitted: for something $summary")
+    }
+    .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FishSummary()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tripsWithFish: StateFlow<List<Trip>> = combine(
+        _selectedFishermanId,
+        _selectedLureId
+    ) { fishermanId, lureId ->
+        Pair(fishermanId, lureId)
+    }.flatMapLatest { (fishermanId, lureId) ->
+        fishRepo.getTrips(fishermanId, lureId)
+    }.map { list ->
+        list.sortedByDescending { it.startDate }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val eventsWithFish: StateFlow<List<Event>> = combine(
+        _selectedTripId,
+        _selectedFishermanId,
+        _selectedLureId
+    ) { tripId, fishermanId, lureId ->
+        Triple(tripId, fishermanId, lureId)
+    }.flatMapLatest { (tripId, fishermanId, lureId) ->
+        fishRepo.getEvents(tripId, fishermanId, lureId)
+    }
+    .map { list ->
+        list.sortedBy { it.startTime }
+    }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishermenWithFish: StateFlow<List<Fisherman>> = combine(
+        _selectedTripId,
+        _selectedEventId,
+        _selectedLureId
+    ) { tripId, eventId, lureId ->
+        Triple(tripId, eventId, lureId)
+    }.flatMapLatest { (tripId, eventId, lureId) ->
+        fishRepo.getFishermen(tripId, eventId, lureId)
+    }.map { list ->
+        list.sortedBy { it.fullName }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
@@ -113,12 +209,6 @@ class FishViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
         )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedFisherman = _selectedFishermanId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getFisherman(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
@@ -166,20 +256,21 @@ class FishViewModel(
     }
 
     // UI Events
-    fun updateSelectedTrip(id: String?) {
+    fun selectTrip(id: String?) {
         _selectedTripId.value = id
         _selectedEventId.value = null // Reset event if trip changes
     }
-    fun updateSelectedEvent(id: String?) {
+    fun selectEvent(id: String?) {
         _selectedEventId.value = id
     }
-
-    fun updateSelectedFisherman(id: String?) {
+    fun selectFisherman(id: String?) {
         _selectedFishermanId.value = id
     }
-
-    fun updateSelectedTackleBox(id: String?) {
+    fun selectTackleBox(id: String?) {
         _selectedTackleBoxId.value = id
+    }
+    fun selectLure(id: String?) {
+        _selectedLureId.value = id
     }
 
     fun toggleReverse() { _isReversed.value = !_isReversed.value }

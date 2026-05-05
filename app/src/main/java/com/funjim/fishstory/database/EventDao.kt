@@ -255,4 +255,14 @@ ORDER BY s.startTime DESC"""
 
     @Query("DELETE FROM event_fisherman_cross_ref")
     suspend fun deleteAllEventFishermanCrossRefs()
+
+    @Query("""
+        SELECT event_table.* FROM event_table 
+        INNER JOIN fish_table ON event_table.id = fish_table.eventId
+        WHERE event_table.tripId = :tripId
+          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+        GROUP BY event_table.id
+    """)
+    fun getEventsWithFish(tripId: String?, fishermanId: String?, lureId: String?): Flow<List<Event>>
 }

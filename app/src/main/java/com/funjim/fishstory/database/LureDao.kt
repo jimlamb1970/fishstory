@@ -21,6 +21,8 @@ interface LureDao {
 
     @Query("SELECT * FROM lure_table WHERE id = :id")
     suspend fun getLureById(id: String): Lure?
+    @Query("SELECT * FROM lure_table WHERE id = :id")
+    fun getLure(id: String): Flow<Lure?>
 
     @Query("""
         SELECT * FROM lure_table 

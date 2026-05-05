@@ -52,7 +52,16 @@ fun FishermanListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Fishermen") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Fishermen")
+                        val total = fishermanSummaries.size
+                        Text(
+                            text = "($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 actions = {
                     TextButton(
                         onClick = { showAddDialog = true },

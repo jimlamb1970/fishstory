@@ -47,9 +47,9 @@ fun FishListScreen(
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
     LaunchedEffect(key1 = tripId, key2 = eventId, key3 = fishermanId) {
-        viewModel.updateSelectedTrip(tripId)
-        viewModel.updateSelectedEvent(eventId)
-        viewModel.updateSelectedFisherman(fishermanId)
+        viewModel.selectTrip(tripId)
+        viewModel.selectEvent(eventId)
+        viewModel.selectFisherman(fishermanId)
     }
 
     val scope = rememberCoroutineScope()
@@ -109,7 +109,17 @@ fun FishListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(screenTitle) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(screenTitle)
+                        Spacer(Modifier.width(4.dp))
+                        val total = fishForScope.size
+                        Text(
+                            text = "($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

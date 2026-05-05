@@ -198,4 +198,13 @@ ORDER BY t.startDate DESC
     AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
 """)
     suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
+
+        @Query("""
+        SELECT trip_table.* FROM trip_table 
+        INNER JOIN fish_table ON trip_table.id = fish_table.tripId 
+        WHERE (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+        GROUP BY trip_table.id
+    """)
+        fun getTripsWithFish(fishermanId: String?, lureId: String?): Flow<List<Trip>>
 }

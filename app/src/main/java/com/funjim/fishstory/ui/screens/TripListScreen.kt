@@ -160,10 +160,10 @@ fun TripListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Trips")
                         Spacer(Modifier.width(4.dp))
-                        val totalTrips = state.liveTrips.size + state.upcomingTrips.size + state.recentTrips.size
+                        val total = state.liveTrips.size + state.upcomingTrips.size + state.recentTrips.size
                         Text(
-                            text = "($totalTrips trip${if (totalTrips != 1) "s" else ""})",
-                            style = MaterialTheme.typography.bodySmall
+                            text = "($total)",
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 },
