@@ -44,14 +44,22 @@ fun FishListScreen(
     tripId: String?,
     eventId: String?,   // empty string means trip-level (no event selected)
     fishermanId: String?,
+    lureId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = tripId, key2 = eventId, key3 = fishermanId) {
+    LaunchedEffect(key1 = tripId) {
         viewModel.selectTrip(tripId)
+    }
+    LaunchedEffect(key1 = eventId) {
         viewModel.selectEvent(eventId)
+    }
+    LaunchedEffect(key1 = fishermanId) {
         viewModel.selectFisherman(fishermanId)
+    }
+    LaunchedEffect(key1 = lureId) {
+        viewModel.selectLure(lureId)
     }
 
     val scope = rememberCoroutineScope()

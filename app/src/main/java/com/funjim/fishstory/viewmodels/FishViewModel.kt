@@ -187,6 +187,23 @@ class FishViewModel(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val luresWithFish: StateFlow<List<LureWithName>> = combine(
+        _selectedTripId,
+        _selectedEventId,
+        _selectedFishermanId
+    ) { tripId, eventId, fishermanId ->
+        Triple(tripId, eventId, fishermanId)
+    }.flatMapLatest { (tripId, eventId, fishermanId) ->
+        fishRepo.getLures(tripId, eventId, fishermanId)
+    }.map { list ->
+        list.sortedBy { it.displayName }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
         .flatMapLatest { id ->
             if (id.isNullOrBlank()) flowOf(emptyList())
@@ -232,14 +249,17 @@ class FishViewModel(
         _selectedTripId,
         _selectedEventId,
         _selectedFishermanId,
-        _sortOrder,
-        _isReversed
-    ) { trip, seg, fish, sort, rev ->
+        _selectedLureId
+    ) { trip, seg, fish, lure ->
         // Helper to pass params
-        FilterParams(trip, seg, fish, sort, rev)
-    }.flatMapLatest { params ->
-        fishRepo.getFilteredFish(params.tripId, params.eventId, params.fishermanId)
-            .map { list -> applySorting(list, params.sortOrder, params.isReversed) }
+        FishFilterParams(trip, seg, fish, lure)
+    }.combine(combine(_sortOrder, _isReversed) {
+            sort, reversed -> FishSortParams(sort, reversed)
+    }) { params, sort->
+        fishRepo.getFilteredFish(params.tripId, params.eventId, params.fishermanId, params.lureId)
+            .map { list -> applySorting(list, sort.sortOrder, sort.isReversed) }
+    }.flatMapLatest {
+        it
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {
@@ -284,7 +304,19 @@ class FishViewModel(
         val isReversed: Boolean
     )
 
-    suspend fun getFishById(id: String): Fish? {
+        private data class FishFilterParams(
+            val tripId: String?,
+            val eventId: String?,
+            val fishermanId: String?,
+            val lureId: String?
+        )
+
+        private data class FishSortParams(
+            val sortOrder: FishSortOrder,
+            val isReversed: Boolean
+        )
+
+        suspend fun getFishById(id: String): Fish? {
         return fishRepo.getFish(id)
     }
     fun upsertFish(fish: Fish) {

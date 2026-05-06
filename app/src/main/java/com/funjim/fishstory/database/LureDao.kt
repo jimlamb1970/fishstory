@@ -3,11 +3,8 @@ package com.funjim.fishstory.database
 import androidx.room.*
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureSummary
 import com.funjim.fishstory.model.LureSummaryWithNamesTuple
 import com.funjim.fishstory.model.LureWithNamesTuple
-import com.funjim.fishstory.model.SpeciesSummary
-import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -111,4 +108,21 @@ interface LureDao {
     GROUP BY l.id
 """)
     fun getLureSummariesWithNames(): Flow<List<LureSummaryWithNamesTuple>>
+
+    @Query("""
+        SELECT lure_table.*, 
+           p.name AS primaryName, 
+           s.name AS secondaryName, 
+           g.name AS glowName
+        FROM lure_table 
+        INNER JOIN fish_table ON lure_table.id = fish_table.lureId 
+        LEFT JOIN lure_color_table p ON primaryColorId = p.id
+        LEFT JOIN lure_color_table s ON secondaryColorId = s.id
+        LEFT JOIN lure_color_table g ON glowColorId = g.id
+        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+          AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+        GROUP BY lure_table.id
+    """)
+    fun getLuresWithFish(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<LureWithNamesTuple>>
 }

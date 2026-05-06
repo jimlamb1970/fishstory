@@ -9,12 +9,15 @@ import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.EventWithFishermen
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.LureWithName
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.toLureWithName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.collections.map
 
 class FishRepository(
     private val fishDao: FishDao,
@@ -38,6 +41,11 @@ class FishRepository(
         eventDao.getEventsWithFish(tripId, fishermanId, lureId)
     fun getFishermen(tripId: String?, eventId: String?, lureId: String?) =
         fishermanDao.getFishermenWithFish(tripId, eventId, lureId)
+    fun getLures(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<LureWithName>> {
+        return lureDao.getLuresWithFish(tripId, eventId, fishermanId).map { tupleList ->
+            tupleList.map { it.toLureWithName() }
+        }
+    }
 
     fun getTrip(id: String) = tripDao.getTrip(id)
     fun getEventById(id: String) = eventDao.getEventById(id)
@@ -88,8 +96,9 @@ class FishRepository(
     fun getFilteredFish(
         tripId: String?,
         eventId: String?,
-        fishermanId: String?
-    ): Flow<List<FishWithDetails>> = fishDao.getFishWithDetails(tripId, eventId, fishermanId)
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<List<FishWithDetails>> = fishDao.getFishWithDetails(tripId, eventId, fishermanId, lureId)
 
     val fishPhotos: Flow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
         .map { photos ->

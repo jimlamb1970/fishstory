@@ -52,10 +52,16 @@ interface FishDao {
         WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
         ORDER BY fish_table.timestamp DESC
     """
     )
-    fun getFishWithDetails(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<FishWithDetails>>
+    fun getFishWithDetails(
+        tripId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?
+    ): Flow<List<FishWithDetails>>
 
     @Query(
         """
