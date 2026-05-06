@@ -72,15 +72,15 @@ fun FishSummaryScreen(
 
     val summary by viewModel.fishSummary.collectAsStateWithLifecycle()
 
-    val caughtCount = summary.counts.totalCaught
-    val keptCount = summary.counts.totalKept
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Fish Caught") },
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = {
+                        viewModel.clearSelections()
+                        navigateBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },

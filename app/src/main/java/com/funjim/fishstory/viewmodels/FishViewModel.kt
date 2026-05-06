@@ -276,6 +276,14 @@ class FishViewModel(
     }
 
     // UI Events
+    fun clearSelections() {
+        selectTrip(null)
+        selectEvent(null)
+        selectFisherman(null)
+        selectLure(null)
+        selectTackleBox(null)
+    }
+
     fun selectTrip(id: String?) {
         _selectedTripId.value = id
         _selectedEventId.value = null // Reset event if trip changes
@@ -296,29 +304,22 @@ class FishViewModel(
     fun toggleReverse() { _isReversed.value = !_isReversed.value }
     fun updateSortOrder(order: FishSortOrder) { _sortOrder.value = order }
 
-    private data class FilterParams(
+    private data class FishFilterParams(
         val tripId: String?,
         val eventId: String?,
         val fishermanId: String?,
+        val lureId: String?
+    )
+
+    private data class FishSortParams(
         val sortOrder: FishSortOrder,
         val isReversed: Boolean
     )
 
-        private data class FishFilterParams(
-            val tripId: String?,
-            val eventId: String?,
-            val fishermanId: String?,
-            val lureId: String?
-        )
-
-        private data class FishSortParams(
-            val sortOrder: FishSortOrder,
-            val isReversed: Boolean
-        )
-
-        suspend fun getFishById(id: String): Fish? {
+    suspend fun getFishById(id: String): Fish? {
         return fishRepo.getFish(id)
     }
+
     fun upsertFish(fish: Fish) {
         viewModelScope.launch {
             fishRepo.upsertFish(fish)
@@ -390,81 +391,6 @@ class FishViewModel(
         } else {
             // 3. Optional: Trigger a UI event to ask the user for permission
             println("Location permission not granted")
-        }
-    }
-
-    // In your FishViewModel
-    private val _draftFish = MutableStateFlow<Fish?>(null)
-    val draftFish = _draftFish.asStateFlow()
-
-    fun clearDraftFish() {
-        _draftFish.value = null
-    }
-
-    fun initDraftFish(fish: Fish?, tripId: String, eventId: String) {
-        // If fish is null, create a default "new" fish
-        _draftFish.value = fish ?: Fish(
-            id = UUID.randomUUID().toString(),
-            speciesId = null,
-            fishermanId = null,
-            tripId = tripId,
-            eventId = eventId,
-            length = 10.0,
-            timestamp = System.currentTimeMillis(),
-            holeNumber = 1
-        )
-    }
-
-    fun updateFisherman(fisherman: Fisherman) {
-        _draftFish.update { current ->
-            current?.copy(fishermanId = fisherman.id)
-        }
-    }
-
-    fun updateHoleNumber(holeNumber: Int) {
-        _draftFish.update { current ->
-            current?.copy(holeNumber = holeNumber)
-        }
-    }
-    fun updateLength(length: Double) {
-        _draftFish.update { current ->
-            current?.copy(length = length)
-        }
-    }
-
-    fun updateLocation(latitude: Double, longitude: Double) {
-        _draftFish.update { current ->
-            current?.copy(latitude = latitude, longitude = longitude)
-        }
-    }
-
-    fun updateLure(lure: Lure?) {
-        _draftFish.update { current ->
-            current?.copy(lureId = lure?.id)
-        }
-    }
-
-    fun updateReleased(released: Boolean) {
-        _draftFish.update { current ->
-            current?.copy(isReleased = released)
-        }
-    }
-
-    fun updateSpecies(species: Species) {
-        _draftFish.update { current ->
-            current?.copy(speciesId = species.id)
-        }
-    }
-
-    fun updateTimestamp(timestamp: Long, startTime: Long, endTime: Long) {
-        _draftFish.update { current ->
-            current?.copy(timestamp = timestamp.coerceIn(startTime, endTime))
-        }
-    }
-
-    fun updateDraftFish(transform: (Fish) -> Fish) {
-        _draftFish.value?.let { current ->
-            _draftFish.value = transform(current)
         }
     }
 }
