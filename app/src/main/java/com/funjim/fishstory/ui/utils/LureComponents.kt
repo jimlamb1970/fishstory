@@ -250,7 +250,7 @@ fun LureItem(
                             )
                             BoldingNumbersText(
                                 text = "Kept ${item.keptCount} of ${item.caughtCount}",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onTertiary,
                             )
                         }
