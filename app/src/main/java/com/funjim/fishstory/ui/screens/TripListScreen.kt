@@ -32,15 +32,15 @@ import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
-import com.funjim.fishstory.ui.utils.VerticalScrollbar
+import com.funjim.fishstory.ui.utils.VerticalScrollByBar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.viewmodels.TripListViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripListScreen(
-    viewModel: TripViewModel,
+    viewModel: TripListViewModel,
     navigateToTripDetails: (String) -> Unit,
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
@@ -212,7 +212,7 @@ fun TripListScreen(
 
             LazyColumn(state = listState) {
                 if (state.upcomingTrips.isNotEmpty()) {
-                    item {
+                    item(key = "upcoming_trips_header") {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(16.dp, 4.dp)
@@ -253,7 +253,7 @@ fun TripListScreen(
                 }
 
                 if (state.liveTrips.isNotEmpty()) {
-                    item {
+                    item(key = "live_trips_header") {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(16.dp, 4.dp)
@@ -295,7 +295,7 @@ fun TripListScreen(
                 }
 
                 if (state.recentTrips.isNotEmpty()) {
-                    item {
+                    item(key = "recent_trips_header") {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(16.dp, 4.dp)
@@ -328,7 +328,7 @@ fun TripListScreen(
 
             var isLeftAligned by remember { mutableStateOf(false) }
 
-            VerticalScrollbar(
+            VerticalScrollByBar(
                 state = listState,
                 onToggleAlignment = { isLeftAligned = !isLeftAligned },
                 modifier = Modifier

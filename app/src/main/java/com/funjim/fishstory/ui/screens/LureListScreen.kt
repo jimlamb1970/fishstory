@@ -4,8 +4,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -15,7 +13,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -25,8 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.LureItem
-import com.funjim.fishstory.ui.utils.VerticalScrollbar
-import com.funjim.fishstory.viewmodels.FishSortOrder
+import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 
@@ -191,7 +187,7 @@ fun LureListScreen(
 
                     var isLeftAligned by remember { mutableStateOf(false) }
 
-                    VerticalScrollbar(
+                    VerticalScrollToItemBar(
                         state = listState,
                         onToggleAlignment = { isLeftAligned = !isLeftAligned },
                         modifier = Modifier

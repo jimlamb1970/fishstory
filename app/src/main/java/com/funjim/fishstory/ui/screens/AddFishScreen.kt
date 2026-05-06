@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.utils.getCurrentLocation
-import com.funjim.fishstory.viewmodels.FishViewModel
+import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 
 fun Long.toUtcMidnight(): Long =
@@ -57,8 +57,8 @@ fun Long.toUtcMidnight(): Long =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFishScreenNew(
-    viewModel: FishViewModel,
+fun AddFishScreen(
+    viewModel: AddFishViewModel,
     tripId: String,
     eventId: String,
     fishId: String? = null, // Pass null for "Add", pass ID for "Edit"
@@ -455,7 +455,7 @@ fun AddFishScreenNew(
                             addSpeciesName = ""
                         }
                     }
-                }) { Text("Add") }
+                }) { Text("Log Fish") }
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }

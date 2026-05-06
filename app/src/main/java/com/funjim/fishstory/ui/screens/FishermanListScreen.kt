@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -23,9 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.FishermanItem
-import com.funjim.fishstory.ui.utils.VerticalScrollbar
+import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
 import kotlinx.coroutines.launch
@@ -150,7 +148,7 @@ fun FishermanListScreen(
                 }
                 var isLeftAligned by remember { mutableStateOf(false) }
 
-                VerticalScrollbar(
+                VerticalScrollToItemBar(
                     state = listState,
                     onToggleAlignment = { isLeftAligned = !isLeftAligned },
                     modifier = Modifier

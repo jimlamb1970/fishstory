@@ -102,11 +102,14 @@ class MainActivity : ComponentActivity() {
         LureViewModelFactory(repository)
     }
 
+    private val tripListViewModel: TripListViewModel by viewModels {
+        val tripRepository = (application as FishstoryApplication).tripRepository
+        TripListViewModelFactory(tripRepository)
+    }
     private val tripViewModel: TripViewModel by viewModels {
         val tripRepository = (application as FishstoryApplication).tripRepository
         val fishermanRepository = (application as FishstoryApplication).fishermanRepository
-        TripViewModelFactory(tripRepository, fishermanRepository
-        )
+        TripViewModelFactory(tripRepository, fishermanRepository)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -151,6 +154,7 @@ class MainActivity : ComponentActivity() {
                             importViewModel = importViewModel,
                             lureViewModel = lureViewModel,
                             tripViewModel = tripViewModel,
+                            tripListViewModel = tripListViewModel,
                             viewModel = viewModel)
                     }
                 }
@@ -184,6 +188,7 @@ fun AppNavigation(
     dashboardViewModel: DashboardViewModel,
     importViewModel: ImportViewModel,
     tripViewModel: TripViewModel,
+    tripListViewModel: TripListViewModel,
     fishViewModel: FishViewModel,
     lureViewModel: LureViewModel
 ) {
@@ -567,7 +572,7 @@ fun AppNavigation(
 
         composable("trips") {
             TripListScreen(
-                viewModel = tripViewModel,
+                viewModel = tripListViewModel,
                 navigateToTripDetails = { tripId ->
                     navController.navigate("trip_details/$tripId")
                 },

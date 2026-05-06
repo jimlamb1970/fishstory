@@ -44,39 +44,164 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
+// This one does not appear to work when the lazy column has items that are not the
+// same size as the rest of the items in the list (ie the trip list)
 @Composable
-fun rememberVisibleItemCount(listState: LazyListState): Double {
-    return remember(listState) {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val viewportStart = layoutInfo.viewportStartOffset
-            val viewportEnd = layoutInfo.viewportEndOffset
+fun VerticalScrollToItemBar(
+    state: LazyListState,
+    modifier: Modifier = Modifier,
+    alignment: Alignment = Alignment.CenterStart,
+    thumbColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+    trackColor: Color = Color.Transparent,
+    onToggleAlignment: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var hideJob by remember { mutableStateOf<Job?>(null) }
+    var isVisible by remember { mutableStateOf(false) }
 
-            var totalVisible = 0.0
-
-            for (item in layoutInfo.visibleItemsInfo) {
-                // Calculate the item's intersection with the viewport
-                val itemStart = item.offset
-                val itemEnd = item.offset + item.size
-
-                val visibleStart = max(itemStart, viewportStart)
-                val visibleEnd = min(itemEnd, viewportEnd)
-
-                val visibleHeight = max(0, visibleEnd - visibleStart)
-
-                // Add the fraction of this item that is visible
-                if (item.size > 0) {
-                    totalVisible += visibleHeight.toDouble() / item.size.toDouble()
-                }
+    LaunchedEffect(state.isScrollInProgress) {
+        if (state.isScrollInProgress) {
+            hideJob?.cancel()
+            isVisible = true
+        } else {
+            hideJob = coroutineScope.launch {
+                delay(2000)
+                isVisible = false
             }
-
-            totalVisible
         }
-    }.value
+    }
+
+    val thumbSizeDp = 32.dp
+    var trackHeightPx by remember { mutableStateOf(0f) }
+
+    var tapCount by remember { mutableIntStateOf(0) }
+
+    val thumbSizePx = with(LocalDensity.current) { thumbSizeDp.toPx() }
+
+    val thumbOffsetFraction by remember(state) {
+        derivedStateOf {
+            val info = state.layoutInfo
+            val totalItems = info.totalItemsCount.takeIf { it > 0 } ?: return@derivedStateOf 0f
+            val firstItem = info.visibleItemsInfo.firstOrNull() ?: return@derivedStateOf 0f
+            val avgItemHeight = info.visibleItemsInfo
+                .map { it.size }
+                .average()
+                .takeIf { it > 0.0 } ?: return@derivedStateOf 0f
+
+            // Pixel-accurate scroll position: how far down the full content have we scrolled?
+            val scrolledPx = firstItem.index * avgItemHeight + (-firstItem.offset).coerceAtLeast(0)
+            val totalScrollablePx = (totalItems * avgItemHeight - info.viewportSize.height).coerceAtLeast(1.0)
+
+            (scrolledPx / totalScrollablePx).coerceIn(0.0, 1.0).toFloat()
+        }
+    }
+    AnimatedVisibility(
+        modifier = modifier,
+        visible = isVisible,
+        enter = fadeIn() + expandHorizontally(),
+        exit = fadeOut() + shrinkHorizontally()
+    ) {
+        Box(
+            modifier = modifier
+                .width(thumbSizeDp)
+                .fillMaxHeight()
+                .background(trackColor, RoundedCornerShape(50))
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(thumbSizeDp)
+                    .fillMaxHeight()
+                    .background(trackColor, RoundedCornerShape(8.dp))
+                    .onGloballyPositioned { trackHeightPx = it.size.height.toFloat() }
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(thumbSizeDp)
+                    .offset {
+                        // trackHeightPx is the full container height
+                        // 32.dp.toPx() is the thumb size
+                        // If you want it to hit the very bottom, the range is 0 to (trackHeight - thumbSize)
+                        val thumbSizePx = 32.dp.toPx()
+                        val maxOffset = trackHeightPx - thumbSizePx
+
+                        // Ensure we don't calculate negative values
+                        val currentOffset = (thumbOffsetFraction * maxOffset).coerceAtLeast(0f)
+
+                        IntOffset(0, currentOffset.toInt())
+                    }
+                    .background(thumbColor, RoundedCornerShape(8.dp))
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            tapCount++
+                            if (tapCount >= 5) {
+                                onToggleAlignment()
+                                tapCount = 0
+                            }
+                        }
+                    }
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        onDragStarted = {
+                            hideJob?.cancel()
+                            isVisible = true
+                        },
+                        onDragStopped = {
+                            hideJob = coroutineScope.launch {
+                                delay(2000)
+                                isVisible = false
+                            }
+                        },
+                        state = rememberDraggableState { delta ->
+                            hideJob?.cancel()
+                            isVisible = true
+                            val layoutInfo = state.layoutInfo
+                            val totalItems = layoutInfo.totalItemsCount
+                            if (totalItems == 0) return@rememberDraggableState
+
+                            val firstItem = layoutInfo.visibleItemsInfo.firstOrNull()
+                                ?: return@rememberDraggableState
+                            val avgItemHeight = layoutInfo.visibleItemsInfo
+                                .map { it.size }
+                                .average()
+                                .takeIf { it > 0.0 } ?: return@rememberDraggableState
+
+                            val totalScrollablePx =
+                                (totalItems * avgItemHeight - layoutInfo.viewportSize.height).coerceAtLeast(1.0)
+                            val trackRange = (trackHeightPx - thumbSizePx).coerceAtLeast(1f)
+
+                            // How many content-pixels does 1 track-pixel correspond to?
+                            val contentPixelsPerTrackPixel = totalScrollablePx / trackRange
+
+                            // Current scroll position in content-pixels
+                            val currentScrollPx = firstItem.index * avgItemHeight + (-firstItem.offset).coerceAtLeast(0)
+                            val targetScrollPx = (currentScrollPx + delta * contentPixelsPerTrackPixel)
+                                .coerceIn(0.0, totalScrollablePx)
+
+                            val targetIndex = (targetScrollPx / avgItemHeight).toInt().coerceIn(0, totalItems - 1)
+                            val targetOffset = (targetScrollPx - targetIndex * avgItemHeight).toInt().coerceAtLeast(0)
+
+                            if (delta != 0f) tapCount = 0
+
+                            coroutineScope.launch {
+                                state.scrollToItem(targetIndex, targetOffset)
+                            }
+                        }
+                    )
+            ) {
+                Icon(
+                    imageVector = AppIcons.Default.LeapingFish2,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun VerticalScrollbar(
+fun VerticalScrollByBar(
     state: LazyListState,
     modifier: Modifier = Modifier,
     alignment: Alignment = Alignment.CenterStart,
