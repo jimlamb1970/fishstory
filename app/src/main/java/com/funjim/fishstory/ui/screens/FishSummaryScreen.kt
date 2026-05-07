@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
@@ -118,6 +119,24 @@ fun FishSummaryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            FishVisual(
+                summary = summary,
+                trip = selectedTrip,
+                event = selectedEvent,
+                fisherman = selectedFisherman,
+                lure = selectedLure,
+                onClick = {
+                    onNavigateToFishList(
+                        selectedTripId,
+                        selectedEventId,
+                        selectedFishermanId,
+                        selectedLureId
+                    )
+                }
+            )
+
+            HorizontalDivider()
+
             TripSelectionField(
                 items = allTrips,
                 selectedItem = selectedTrip,
@@ -145,7 +164,6 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .padding(bottom = 8.dp)
                     .fillMaxWidth()
             )
 
@@ -160,7 +178,6 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .padding(bottom = 8.dp)
                     .fillMaxWidth()
             )
 
@@ -175,25 +192,7 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .padding(bottom = 8.dp)
                     .fillMaxWidth()
-            )
-
-            HorizontalDivider()
-
-            Spacer(modifier = Modifier.height(24.dp))
-            FishVisual(
-                summary = summary,
-                trip = selectedTrip,
-                event = selectedEvent,
-                onClick = {
-                    onNavigateToFishList(
-                        selectedTripId,
-                        selectedEventId,
-                        selectedFishermanId,
-                        selectedLureId
-                    )
-                }
             )
         }
     }
@@ -204,6 +203,8 @@ private fun FishVisual(
     summary: FishSummary,
     trip: Trip?,
     event: Event?,
+    fisherman: Fisherman?,
+    lure: LureWithName?,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -223,75 +224,97 @@ private fun FishVisual(
     val latitude = event?.latitude ?: trip?.latitude
     val longitude = event?.longitude ?: trip?.longitude
 
-    val label = event?.name ?: trip?.name ?: "All Fish"
+    val names = listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.displayName)
 
     Card(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.secondary)
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+//                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Text(
+                    text = "Fish Summary",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                )
+
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     StatItem(
                         label = "CAUGHT",
                         value = "${summary.counts.totalCaught}",
-                        labelColor = MaterialTheme.colorScheme.onPrimary,
-                        color = MaterialTheme.colorScheme.onPrimary)
+                        labelColor = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.primary)
                     Icon(
                         imageVector = AppIcons.Default.LeapingFish2,
                         contentDescription = "Fish",
                         modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     StatItem(
                         label = "KEPT",
                         value = "${summary.counts.totalKept}",
-                        labelColor = MaterialTheme.colorScheme.onPrimary,
-                        color = MaterialTheme.colorScheme.onPrimary)
+                        labelColor = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.primary)
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    if (hasLocation) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clickable {
-                                    val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
+                names.forEachIndexed { index, string ->
+                    if (index == 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(0.dp)) {
+                            Text(
+                                text = string,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            if (hasLocation) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "View on map",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clickable {
+                                            val mapUri =
+                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
+                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Could not open map",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                )
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = string,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(0.dp)
                         )
                     }
                 }
@@ -304,126 +327,31 @@ private fun FishVisual(
                         Text(
                             "${dateFormatter.format(Date(startDate))}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Arrow",
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             "${dateFormatter.format(Date(endDate))}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.3f)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Tap to view fish",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun FishVisual2(
-    caughtCount: Int,
-    keptCount: Int,
-    onClick: () -> Unit
-) {
-    val context = LocalContext.current
-
-    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.secondary)
-                .padding(24.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Fish icon — using drawable resource
-                Icon(
-                    imageVector = AppIcons.Default.LeapingFish2,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(120.dp),
-                    tint = MaterialTheme.colorScheme.onSecondary
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "All Fish",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.3f)
-                )
-
-                // Caught / Kept counts
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(32.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "$caughtCount",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                        Text(
-                            text = "Caught",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "$keptCount",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                        Text(
-                            text = "Kept",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Tap to view fish",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
                 )
             }
         }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
@@ -70,7 +71,7 @@ fun CrewAndTackleBoxPicker(
     // Called when a fisherman's checked state changes.
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
     // Called when a fisherman's tackle box selection changes.
-    onTackleBoxChanged: (fishermanId: String, tackleBoxId: String) -> Unit,
+    onTackleBoxChanged: (fishermanId: String, tackleBoxId: String?) -> Unit,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     // Provides available tackle boxes for a given fisherman.
     // Kept as a lambda so callers can back it with any data source.
@@ -200,7 +201,7 @@ private fun FishermanCrewRow(
     lureCount: Int,
     lures: List<String>,
     onSelectionChanged: (Boolean) -> Unit,
-    onTackleBoxChanged: (String) -> Unit,
+    onTackleBoxChanged: (String?) -> Unit,
     navigateToEditTackleBox: (String) -> Unit,
     onAddTackleBox: ((tackleBoxName: String, fishermanId: String) -> Unit)? = null
 ) {
@@ -275,6 +276,7 @@ private fun FishermanCrewRow(
                     selectedItem = selectedBox,
                     onSelected = { tackleBox -> onTackleBoxChanged(tackleBox.id) },
                     onAdd = onAddAction,
+                    onClear = { onTackleBoxChanged(null) },
                     modifier = Modifier.padding(start = 56.dp, end = 8.dp, bottom = 4.dp)
                 )
 
@@ -458,14 +460,14 @@ fun TripViewModelCrewPickerBridge(
     selectedIds: Set<String>,
     tackleBoxSelections: Map<String, String?>,
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
-    onTackleBoxChanged: (fishermanId: String, tackleBoxId: String) -> Unit,
+    onTackleBoxChanged: (fishermanId: String, tackleBoxId: String?) -> Unit,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     tripViewModel: TripViewModel,
     confirmLabel: String,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
     onAddFisherman: ((String, String, String) -> Unit)? = null,
-    onAddTackleBox: ((String, String) -> Unit)? = null
+    onAddTackleBox: ((String, String) -> Unit)
 ) {
     val crewEntries by remember(eligibleFishermen, selectedIds, key3 = tackleBoxSelections) {
         derivedStateOf { buildCrewEntries(eligibleFishermen, selectedIds, tackleBoxSelections) }
@@ -505,6 +507,7 @@ fun TackleBoxSelectionField(
     selectedItem: TackleBox?,
     onSelected: (TackleBox) -> Unit,
     onAdd: (() -> Unit)?,
+    onClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showSheet by remember { mutableStateOf(false) }
@@ -569,6 +572,24 @@ fun TackleBoxSelectionField(
                             colors = ListItemDefaults.colors(containerColor = backgroundColor)
                         )
                     }
+
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    "No tackle box",
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            },
+//                            leadingContent = { Icon(Icons.Default.Remove, null) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onClear()
+                            }
+                        )
+                    }
+
                     // "Add New" option
                     if (onAdd != null) {
                         item {

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -184,13 +185,16 @@ fun FishListScreen(
                         Text(
                             text = fisherman?.fullName ?: "All Fishermen",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+
                         )
                     } else {
                         Text(
                             text = trip?.name ?: "All Trips",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -218,34 +222,50 @@ fun FishListScreen(
                     Row(modifier = Modifier
                         .weight(1f)
                         .horizontalScroll(rememberScrollState())) {
-                        SortChip("Time", currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
+                        SortChip(
+                            "Time",
+                            currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
                             viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                         }
                         if (tripId.isNullOrEmpty()) {
-                            SortChip("Trip", currentOrder == FishSortOrder.TRIP_AZ) {
+                            SortChip(
+                                "Trip",
+                                currentOrder == FishSortOrder.TRIP_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
                             }
                         }
                         if (eventId.isNullOrEmpty()) {
-                            SortChip("Event", currentOrder == FishSortOrder.EVENT_AZ) {
+                            SortChip(
+                                "Event",
+                                currentOrder == FishSortOrder.EVENT_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
                             }
                         }
                         if (fishermanId.isNullOrEmpty()) {
-                            SortChip("Fisherman", currentOrder == FishSortOrder.FISHERMAN_AZ) {
+                            SortChip(
+                                "Fisherman",
+                                currentOrder == FishSortOrder.FISHERMAN_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
                             }
                         }
-                        SortChip("Species", currentOrder == FishSortOrder.SPECIES_AZ) {
+                        SortChip(
+                            "Species",
+                            currentOrder == FishSortOrder.SPECIES_AZ) {
                             viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
                         }
-                        SortChip("Length", currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
+                        SortChip(
+                            "Length",
+                            currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
                             viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
                         }
-                        SortChip("Released", currentOrder == FishSortOrder.RELEASED) {
+                        SortChip(
+                            "Released",
+                            currentOrder == FishSortOrder.RELEASED) {
                             viewModel.updateSortOrder(FishSortOrder.RELEASED)
                         }
-                        SortChip("Lure", currentOrder == FishSortOrder.LURE) {
+                        SortChip(
+                            "Lure",
+                            currentOrder == FishSortOrder.LURE) {
                             viewModel.updateSortOrder(FishSortOrder.LURE)
                         }
                     }

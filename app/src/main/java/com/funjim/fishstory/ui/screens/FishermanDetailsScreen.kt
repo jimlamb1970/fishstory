@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,6 +51,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,23 +114,23 @@ fun FishermanDetailsScreen(
                 stats?.let { details ->
                     val totalTackleBoxes = details.tackleBoxesWithLures.size
                     val pagerState = rememberPagerState(pageCount = { totalTackleBoxes })
+                    val scope = rememberCoroutineScope()
 
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
                             Text(
                                 text = details.fisherman.fullName,
                                 style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.primary
                             )
 
                             PhotoPickerRow(
                                 photos = fishermanPhotos,
                                 onPhotoSelected = { uri ->
                                     viewModel.addPhoto(
-                                        Photo(
-                                            uri = uri.toString(),
-                                            fishermanId = fishermanId
-                                        )
+                                        Photo(uri = uri.toString(), fishermanId = fishermanId)
                                     )
                                 },
                                 onPhotoDeleted = { photo ->
@@ -228,8 +230,8 @@ fun FishermanDetailsScreen(
                                         Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
                                         horizontalArrangement = Arrangement.Center
                                     ) {
-                                        repeat(totalTackleBoxes) { iteration ->
-                                            val isSelected = pagerState.currentPage == iteration
+                                        repeat(totalTackleBoxes) { index ->
+                                            val isSelected = pagerState.currentPage == index
                                             Box(
                                                 modifier = Modifier
                                                     .padding(horizontal = 3.dp)
@@ -241,6 +243,11 @@ fun FishermanDetailsScreen(
                                                             alpha = 0.3f
                                                         )
                                                     )
+                                                    .clickable {
+                                                        scope.launch {
+                                                            pagerState.animateScrollToPage(index)
+                                                        }
+                                                    }
                                             )
                                         }
                                     }
@@ -612,7 +619,7 @@ fun TackleBoxCard(
         modifier = modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor),
         elevation = CardDefaults.cardElevation()
@@ -632,12 +639,19 @@ fun TackleBoxCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         tackleBoxWithLures.tackleBox.name,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    Text(
-                        "${tackleBoxWithLures.lures.size} Lures",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row() {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = "Toggle Lures"
+                        )
+                        Text(
+                            "${tackleBoxWithLures.lures.size} Lures",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
                 Box {
                     IconButton(onClick = { menuExpanded = true }) {
@@ -685,6 +699,7 @@ fun TackleBoxCard(
                     Text(
                         text = lureNames,
                         style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
@@ -699,12 +714,13 @@ fun FishermanHighlightCard(
     onClick: () -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { 2 })
+    val scope = rememberCoroutineScope()
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.onSurface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -730,9 +746,13 @@ fun FishermanHighlightCard(
                             .size(if (isSelected) 8.dp else 6.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isSelected) MaterialTheme.colorScheme.onTertiary
-                                else MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.3f)
-                            )
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            ).clickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(i)
+                                }
+                            }
                     )
                 }
             }
@@ -746,7 +766,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
         Text(
             text = "HIGHLIGHTS",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onTertiary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
@@ -754,12 +774,14 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatItem(
-                label = "LARGEST FISH",
-                value = "${stats.largestFishLength ?: 0.0}\"",
-                description = stats.largestFishSpecies,
-                color = MaterialTheme.colorScheme.onTertiary
-            )
+            if (stats.largestFishLength != null) {
+                StatItem(
+                    label = "LARGEST FISH",
+                    value = "${stats.largestFishLength}\"",
+                    description = stats.largestFishSpecies,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
         if (!stats.bestTripName.isNullOrEmpty()) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
@@ -800,7 +822,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
         Text(
             text = "LOWLIGHTS",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onTertiary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
@@ -808,12 +830,14 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatItem(
-                label = "SMALLEST FISH",
-                value = "${stats.smallestFishLength ?: 0.0}\"",
-                description = stats.smallestFishSpecies,
-                color = MaterialTheme.colorScheme.onTertiary
-            )
+            if (stats.smallestFishLength != null) {
+                StatItem(
+                    label = "SMALLEST FISH",
+                    value = "${stats.smallestFishLength}\"",
+                    description = stats.smallestFishSpecies,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
         if (!stats.worstTripName.isNullOrEmpty()) {

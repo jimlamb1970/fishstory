@@ -262,7 +262,8 @@ fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
         ),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            selectedLabelColor = MaterialTheme.colorScheme.onTertiary
+            selectedLabelColor = MaterialTheme.colorScheme.onSurface,
+            labelColor = MaterialTheme.colorScheme.primary
         ),
         modifier = Modifier.padding(end = 4.dp)
     )

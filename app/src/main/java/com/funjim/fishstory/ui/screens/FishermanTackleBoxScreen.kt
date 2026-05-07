@@ -304,7 +304,7 @@ private fun LureTackleBoxItem(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {

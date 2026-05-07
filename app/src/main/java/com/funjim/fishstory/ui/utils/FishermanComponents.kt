@@ -67,7 +67,8 @@ fun FishermanItem(
                 Text(
                     fisherman.fisherman.fullName,
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary)
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold)
                 if (tripCount != 0) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
@@ -77,13 +78,13 @@ fun FishermanItem(
                         Icon(
                             imageVector = Icons.Default.Map,
                             contentDescription = "Trip",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             "$tripCount",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -96,13 +97,13 @@ fun FishermanItem(
                         Icon(
                             imageVector = AppIcons.Default.LeapingFish2,
                             contentDescription = "Fish",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
                         )
                         BoldingNumbersText(
                             text = "Kept $keptCount of $caughtCount",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }

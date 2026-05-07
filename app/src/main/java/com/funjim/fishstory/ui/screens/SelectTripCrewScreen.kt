@@ -79,7 +79,7 @@ fun SelectTripCrewScreen(
         ) {
             Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
-                title = tripSummary?.trip?.name ?: "Trip",
+                title = tripSummary?.trip?.name ?: "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,

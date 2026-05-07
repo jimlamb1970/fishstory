@@ -23,139 +23,6 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 
 @Composable
-fun ManageColorsDialog(
-    colors: List<LureColor>,
-    onDismiss: () -> Unit,
-    onAddColor: (String) -> Unit,
-    onDeleteColor: (LureColor) -> Unit
-) {
-    var newColorName by remember { mutableStateOf("") }
-    val sortedColors = remember(colors) { colors.sortedBy { it.name } }
-
-    var colorToDelete by remember { mutableStateOf<LureColor?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Manage Colors") },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth().heightIn(max = 450.dp)) {
-                OutlinedTextField(
-                    value = newColorName,
-                    onValueChange = { newColorName = it },
-                    label = { Text("Add New Color") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (newColorName.isNotBlank()) {
-                                onAddColor(newColorName.trim())
-                                newColorName = ""
-                            }
-                        }
-                    ),
-                    trailingIcon = {
-                        IconButton(
-                            enabled = newColorName.isNotBlank(),
-                            onClick = {
-                                onAddColor(newColorName.trim())
-                                newColorName = ""
-                            }
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
-                        }
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (sortedColors.isEmpty()) {
-                    // Default message for empty list
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "No colors added yet.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        itemsIndexed(sortedColors, key = { _, color -> color.id }) { index, color ->
-                            // Calculate the background color based on the index
-                            val backgroundColor = if (index % 2 == 0) {
-                                MaterialTheme.colorScheme.surface
-                            } else {
-                                // Use a very light tint of your primary or surfaceVariant
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                            }
-
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        text = color.name,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                },
-                                trailingContent = {
-                                    IconButton(onClick = { colorToDelete = color }) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Delete",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                },
-                                colors = ListItemDefaults.colors(
-                                    containerColor = backgroundColor
-                                )
-                            )
-                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) { Text("Close") }
-        }
-    )
-
-    // Confirmation Sub-Dialog
-    colorToDelete?.let { color ->
-        AlertDialog(
-            onDismissRequest = { colorToDelete = null },
-            title = { Text("Delete Color?") },
-            text = { Text("Are you sure you want to delete '${color.name}'? This cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDeleteColor(color)
-                        colorToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { colorToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
-
-@Composable
 fun LureItem(
     item: LureSummary,
     index: Int = 0,
@@ -186,7 +53,7 @@ fun LureItem(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -216,7 +83,7 @@ fun LureItem(
                         Text(
                             text = sb.toString(),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -228,13 +95,13 @@ fun LureItem(
                         Text(
                             text = sb.toString(),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary)
+                            color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Text(
                         text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (item.caughtCount != 0) {
@@ -245,13 +112,13 @@ fun LureItem(
                             Icon(
                                 imageVector = AppIcons.Default.LeapingFish2,
                                 contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onTertiary,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
                             )
                             BoldingNumbersText(
                                 text = "Kept ${item.keptCount} of ${item.caughtCount}",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }

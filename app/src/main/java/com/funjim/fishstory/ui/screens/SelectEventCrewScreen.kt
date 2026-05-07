@@ -5,9 +5,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -30,6 +32,9 @@ fun SelectEventCrewScreen(
         tripViewModel.selectTrip(tripId)
         tripViewModel.selectEvent(eventId)
     }
+
+    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
     val initialCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(emptyList())
@@ -81,7 +86,7 @@ fun SelectEventCrewScreen(
         ) {
             Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
-                title = "Crew & Tackle Boxes",
+                title = eventSummary?.event?.name ?: "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,

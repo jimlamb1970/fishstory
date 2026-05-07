@@ -1,12 +1,16 @@
 package com.funjim.fishstory.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -102,27 +106,30 @@ fun AddLureScreen(
                 )
             )
 
-            // Primary Color
-            LureColorDropdown(
+            LureColorSelectionField(
+                items = sortedColors,
+                selectedItem = selectedPrimaryColorId,
                 label = "Primary Color",
-                selectedColorId = selectedPrimaryColorId,
-                colors = sortedColors,
-                expanded = primaryExpanded,
-                onExpandedChange = { primaryExpanded = it },
-                onSelect = { selectedPrimaryColorId = it },
-                onAddNew = { showAddColorDialog = ColorTarget.PRIMARY }
+                onSelected = { selectedPrimaryColorId = it },
+                onAdd = { showAddColorDialog = ColorTarget.PRIMARY },
+                onClear = {
+                    selectedPrimaryColorId = selectedSecondaryColorId
+                    selectedSecondaryColorId = null
+                },
+                modifier = Modifier.fillMaxWidth()
             )
 
-            // Secondary Color
-            LureColorDropdown(
-                label = "Secondary Color (Optional)",
-                selectedColorId = selectedSecondaryColorId,
-                colors = sortedColors,
-                expanded = secondaryExpanded,
-                onExpandedChange = { secondaryExpanded = it },
-                onSelect = { selectedSecondaryColorId = it },
-                onAddNew = { showAddColorDialog = ColorTarget.SECONDARY }
-            )
+            if (selectedPrimaryColorId != null) {
+                LureColorSelectionField(
+                    items = sortedColors,
+                    selectedItem = selectedSecondaryColorId,
+                    label = "Secondary Color",
+                    onSelected = { selectedSecondaryColorId = it },
+                    onAdd = { showAddColorDialog = ColorTarget.SECONDARY },
+                    onClear = { selectedSecondaryColorId = null },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isSingleHook, onCheckedChange = { isSingleHook = it })
@@ -130,19 +137,26 @@ fun AddLureScreen(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = glows, onCheckedChange = { glows = it })
+                Checkbox(
+                    checked = glows,
+                    onCheckedChange = {
+                        glows = it
+                        if (!glows && selectedGlowColorId != null) {
+                            selectedGlowColorId = null
+                        }
+                    })
                 Text("Glows")
             }
 
             if (glows) {
-                LureColorDropdown(
+                LureColorSelectionField(
+                    items = sortedColors,
+                    selectedItem = selectedGlowColorId,
                     label = "Glow Color",
-                    selectedColorId = selectedGlowColorId,
-                    colors = sortedColors,
-                    expanded = glowExpanded,
-                    onExpandedChange = { glowExpanded = it },
-                    onSelect = { selectedGlowColorId = it },
-                    onAddNew = { showAddColorDialog = ColorTarget.GLOW }
+                    onSelected = { selectedGlowColorId = it },
+                    onAdd = { showAddColorDialog = ColorTarget.GLOW },
+                    onClear = { selectedGlowColorId = null },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -198,6 +212,14 @@ fun AddLureScreen(
                         }
                     }
                 }) { Text("New") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddColorDialog = null
+                    newColorName = ""
+                }) {
+                    Text("Cancel")
+                }
             }
         )
     }
@@ -205,58 +227,112 @@ fun AddLureScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LureColorDropdown(
+fun LureColorSelectionField(
+    items: List<LureColor>,
+    selectedItem: String?,
     label: String,
-    selectedColorId: String?,
-    colors: List<LureColor>,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    onSelect: (String) -> Unit,
-    onAddNew: () -> Unit
+    onSelected: (String) -> Unit,
+    onAdd: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpandedChange) {
-        val text = colors.find { it.id == selectedColorId }?.name ?: "Select Color"
-        OutlinedTextField(
-            value = text,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) }
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val selectedItem = items.find { it.id == selectedItem }
+
+    // Display for the current selection
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Color",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false, // Prevents focus/keyboard on the main text field
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text(label) },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            colors.forEachIndexed { index, color ->
-                // Alternating background for dropdown items
-                val itemBackground = if (index % 2 == 0) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                }
-
-                DropdownMenuItem(
-                    text = { Text(color.name) },
-                    onClick = {
-                        onSelect(color.id)
-                        onExpandedChange(false)
-                    },
-                    modifier = Modifier.background(itemBackground)
+            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+                // Search bar inside the sheet
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Lures...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-            }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            DropdownMenuItem(
-                text = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
-                leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = {
-                    onExpandedChange(false)
-                    onAddNew()
+                // List inside the sheet
+                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            // Use a very light tint of your primary or surfaceVariant
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        }
+
+                        ListItem(
+                            headlineContent = { Text(item.name) },
+                            modifier = Modifier.clickable {
+                                onSelected(item.id)
+                                showSheet = false
+                                searchQuery = ""
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
+
+                    if (selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "No color",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
+                        }
+                    }
+
+                    // "Add New" option
+                    item {
+                        HorizontalDivider()
+                        ListItem(
+                            headlineContent = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
+                            leadingContent = { Icon(Icons.Default.Add, null) },
+                            modifier = Modifier.clickable {
+                                showSheet = false
+                                onAdd()
+                            }
+                        )
+                    }
                 }
-            )
+            }
         }
     }
 }
+
 private enum class ColorTarget { PRIMARY, SECONDARY, GLOW }

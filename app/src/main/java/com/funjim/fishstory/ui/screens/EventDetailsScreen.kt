@@ -302,7 +302,9 @@ fun EventDetailsScreen(
                             Text(
                                 text = details.event.name,
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+
                             )
                             if (details.event.latitude != null && details.event.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -333,13 +335,13 @@ fun EventDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.event.startTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.event.endTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         PhotoPickerRow(

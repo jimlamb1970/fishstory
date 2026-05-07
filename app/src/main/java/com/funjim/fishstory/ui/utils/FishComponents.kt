@@ -91,7 +91,7 @@ fun FishItem(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -141,26 +141,41 @@ fun FishItem(
                 }
 
                 if (includeTrip)
-                    Text("Trip: ${fish.tripName}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Trip: ${fish.tripName}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                 if (includeEvent)
-                    Text("Segment: ${fish.eventName}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Event: ${fish.eventName}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                 if (includeFisherman)
                     Text(
                         "Caught by: ${fish.fishermanName}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
-                Text("Lure: ${fish.fullLureName}", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "Lure: ${fish.fullLureName}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
                 Text(
                     "Status: ${if (fish.isReleased) "Released" else "Kept"}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     "At: ${dateFormatter.format(Date(fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
