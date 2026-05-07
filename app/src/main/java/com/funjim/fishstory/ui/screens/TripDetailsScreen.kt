@@ -280,7 +280,8 @@ fun TripDetailsScreen(
                             Text(
                                 text = details.trip.name,
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
                             )
                             if (details.trip.latitude != null && details.trip.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -311,13 +312,13 @@ fun TripDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         PhotoPickerRow(
@@ -586,12 +587,14 @@ fun TripHighlightCard(
                     label = "Top Rod",
                     name = tripSummary.mostCaughtName,
                     description = "(${tripSummary.mostCaught} fish)",
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f))
                 AchievementItem(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
                     name = tripSummary.bigFishName,
                     description = "(${tripSummary.bigFishLength}\" : ${tripSummary.bigFishSpecies})",
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f))
             }
         }

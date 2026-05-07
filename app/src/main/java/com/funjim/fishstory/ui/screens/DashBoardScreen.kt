@@ -508,11 +508,12 @@ fun UpcomingTripChip(
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = trip.name,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -540,11 +541,12 @@ fun UpcomingEventChip(
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = tripName,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -552,6 +554,7 @@ fun UpcomingEventChip(
             Text(
                 text = event.name,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

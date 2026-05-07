@@ -135,12 +135,20 @@ fun PhotoPickerRow(
                     permissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }) {
-                Icon(Icons.Default.AddAPhoto, contentDescription = "Take Photo")
+                Icon(
+                    Icons.Default.AddAPhoto,
+                    contentDescription = "Take Photo",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
             IconButton(onClick = {
                 galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }) {
-                Icon(Icons.Default.PhotoLibrary, contentDescription = "Select from Gallery")
+                Icon(
+                    Icons.Default.PhotoLibrary,
+                    contentDescription = "Select from Gallery",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
 

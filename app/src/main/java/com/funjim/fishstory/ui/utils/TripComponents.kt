@@ -65,7 +65,7 @@ fun TripItem(
         modifier = modifier.fillMaxWidth().clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -78,6 +78,7 @@ fun TripItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(trip.trip.name,
                         style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                     if (trip.trip.latitude != null && trip.trip.longitude != null) {
@@ -85,7 +86,7 @@ fun TripItem(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.onTertiary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
@@ -101,17 +102,19 @@ fun TripItem(
                 ) {
                     Text(
                         "$startString",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Arrow",
-                        tint = MaterialTheme.colorScheme.onTertiary,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         "$endString",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -130,19 +133,19 @@ fun TripItem(
                             Icon(
                                 imageVector = AppIcons.Default.LeapingFish2,
                                 contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onTertiary,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
                             )
                             BoldingNumbersText(
                                 text = "Kept $keptCount of $caughtCount",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             if (fishermanCount != -1) {
                                 Text(
                                     text = " : ",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onTertiary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -151,29 +154,29 @@ fun TripItem(
                             Icon(
                                 imageVector = Icons.Default.Groups,
                                 contentDescription = "Fishermen count",
-                                tint = MaterialTheme.colorScheme.onTertiary,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = fishermanCount.toString(),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = " : ",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Icon(
                                 imageVector = Icons.Default.Inventory,
                                 contentDescription = "Tackle Box count",
-                                tint = MaterialTheme.colorScheme.onTertiary,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = tackleBoxCount.toString(),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }

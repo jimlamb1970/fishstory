@@ -2,6 +2,8 @@ package com.funjim.fishstory.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -95,7 +97,21 @@ fun TripListScreen(
                 showMenu = true
                 selectedTrip = action.tripSummary
             }
-            is TripAction.OpenMap -> {}
+            is TripAction.OpenMap -> {
+                val mapUri =
+                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}")
+                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context,
+                        "Could not open map",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            }
             is TripAction.UseCurrentLocation -> {
                 showMenu = false
                 if (hasLocationPermission(context)) {
@@ -386,7 +402,7 @@ fun TripItemWithMenu(
         totalItems = totalItems,
         modifier = modifier,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
-        onAction = { action -> /* Your existing OpenMap logic here */ }
+        onAction = onAction
     ) {
         TripMenu(
             expanded = showMenu,

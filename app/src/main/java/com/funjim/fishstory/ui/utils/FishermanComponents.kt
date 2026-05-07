@@ -54,7 +54,7 @@ fun FishermanItem(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -77,7 +77,7 @@ fun FishermanItem(
                         Icon(
                             imageVector = Icons.Default.Map,
                             contentDescription = "Trip",
-                            tint = MaterialTheme.colorScheme.onTertiary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -96,13 +96,13 @@ fun FishermanItem(
                         Icon(
                             imageVector = AppIcons.Default.LeapingFish2,
                             contentDescription = "Fish",
-                            tint = MaterialTheme.colorScheme.onTertiary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         BoldingNumbersText(
                             text = "Kept $keptCount of $caughtCount",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiary,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -144,7 +144,7 @@ fun FishermanSummary(
         modifier = modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
     ) {
@@ -171,14 +171,14 @@ fun FishermanSummary(
                 )
                 Text(
                     "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
-                    color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center, // Centers the text within the middle space
                 )
                 Text(
                     "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
-                    color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center, // Centers the text within the middle space

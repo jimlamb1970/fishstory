@@ -229,7 +229,7 @@ private fun FishermanCrewRow(
         onClick = { if (selectedBox != null) luresExpanded = !luresExpanded },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -328,12 +328,14 @@ private fun FishermanCrewRow(
                         Text(
                             text = "No lures in this box",
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 32.dp, bottom = 4.dp)
                         )
                     else lures.forEach { lure ->
                         Text(
                             text = "• $lure",
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 32.dp, bottom = 4.dp)
                         )
                     }
