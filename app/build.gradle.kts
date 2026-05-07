@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -36,6 +39,21 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val project = "Fishstory"
+        val flavor = variant.name
+        val versionName = variant.outputs.map { it.versionName.get() }.firstOrNull() ?: "1.0"
+        val date = SimpleDateFormat("yyyy-MM-dd").format(Date())
+        val newApkName = "${project}-${flavor}-${versionName}-${date}.apk"
+        
+        variant.outputs.forEach { output ->
+            val outputImpl = output as com.android.build.api.variant.impl.VariantOutputImpl
+            outputImpl.outputFileName.set(newApkName)
+        }
     }
 }
 
