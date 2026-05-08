@@ -23,6 +23,49 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
+)
+
+private val DarkMichiganColorScheme = darkColorScheme(
+    primary = MichMaize,
+    onPrimary = MichBlue,
+    primaryContainer = MichMaize.copy(alpha = 0.15f),
+    onPrimaryContainer = MichMaize,
+
+    secondary = MichMaize,
+    onSecondary = MichBlue,
+
+    tertiary = Color.White,
+    onTertiary = MichBlue,
+
+    background = MichBlue,
+    onBackground = Color.White,
+
+    surface = MichBlue,
+    onSurface = Color.White,
+
+    surfaceContainer = MichBlue,
+    surfaceContainerLow = MichBlue,
+    surfaceContainerHigh = MichBlue,
+
+    // This is for the "outline" of the menu or cards
+    outlineVariant = MichMaize,
+    surfaceVariant = MichBlue,
+    onSurfaceVariant = MichMaize,
+)
+private val LightMichiganColorScheme = lightColorScheme(
     primary = MichBlue,
     onPrimary = MichMaize,
     primaryContainer = MichBlueContainer,
@@ -33,8 +76,6 @@ private val LightColorScheme = lightColorScheme(
 
     tertiary = MichMaize,
     onTertiary = MichBlue, // Blue text on Maize background looks sharp
-    tertiaryContainer = MichMaizeContainer,
-    onTertiaryContainer = Color(0xFF241A00),
 
     background = Color.White,
     onBackground = MichBlue,
@@ -56,10 +97,16 @@ private val LightColorScheme = lightColorScheme(
 fun FishstoryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false, // Setting to false to force my theme
+    dynamicColor: Boolean = true, // Setting to false to force my theme
+    selectedTheme: String?,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        selectedTheme == "MichiganLight" -> LightMichiganColorScheme
+        selectedTheme == "MichiganDark" -> DarkMichiganColorScheme
+        selectedTheme == "Dark" -> DarkColorScheme
+        selectedTheme == "Light" -> LightColorScheme
+
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

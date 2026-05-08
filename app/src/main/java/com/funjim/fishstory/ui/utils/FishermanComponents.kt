@@ -198,7 +198,7 @@ fun FishermanSummary(
 @Preview(showBackground = true)
 @Composable
 fun FishermanItemPreview() {
-    FishstoryTheme {
+    FishstoryTheme(selectedTheme = null) {
         FishermanItem(
             fisherman = FishermanSummary(
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),

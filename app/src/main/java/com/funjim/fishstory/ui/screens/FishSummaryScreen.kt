@@ -674,7 +674,7 @@ fun LureSelectionField(
                     item {
                         HorizontalDivider()
                         ListItem(
-                            headlineContent = { Text("All Fishermen", color = MaterialTheme.colorScheme.primary) },
+                            headlineContent = { Text("All Lures", color = MaterialTheme.colorScheme.primary) },
                             modifier = Modifier.clickable {
                                 showSheet = false
                                 onClear()

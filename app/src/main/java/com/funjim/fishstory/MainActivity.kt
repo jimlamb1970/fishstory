@@ -130,7 +130,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FishstoryTheme {
+            var userThemeSelection by rememberSaveable { mutableStateOf<String?>(null) }
+
+            FishstoryTheme(selectedTheme = userThemeSelection) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -155,7 +157,11 @@ class MainActivity : ComponentActivity() {
                             lureViewModel = lureViewModel,
                             tripViewModel = tripViewModel,
                             tripListViewModel = tripListViewModel,
-                            viewModel = viewModel)
+                            viewModel = viewModel,
+                            onThemeChange = { selectedTheme ->
+                                userThemeSelection = selectedTheme
+                            }
+                        )
                     }
                 }
             }
@@ -190,7 +196,8 @@ fun AppNavigation(
     tripViewModel: TripViewModel,
     tripListViewModel: TripListViewModel,
     fishViewModel: FishViewModel,
-    lureViewModel: LureViewModel
+    lureViewModel: LureViewModel,
+    onThemeChange: (String) -> Unit
 ) {
     NavHost(navController = navController, startDestination = "dashboard") {
         composable("main_menu") {
@@ -536,6 +543,9 @@ fun AppNavigation(
             SettingsScreen(
                 viewModel = viewModel,
                 importViewModel = importViewModel,
+                onThemeChange = { selectedTheme ->
+                    onThemeChange(selectedTheme)
+                },
                 navigateToManageColors = {
                     navController.navigate("manage_colors")
                 },

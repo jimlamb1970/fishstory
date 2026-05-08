@@ -463,7 +463,7 @@ fun ManageSpeciesDialog(
                                     containerColor = backgroundColor
                                 )
                             )
-                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                            HorizontalDivider(thickness = 0.5.dp)
                         }
                     }
                 }
