@@ -38,6 +38,17 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+var themeMap = mapOf(
+    "Dark" to DarkColorScheme,
+    "Light" to LightColorScheme,
+    "Wisconsin Badgers" to LightBadgersColorScheme,
+    "Michigan State Spartans" to LightSpartansColorScheme,
+    "Michigan Wolverines Light" to LightMichiganColorScheme,
+    "Michigan Wolverines Dark" to DarkMichiganColorScheme,
+    "Green Bay Packers" to LightPackersColorScheme,
+    "Minnesota Vikings" to LightVikingsColorScheme
+)
+
 
 @Composable
 fun FishstoryTheme(
@@ -48,11 +59,7 @@ fun FishstoryTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        selectedTheme == "Dark" -> DarkColorScheme
-        selectedTheme == "Light" -> LightColorScheme
-        selectedTheme == "MichiganLight" -> LightMichiganColorScheme
-        selectedTheme == "MichiganDark" -> DarkMichiganColorScheme
-        selectedTheme == "VikingsLight" -> LightVikingsColorScheme
+        selectedTheme is String && themeMap.containsKey(selectedTheme) -> themeMap[selectedTheme]!!
 
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

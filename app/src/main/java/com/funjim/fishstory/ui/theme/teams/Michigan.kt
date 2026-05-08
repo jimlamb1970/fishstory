@@ -3,10 +3,13 @@ package com.funjim.fishstory.ui.theme.teams
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import com.funjim.fishstory.ui.theme.MichBlue
-import com.funjim.fishstory.ui.theme.MichBlueContainer
-import com.funjim.fishstory.ui.theme.MichMaize
-import com.funjim.fishstory.ui.theme.MichMaizeContainer
+
+// Michigan Wolverine Colors
+val MichBlue = Color(0xFF00274C)
+val MichMaize = Color(0xFFFFCB05)
+
+val MichBlueContainer = Color(0xFF00E3FF)
+val MichMaizeContainer = Color(0xFFFFE082)
 
 val DarkMichiganColorScheme = darkColorScheme(
     primary = MichMaize,

@@ -2,10 +2,14 @@ package com.funjim.fishstory.ui.theme.teams
 
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import com.funjim.fishstory.ui.theme.VikesGold
-import com.funjim.fishstory.ui.theme.VikesGoldContainer
-import com.funjim.fishstory.ui.theme.VikesPurple
-import com.funjim.fishstory.ui.theme.VikesPurpleContainer
+
+// Minnesota Viking Colors
+val VikesPurpleContainer = Color(0xFFE1BEE7) // A light lavender-purple
+val VikesGoldContainer = Color(0xFFFFF176)   // A bright, soft gold
+val VikesPurple = Color(0xFF4F2683)
+val VikesGold = Color(0xFFFFC62F)
+val OnVikesPurpleContainer = Color(0xFF21005D) // Deep purple text for the light container
+val OnVikesGoldContainer = Color(0xFF241D00)   // Dark gold/black text for the gold containerimport com.funjim.fishstory.ui.theme.VikesPurpleContainer
 
 val LightVikingsColorScheme = lightColorScheme(
     primary = VikesPurple,

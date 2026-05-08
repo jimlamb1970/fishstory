@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.theme.FishstoryTheme
+import com.funjim.fishstory.ui.theme.themeMap
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -155,9 +156,8 @@ fun SettingsScreen(
                 Text("Manage Species")
             }
 
-            val themes = listOf("Dark", "Light", "MichiganDark", "MichiganLight", "VikingsLight")
             ThemeSelectionField(
-                items = themes,
+                items = themeMap,
                 selectedItem = null,
                 label = "Theme",
                 onSelected = { theme -> onThemeChange(theme) },
@@ -170,7 +170,7 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSelectionField(
-    items: List<String>,
+    items: Map<String, ColorScheme>,
     selectedItem: String?,
     label: String,
     onSelected: (String) -> Unit,
@@ -179,8 +179,6 @@ fun ThemeSelectionField(
 ) {
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-
-    val selectedItem = items.find { it == selectedItem }
 
     // Display for the current selection
     OutlinedTextField(
@@ -217,27 +215,31 @@ fun ThemeSelectionField(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // List inside the sheet
-                val filtered = items.filter { it.contains(searchQuery, ignoreCase = true) }
-
+                val filteredMap = items.filterKeys { key ->
+                    key.contains(searchQuery, ignoreCase = true)
+                }
                 LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
+                    val filteredSize = filteredMap.size
 
-                        ListItem(
-                            headlineContent = { Text(item) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                        )
+                    filteredMap.entries.forEachIndexed { index, item ->
+                        item {
+                            val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                                MaterialTheme.colorScheme.surface
+                            } else {
+                                // Use a very light tint of your primary or surfaceVariant
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            }
+
+                            ListItem(
+                                headlineContent = { Text(item.key) },
+                                modifier = Modifier.clickable {
+                                    onSelected(item.key)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                                colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            )
+                        }
                     }
 
                     item {
