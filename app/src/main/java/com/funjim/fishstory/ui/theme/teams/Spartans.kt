@@ -18,7 +18,7 @@ val OnSpartanGreen = Color(0xFFFFFFFF)          // White text on green buttons
 
 val LightSpartansColorScheme = lightColorScheme(
     primary = SpartanGreen,
-    onPrimary = SpartanBronze,
+    onPrimary = OnSpartanGreen,
     primaryContainer = SpartanGreenContainer,
     onPrimaryContainer = SpartanGreen,
 

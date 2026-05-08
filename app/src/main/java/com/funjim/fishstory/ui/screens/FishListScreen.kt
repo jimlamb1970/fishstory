@@ -149,7 +149,9 @@ fun FishListScreen(
                                 onAddFish(tripId, eventId, null)
                             },
                             contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
