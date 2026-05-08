@@ -16,16 +16,16 @@ val OnBadgerRedContainer = Color(0xFF410002) // Deep maroon text
 val OnBadgerRed = Color(0xFFFFFFFF)          // Pure white text on red buttons
 
 val LightBadgersColorScheme = lightColorScheme(
-    primary = BadgerBlack,
-    onPrimary = BadgerRed,
+    primary = BadgerRed,
+    onPrimary = OnBadgerRed,
     primaryContainer = BadgerWhiteContainer,
     onPrimaryContainer = BadgerBlack,
 
     secondary = BadgerBlack, // Keeping it consistent
     onSecondary = Color.White,
 
-    tertiary = BadgerRed,
-    onTertiary = BadgerBlack, // Blue text on Maize background looks sharp
+    tertiary = BadgerBlack,
+    onTertiary = BadgerRed,
     tertiaryContainer = BadgerRedContainer,
     onTertiaryContainer = BadgerBlack,
 
