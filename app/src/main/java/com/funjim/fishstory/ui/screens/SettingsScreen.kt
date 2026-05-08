@@ -155,7 +155,7 @@ fun SettingsScreen(
                 Text("Manage Species")
             }
 
-            val themes = listOf("MichiganDark", "MichiganLight", "Dark", "Light")
+            val themes = listOf("Dark", "Light", "MichiganDark", "MichiganLight", "VikingsLight")
             ThemeSelectionField(
                 items = themes,
                 selectedItem = null,

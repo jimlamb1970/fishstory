@@ -16,5 +16,17 @@ val MichMaize = Color(0xFFFFCB05)
 // Support colors for Material 3 logic
 val MichBlueContainer = Color(0xFF00E3FF)
 val MichMaizeContainer = Color(0xFFFFE082)
+
 val DarkGrey = Color(0xFF1C1B1F)
 val LightGrey = Color(0xFFF4F4F4)
+
+val VikesPurpleContainer = Color(0xFFE1BEE7) // A light lavender-purple
+val VikesGoldContainer = Color(0xFFFFF176)   // A bright, soft gold
+
+// Standard Primary/Secondary
+val VikesPurple = Color(0xFF4F2683)
+val VikesGold = Color(0xFFFFC62F)
+
+// Text/Icon colors to go on top (On-Colors)
+val OnVikesPurpleContainer = Color(0xFF21005D) // Deep purple text for the light container
+val OnVikesGoldContainer = Color(0xFF241D00)   // Dark gold/black text for the gold container
