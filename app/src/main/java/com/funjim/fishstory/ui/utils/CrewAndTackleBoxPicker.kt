@@ -235,22 +235,17 @@ private fun FishermanCrewRow(
         border = BorderStroke(1.dp, color = borderColor)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Checkbox + name
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = entry.isSelected,
                     onCheckedChange = onSelectionChanged
                 )
-                Spacer(Modifier.width(8.dp))
                 Text(
                     text = entry.fisherman.fullName,
                     style = MaterialTheme.typography.bodyLarge,
@@ -258,6 +253,7 @@ private fun FishermanCrewRow(
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                 )
             }
+
             // Tackle box dropdown — only visible when fisherman is selected
             if (entry.isSelected) {
                 // If onAddTackleBox was not passed in, then we don't want to show
@@ -276,22 +272,22 @@ private fun FishermanCrewRow(
                     selectedItem = selectedBox,
                     onSelected = { tackleBox -> onTackleBoxChanged(tackleBox.id) },
                     onAdd = onAddAction,
-                    onClear = { onTackleBoxChanged(null) },
-                    modifier = Modifier.padding(start = 56.dp, end = 8.dp, bottom = 4.dp)
+                    onClear = {
+                        onTackleBoxChanged(null)
+                        luresExpanded = false
+                    },
+                    modifier = Modifier.padding(start = 50.dp, end = 16.dp, bottom = 4.dp).fillMaxWidth()
                 )
 
                 if (entry.selectedTackleBoxId != null) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            // We use minHeight here so it doesn't clip if the text is large
-                            .padding(start = 0.dp, end = 8.dp),
+                            .padding(start = 0.dp, end = 8.dp, top = 0.dp, bottom = 0.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 1. Reserved space for the button.
-                        // Even when 'selectedBox' is null, this 56.dp gap remains, so text won't jump.
                         Box(
-                            modifier = Modifier.width(56.dp),
+                            modifier = Modifier.width(50.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -300,7 +296,6 @@ private fun FishermanCrewRow(
                             )
                         }
 
-                        // 2. Text aligns perfectly with the button's center
                         Text(
                             text = "$lureCount lure${if (lureCount != 1) "s" else ""}",
                             style = MaterialTheme.typography.bodyMedium,
@@ -316,31 +311,31 @@ private fun FishermanCrewRow(
                                 contentDescription = "Edit Tackle Box")
                         }
                     }
+                } else {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 
             // TODO -- Limit the number of lures visible?
             AnimatedVisibility(visible = luresExpanded) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(top = 4.dp),
-                    thickness = 1.dp
-                )
+                HorizontalDivider(thickness = 1.dp)
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     if (lures.isEmpty())
                         Text(
                             text = "No lures in this box",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
                         )
                     else lures.forEach { lure ->
                         Text(
                             text = "• $lure",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
                         )
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

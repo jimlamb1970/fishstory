@@ -116,7 +116,7 @@ fun FishermanTackleBoxScreen(
             // Summary chip
             Surface(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(top = 12.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
                 shape = MaterialTheme.shapes.small,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
