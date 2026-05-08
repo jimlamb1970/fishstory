@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.utils.FishermanItem
+import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
@@ -248,28 +249,6 @@ Tackle boxes and fish (${item.totalCatches}) logged for ${item.fisherman.fullNam
     }
 }
 
-@Composable
-fun SortChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(label) },
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = selected,
-            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
-            selectedBorderWidth = 2.dp,
-            borderColor = MaterialTheme.colorScheme.primary,
-            borderWidth = 1.dp
-        ),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            selectedLabelColor = MaterialTheme.colorScheme.onSurface,
-            labelColor = MaterialTheme.colorScheme.primary
-        ),
-        modifier = Modifier.padding(end = 4.dp)
-    )
-}
 
 @Composable
 fun SortingArrow(

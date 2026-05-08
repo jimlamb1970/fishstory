@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.LureItem
+import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
@@ -91,7 +92,6 @@ fun LureListScreen(
         Column(modifier = Modifier
             .padding(padding)
             .fillMaxSize()) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

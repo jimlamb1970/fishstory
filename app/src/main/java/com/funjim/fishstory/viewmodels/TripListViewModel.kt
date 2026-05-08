@@ -11,31 +11,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
-import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
-import kotlin.collections.get
-import kotlin.collections.map
-import kotlin.collections.sorted
 
 class TripListViewModel(
     private val tripRepo: TripRepository
@@ -96,21 +83,25 @@ class TripListViewModel(
         }
     }
 
-    val uiState: StateFlow<TripUiState> = combine(
-        tripRepo.getActiveTripSummaries(),
+    private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
+    val tripFilter = _tripFilter.asStateFlow()
+    fun updateTripFilter(filter: TripListFilter) { _tripFilter.value = filter }
+
+    val uiState: StateFlow<TripListUiState> = combine(
         tripRepo.getUpcomingTripSummaries(),
+        tripRepo.getActiveTripSummaries(),
         tripRepo.getPreviousTripSummaries()
-    ) { active, upcoming, previous ->
-        TripUiState(
-            liveTrips = active,
+    ) { upcoming, active, previous ->
+        TripListUiState(
             upcomingTrips = upcoming,
-            recentTrips = previous,
+            liveTrips = active,
+            completedTrips = previous,
             isLoading = false
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = TripUiState(isLoading = true)
+        initialValue = TripListUiState(isLoading = true)
     )
 
     // --- Data Streams ---
@@ -138,9 +129,9 @@ class TripListViewModel(
 }
 
 data class TripListUiState(
-    val liveTrips: List<TripSummary> = emptyList(),
     val upcomingTrips: List<TripSummary> = emptyList(),
-    val recentTrips: List<TripSummary> = emptyList(),
+    val liveTrips: List<TripSummary> = emptyList(),
+    val completedTrips: List<TripSummary> = emptyList(),
     val isLoading: Boolean = false
 )
 

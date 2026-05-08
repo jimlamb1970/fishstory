@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,10 +15,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
@@ -30,12 +35,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollByBar
+import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.viewmodels.FishermanSortOrder
+import com.funjim.fishstory.viewmodels.TripListFilter
 import com.funjim.fishstory.viewmodels.TripListViewModel
 import kotlinx.coroutines.launch
 
@@ -48,10 +57,13 @@ fun TripListScreen(
     navigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val filter by viewModel.tripFilter.collectAsStateWithLifecycle()
 
     // State to keep track of which trip we are currently modifying
     var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
@@ -176,7 +188,7 @@ fun TripListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Trips")
                         Spacer(Modifier.width(4.dp))
-                        val total = state.liveTrips.size + state.upcomingTrips.size + state.recentTrips.size
+                        val total = state.liveTrips.size + state.upcomingTrips.size + state.completedTrips.size
                         Text(
                             text = "($total)",
                             style = MaterialTheme.typography.bodyMedium
@@ -216,95 +228,82 @@ fun TripListScreen(
                 )
             )
         }
-    ) {
-        padding ->
-
-        val listState = rememberLazyListState()
-
-        Box(modifier = Modifier
-            .fillMaxSize()
+    ) { padding ->
+        Column(modifier = Modifier
             .padding(padding)
-        ) {
-            val upcomingPagerState = rememberPagerState(pageCount = { state.upcomingTrips.size })
-            val livePagerState = rememberPagerState(pageCount = { state.liveTrips.size })
+            .fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState())) {
+                    SortChip("Upcoming (${state.upcomingTrips.size})", filter == TripListFilter.UPCOMING) {
+                        viewModel.updateTripFilter(TripListFilter.UPCOMING)
+                    }
+                    SortChip("Live (${state.liveTrips.size})", filter == TripListFilter.LIVE) {
+                        viewModel.updateTripFilter(TripListFilter.LIVE)
+                    }
+                    SortChip("Completed (${state.completedTrips.size})", filter == TripListFilter.COMPLETED) {
+                        viewModel.updateTripFilter(TripListFilter.COMPLETED)
+                    }
+                }
 
-            LazyColumn(state = listState) {
-                if (state.upcomingTrips.isNotEmpty()) {
-                    item(key = "upcoming_trips_header") {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(16.dp, 4.dp)
-                        ) {
-                            Text(
-                                "Upcoming Trips",
-                                style = MaterialTheme.typography.titleMedium)
-                            if (state.upcomingTrips.size > 1) {
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    text = "(${upcomingPagerState.currentPage + 1} of ${state.upcomingTrips.size})",
-                                    style = MaterialTheme.typography.titleSmall)
-                            }
-                        }
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "Filter Trips",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
 
-                        Column {
-                            HorizontalPager(
-                                state = upcomingPagerState,
-                                contentPadding = PaddingValues(horizontal = 32.dp), // Shows a peek of next/prev cards
-                                pageSpacing = 0.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { page ->
-                                val tripSummary = state.upcomingTrips[page]
+            val listState = rememberLazyListState()
 
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(state = listState) {
+                    when (filter) {
+                        TripListFilter.UPCOMING -> {
+                            itemsIndexed(state.upcomingTrips) { index, trip ->
                                 TripItemWithMenu(
-                                    tripSummary = tripSummary,
-                                    index = page,
+                                    tripSummary = trip,
+                                    index = index,
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
-                                    showMenu = showMenu && selectedTrip?.trip?.id == tripSummary.trip.id,
+                                    showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
                                 )
                             }
                         }
-                    }
-                }
 
-                if (state.liveTrips.isNotEmpty()) {
-                    item(key = "live_trips_header") {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(16.dp, 4.dp)
-                        ) {
-                            Text(
-                                "Live Trips",
-                                style = MaterialTheme.typography.titleMedium)
-                            if (state.liveTrips.size > 1) {
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    text = "(${livePagerState.currentPage + 1} of ${state.liveTrips.size})",
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                            }
-                        }
-
-                        Column {
-                            HorizontalPager(
-                                state = livePagerState,
-                                contentPadding = PaddingValues(horizontal = 32.dp), // Shows a peek of next/prev cards
-                                pageSpacing = 0.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { page ->
-                                val tripSummary = state.liveTrips[page]
-
+                        TripListFilter.LIVE -> {
+                            itemsIndexed(state.liveTrips) { index, trip ->
                                 TripItemWithMenu(
-                                    tripSummary = tripSummary,
-                                    index = page,
+                                    tripSummary = trip,
+                                    index = index,
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
-                                    showMenu = showMenu && selectedTrip?.trip?.id == tripSummary.trip.id,
+                                    showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
+                                    onMenuDismiss = { showMenu = false }
+                                )
+                            }
+                        }
+
+                        TripListFilter.COMPLETED -> {
+                            itemsIndexed(state.completedTrips) { index, trip ->
+                                TripItemWithMenu(
+                                    tripSummary = trip,
+                                    index = index,
+                                    totalItems = state.completedTrips.size,
+                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    onNavigateToDetails = navigateToTripDetails,
+                                    onAction = onAction,
+                                    showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
                                 )
                             }
@@ -312,48 +311,17 @@ fun TripListScreen(
                     }
                 }
 
-                if (state.recentTrips.isNotEmpty()) {
-                    item(key = "recent_trips_header") {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(16.dp, 4.dp)
-                        ) {
-                            Text(
-                                "Past Trips",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = "(${state.recentTrips.size})",
-                                style = MaterialTheme.typography.titleSmall)
-                        }
-                    }
+                var isLeftAligned by remember { mutableStateOf(false) }
 
-                    itemsIndexed(state.recentTrips) { index, trip ->
-                        TripItemWithMenu(
-                            tripSummary = trip,
-                            index = index,
-                            totalItems = state.recentTrips.size,
-                            modifier = Modifier.padding(16.dp, 4.dp),
-                            onNavigateToDetails = navigateToTripDetails,
-                            onAction = onAction,
-                            showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
-                            onMenuDismiss = { showMenu = false }
-                        )
-                    }
-                }
+                VerticalScrollToItemBar(
+                    state = listState,
+                    onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                    modifier = Modifier
+                        .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp, horizontal = 0.dp)
+                )
             }
-
-            var isLeftAligned by remember { mutableStateOf(false) }
-
-            VerticalScrollByBar(
-                state = listState,
-                onToggleAlignment = { isLeftAligned = !isLeftAligned },
-                modifier = Modifier
-                    .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
-                    .fillMaxHeight()
-                    .padding(vertical = 4.dp, horizontal = 0.dp)
-            )
         }
     }
 
