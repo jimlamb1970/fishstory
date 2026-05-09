@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.content.ContentUris
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
@@ -52,6 +54,7 @@ import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,12 +132,10 @@ fun FishermanDetailsScreen(
                             PhotoPickerRow(
                                 photos = fishermanPhotos,
                                 onPhotoSelected = { uri ->
-                                    viewModel.addPhoto(
-                                        Photo(uri = uri.toString(), fishermanId = fishermanId)
-                                    )
+                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri)
                                 },
                                 onPhotoDeleted = { photo ->
-                                    viewModel.deletePhoto(photo)
+                                    viewModel.deleteFishermanPhoto(fishermanId, photo.id)
                                 }
                             )
 

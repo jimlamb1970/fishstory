@@ -99,7 +99,8 @@ class MainActivity : ComponentActivity() {
 
     private val lureViewModel: LureViewModel by viewModels {
         val repository = (application as FishstoryApplication).lureRepository
-        LureViewModelFactory(repository)
+        val photoRepo = (application as FishstoryApplication).photoRepository
+        LureViewModelFactory(repository, photoRepo)
     }
 
     private val tripListViewModel: TripListViewModel by viewModels {
@@ -107,9 +108,10 @@ class MainActivity : ComponentActivity() {
         TripListViewModelFactory(tripRepository)
     }
     private val tripViewModel: TripViewModel by viewModels {
-        val tripRepository = (application as FishstoryApplication).tripRepository
         val fishermanRepository = (application as FishstoryApplication).fishermanRepository
-        TripViewModelFactory(tripRepository, fishermanRepository)
+        val photoRepository = (application as FishstoryApplication).photoRepository
+        val tripRepository = (application as FishstoryApplication).tripRepository
+        TripViewModelFactory(fishermanRepository, photoRepository, tripRepository)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -362,10 +364,14 @@ fun AppNavigation(
             arguments = listOf(navArgument("fishermanId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
+
             val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
+            val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
+
             val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanDetailsViewModelFactory(repository)
+                factory = FishermanDetailsViewModelFactory(repository, photoRepo)
             )
+
             FishermanDetailsScreen(
                 viewModel = detailsViewModel,
                 fishermanId = fishermanId,

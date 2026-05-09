@@ -292,8 +292,6 @@ fun FishListScreen(
                     }
                 }
 
-                val allPhotos by viewModel.fishPhotos.collectAsStateWithLifecycle()
-
                 val listState = rememberLazyListState()
 
                 Box(modifier = Modifier
@@ -308,7 +306,6 @@ fun FishListScreen(
                             fishForScope,
                             key = { _, item -> item.id }
                         ) { index, fishDetails ->
-                            val photos = allPhotos[fishDetails.id] ?: emptyList()
                             FishItem(
                                 fish = fishDetails,
                                 index = index,
@@ -316,7 +313,7 @@ fun FishListScreen(
                                 includeTrip = tripId.isNullOrEmpty(),
                                 includeEvent = eventId.isNullOrEmpty(),
                                 includeFisherman = fishermanId.isNullOrEmpty(),
-                                photos = photos,
+                                photos = emptyList(),
                                 onAddPhoto = null,
                                 onDeletePhoto = null,
                                 /* TODO - enable photos for fish cards

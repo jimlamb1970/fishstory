@@ -306,14 +306,10 @@ fun FishItem(
             PhotoPickerRow(
                 photos = photos,
                 onPhotoSelected = { uri ->
-                    scope.launch {
-                        onAddPhoto(Photo(uri = uri.toString(), fishId = fish.id))
-                    }
+                    scope.launch { onAddPhoto(Photo(uri = uri.toString(), hashcode = "", thumbnail = null)) }
                 },
                 onPhotoDeleted = { photo ->
-                    scope.launch {
-                        onDeletePhoto(photo)
-                    }
+                    scope.launch { onDeletePhoto(photo) }
                 },
                 modifier = Modifier.padding(top = 8.dp)
             )

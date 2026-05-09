@@ -1,10 +1,12 @@
 package com.funjim.fishstory.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +22,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FishermanDetailsViewModel(
-    private val repository: FishermanRepository
+    private val repository: FishermanRepository,
+    private val photoRepo: PhotoRepository
 ) : ViewModel() {
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
@@ -69,11 +72,8 @@ class FishermanDetailsViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishermanPhotos: StateFlow<List<Photo>> = _selectedFishermanId
         .filterNotNull()
-        .flatMapLatest { repository.getPhotosForFisherman(it) }
+        .flatMapLatest { photoRepo.getPhotosForFisherman(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.lurePhotos
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun getLureNames(tackleBoxId: String?): Flow<List<String>> {
         return repository.getLureNamesInTackleBox(tackleBoxId)
@@ -99,12 +99,15 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { repository.updateFisherman(fisherman) }
     }
 
-    fun addPhoto(photo: Photo) {
-        viewModelScope.launch { repository.addPhoto(photo) }
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
+        viewModelScope.launch {
+            photoRepo.addFishermanPhoto(fishermanId, uri)
+                .onSuccess {  }
+                .onFailure {  }
+        }
     }
-
-    fun deletePhoto(photo: Photo) {
-        viewModelScope.launch { repository.deletePhoto(photo) }
+    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }
 
     fun createTackleBox(fishermanId: String, name: String) {
@@ -123,12 +126,13 @@ data class FishermanDetailsUiState(
 )
 
 class FishermanDetailsViewModelFactory(
-    private val repository: FishermanRepository
+    private val repository: FishermanRepository,
+    private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanDetailsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishermanDetailsViewModel(repository) as T
+            return FishermanDetailsViewModel(repository, photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

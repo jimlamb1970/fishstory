@@ -57,16 +57,21 @@ fun LureItem(
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                ThumbnailBox(
+                    thumbnail = item.photos.firstOrNull()?.thumbnail
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.lure.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
 
@@ -94,7 +99,7 @@ fun LureItem(
                         }
                         Text(
                             text = sb.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface)
                     }
 
@@ -168,15 +173,10 @@ fun LureItem(
             if (onAddPhoto != null && onDeletePhoto != null) {
                 PhotoPickerRow(
                     photos = photos,
-                    onPhotoSelected = { uri ->
-                        onAddPhoto(Photo(uri = uri.toString(), lureId = item.lure.id))
-                    },
-                    onPhotoDeleted = { photo ->
-                        onDeletePhoto(photo)
-                    },
+                    onPhotoSelected = { uri -> onAddPhoto(Photo(uri = uri.toString(), hashcode = "", thumbnail = null)) },
+                    onPhotoDeleted = { photo -> onDeletePhoto(photo) },
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
-        }
     }
 }

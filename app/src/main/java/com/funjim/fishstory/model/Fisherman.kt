@@ -54,6 +54,20 @@ data class FishermanWithTackleBox(
     val tackleBox: TackleBox?
 )
 
+data class FishermanWithPhotos(
+    @Embedded val fisherman: Fisherman,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = PhotoFishermanCrossRef::class,
+            parentColumn = "fishermanId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
+)
+
 data class FishermanWithTrips(
     @Embedded val fisherman: Fisherman,
     @Relation(

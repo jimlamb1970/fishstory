@@ -1,10 +1,7 @@
 package com.funjim.fishstory.repository
 
-import com.funjim.fishstory.database.FishermanDao
-import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TripDao
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.EventSummary
@@ -18,10 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class TripRepository(
-    private val tripDao: TripDao,
     private val eventDao: EventDao,
-    private val photoDao: PhotoDao,
-    private val fishermanDao: FishermanDao
+    private val tripDao: TripDao
 ) {
     // Trip Streams
     val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
@@ -90,7 +85,7 @@ class TripRepository(
     fun getSegmentSummaries(tripId: String): Flow<List<EventSummary>> =
         eventDao.getTripEventSummaries(tripId)
 
-    fun getSegmentWithDetails(segmentId: String): Flow<EventWithDetails?> =
+    fun getEventWithDetails(segmentId: String): Flow<EventWithDetails?> =
         eventDao.getEventWithDetails(segmentId)
 
     fun getActiveSegments(): Flow<List<Event>> =
@@ -109,13 +104,6 @@ class TripRepository(
         val now = System.currentTimeMillis()
         segments.filter { it.startTime > now }.sortedBy { it.startTime }
     }
-
-    // --- Photo Logic ---
-    fun getPhotosForTrip(id: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(id)
-    fun getPhotosForSegment(id: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(id)
-    suspend fun addPhoto(photo: Photo) = photoDao.insertPhoto(photo)
-    suspend fun deletePhoto(photo: Photo) = photoDao.deletePhoto(photo)
-
     // Trip Operations
     suspend fun upsertTrip(trip: Trip) = tripDao.upsertTrip(trip)
     suspend fun deleteTripById(tripId: String) = tripDao.deleteTripById(tripId)

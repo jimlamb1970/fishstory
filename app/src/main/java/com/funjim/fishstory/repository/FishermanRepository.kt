@@ -10,6 +10,8 @@ import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.PhotoFishermanCrossRef
+import com.funjim.fishstory.model.PhotoTripCrossRef
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
@@ -112,17 +114,6 @@ class FishermanRepository(
             }.sorted()
         }
     }
-
-    // --- Photo Logic ---
-    fun getPhotosForFisherman(id: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(id)
-
-    val lurePhotos: Flow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
-        .map { photos ->
-            photos.filter { it.lureId != null }.groupBy { it.lureId!! }
-        }
-
-    suspend fun addPhoto(photo: Photo) = photoDao.insertPhoto(photo)
-    suspend fun deletePhoto(photo: Photo) = photoDao.deletePhoto(photo)
 
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(fishermanId: String, name: String) =

@@ -1,12 +1,19 @@
 package com.funjim.fishstory.viewmodels
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.net.Uri
+import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -44,17 +51,17 @@ enum class EventWizardStep {
     EventInfo,          // Step 1 – event name, dates, location
     EventCrew           // Step 2 – fishermen + tackle boxes for event
 }
-
 class TripViewModel(
-    private val tripRepo: TripRepository,
-    private val fishermanRepo: FishermanRepository
+    private val fishermanRepo: FishermanRepository,
+    private val photoRepo: PhotoRepository,
+    private val tripRepo: TripRepository
 ) : ViewModel() {
     // --- Location Logic ---
-    private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
+    private val _deviceLocation = MutableStateFlow<Location?>(null)
     val deviceLocation = _deviceLocation.asStateFlow()
 
     @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context): android.location.Location? {
+    suspend fun getCurrentLocation(context: Context): Location? {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         return try {
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
@@ -64,8 +71,8 @@ class TripViewModel(
     }
 
     // TODO - can this be replaced by getCurrentLocation in LocationUtils?
-    @androidx.annotation.RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
-    suspend fun getTripCurrentLocation(context: Context): android.location.Location? {
+    @RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
+    suspend fun getTripCurrentLocation(context: Context): Location? {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         return try {
             fusedLocationClient.getCurrentLocation(
@@ -81,13 +88,13 @@ class TripViewModel(
         if (_deviceLocation.value != null) return
 
         // 1. Explicitly check if permissions are granted
-        val hasFineLocation = androidx.core.content.ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
 
-        val hasCoarseLocation = androidx.core.content.ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
 
         // 2. Only launch the coroutine if at least one is granted
         if (hasFineLocation || hasCoarseLocation) {
@@ -197,13 +204,6 @@ class TripViewModel(
 
     fun getFishermenForEvent(segmentId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForSegment(segmentId)
-    }
-
-    fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> {
-        return tripRepo.getTripFishermanTackleBoxId(tripId, fishermanId)
-    }
-    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> {
-        return tripRepo.getSegmentFishermanTackleBoxId(segmentId, fishermanId)
     }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
@@ -321,13 +321,13 @@ class TripViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripPhotos: StateFlow<List<Photo>> = _selectedTripId
         .filterNotNull()
-        .flatMapLatest { tripRepo.getPhotosForTrip(it) }
+        .flatMapLatest { photoRepo.getPhotosForTrip(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val eventPhotos: StateFlow<List<Photo>> = _selectedEventId
         .filterNotNull()
-        .flatMapLatest { tripRepo.getPhotosForSegment(it) }
+        .flatMapLatest { photoRepo.getPhotosForEvent(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // TODO -- get this from somehwere else
@@ -350,7 +350,6 @@ class TripViewModel(
             }.sorted()
         }
     }
-
 
     // --- Actions ---
     fun saveTrip(trip: Trip) {
@@ -484,16 +483,26 @@ class TripViewModel(
         }
     }
 
-    fun addPhoto(photo: Photo) {
+    fun addTripPhoto(tripId: String, uri: Uri) {
         viewModelScope.launch {
-            tripRepo.addPhoto(photo)
+            photoRepo.addTripPhoto(tripId, uri)
+                .onSuccess {  }
+                .onFailure {  }
         }
     }
+    fun deleteTripPhoto(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    }
 
-    fun deletePhoto(photo: Photo) {
+    fun addEventPhoto(eventId: String, uri: Uri) {
         viewModelScope.launch {
-            tripRepo.deletePhoto(photo)
+            photoRepo.addEventPhoto(eventId, uri)
+                .onSuccess {  }
+                .onFailure {  }
         }
+    }
+    fun deleteEventPhoto(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }
 
     fun clearTrip() {
@@ -583,13 +592,14 @@ data class TripUiState(
 )
 
 class TripViewModelFactory(
-    private val tripRepository: TripRepository,
-    private val fishermanRepository: FishermanRepository
+    private val fishermanRepository: FishermanRepository,
+    private val photoRepository: PhotoRepository,
+    private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripViewModel(tripRepository, fishermanRepository) as T
+            return TripViewModel(fishermanRepository, photoRepository, tripRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

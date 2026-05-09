@@ -1,10 +1,12 @@
 package com.funjim.fishstory.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,7 +20,8 @@ import kotlinx.coroutines.launch
 import kotlin.collections.map
 
 class LureViewModel(
-    private val repository: LureRepository
+    private val repository: LureRepository,
+    private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _sortOrder = MutableStateFlow(LureSortOrder.NAME)
     val sortOrder = _sortOrder.asStateFlow()
@@ -29,13 +32,6 @@ class LureViewModel(
     private val _lureColors = repository.allLureColors
     val lureColors = _lureColors
 
-    val lurePhotos: StateFlow<Map<String, List<Photo>>> = repository.lurePhotos
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap() // <--- This ensures 'by' always has a non-null map to read
-        )
-
     val luresWithName: StateFlow<List<LureWithName>> = repository.getAllLures()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -43,10 +39,9 @@ class LureViewModel(
     val luresWithDisplay: StateFlow<List<LureSummaryWithColors>> = combine(
         repository.getAllLureSummaries(),
         repository.allLureColors,
-        repository.lurePhotos,
         _sortOrder,
         _isReversed
-    ) { lures, colors, photos, sort, reversed ->
+    ) { lures, colors, sort, reversed ->
         val colorMap = colors.associateBy { it.id }
 
         val displayList = lures.map { lure ->
@@ -55,7 +50,6 @@ class LureViewModel(
                 primaryColorName = colorMap[lure.lure.primaryColorId]?.name,
                 secondaryColorName = colorMap[lure.lure.secondaryColorId]?.name,
                 glowColorName = colorMap[lure.lure.glowColorId]?.name,
-                // TODO - enable photos
             )
         }
 
@@ -92,9 +86,9 @@ class LureViewModel(
         }
     }
 
-    fun addLure(lure: Lure) {
+    fun upsertLure(lure: Lure) {
         viewModelScope.launch {
-            repository.insertLure(lure)
+            repository.upsertLure(lure)
         }
     }
 
@@ -122,8 +116,19 @@ class LureViewModel(
         }
     }
 
-    suspend fun getLureById(id: String): Lure? {
-        return repository.getLureById(id)
+    suspend fun getLureWithPhotos(id: String): LureWithPhotos? {
+        return repository.getLureWithPhotos(id)
+    }
+
+    fun addLurePhotos(lureId: String, photos: List<Photo>) {
+        viewModelScope.launch {
+            photoRepo.addLurePhotos(lureId, photos)
+        }
+    }
+    fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
+        viewModelScope.launch {
+            photoRepo.deleteLurePhotos(lureId, photos)
+        }
     }
 
     private val _selectedFisherman = MutableStateFlow<Fisherman?>(null)
@@ -179,12 +184,13 @@ class LureViewModel(
 }
 
 class LureViewModelFactory(
-    private val repository: LureRepository
+    private val repository: LureRepository,
+    private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LureViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LureViewModel(repository) as T
+            return LureViewModel(repository, photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -347,14 +347,10 @@ fun EventDetailsScreen(
                         PhotoPickerRow(
                             photos = eventPhotos,
                             onPhotoSelected = { uri ->
-                                scope.launch {
-                                    viewModel.addPhoto(Photo(uri = uri.toString(), eventId = eventId))
-                                }
+                                viewModel.addEventPhoto(eventId = eventId, uri = uri)
                             },
                             onPhotoDeleted = { photo ->
-                                scope.launch {
-                                    viewModel.deletePhoto(photo)
-                                }
+                                viewModel.deleteEventPhoto(eventId, photo.id)
                             }
                         )
 

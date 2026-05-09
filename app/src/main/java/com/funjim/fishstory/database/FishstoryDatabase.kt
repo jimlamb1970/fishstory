@@ -19,9 +19,14 @@ import com.funjim.fishstory.model.*
         Photo::class,
         TackleBox::class,
         TackleBoxLureCrossRef::class,
-        EventFishermanCrossRef::class
+        EventFishermanCrossRef::class,
+        PhotoTripCrossRef::class,
+        PhotoEventCrossRef::class,
+        PhotoLureCrossRef::class,
+        PhotoFishermanCrossRef::class,
+        PhotoFishCrossRef::class
     ], 
-    version = 25,
+    version = 28,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {

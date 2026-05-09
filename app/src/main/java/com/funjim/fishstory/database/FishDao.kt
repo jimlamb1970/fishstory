@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishDao {
+    @Transaction
     @Query(
         """
         SELECT 
@@ -63,6 +64,7 @@ interface FishDao {
         lureId: String?
     ): Flow<List<FishWithDetails>>
 
+    @Transaction
     @Query(
         """
         SELECT 
@@ -103,6 +105,7 @@ interface FishDao {
     )
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>>
 
+    @Transaction
     @Query(
         """
         SELECT 
@@ -143,6 +146,7 @@ interface FishDao {
     )
     fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>>
 
+    @Transaction
     @Query(
         """
         SELECT 

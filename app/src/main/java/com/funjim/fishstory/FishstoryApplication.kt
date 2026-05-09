@@ -2,10 +2,11 @@ package com.funjim.fishstory
 
 import android.app.Application
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 
 class FishstoryApplication : Application() {
@@ -53,10 +54,15 @@ class FishstoryApplication : Application() {
         )
     }
 
+    val photoRepository by lazy {
+        PhotoRepository(
+            context = applicationContext,
+            photoDao = database.photoDao()
+        )
+    }
+
     val tripRepository by lazy {
         TripRepository(
-            fishermanDao = database.fishermanDao(),
-            photoDao = database.photoDao(),
             eventDao = database.eventDao(),
             tripDao = database.tripDao()
         )

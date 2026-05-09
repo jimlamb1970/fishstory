@@ -4,7 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.Junction
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -79,6 +81,20 @@ data class Fish(
     val holeNumber: Int? = null
 )
 
+data class FishWithPhotos(
+    @Embedded val fish: Fish,
+    @Relation(
+        parentColumn = "id",        // Fish ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoFishCrossRef::class,
+            parentColumn = "fishId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
+)
+
 data class FishWithDetails(
     val id: String,
     val speciesName: String,
@@ -97,7 +113,17 @@ data class FishWithDetails(
     val eventName: String,
     val tripId: String,
     val tripName: String,
-    val holeNumber: Int? = null
+    val holeNumber: Int? = null,
+    @Relation(
+        parentColumn = "id",        // Fish ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoFishCrossRef::class,
+            parentColumn = "fishId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
 ) {
     val fullLureName: String
         get() {

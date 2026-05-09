@@ -8,7 +8,7 @@ import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureSummary
 import com.funjim.fishstory.model.LureWithName
-import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import com.funjim.fishstory.model.toLureSummary
@@ -25,11 +25,6 @@ class LureRepository(
     // Data Streams
     val allLureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
 
-    val lurePhotos: Flow<Map<String, List<Photo>>> = photoDao.getAllLurePhotos()
-        .map { photos ->
-            photos.filter { it.lureId != null }.groupBy { it.lureId!! }
-        }
-
     fun getAllLures(): Flow<List<LureWithName>> {
         return lureDao.getLuresWithNames().map { tupleList ->
             tupleList.map { it.toLureWithName() }
@@ -42,7 +37,7 @@ class LureRepository(
         }
     }
 
-    suspend fun getLureById(id: String): Lure? = lureDao.getLureById(id)
+    suspend fun getLureWithPhotos(id: String): LureWithPhotos? = lureDao.getLureWithPhotos(id)
 
     // Tackle Box Logic
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<Lure>> {
@@ -65,7 +60,7 @@ class LureRepository(
     }
 
     // Lure Operations
-    suspend fun insertLure(lure: Lure) = lureDao.insertLure(lure)
+    suspend fun upsertLure(lure: Lure) = lureDao.upsertLure(lure)
     suspend fun deleteLure(lure: Lure) = lureDao.deleteLure(lure)
 
     suspend fun insertLureColor(lureColor: LureColor) = lureDao.insertLureColor(lureColor)

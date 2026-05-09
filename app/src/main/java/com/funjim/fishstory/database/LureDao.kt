@@ -1,9 +1,11 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
+import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureSummaryWithNamesTuple
+import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.LureWithNamesTuple
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +22,10 @@ interface LureDao {
     suspend fun getLureById(id: String): Lure?
     @Query("SELECT * FROM lure_table WHERE id = :id")
     fun getLure(id: String): Flow<Lure?>
+
+    @Transaction
+    @Query("SELECT * FROM lure_table WHERE id = :lureId")
+    suspend fun getLureWithPhotos(lureId: String): LureWithPhotos?
 
     @Query("""
         SELECT * FROM lure_table 
@@ -90,6 +96,7 @@ interface LureDao {
 """)
     fun getLuresWithNames(): Flow<List<LureWithNamesTuple>>
 
+    @Transaction
     @Query("""
     SELECT 
         l.*, 

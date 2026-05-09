@@ -324,9 +324,11 @@ fun TripDetailsScreen(
                         PhotoPickerRow(
                             photos = tripPhotos,
                             onPhotoSelected = { uri ->
-                                viewModel.addPhoto(Photo(uri = uri.toString(), tripId = tripId))
+                                viewModel.addTripPhoto(tripId = tripId, uri = uri)
                             },
-                            onPhotoDeleted = { photo -> viewModel.deletePhoto(photo) }
+                            onPhotoDeleted = { photo ->
+                                viewModel.deleteTripPhoto(tripId, photo.id)
+                            }
                         )
 
                         if (details.totalCaught != 0 || now >= details.trip.startDate) {

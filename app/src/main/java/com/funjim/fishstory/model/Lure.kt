@@ -4,7 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.Junction
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -84,6 +86,20 @@ data class Lure(
     }
 }
 
+data class LureWithPhotos(
+    @Embedded val lure: Lure,
+    @Relation(
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoLureCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
+)
+
 data class LureWithNamesTuple(
     @Embedded val lure: Lure,
     val primaryName: String?,
@@ -105,6 +121,16 @@ fun LureWithNamesTuple.toLureWithName(): LureWithName {
 
 data class LureSummaryWithNamesTuple(
     @Embedded val lure: Lure,
+    @Relation(
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoLureCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>,
     val primaryName: String?,
     val secondaryName: String?,
     val glowName: String?,
@@ -116,6 +142,7 @@ data class LureSummaryWithNamesTuple(
 
 data class LureSummary(
     val lure: Lure,
+    val photos: List<Photo>,
     val displayName: String,
     val caughtCount: Int,
     val keptCount: Int,
@@ -126,6 +153,7 @@ data class LureSummary(
 fun LureSummaryWithNamesTuple.toLureSummary(): LureSummary {
     return LureSummary(
         lure = lure,
+        photos = photos,
         displayName = lure.getDisplayName(primaryName, secondaryName, glowName),
         caughtCount = caughtCount,
         keptCount = keptCount,

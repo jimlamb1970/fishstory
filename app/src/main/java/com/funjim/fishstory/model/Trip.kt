@@ -20,6 +20,20 @@ data class Trip(
     val longitude: Double? = null
 )
 
+data class TripWithPhotos(
+    @Embedded val trip: Trip,
+    @Relation(
+        parentColumn = "id",        // Trip ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoTripCrossRef::class,
+            parentColumn = "tripId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
+)
+
 data class TripWithFishermen(
     @Embedded val trip: Trip,
     @Relation(
@@ -51,6 +65,17 @@ data class TripWithDetails(
         entityColumn = "tripId"
     )
     val events: List<Event>,
+    @Relation(
+        parentColumn = "id",        // Trip ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoTripCrossRef::class,
+            parentColumn = "tripId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>,
+
     @Relation(
         parentColumn = "id",
         entityColumn = "tripId"

@@ -10,54 +10,43 @@ import java.util.UUID
 @Serializable
 @Entity(
     tableName = "photo_table",
-    foreignKeys = [
-        ForeignKey(
-            entity = Trip::class,
-            parentColumns = ["id"],
-            childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Event::class,
-            parentColumns = ["id"],
-            childColumns = ["eventId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Lure::class,
-            parentColumns = ["id"],
-            childColumns = ["lureId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Fisherman::class,
-            parentColumns = ["id"],
-            childColumns = ["fishermanId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Fish::class,
-            parentColumns = ["id"],
-            childColumns = ["fishId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
     indices = [
-        Index(value = ["tripId"]),
-        Index(value = ["eventId"]),
-        Index(value = ["lureId"]),
-        Index(value = ["fishermanId"]),
-        Index(value = ["fishId"])
+        Index(value = ["hashcode"], unique = true)
     ]
 )
 data class Photo(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val uri: String,
-    val tripId: String? = null,
-    val eventId: String? = null,
-    val lureId: String? = null,
-    val fishermanId: String? = null,
-    val fishId: String? = null,
-    val timestamp: Long = System.currentTimeMillis()
-)
+    val hashcode: String,
+    val thumbnail: ByteArray?,
+    val timestamp: Long = System.currentTimeMillis(),
+    val caption: String? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Photo
+
+        if (id != other.id) return false
+        if (uri != other.uri) return false
+        if (timestamp != other.timestamp) return false
+        // This is the magic line that compares the actual bytes:
+        if (thumbnail != null) {
+            if (other.thumbnail == null) return false
+            if (!thumbnail.contentEquals(other.thumbnail)) return false
+        } else if (other.thumbnail != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + uri.hashCode()
+        // This calculates the hash based on the image content:
+        result = 31 * result + (thumbnail?.contentHashCode() ?: 0)
+        result = 31 * result + timestamp.hashCode()
+        return result
+    }
+}

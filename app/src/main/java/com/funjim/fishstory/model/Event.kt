@@ -28,6 +28,20 @@ data class Event(
     val longitude: Double? = null
 )
 
+data class EventWithPhotos(
+    @Embedded val event: Event,
+    @Relation(
+        parentColumn = "id",        // Event ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoEventCrossRef::class,
+            parentColumn = "eventId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
+)
+
 data class EventWithFishermen(
     @Embedded val event: Event,
     @Relation(
@@ -54,6 +68,16 @@ data class EventWithDetails(
         )
     )
     val fishermen: List<Fisherman>,
+    @Relation(
+        parentColumn = "id",        // Event ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoEventCrossRef::class,
+            parentColumn = "eventId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>,
     @Relation(
         parentColumn = "id",
         entityColumn = "eventId"

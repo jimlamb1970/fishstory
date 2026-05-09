@@ -54,12 +54,6 @@ class FishViewModel(
     private val _lureColors = lureRepo.allLureColors
     val lureColors = _lureColors
 
-    val fishPhotos = fishRepo.fishPhotos.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        emptyMap()
-    )
-
     val selectedTripId = _selectedTripId.asStateFlow()
     val selectedEventId = _selectedEventId.asStateFlow()
     val selectedFishermanId = _selectedFishermanId.asStateFlow()

@@ -11,6 +11,7 @@ import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.LureWithName
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.Trip
@@ -100,16 +101,24 @@ class FishRepository(
         lureId: String?
     ): Flow<List<FishWithDetails>> = fishDao.getFishWithDetails(tripId, eventId, fishermanId, lureId)
 
-    val fishPhotos: Flow<Map<String, List<Photo>>> = photoDao.getAllFishPhotos()
-        .map { photos ->
-            photos.filter { it.fishId != null }.groupBy { it.fishId!! }
-        }
-
     suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish)
     suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish)
 
-    suspend fun addPhoto(photo: Photo) = photoDao.insertPhoto(photo)
-    suspend fun deletePhoto(photo: Photo) = photoDao.deletePhoto(photo)
+    suspend fun addFishPhoto(fishId: String, photo: Photo) {
+        val result = photoDao.insertPhoto(photo)
+
+        val photoId = if (result != -1L) {
+            photo.id
+        } else {
+            photoDao.getPhotoIdByUri(photo.uri)
+        }
+
+        if (photoId != null) {
+            photoDao.addFishPhoto(PhotoFishCrossRef(photoId, fishId))
+        }
+    }
+    suspend fun deleteFishPhoto(fishId: String, photoId: String) =
+        photoDao.deleteFishPhoto(PhotoFishCrossRef(photoId, fishId))
 
     suspend fun addSpecies(species: Species) = fishDao.insertSpecies(species)
     suspend fun upsertSpecies(species: Species) = fishDao.upsertSpecies(species)

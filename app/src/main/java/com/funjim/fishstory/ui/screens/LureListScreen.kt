@@ -38,7 +38,6 @@ fun LureListScreen(
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     var lureToDelete by remember { mutableStateOf<Lure?>(null) }
 
-    val allPhotos by viewModel.lurePhotos.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
@@ -166,7 +165,6 @@ fun LureListScreen(
                         itemsIndexed(
                             allLures,
                             key = { _, item -> item.lureSummary.lure.id }) { index, item ->
-                            val photos = allPhotos[item.lureSummary.lure.id] ?: emptyList()
                             LureItem(
                                 item = item.lureSummary,
                                 index = index,
@@ -174,7 +172,7 @@ fun LureListScreen(
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
-                                photos = photos,
+                                photos = emptyList(),
                                 onAddPhoto = null,
                                 onDeletePhoto = null,
                                 /* TODO - enable photos for lures

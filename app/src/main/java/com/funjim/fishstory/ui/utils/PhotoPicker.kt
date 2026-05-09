@@ -11,7 +11,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,8 +52,11 @@ import androidx.core.content.FileProvider
 import android.provider.MediaStore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.funjim.fishstory.model.Photo
 import java.io.File
 import java.io.FileOutputStream
@@ -88,15 +90,17 @@ fun PhotoPickerRow(
     val context = LocalContext.current
     var tempUri by remember { mutableStateOf<Uri?>(null) }
     var fullScreenPhotoUri by remember { mutableStateOf<String?>(null) }
+    var largerBitmap by remember { mutableStateOf<ByteArray?>(null) }
     var photoToDelete by remember { mutableStateOf<Photo?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> 
-            uri?.let { 
-                val localUri = saveUriToInternalStorage(context, it)
-                localUri?.let { onPhotoSelected(it) }
-            } 
+        onResult = { uri ->
+            uri?.let {
+                // val localUri = saveUriToInternalStorage(context, it)
+                // localUri?.let { onPhotoSelected(it) }
+                onPhotoSelected(it)
+            }
         }
     )
 
@@ -154,6 +158,8 @@ fun PhotoPickerRow(
 
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(photos) { photo ->
+                var useImage by remember { mutableStateOf(true) }
+                var useBitmap by remember { mutableStateOf(false) }
                 var isError by remember { mutableStateOf(false) }
 
                 Box(
@@ -161,41 +167,34 @@ fun PhotoPickerRow(
                         .size(100.dp)
                         .padding(4.dp)
                         .combinedClickable(
-                            onClick = { fullScreenPhotoUri = photo.uri },
+                            onClick = {
+                                if (useImage == true)
+                                    fullScreenPhotoUri = photo.uri
+//                                if (useBitmap == true)
+//                                    largerBitmap = photo.thumbnail
+                            },
                             onLongClick = { photoToDelete = photo }
                         )
                 ) {
+                    val brokenImage = rememberVectorPainter(Icons.Filled.BrokenImage)
+
                     AsyncImage(
-                        model = photo.uri,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(photo.uri)
+                            .build(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
-                        onState = { state ->
-                            isError = state is AsyncImagePainter.State.Error
-                        }
+                        error = rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(photo.thumbnail)
+                                .memoryCachePolicy(CachePolicy.DISABLED)
+                                .diskCachePolicy(CachePolicy.DISABLED)
+                                .build(),
+                            error = brokenImage
+                        ),
+                        fallback = brokenImage
                     )
-                    
-                    if (isError) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.5f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    Icons.Default.BrokenImage,
-                                    contentDescription = "Missing file",
-                                    tint = Color.White
-                                )
-                                Text(
-                                    "Missing",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -225,6 +224,39 @@ fun PhotoPickerRow(
                             .padding(16.dp)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    largerBitmap?.let { uri ->
+        Dialog(
+            onDismissRequest = { largerBitmap = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Black
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = largerBitmap,
+                        contentDescription = "Full Screen Photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    IconButton(
+                        onClick = { largerBitmap = null },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = Color.White
+                        )
                     }
                 }
             }
