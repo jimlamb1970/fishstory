@@ -2,12 +2,7 @@ package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
@@ -15,9 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -63,7 +56,8 @@ fun LureItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ThumbnailBox(
-                    thumbnail = item.photos.firstOrNull()?.thumbnail
+                    thumbnail = item.photos.firstOrNull()?.thumbnail,
+                    imageVector = AppIcons.Default.Lure
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -115,7 +109,7 @@ fun LureItem(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = AppIcons.Default.LeapingFish2,
+                                imageVector = AppIcons.Default.LeapingFish,
                                 contentDescription = "Fish",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)

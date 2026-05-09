@@ -177,7 +177,7 @@ fun EventItem(
                     ) {
                         if (fishCaught != 0 || now >= event.startTime) {
                             Icon(
-                                imageVector = AppIcons.Default.LeapingFish2,
+                                imageVector = AppIcons.Default.LeapingFish,
                                 contentDescription = "Fish",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)

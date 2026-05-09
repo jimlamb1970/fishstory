@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -189,6 +190,7 @@ fun LureListScreen(
 
                     VerticalScrollToItemBar(
                         state = listState,
+                        imageVector = AppIcons.Default.Lure,
                         onToggleAlignment = { isLeftAligned = !isLeftAligned },
                         modifier = Modifier
                             .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)

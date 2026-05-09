@@ -40,10 +40,8 @@ import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
-import com.funjim.fishstory.ui.utils.VerticalScrollByBar
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.TripListFilter
 import com.funjim.fishstory.viewmodels.TripListViewModel
 import kotlinx.coroutines.launch

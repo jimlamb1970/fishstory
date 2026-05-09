@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -131,7 +130,7 @@ fun TripItem(
                     ) {
                         if (caughtCount != 0 || now >= trip.trip.startDate) {
                             Icon(
-                                imageVector = AppIcons.Default.LeapingFish2,
+                                imageVector = AppIcons.Default.LeapingFish,
                                 contentDescription = "Fish",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)

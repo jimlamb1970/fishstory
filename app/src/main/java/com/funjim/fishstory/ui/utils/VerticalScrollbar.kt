@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -50,6 +51,7 @@ import kotlin.math.min
 fun VerticalScrollToItemBar(
     state: LazyListState,
     modifier: Modifier = Modifier,
+    imageVector: ImageVector = AppIcons.Default.LeapingFish,
     alignment: Alignment = Alignment.CenterStart,
     thumbColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
     trackColor: Color = Color.Transparent,
@@ -190,7 +192,7 @@ fun VerticalScrollToItemBar(
                     )
             ) {
                 Icon(
-                    imageVector = AppIcons.Default.LeapingFish2,
+                    imageVector = imageVector,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
@@ -204,6 +206,7 @@ fun VerticalScrollToItemBar(
 fun VerticalScrollByBar(
     state: LazyListState,
     modifier: Modifier = Modifier,
+    imageVector: ImageVector = AppIcons.Default.LeapingFish,
     alignment: Alignment = Alignment.CenterStart,
     thumbColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
     trackColor: Color = Color.Transparent,
@@ -359,7 +362,7 @@ fun VerticalScrollByBar(
                     )
             ) {
                 Icon(
-                    imageVector = AppIcons.Default.LeapingFish2,
+                    imageVector = imageVector,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)

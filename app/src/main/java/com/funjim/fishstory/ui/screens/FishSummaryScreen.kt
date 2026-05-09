@@ -3,24 +3,20 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.FishSummary
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureWithName
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -263,7 +258,7 @@ private fun FishVisual(
                         labelColor = MaterialTheme.colorScheme.onSurface,
                         color = MaterialTheme.colorScheme.primary)
                     Icon(
-                        imageVector = AppIcons.Default.LeapingFish2,
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
                         contentDescription = "Fish",
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.primary

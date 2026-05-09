@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -95,7 +94,7 @@ fun FishermanItem(
                         horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
                     ) {
                         Icon(
-                            imageVector = AppIcons.Default.LeapingFish2,
+                            imageVector = AppIcons.Default.LeapingFish,
                             contentDescription = "Fish",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
