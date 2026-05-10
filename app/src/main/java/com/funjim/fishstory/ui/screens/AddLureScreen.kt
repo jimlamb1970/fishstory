@@ -34,7 +34,7 @@ import java.io.IOException
 import java.security.MessageDigest
 import java.util.UUID
 
-private fun generateThumbnail(context: Context,uri: Uri): ByteArray {
+fun generateThumbnail(context: Context,uri: Uri): ByteArray {
     val bitmap = context.contentResolver.loadThumbnail(uri, Size(200, 200), null)
 
     return ByteArrayOutputStream().use { out ->

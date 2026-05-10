@@ -38,11 +38,16 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.LureWithPhotos
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
@@ -66,15 +71,23 @@ fun AddFishScreen(
     navigateBack: () -> Unit
 ) {
     val draftFish by viewModel.draftFish.collectAsState()
+    val photos by viewModel.fishPhotos.collectAsState()
+
+    var originalFish by remember { mutableStateOf<FishWithPhotos?>(null) }
 
     LaunchedEffect(fishId, eventId) {
         if (draftFish == null) {
             if (fishId != null) {
-                val fish = viewModel.getFishById(fishId)
+                val fish = viewModel.getFishWithPhotos(fishId)
                 fish?.let { fish ->
-                    viewModel.initDraftFish(fish, fish.tripId, fish.eventId)
-                    viewModel.selectEvent(fish.eventId)
-                    viewModel.selectFisherman(fish.fishermanId)
+                    originalFish = fish
+                    viewModel.initDraftFish(
+                        fish.fish,
+                        fish.fish.tripId,
+                        fish.fish.eventId,
+                        fish.photos)
+                    viewModel.selectEvent(fish.fish.eventId)
+                    viewModel.selectFisherman(fish.fish.fishermanId)
                     viewModel.selectTackleBox("")
                 }
             } else {
@@ -137,6 +150,25 @@ fun AddFishScreen(
     val startTime = selectedEvent?.startTime ?: timestamp
     val endTime = selectedEvent?.endTime ?: timestamp
     viewModel.updateTimestamp(timestamp, startTime, endTime)
+
+    val hasChanges by remember(
+        originalFish, draftFish, photos
+    ) {
+        derivedStateOf {
+            originalFish?.let { original ->
+                draftFish?.speciesId != original.fish.speciesId ||
+                        draftFish?.fishermanId != original.fish.fishermanId ||
+                        draftFish?.lureId != original.fish.lureId ||
+                        draftFish?.length != original.fish.length ||
+                        draftFish?.isReleased != original.fish.isReleased ||
+                        draftFish?.timestamp != original.fish.timestamp ||
+                        draftFish?.latitude != original.fish.latitude ||
+                        draftFish?.longitude != original.fish.longitude ||
+                        draftFish?.holeNumber != original.fish.holeNumber ||
+                        photos != original.photos
+            } ?: (selectedSpecies != null && selectedFisherman != null)
+        }
+    }
 
     val luresSorted = remember(rawLures, colors) {
         rawLures.map { lure ->
@@ -407,23 +439,58 @@ fun AddFishScreen(
                     enabled = true
                 )
 
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri ->
+                        val hashcode = md5Hash(context, uri)
+                        val existing = photos.find { it.hashcode == hashcode }
+                        if (existing == null) {
+                            viewModel.addPhoto(
+                                Photo(
+                                    uri = uri.toString(),
+                                    hashcode = hashcode,
+                                    thumbnail = generateThumbnail(context, uri)
+                                )
+                            )
+                        }
+                    },
+                    onPhotoDeleted = { photo ->
+                        viewModel.deletePhoto(photo)
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 Button(
                     onClick = {
-                        if (selectedSpecies != null && selectedFisherman != null) {
-                            scope.launch {
-                                viewModel.upsertFish(fish)
-                                viewModel.clearDraftFish()
-                                navigateBack()
+                        scope.launch {
+                            viewModel.upsertFish(fish)
+                            viewModel.clearDraftFish()
+
+                            // Logic to identify the changes
+                            val originalPhotos = originalFish?.photos ?: emptyList()
+                            val currentPhotos = photos
+
+                            val newPhotos = currentPhotos.filter { current ->
+                                originalPhotos.none { it.id == current.id }
                             }
+
+                            val deletedPhotos = originalPhotos.filter { original ->
+                                currentPhotos.none { it.id == original.id }
+                            }
+
+                            viewModel.addFishPhotos(fish.id, newPhotos)
+                            viewModel.deleteFishPhotos(fish.id, deletedPhotos)
+
+                            navigateBack()
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    enabled = selectedSpecies != null && selectedFisherman != null,
+                    enabled = selectedSpecies != null && selectedFisherman != null && hasChanges,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(if (fishId == null) "Add Fish" else "Edit Fish")

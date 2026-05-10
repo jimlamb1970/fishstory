@@ -314,16 +314,6 @@ fun FishListScreen(
                                 includeEvent = eventId.isNullOrEmpty(),
                                 includeFisherman = fishermanId.isNullOrEmpty(),
                                 photos = emptyList(),
-                                onAddPhoto = null,
-                                onDeletePhoto = null,
-                                /* TODO - enable photos for fish cards
-                            onAddPhoto = { photo ->
-                                viewModel.addPhoto(photo)
-                            },
-                            onDeletePhoto = { photo ->
-                                viewModel.deletePhoto(photo)
-                            },
-                            */
                                 onClick = {
                                     navigateToFishDetails(fishDetails.id)
                                 },

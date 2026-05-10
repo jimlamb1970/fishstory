@@ -125,7 +125,7 @@ fun LureItem(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box {
-                        IconButton(onClick = { menuExpanded = true }) {
+                            IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More options")
                         }
                         DropdownMenu(
@@ -164,13 +164,8 @@ fun LureItem(
                 }
             }
 
-            if (onAddPhoto != null && onDeletePhoto != null) {
-                PhotoPickerRow(
-                    photos = photos,
-                    onPhotoSelected = { uri -> onAddPhoto(Photo(uri = uri.toString(), hashcode = "", thumbnail = null)) },
-                    onPhotoDeleted = { photo -> onDeletePhoto(photo) },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+            // TODO - Support adding and deleting photos here or just in the edit screen?
+            //if (onAddPhoto != null && onDeletePhoto != null) {
+            //}
     }
 }

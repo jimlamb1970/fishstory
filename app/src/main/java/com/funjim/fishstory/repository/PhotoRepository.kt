@@ -7,6 +7,7 @@ import android.util.Size
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.PhotoEventCrossRef
+import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.PhotoFishermanCrossRef
 import com.funjim.fishstory.model.PhotoLureCrossRef
 import com.funjim.fishstory.model.PhotoTripCrossRef
@@ -129,6 +130,25 @@ class PhotoRepository(
     suspend fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))
+        }
+    }
+
+    suspend fun addFishPhotos(fishId: String, photos: List<Photo>) {
+        photos.forEach { photo ->
+            val hash = photo.hashcode
+            val existing = photoDao.getPhotoIdByHash(hash)
+            if (existing != null) {
+                photoDao.addFishPhoto(PhotoFishCrossRef(existing, fishId))
+            } else {
+                photoDao.insertPhoto(photo)
+                photoDao.addFishPhoto(PhotoFishCrossRef(photo.id, fishId))
+            }
+        }
+    }
+
+    suspend fun deleteFishPhotos(fishId: String, photos: List<Photo>) {
+        photos.forEach { photo ->
+            photoDao.deleteFishPhoto(PhotoFishCrossRef(photo.id, fishId))
         }
     }
 }

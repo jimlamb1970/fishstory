@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,7 @@ import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
@@ -50,8 +52,6 @@ fun FishItem(
     includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
     photos: List<Photo>,
-    onAddPhoto: ((Photo) -> Unit)? = null,
-    onDeletePhoto: ((Photo) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -100,6 +100,22 @@ fun FishItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(IntrinsicSize.Min,
+                )
+            ) {
+                ReleasedChip(fish.isReleased)
+                Spacer(modifier = Modifier.height(4.dp))
+                ThumbnailBox(
+                    thumbnail = fish.photos.firstOrNull()?.thumbnail,
+                    imageVector = AppIcons.Default.LeapingFish
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -112,7 +128,7 @@ fun FishItem(
                             }
 */
                         },
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
                     if (fish.latitude != null && fish.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -178,19 +194,29 @@ fun FishItem(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
-                }
 
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box {
-                    IconButton(onClick = { menuExpanded = true }) {
+                        IconButton(onClick = { menuExpanded = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More options")
                     }
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null,
+                                )
+                            }
+                        )
                         if (onSetLocation != null) {
                             DropdownMenuItem(
                                 text = { Text("Use Current Location") },
@@ -300,19 +326,6 @@ fun FishItem(
                     }
                 }
             }
-        }
-
-        if (onAddPhoto != null && onDeletePhoto != null) {
-            PhotoPickerRow(
-                photos = photos,
-                onPhotoSelected = { uri ->
-                    scope.launch { onAddPhoto(Photo(uri = uri.toString(), hashcode = "", thumbnail = null)) }
-                },
-                onPhotoDeleted = { photo ->
-                    scope.launch { onDeletePhoto(photo) }
-                },
-                modifier = Modifier.padding(top = 8.dp)
-            )
         }
     }
 }

@@ -79,9 +79,14 @@ class MainActivity : ComponentActivity() {
     private val addFishViewModel: AddFishViewModel by viewModels {
         val fishRepo = (application as FishstoryApplication).fishRepository
         val lureRepo = (application as FishstoryApplication).lureRepository
+        val photoRepo = (application as FishstoryApplication).photoRepository
         val tripRepo = (application as FishstoryApplication).tripRepository
 
-        AddFishViewModelFactory(fishRepo = fishRepo, lureRepo = lureRepo, tripRepo = tripRepo)
+        AddFishViewModelFactory(
+            fishRepo = fishRepo,
+            lureRepo = lureRepo,
+            photoRepo = photoRepo,
+            tripRepo = tripRepo)
     }
 
     private val fishViewModel: FishViewModel by viewModels {
@@ -308,7 +313,7 @@ fun AppNavigation(
                     navController.navigate(route)
                 },
                 navigateBack = {
-                    navController.popBackStack()
+                    navController.popBackStack(route = "dashboard", inclusive = false)
                 }
             )
         }
@@ -354,7 +359,7 @@ fun AppNavigation(
                     navController.navigate("fishDetails/$fishId")
                 },
                 navigateBack = {
-                    navController.popBackStack()
+                    navController.popBackStack(route = "dashboard", inclusive = false)
                 }
             )
         }

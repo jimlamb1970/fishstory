@@ -5,8 +5,10 @@ import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithCounts
+import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
@@ -197,6 +199,10 @@ interface FishDao {
     suspend fun getFishById(id: String): Fish?
     @Query("SELECT * FROM fish_table WHERE id = :id")
     suspend fun getFish(id: String): Fish?
+
+    @Transaction
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFishWithPhotos(id: String): FishWithPhotos?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFish(fish: Fish)

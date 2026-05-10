@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -13,24 +12,19 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -40,6 +34,7 @@ import java.util.UUID
 class AddFishViewModel(
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel() {
     // UI State flows
@@ -154,6 +149,22 @@ class AddFishViewModel(
     suspend fun getFishById(id: String): Fish? {
         return fishRepo.getFish(id)
     }
+
+    suspend fun getFishWithPhotos(id: String): FishWithPhotos? {
+        return fishRepo.getFishWithPhotos(id)
+    }
+
+    fun addFishPhotos(fishId: String, photos: List<Photo>) {
+        viewModelScope.launch {
+            photoRepo.addFishPhotos(fishId, photos)
+        }
+    }
+    fun deleteFishPhotos(fishId: String, photos: List<Photo>) {
+        viewModelScope.launch {
+            photoRepo.deleteFishPhotos(fishId, photos)
+        }
+    }
+
     fun upsertFish(fish: Fish) {
         viewModelScope.launch {
             fishRepo.upsertFish(fish)
@@ -213,12 +224,20 @@ class AddFishViewModel(
     // In your FishViewModel
     private val _draftFish = MutableStateFlow<Fish?>(null)
     val draftFish = _draftFish.asStateFlow()
+    private val _fishPhotos = MutableStateFlow<List<Photo>>(emptyList())
+    val fishPhotos = _fishPhotos.asStateFlow()
 
     fun clearDraftFish() {
         _draftFish.value = null
+        _fishPhotos.value = emptyList()
     }
 
-    fun initDraftFish(fish: Fish?, tripId: String, eventId: String) {
+    fun initDraftFish(
+        fish: Fish?,
+        tripId: String,
+        eventId: String,
+        photos: List<Photo> = emptyList()
+    ) {
         // If fish is null, create a default "new" fish
         _draftFish.value = fish ?: Fish(
             id = UUID.randomUUID().toString(),
@@ -230,6 +249,7 @@ class AddFishViewModel(
             timestamp = System.currentTimeMillis(),
             holeNumber = 1
         )
+        _fishPhotos.value = photos
     }
 
     fun updateFisherman(fisherman: Fisherman) {
@@ -279,6 +299,14 @@ class AddFishViewModel(
         }
     }
 
+    fun addPhoto(photo: Photo) {
+        _fishPhotos.update { current -> current + photo }
+    }
+
+    fun deletePhoto(photo: Photo) {
+        _fishPhotos.update { current -> current - photo }
+    }
+
     fun updateDraftFish(transform: (Fish) -> Fish) {
         _draftFish.value?.let { current ->
             _draftFish.value = transform(current)
@@ -289,12 +317,13 @@ class AddFishViewModel(
 class AddFishViewModelFactory(
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddFishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AddFishViewModel(fishRepo, lureRepo, tripRepo) as T
+            return AddFishViewModel(fishRepo, lureRepo, photoRepo, tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

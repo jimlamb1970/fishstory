@@ -8,22 +8,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.ArrowLeft
-import androidx.compose.material.icons.automirrored.filled.ArrowRight
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -145,6 +141,8 @@ fun FishDetailScreen(
                 FishDetailContent(fish = fish)
             }
 
+            // TODO -- add ability to add/remove photos here
+
             // Navigation row
             if (fishList.size > 1) {
                 HorizontalDivider()
@@ -191,39 +189,7 @@ private fun FishDetailContent(fish: FishWithDetails) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Released / Kept badge
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = if (fish.isReleased)
-                MaterialTheme.colorScheme.secondaryContainer
-            else
-                MaterialTheme.colorScheme.primaryContainer
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = if (fish.isReleased) Icons.Default.RemoveCircle else Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = if (fish.isReleased)
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    else
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = if (fish.isReleased) "Released" else "Kept",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = if (fish.isReleased)
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    else
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        ReleasedChip(fish.isReleased)
 
         HorizontalDivider()
 
