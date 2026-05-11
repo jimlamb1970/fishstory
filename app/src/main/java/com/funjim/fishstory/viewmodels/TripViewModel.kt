@@ -483,9 +483,9 @@ class TripViewModel(
         }
     }
 
-    fun addTripPhoto(tripId: String, uri: Uri) {
+    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri)
+            photoRepo.addTripPhoto(tripId, uri, selected)
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -494,13 +494,14 @@ class TripViewModel(
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
 
-    fun addEventPhoto(eventId: String, uri: Uri) {
+    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addEventPhoto(eventId, uri)
+            photoRepo.addEventPhoto(eventId, uri, selected)
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
+
     fun deleteEventPhoto(eventId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }

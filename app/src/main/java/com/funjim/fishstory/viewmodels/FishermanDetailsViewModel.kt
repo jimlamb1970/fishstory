@@ -99,13 +99,14 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { repository.updateFisherman(fisherman) }
     }
 
-    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri)
+            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
+
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }

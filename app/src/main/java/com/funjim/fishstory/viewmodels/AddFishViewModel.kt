@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.google.android.gms.location.LocationServices
@@ -152,6 +154,10 @@ class AddFishViewModel(
 
     suspend fun getFishWithPhotos(id: String): FishWithPhotos? {
         return fishRepo.getFishWithPhotos(id)
+    }
+
+    suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
+        return photoRepo.getPhotoMetadata(uri)
     }
 
     fun addFishPhotos(fishId: String, photos: List<Photo>) {

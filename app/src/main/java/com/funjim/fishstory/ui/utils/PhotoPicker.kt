@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import android.Manifest
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Environment
@@ -85,21 +86,19 @@ fun PhotoPickerRow(
     photos: List<Photo>,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var tempUri by remember { mutableStateOf<Uri?>(null) }
     var fullScreenPhotoUri by remember { mutableStateOf<String?>(null) }
-    var largerBitmap by remember { mutableStateOf<ByteArray?>(null) }
     var photoToDelete by remember { mutableStateOf<Photo?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             uri?.let {
-                // val localUri = saveUriToInternalStorage(context, it)
-                // localUri?.let { onPhotoSelected(it) }
-                onPhotoSelected(it)
+                onPhotoSelected(uri)
             }
         }
     )
@@ -108,7 +107,7 @@ fun PhotoPickerRow(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
             if (success) {
-                tempUri?.let { onPhotoSelected(it) }
+                tempUri?.let { onPhotoTaken(it) }
             }
         }
     )
@@ -158,21 +157,12 @@ fun PhotoPickerRow(
 
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(photos) { photo ->
-                var useImage by remember { mutableStateOf(true) }
-                var useBitmap by remember { mutableStateOf(false) }
-                var isError by remember { mutableStateOf(false) }
-
                 Box(
                     modifier = Modifier
                         .size(100.dp)
                         .padding(4.dp)
                         .combinedClickable(
-                            onClick = {
-                                if (useImage == true)
-                                    fullScreenPhotoUri = photo.uri
-//                                if (useBitmap == true)
-//                                    largerBitmap = photo.thumbnail
-                            },
+                            onClick = { fullScreenPhotoUri = photo.uri },
                             onLongClick = { photoToDelete = photo }
                         )
                 ) {
@@ -230,39 +220,6 @@ fun PhotoPickerRow(
         }
     }
 
-    largerBitmap?.let { uri ->
-        Dialog(
-            onDismissRequest = { largerBitmap = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color.Black
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = largerBitmap,
-                        contentDescription = "Full Screen Photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                    IconButton(
-                        onClick = { largerBitmap = null },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     // Delete Confirmation Dialog
     photoToDelete?.let { photo ->
         AlertDialog(
@@ -287,34 +244,4 @@ fun PhotoPickerRow(
             }
         )
     }
-}
-
-private fun saveUriToInternalStorage(context: Context, uri: Uri): Uri? {
-    return try {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val file = File.createTempFile("GALLERY_${timeStamp}_", ".jpg", storageDir)
-        
-        inputStream?.use { input ->
-            FileOutputStream(file).use { output ->
-                input.copyTo(output)
-            }
-        }
-        Uri.fromFile(file)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-}
-
-private fun createImageUri(context: Context): Uri {
-    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-    val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-    val file = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-    return FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        file
-    )
 }

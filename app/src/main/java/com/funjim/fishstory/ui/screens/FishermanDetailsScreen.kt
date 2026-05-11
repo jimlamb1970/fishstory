@@ -132,7 +132,10 @@ fun FishermanDetailsScreen(
                             PhotoPickerRow(
                                 photos = fishermanPhotos,
                                 onPhotoSelected = { uri ->
-                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri)
+                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri, true)
+                                },
+                                onPhotoTaken = { uri ->
+                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri, false)
                                 },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteFishermanPhoto(fishermanId, photo.id)

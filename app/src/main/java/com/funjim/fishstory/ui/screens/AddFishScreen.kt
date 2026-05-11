@@ -442,16 +442,26 @@ fun AddFishScreen(
                 PhotoPickerRow(
                     photos = photos,
                     onPhotoSelected = { uri ->
-                        val hashcode = md5Hash(context, uri)
-                        val existing = photos.find { it.hashcode == hashcode }
-                        if (existing == null) {
+                        scope.launch {
+                            val metadata = viewModel.getPhotoMetadata(uri)
+                            val exists = photos.find { it.hashcode == metadata.hashcode }
+                            if (exists == null) {
+                                viewModel.addPhoto(
+                                    Photo(
+                                        uri = uri.toString(),
+                                        hashcode = metadata.hashcode,
+                                        thumbnail = metadata.thumbnail))
+                            }
+                        }
+                    },
+                    onPhotoTaken = { uri ->
+                        scope.launch {
+                            val metadata = viewModel.getPhotoMetadata(uri)
                             viewModel.addPhoto(
                                 Photo(
                                     uri = uri.toString(),
-                                    hashcode = hashcode,
-                                    thumbnail = generateThumbnail(context, uri)
-                                )
-                            )
+                                    hashcode = metadata.hashcode,
+                                    thumbnail = metadata.thumbnail))
                         }
                     },
                     onPhotoDeleted = { photo ->

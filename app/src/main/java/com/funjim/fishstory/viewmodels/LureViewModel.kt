@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -118,6 +119,13 @@ class LureViewModel(
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? {
         return repository.getLureWithPhotos(id)
+    }
+
+    suspend fun doesPhotoExist(uri: Uri): Boolean {
+        return photoRepo.doesPhotoExist(uri)
+    }
+    suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
+        return photoRepo.getPhotoMetadata(uri)
     }
 
     fun addLurePhotos(lureId: String, photos: List<Photo>) {

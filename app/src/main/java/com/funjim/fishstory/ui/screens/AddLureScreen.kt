@@ -215,16 +215,24 @@ fun AddLureScreen(
             PhotoPickerRow(
                 photos = photos,
                 onPhotoSelected = { uri ->
-                    val hashcode = md5Hash(context, uri)
-                    val existing = photos.find { it.hashcode == hashcode }
-                    if (existing == null) {
-                        photos = photos + (
-                            Photo(
+                    scope.launch {
+                        val metadata = viewModel.getPhotoMetadata(uri)
+                        val exists = photos.find { it.hashcode == metadata.hashcode }
+                        if (exists == null) {
+                            photos = photos + (Photo(
                                 uri = uri.toString(),
-                                hashcode = hashcode,
-                                thumbnail = generateThumbnail(context, uri)
-                            )
-                        )
+                                hashcode = metadata.hashcode,
+                                thumbnail = metadata.thumbnail))
+                        }
+                    }
+                },
+                onPhotoTaken = { uri ->
+                    scope.launch {
+                        val metadata = viewModel.getPhotoMetadata(uri)
+                        photos = photos + (Photo(
+                            uri = uri.toString(),
+                            hashcode = metadata.hashcode,
+                            thumbnail = metadata.thumbnail))
                     }
                 },
                 onPhotoDeleted = { photo -> photos = photos.filter { it != photo } },

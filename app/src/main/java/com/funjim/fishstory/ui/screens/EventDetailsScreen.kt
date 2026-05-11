@@ -347,7 +347,10 @@ fun EventDetailsScreen(
                         PhotoPickerRow(
                             photos = eventPhotos,
                             onPhotoSelected = { uri ->
-                                viewModel.addEventPhoto(eventId = eventId, uri = uri)
+                                viewModel.addEventPhoto(eventId = eventId, uri = uri, true)
+                            },
+                            onPhotoTaken = { uri ->
+                                viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
                             },
                             onPhotoDeleted = { photo ->
                                 viewModel.deleteEventPhoto(eventId, photo.id)

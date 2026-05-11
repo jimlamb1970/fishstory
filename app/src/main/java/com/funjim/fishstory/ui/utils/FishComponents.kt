@@ -182,12 +182,6 @@ fun FishItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
-                Text(
-                    "Status: ${if (fish.isReleased) "Released" else "Kept"}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
                 Text(
                     "At: ${dateFormatter.format(Date(fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
