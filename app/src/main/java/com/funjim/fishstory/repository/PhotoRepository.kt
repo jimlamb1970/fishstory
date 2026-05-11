@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import android.util.Size
 import com.funjim.fishstory.database.PhotoDao
@@ -57,7 +58,7 @@ class PhotoRepository(
     private val photoDao: PhotoDao
 ) {
     private fun getRotationAngle(uri: Uri): Float {
-        application.contentResolver.openInputStream(uri)?.use { input ->
+        context.contentResolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
             return when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
                 ExifInterface.ORIENTATION_ROTATE_90 -> 90f
@@ -77,24 +78,59 @@ class PhotoRepository(
         return rotated
     }
     private fun generateThumbnail(uri: Uri): ByteArray? {
-        val rotation = getRotationAngle(uri) // The helper we discussed
-        val bitmap = application.contentResolver.loadThumbnail(uri, Size(512, 512), null)
-
-        val correctedBitmap = if (rotation != 0f) {
-            bitmap
-        } else {
-            bitmap
+//        val bitmap = context.contentResolver.loadThumbnail(uri, Size(512, 512), null)
+        val bitmap = try {
+            // Try local first
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                context.contentResolver.loadThumbnail(uri, Size(200, 200), null)
+            } else {
+                decodeScaledBitmap(uri)
+            }
+        } catch (e: Exception) {
+            // Fall back to manual decode for cloud URIs
+            decodeScaledBitmap(uri)
         }
 
         val stream = ByteArrayOutputStream()
-        correctedBitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream)
         val bytes = stream.toByteArray()
 
-        correctedBitmap.recycle()
+        bitmap.recycle()
         return bytes
     }
+    private fun decodeScaledBitmap(uri: Uri): Bitmap {
+        val input = context.contentResolver.openInputStream(uri)
+            ?: throw IOException("Could not open stream for URI: $uri")
+
+        return input.use {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            BitmapFactory.decodeStream(it, null, options)
+
+            options.inSampleSize = calculateSampleSize(options, 200, 200)
+            options.inJustDecodeBounds = false
+
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+            } ?: throw IOException("Could not decode bitmap for URI: $uri")
+        }
+    }
+
+    private fun calculateSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height, width) = options.run { outHeight to outWidth }
+        var sampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2
+            val halfWidth = width / 2
+            while (halfHeight / sampleSize >= reqHeight && halfWidth / sampleSize >= reqWidth) {
+                sampleSize *= 2
+            }
+        }
+        return sampleSize
+    }
     private fun generateFileFingerprint(uri: Uri): String {
-        val resolver = application.contentResolver
+        val resolver = context.contentResolver
 
         val size = resolver.query(
             uri,
@@ -135,9 +171,9 @@ class PhotoRepository(
         try {
             val rotation = getRotationAngle(uri)
 
-            val photoFile = File(application.filesDir, "$metaHash.jpg")
+            val photoFile = File(context.filesDir, "$metaHash.jpg")
 
-            application.contentResolver.openInputStream(uri)?.use { input ->
+            context.contentResolver.openInputStream(uri)?.use { input ->
                 // 1. Decode the image from the stream
                 val originalBitmap = BitmapFactory.decodeStream(input)
 
