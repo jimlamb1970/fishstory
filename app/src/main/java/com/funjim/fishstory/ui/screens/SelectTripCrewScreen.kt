@@ -40,7 +40,7 @@ fun SelectTripCrewScreen(
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
+    val workingTackleBoxMap = remember(tripId) { mutableStateMapOf<String, String?>() }
 
     LaunchedEffect(tripTackleBoxMap) {
         // Only initialize if the map is currently empty and we have data to put in it

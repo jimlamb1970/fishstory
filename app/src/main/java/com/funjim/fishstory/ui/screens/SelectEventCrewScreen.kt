@@ -46,7 +46,7 @@ fun SelectEventCrewScreen(
     val scope = rememberCoroutineScope()
 
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
-    val workingTackleBoxMap = remember { mutableStateMapOf<String, String?>() }
+    val workingTackleBoxMap = remember(eventId) { mutableStateMapOf<String, String?>() }
 
     LaunchedEffect(eventTackleBoxMap) {
         // Only initialize if the map is currently empty and we have data to put in it
