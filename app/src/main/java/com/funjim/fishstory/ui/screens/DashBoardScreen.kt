@@ -411,9 +411,9 @@ fun DashboardGrid(
     onTripsClick: () -> Unit
 ) {
     val items = listOf(
-        Triple("Trips", Icons.Default.Map, onTripsClick),
+        Triple("Trips", AppIcons.Default.Boat, onTripsClick),
         Triple("Fish", AppIcons.Default.LeapingFish, onFishClick),
-        Triple("Fishermen", Icons.Default.Groups, onFishermenClick),
+        Triple("Fishermen", AppIcons.Default.Fisherman, onFishermenClick),
         Triple("Lures", AppIcons.Default.Lure, onLuresClick), // Or a custom hook icon
         Triple("Reports", Icons.Default.AutoGraph, onReportsClick), // Or a custom hook icon
         Triple("Settings", Icons.Default.Settings, onSettingsClick)

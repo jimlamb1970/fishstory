@@ -1,7 +1,9 @@
 package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -23,6 +25,7 @@ import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FishermanItem(
     fisherman: FishermanSummary,
@@ -50,7 +53,13 @@ fun FishermanItem(
     }
 
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { expanded = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.primary
@@ -62,55 +71,67 @@ fun FishermanItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            ThumbnailBox(
+                thumbnail = fisherman.photos.firstOrNull()?.thumbnail,
+                imageVector = AppIcons.Default.Fisherman
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     fisherman.fisherman.fullName,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold)
-                if (tripCount != 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Map,
-                            contentDescription = "Trip",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            "$tripCount",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Single Row for both Trip and Catch stats
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Trip Count
+                    if (fisherman.totalTrips != 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = AppIcons.Default.Boat,
+                                contentDescription = "Trips",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(36.dp) // Increased size
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "${fisherman.totalTrips}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
-                }
-                if (caughtCount != 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.Default.LeapingFish,
-                            contentDescription = "Fish",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        BoldingNumbersText(
-                            text = "Kept $keptCount of $caughtCount",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+
+                    // Catch Stats
+                    if (caughtCount != 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = AppIcons.Default.LeapingFish,
+                                contentDescription = "Fish",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp) // Increased size
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            BoldingNumbersText(
+                                text = "Kept $keptCount of $caughtCount",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                 }
             }
+
             Box {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                }
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
@@ -201,6 +222,7 @@ fun FishermanItemPreview() {
         FishermanItem(
             fisherman = FishermanSummary(
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
+                photos = emptyList(),
                 totalCatches = 10,
                 totalReleased = 2,
                 totalTrips = 5

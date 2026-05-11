@@ -99,6 +99,8 @@ class PhotoRepository(
         return bytes
     }
     private fun decodeScaledBitmap(uri: Uri): Bitmap {
+        val rotation = getRotationAngle(uri)
+
         val input = context.contentResolver.openInputStream(uri)
             ?: throw IOException("Could not open stream for URI: $uri")
 
@@ -112,7 +114,10 @@ class PhotoRepository(
             options.inJustDecodeBounds = false
 
             context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream, null, options)
+                val bitmap = BitmapFactory.decodeStream(stream, null, options) ?: throw IOException(
+                    "Could not decode bitmap for URI: $uri"
+                )
+                rotateBitmap(bitmap, rotation)
             } ?: throw IOException("Could not decode bitmap for URI: $uri")
         }
     }

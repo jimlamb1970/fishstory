@@ -151,7 +151,7 @@ fun TripItem(
 
                         if (fishermanCount != -1) {
                             Icon(
-                                imageVector = Icons.Default.Groups,
+                                imageVector = AppIcons.Default.Fisherman,
                                 contentDescription = "Fishermen count",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)

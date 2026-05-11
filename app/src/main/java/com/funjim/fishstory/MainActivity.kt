@@ -313,7 +313,7 @@ fun AppNavigation(
                     navController.navigate(route)
                 },
                 navigateBack = {
-                    navController.popBackStack(route = "dashboard", inclusive = false)
+                    navController.popBackStack()
                 }
             )
         }
@@ -359,7 +359,8 @@ fun AppNavigation(
                     navController.navigate("fishDetails/$fishId")
                 },
                 navigateBack = {
-                    navController.popBackStack(route = "dashboard", inclusive = false)
+//                    navController.popBackStack(route = "dashboard", inclusive = false)
+                    navController.popBackStack()
                 }
             )
         }

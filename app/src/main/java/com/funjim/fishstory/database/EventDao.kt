@@ -23,6 +23,7 @@ interface EventDao {
 """)
     fun getEventsForActiveTrips(): Flow<List<Event>>
 
+    @Transaction
     @Query(
         """
 WITH 
@@ -152,6 +153,7 @@ ORDER BY s.startTime ASC
         }
     }
 
+    @Transaction
     @Query(
         """
 WITH 

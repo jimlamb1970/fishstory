@@ -59,11 +59,9 @@ fun EventDetailsScreen(
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(eventId) {
-        viewModel.selectTrip(tripId)
         viewModel.selectEvent(eventId)
     }
 
-    val tripSummary by viewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val eventSummary by viewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val eventPhotos by viewModel.eventPhotos.collectAsState(initial = emptyList())
@@ -131,6 +129,16 @@ fun EventDetailsScreen(
 
     Scaffold(
         topBar = {
+            val currentEvent = eventSummary?.event
+            val currentTrip = eventSummary?.trip
+
+            val eventLat = currentEvent?.latitude
+            val tripLat = currentTrip?.latitude
+
+            // Precedence logic: Use Event if it exists, otherwise use Trip
+            val activeLat = eventLat ?: tripLat
+            val activeLng = currentEvent?.longitude ?: currentTrip?.longitude
+
             TopAppBar(
                 title = { Text("Event Details") },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -197,43 +205,12 @@ fun EventDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.MyLocation,
                                         contentDescription = null,
-                                        tint = if (eventSummary?.event?.latitude != null)
+                                        tint = if (activeLat != null)
                                             Color(0xFF4CAF50)
                                         else
                                             LocalContentColor.current)
                                 }
                             )
-
-                            if (tripSummary?.trip?.latitude != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Trip Location") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        scope.launch {
-                                            eventSummary?.event?.let { event ->
-                                                viewModel.upsertEvent(
-                                                    event.copy(
-                                                        latitude = tripSummary?.trip?.latitude,
-                                                        longitude = tripSummary?.trip?.longitude
-                                                    )
-                                                )
-                                                Toast.makeText(
-                                                    context,
-                                                    "Location updated",
-                                                    Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.LocationOn,
-                                            contentDescription = null,
-                                            tint = if (eventSummary?.event?.latitude != null)
-                                                Color(0xFF4CAF50)
-                                            else
-                                                LocalContentColor.current)
-                                    }
-                                )
-                            }
 
                             DropdownMenuItem(
                                 text = { Text("Select on Map") },
@@ -244,16 +221,19 @@ fun EventDetailsScreen(
                                 leadingIcon = {
                                     Icon(Icons.Default.Map,
                                         contentDescription = null,
-                                        tint = if (eventSummary?.event?.latitude != null)
+                                        tint = if (activeLat != null)
                                             Color(0xFF4CAF50)
                                         else
                                             LocalContentColor.current)
                                 }
                             )
 
-                            if (eventSummary?.event?.latitude != null) {
+                            if (activeLat != null && eventLat != null) {
                                 DropdownMenuItem(
-                                    text = { Text("Clear Location") },
+                                    text = {
+                                        if (tripLat == null) Text("Clear Location")
+                                        else Text("Reset Location")
+                                    },
                                     onClick = {
                                         menuExpanded = false
                                         eventSummary?.event?.let { event ->
@@ -261,7 +241,16 @@ fun EventDetailsScreen(
                                                 viewModel.upsertEvent(
                                                     event.copy(latitude = null, longitude = null)
                                                 )
-                                                Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
+                                                if (tripLat == null)
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Location cleared",
+                                                        Toast.LENGTH_SHORT).show()
+                                                else
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Location reset",
+                                                        Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     },
@@ -306,7 +295,11 @@ fun EventDetailsScreen(
                                 color = MaterialTheme.colorScheme.primary
 
                             )
-                            if (details.event.latitude != null && details.event.longitude != null) {
+                            val displayLat = details.event.latitude ?: details.trip.latitude
+                            val displayLng = details.event.longitude ?: details.trip.longitude
+                            val hasAnyLocation = displayLat != null && displayLng != null
+
+                            if (hasAnyLocation) {
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
@@ -316,7 +309,7 @@ fun EventDetailsScreen(
                                         .size(24.dp)
                                         .clickable {
                                             val mapUri =
-                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.event.latitude},${details.event.longitude}")
+                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}")
                                             val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                             try {
                                                 context.startActivity(intent)
@@ -329,6 +322,13 @@ fun EventDetailsScreen(
                                             }
                                         }
                                 )
+                                if (details.event.latitude == null) {
+                                    Text(
+                                        text = "(Trip)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                         Text(
@@ -362,7 +362,7 @@ fun EventDetailsScreen(
 
                             EventHighlightCard(
                                 summary = details,
-                                onClick = { navigateToFishList(tripId, eventId) }
+                                onClick = { navigateToFishList(details.trip.id, details.event.id) }
                             )
                         }
 
@@ -381,8 +381,8 @@ fun EventDetailsScreen(
                     var startDateMillis by remember { mutableLongStateOf(details.event.startTime) }
                     var endDateMillis by remember { mutableLongStateOf(details.event.endTime) }
 
-                    var tripStartDateMillis by remember { mutableLongStateOf(tripSummary?.trip?.startDate?: 0L) }
-                    var tripEndDateMillis by remember { mutableLongStateOf(tripSummary?.trip?.endDate?: 0L) }
+                    var tripStartDateMillis by remember { mutableLongStateOf(eventSummary?.trip?.startDate?: 0L) }
+                    var tripEndDateMillis by remember { mutableLongStateOf(eventSummary?.trip?.endDate?: 0L) }
 
                     AlertDialog(
                         onDismissRequest = { showEditEventDialog = false },

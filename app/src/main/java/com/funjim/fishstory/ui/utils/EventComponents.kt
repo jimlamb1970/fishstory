@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,6 +50,7 @@ fun EventItem(
     EventItem(
         event = eventSummary.event,
         modifier = modifier,
+        photos = eventSummary.photos,
         index = index,
         totalItems = totalItems,
         fishermenCount = eventSummary.fishermanCount,
@@ -67,6 +70,7 @@ fun EventItem(
 fun EventItem(
     event: Event,
     modifier: Modifier = Modifier,
+    photos: List<Photo> = emptyList(),
     index: Int = 0,
     totalItems: Int = 0,
     fishermenCount: Int = 0,
@@ -81,7 +85,7 @@ fun EventItem(
     onClearLocation: (() -> Unit)? = null
 ) {
     val dateTimeFormatter = remember {
-        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+        SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())
     }
     val now = System.currentTimeMillis()
 
@@ -103,7 +107,12 @@ fun EventItem(
     val context = LocalContext.current
 
     OutlinedCard(
-        modifier = modifier.fillMaxWidth().clickable { onClick() },
+        modifier = modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { menuExpanded = true }
+        ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.primary
@@ -115,6 +124,13 @@ fun EventItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            ThumbnailBox(
+                thumbnail = photos.firstOrNull()?.thumbnail,
+                imageVector = AppIcons.Default.Boat
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(event.name,
@@ -173,57 +189,58 @@ fun EventItem(
                 if (fishCaught != 0 || now >= event.startTime || fishermenCount != -1) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         if (fishCaught != 0 || now >= event.startTime) {
-                            Icon(
-                                imageVector = AppIcons.Default.LeapingFish,
-                                contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            BoldingNumbersText(
-                                text = "Kept $fishKept of $fishCaught",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            if (fishermenCount != -1) {
-                                Text(
-                                    text = " : ",
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = AppIcons.Default.LeapingFish,
+                                    contentDescription = "Fish",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                BoldingNumbersText(
+                                    text = "Kept $fishKept of $fishCaught",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
 
                         if (fishermenCount != -1) {
-                            Icon(
-                                imageVector = Icons.Default.Groups,
-                                contentDescription = "Fishermen count",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = fishermenCount.toString(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = " : ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Inventory,
-                                contentDescription = "Tackle Box count",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = tackleBoxCount.toString(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Default.Fisherman,
+                                    contentDescription = "Fishermen count",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = fishermenCount.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Inventory,
+                                    contentDescription = "Tackle Box count",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = tackleBoxCount.toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
@@ -234,104 +251,99 @@ fun EventItem(
                 (onClearLocation != null) ||
                 (onDelete != null)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                Box {
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        if (onSetLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Use Current Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSetLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.MyLocation,
+                                        contentDescription = null,
+                                        tint =
+                                            if (event.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
                         }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            if (onSetLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Current Location") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onSetLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.MyLocation,
-                                            contentDescription = null,
-                                            tint =
-                                                if (event.latitude != null) Color(0xFF4CAF50)
-                                                else LocalContentColor.current
-                                        )
-                                    }
-                                )
-                            }
 
-                            if (onSelectLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Select on Map") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onSelectLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Map,
-                                            contentDescription = null,
-                                            tint =
-                                                if (event.latitude != null) Color(0xFF4CAF50)
-                                                else LocalContentColor.current
-                                        )
-                                    }
-                                )
-                            }
+                        if (onSelectLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Select on Map") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSelectLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Map,
+                                        contentDescription = null,
+                                        tint =
+                                            if (event.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
 
-                            if (onUseTripLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Trip Location") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onUseTripLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.LocationOn,
-                                            contentDescription = null,
-                                            tint =
-                                                if (event.latitude != null) Color(0xFF4CAF50)
-                                                else LocalContentColor.current
-                                        )
-                                    }
-                                )
-                            }
+                        if (onUseTripLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Use Trip Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onUseTripLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint =
+                                            if (event.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
 
-                            if (event.latitude != null && onClearLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Clear Location") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onClearLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.LocationOff,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                )
-                            }
-                            if (onDelete != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onDelete()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                )
-                            }
+                        if (event.latitude != null && onClearLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Clear Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onClearLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.LocationOff,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
+                        if (onDelete != null) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
                         }
                     }
                 }

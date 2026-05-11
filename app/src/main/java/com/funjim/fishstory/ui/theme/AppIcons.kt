@@ -11,12 +11,22 @@ object AppIcons {
     // Mimic the Material library by creating a 'Default' inner object
     object Default {
         // Define your custom property. The getter converts the XML on demand.
+        val Boat: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_boat)
+        val Fisherman: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fisherman)
+        val Fishermen: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fishermen)
+        val FishingBoat: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fishing_boat)
         val LeapingFishWithFins: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish_with_fins)
         val LeapingFish: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish)
         val Lure: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_lure)
+        val Trip: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_trip)
 
         // You can add more icons here
         // val StarIcon: ImageVector @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_star)
