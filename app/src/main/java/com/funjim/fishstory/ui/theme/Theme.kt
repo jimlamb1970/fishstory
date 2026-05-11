@@ -45,6 +45,7 @@ var themeMap = mapOf(
     "Michigan State Spartans" to LightSpartansColorScheme,
     "Michigan Wolverines Light" to LightMichiganColorScheme,
     "Michigan Wolverines Dark" to DarkMichiganColorScheme,
+    "Minnesota Golden Gophers" to LightGophersColorScheme,
     "Green Bay Packers" to LightPackersColorScheme,
     "Minnesota Vikings" to LightVikingsColorScheme
 )

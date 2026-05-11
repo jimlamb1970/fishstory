@@ -21,7 +21,7 @@ val LightBadgersColorScheme = lightColorScheme(
     primaryContainer = BadgerWhiteContainer,
     onPrimaryContainer = BadgerBlack,
 
-    secondary = BadgerBlack, // Keeping it consistent
+    secondary = BadgerRed, // Keeping it consistent
     onSecondary = Color.White,
 
     tertiary = BadgerBlack,
