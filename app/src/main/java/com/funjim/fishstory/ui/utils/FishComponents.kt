@@ -49,11 +49,9 @@ fun FishItem(
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onSetLocation: (() -> Unit)? = null,
-    onSelectLocation: (() -> Unit)? = null,
-    onUseTripLocation: (() -> Unit)? = null,
-    onUseEventLocation: (() -> Unit)? = null,
-    onClearLocation: (() -> Unit)? = null
+    onSetLocation: () -> Unit,
+    onSelectLocation: () -> Unit,
+    onClearLocation: () -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -105,6 +103,16 @@ fun FishItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            val trip = fish.trip
+            val event = fish.event
+
+            val eventLat = event.latitude
+            val fishLat = fish.fish.latitude
+
+            // Precedence logic: Use Event if it exists, otherwise use Trip
+            val activeLat = fish.fish.latitude ?: event.latitude ?: trip.latitude
+            val activeLng = fish.fish.longitude ?: event.longitude ?: trip.longitude
+
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -113,7 +121,8 @@ fun FishItem(
                         },
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (fish.fish.latitude != null && fish.fish.longitude != null) {
+
+                    if (activeLat != null && activeLng != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -123,7 +132,7 @@ fun FishItem(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${fish.fish.latitude},${fish.fish.longitude}")
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
@@ -136,6 +145,13 @@ fun FishItem(
                                     }
                                 }
                         )
+                        if (fishLat == null) {
+                            Text(
+                                text = if (eventLat != null) "(Event)" else "(Trip)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
 
@@ -174,9 +190,6 @@ fun FishItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                    }
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
@@ -194,85 +207,46 @@ fun FishItem(
                                 )
                             }
                         )
-                        if (onSetLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Use Current Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSetLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.MyLocation,
-                                        contentDescription = null,
-                                        tint =
-                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
+                        DropdownMenuItem(
+                            text = { Text("Use Current Location") },
+                            onClick = {
+                                menuExpanded = false
+                                onSetLocation()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.MyLocation,
+                                    contentDescription = null,
+                                    tint =
+                                        if (fish.fish.latitude != null) Color(0xFF4CAF50)
+                                        else LocalContentColor.current
+                                )
+                            }
+                        )
 
-                        if (onSelectLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Select on Map") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSelectLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Map,
-                                        contentDescription = null,
-                                        tint =
-                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
+                        DropdownMenuItem(
+                            text = { Text("Select on Map") },
+                            onClick = {
+                                menuExpanded = false
+                                onSelectLocation()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Map,
+                                    contentDescription = null,
+                                    tint =
+                                        if (fish.fish.latitude != null) Color(0xFF4CAF50)
+                                        else LocalContentColor.current
+                                )
+                            }
+                        )
 
-                        if (onUseTripLocation != null) {
+                        if (activeLat != null) {
                             DropdownMenuItem(
-                                text = { Text("Use Trip Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onUseTripLocation()
+                                text = {
+                                    if (fishLat == null) Text("Reset Location")
+                                    else Text("Clear Location")
                                 },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint =
-                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
-
-                        if (onUseEventLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Use Segment Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onUseEventLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint =
-                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
-
-                        if (fish.fish.latitude != null && onClearLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Clear Location") },
                                 onClick = {
                                     menuExpanded = false
                                     onClearLocation()

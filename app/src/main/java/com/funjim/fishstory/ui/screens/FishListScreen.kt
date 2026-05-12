@@ -364,46 +364,6 @@ fun FishListScreen(
                                         )
                                     }
                                 },
-                                onUseTripLocation = if (trip?.latitude != null) {
-                                    {
-                                        scope.launch {
-                                            val fish = viewModel.getFishById(fishDetails.fish.id)
-                                            if (fish != null) {
-                                                viewModel.upsertFish(
-                                                    fish.copy(
-                                                        latitude = trip?.latitude,
-                                                        longitude = trip?.longitude
-                                                    )
-                                                )
-                                            }
-                                            Toast.makeText(
-                                                context,
-                                                "Location updated",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                } else null,
-                                onUseEventLocation = if (event?.latitude != null) {
-                                    {
-                                        scope.launch {
-                                            val fish = viewModel.getFishById(fishDetails.fish.id)
-                                            if (fish != null) {
-                                                viewModel.upsertFish(
-                                                    fish.copy(
-                                                        latitude = event?.latitude,
-                                                        longitude = event?.longitude
-                                                    )
-                                                )
-                                            }
-                                            Toast.makeText(
-                                                context,
-                                                "Location updated",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                } else null,
                                 onSelectLocation = {
                                     fishToUpdateLocation = fishDetails
                                     locationPickerFish.openPicker()

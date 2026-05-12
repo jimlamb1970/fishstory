@@ -84,12 +84,14 @@ fun AddFishScreen(
                         fish.fish.tripId,
                         fish.fish.eventId,
                         fish.photos)
+                    viewModel.selectTrip(fish.fish.tripId)
                     viewModel.selectEvent(fish.fish.eventId)
                     viewModel.selectFisherman(fish.fish.fishermanId)
                     viewModel.selectTackleBox("")
                 }
             } else {
                 viewModel.initDraftFish(null, tripId, eventId)
+                viewModel.selectEvent(tripId)
                 viewModel.selectEvent(eventId)
                 viewModel.selectFisherman(null)
                 viewModel.selectTackleBox("")
@@ -101,7 +103,9 @@ fun AddFishScreen(
     val speciesList by viewModel.species.collectAsState(initial = emptyList())
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
 
+    val selectedTrip by viewModel.selectedTrip.collectAsState(initial = null)
     val selectedEvent by viewModel.selectedEvent.collectAsState(initial = null)
+
     val eventFishermen by viewModel.eventFishermen.collectAsState(initial = emptyList())
     val fishermanTackleBoxMap by viewModel.fishermanTackleBoxMap.collectAsState(initial = emptyMap())
     val rawLures by viewModel.tackleBoxWithLures.collectAsState(initial = emptyList())
@@ -403,12 +407,27 @@ fun AddFishScreen(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (fish.latitude != null && fish.longitude != null) {
+
+                    val tripLat = selectedTrip?.latitude
+                    val eventLat = selectedEvent?.latitude
+                    val fishLat = fish.latitude
+
+                    // Precedence logic: Use Event if it exists, otherwise use Trip
+                    val activeLat = fishLat ?: eventLat ?: tripLat
+
+                    if (activeLat != null) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "GPS Location",
                             tint = MaterialTheme.colorScheme.primary
                         )
+                        if (fishLat == null) {
+                            Text(
+                                text = if (eventLat != null) "(Event)" else "(Trip)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                     }
 
