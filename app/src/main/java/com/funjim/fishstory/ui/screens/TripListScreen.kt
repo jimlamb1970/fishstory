@@ -113,7 +113,6 @@ fun TripListScreen(
                 showMenu = false
                 if (viewModel.hasLocationPermission()) {
                     scope.launch {
-                        @SuppressLint("MissingPermission")
                         val location = viewModel.fetchLocation()
                         if (location != null) {
                             viewModel.saveTrip(

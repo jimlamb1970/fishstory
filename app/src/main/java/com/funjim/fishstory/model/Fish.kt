@@ -96,43 +96,62 @@ data class FishWithPhotos(
 )
 
 data class FishWithDetails(
-    val id: String,
-    val speciesName: String,
-    val fishermanName: String,
-    val lureName: String?,
+    @Embedded val fish: Fish,
+
+    @Relation(
+        parentColumn = "speciesId",
+        entityColumn = "id"
+    )
+    val species: Species?,
+
+    @Relation(
+        parentColumn = "fishermanId",
+        entityColumn = "id"
+    )
+    val fisherman: Fisherman?,
+
+    @Relation(
+        parentColumn = "tripId",
+        entityColumn = "id"
+    )
+    val trip: Trip,
+
+    @Relation(
+        parentColumn = "eventId",
+        entityColumn = "id"
+    )
+    val event: Event,
+
+    @Relation(
+        parentColumn = "lureId",
+        entityColumn = "id"
+    )
+    val lure: Lure?,
+
     val lurePrimaryColorName: String?,
     val lureSecondaryColorName: String?,
-    val lureGlows: Boolean?,
     val lureGlowColorName: String?,
-    val length: Double,
-    val isReleased: Boolean,
-    val timestamp: Long,
-    val latitude: Double?,
-    val longitude: Double?,
-    val eventId: String,
-    val eventName: String,
-    val tripId: String,
-    val tripName: String,
-    val holeNumber: Int? = null,
+
+    // If you need the photo specifically for this fish
     @Relation(
-        parentColumn = "id",        // Fish ID
-        entityColumn = "id",        // Photo ID
+        parentColumn = "id", // Fish ID
+        entityColumn = "id", // Photo ID
         associateBy = Junction(
             value = PhotoFishCrossRef::class,
             parentColumn = "fishId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>
+    val photos: List<Photo> = emptyList()
 ) {
     val fullLureName: String
         get() {
-            if (lureName == null) return "No Lure"
+            if (lure == null) return "No Lure"
             val colors = listOfNotNull(lurePrimaryColorName, lureSecondaryColorName)
                 .joinToString("/")
-            val glow = if (lureGlows == true) " (Glow: $lureGlowColorName)" else ""
+            val glow = if (lure.glows) " (Glow: ${lureGlowColorName})" else ""
 
-            return if (colors.isEmpty()) "$lureName$glow" else "$lureName ($colors)$glow"
+            return if (colors.isEmpty()) "${lure.name}$glow" else "${lure.name} ($colors)$glow"
         }
 }
 

@@ -344,7 +344,7 @@ private fun ReportsList(
 @Composable
 fun SpeciesBarChart(fishList: List<FishWithDetails>) {
     val speciesCounts = remember(fishList) {
-        fishList.groupingBy { it.speciesName }.eachCount()
+        fishList.groupingBy { it.species?.name }.eachCount()
     }
 
     val labels = remember(speciesCounts) { speciesCounts.keys.toList() }
@@ -388,7 +388,7 @@ fun FishermanBarChart(
     fishList: List<FishWithDetails>
 ) {
     val fishermanCounts = remember(fishList) {
-        fishList.groupingBy { it.fishermanName }.eachCount()
+        fishList.groupingBy { it.fisherman?.fullName }.eachCount()
     }
     val labels = remember(fishermanCounts) { fishermanCounts.keys.toList() }
     val values = remember(fishermanCounts) { fishermanCounts.values.map { it.toFloat() } }
@@ -433,7 +433,7 @@ fun FishermanBarChart(
 @Composable
 fun FishermanPieChart(fishList: List<FishWithDetails>) {
     val fishermanCounts = remember(fishList) {
-        fishList.groupingBy { it.fishermanName }.eachCount()
+        fishList.groupingBy { it.fisherman?.fullName }.eachCount()
             .entries
             .sortedByDescending { it.value }
     }
@@ -531,20 +531,20 @@ private val SPECIES_COLORS = listOf(
 fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
     // All unique species, sorted for a stable legend order
     val allSpecies = remember(fishList) {
-        fishList.map { it.speciesName }.distinct().sorted()
+        fishList.map { it.species?.name ?: "" }.distinct().sorted()
     }
 
     // All unique fishermen, sorted for stable x-axis order
     val allFishermen = remember(fishList) {
-        fishList.map { it.fishermanName }.distinct().sorted()
+        fishList.map { it.fisherman?.fullName ?: "" }.distinct().sorted()
     }
 
     // For each species (one series per species), build a list of counts
     // indexed by fisherman position. Missing combinations = 0.
     val seriesData: List<List<Float>> = remember(fishList, allSpecies, allFishermen) {
-        val countMap = fishList.groupBy { it.fishermanName }
+        val countMap = fishList.groupBy { it.fisherman?.fullName }
             .mapValues { (_, catches) ->
-                catches.groupingBy { it.speciesName }.eachCount()
+                catches.groupingBy { it.species?.name }.eachCount()
             }
         allSpecies.map { species ->
             allFishermen.map { fisherman ->
@@ -628,7 +628,7 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
         fishList.forEach { fish ->
             // Assumes FishWithDetails has a timestamp (Long epoch ms) field called `caughtAt`
             val hour = Instant
-                .ofEpochMilli(fish.timestamp)
+                .ofEpochMilli(fish.fish.timestamp)
                 .atZone(ZoneId.systemDefault())
                 .hour
             counts[hour]++
@@ -728,13 +728,13 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
         val counts = IntArray(sizeBuckets.size)
         fishList.forEach { fish ->
             val bucket = when {
-                fish.length <= 8 -> 0
-                fish.length <= 10 -> 1
-                fish.length <= 12 -> 2
-                fish.length <= 14 -> 3
-                fish.length <= 16 -> 4
-                fish.length <= 18 -> 5
-                fish.length <= 20 -> 6
+                fish.fish.length <= 8 -> 0
+                fish.fish.length <= 10 -> 1
+                fish.fish.length <= 12 -> 2
+                fish.fish.length <= 14 -> 3
+                fish.fish.length <= 16 -> 4
+                fish.fish.length <= 18 -> 5
+                fish.fish.length <= 20 -> 6
                 else              -> 7
             }
             counts[bucket]++

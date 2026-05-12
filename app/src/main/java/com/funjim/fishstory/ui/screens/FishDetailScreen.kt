@@ -37,7 +37,7 @@ fun FishDetailScreen(
 
     // Find initial index — if fish is deleted or list changes, clamp to valid range
     val initialIndex = remember(fishList, initialFishId) {
-        fishList.indexOfFirst { it.id == initialFishId }.coerceAtLeast(0)
+        fishList.indexOfFirst { it.fish.id == initialFishId }.coerceAtLeast(0)
     }
 
     var currentIndex by remember(initialIndex) { mutableIntStateOf(initialIndex) }
@@ -58,7 +58,7 @@ fun FishDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = fish?.speciesName ?: "Fish Detail",
+                        text = fish?.species?.name ?: "Fish Detail",
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -189,34 +189,34 @@ private fun FishDetailContent(fish: FishWithDetails) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ReleasedChip(fish.isReleased)
+        ReleasedChip(fish.fish.isReleased)
 
         HorizontalDivider()
 
         // Core details
-        DetailRow(label = "Species", value = fish.speciesName)
-        DetailRow(label = "Fisherman", value = fish.fishermanName)
-        DetailRow(label = "Length", value = "${fish.length}\"")
-        DetailRow(label = "Caught", value = dateFormatter.format(Date(fish.timestamp)))
+        DetailRow(label = "Species", value = fish.species?.name ?: "Unknown")
+        DetailRow(label = "Fisherman", value = fish.fisherman?.fullName ?: "Unknown")
+        DetailRow(label = "Length", value = "${fish.fish.length}\"")
+        DetailRow(label = "Caught", value = dateFormatter.format(Date(fish.fish.timestamp)))
 
-        fish.holeNumber?.let {
+        fish.fish.holeNumber?.let {
             DetailRow(label = "Hole #", value = it.toString())
         }
 
         HorizontalDivider()
 
         // Lure section
-        if (fish.lureName != null) {
+        if (fish.lure != null) {
             Text(
                 text = "Lure",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
-            DetailRow(label = "Name", value = fish.lureName)
+            DetailRow(label = "Name", value = fish.lure.name)
             fish.lurePrimaryColorName?.let { DetailRow(label = "Primary Color", value = it) }
             fish.lureSecondaryColorName?.let { DetailRow(label = "Secondary Color", value = it) }
-            if (fish.lureGlows == true) {
+            if (fish.lure.glows) {
                 DetailRow(
                     label = "Glows",
                     value = fish.lureGlowColorName?.let { "Yes — $it" } ?: "Yes"
@@ -227,7 +227,7 @@ private fun FishDetailContent(fish: FishWithDetails) {
         }
 
         // Location section
-        if (fish.latitude != null && fish.longitude != null) {
+        if (fish.fish.latitude != null && fish.fish.longitude != null) {
             HorizontalDivider()
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -246,8 +246,8 @@ private fun FishDetailContent(fish: FishWithDetails) {
                     fontWeight = FontWeight.Bold
                 )
             }
-            DetailRow(label = "Lat", value = "%.5f".format(fish.latitude))
-            DetailRow(label = "Lon", value = "%.5f".format(fish.longitude))
+            DetailRow(label = "Lat", value = "%.5f".format(fish.fish.latitude))
+            DetailRow(label = "Lon", value = "%.5f".format(fish.fish.longitude))
         }
 
         Spacer(modifier = Modifier.height(16.dp))

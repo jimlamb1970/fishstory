@@ -4,15 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
@@ -51,8 +46,7 @@ fun FishItem(
     includeTrip: Boolean = false,
     includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
-    photos: List<Photo>,
-    onClick: (() -> Unit)? = null,
+    onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
@@ -64,7 +58,6 @@ fun FishItem(
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -81,13 +74,9 @@ fun FishItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .then(
-                // Only add clickable if the lambda isn't null
-                if (onClick != null) {
-                    Modifier.clickable(onClick = onClick)
-                } else {
-                    Modifier
-                }
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
@@ -106,7 +95,7 @@ fun FishItem(
                     .width(IntrinsicSize.Min,
                 )
             ) {
-                ReleasedChip(fish.isReleased)
+                ReleasedChip(fish.fish.isReleased)
                 Spacer(modifier = Modifier.height(4.dp))
                 ThumbnailBox(
                     thumbnail = fish.photos.firstOrNull()?.thumbnail,
@@ -120,17 +109,11 @@ fun FishItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = buildString {
-                            append("${fish.speciesName} - ${fish.length}\"")
-                            // TODO show hole number
-/*
-                            if (fish.holeNumber != null) {
-                                append(" (Hole #${fish.holeNumber})")
-                            }
-*/
+                            append("${fish.species?.name} - ${fish.fish.length}\"")
                         },
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (fish.latitude != null && fish.longitude != null) {
+                    if (fish.fish.latitude != null && fish.fish.longitude != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -140,7 +123,7 @@ fun FishItem(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${fish.latitude},${fish.longitude}")
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${fish.fish.latitude},${fish.fish.longitude}")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
@@ -158,21 +141,21 @@ fun FishItem(
 
                 if (includeTrip)
                     Text(
-                        "Trip: ${fish.tripName}",
+                        "Trip: ${fish.trip.name}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
                 if (includeEvent)
                     Text(
-                        "Event: ${fish.eventName}",
+                        "Event: ${fish.event.name}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
                 if (includeFisherman)
                     Text(
-                        "Caught by: ${fish.fishermanName}",
+                        "Caught by: ${fish.fisherman?.fullName}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -183,7 +166,7 @@ fun FishItem(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    "At: ${dateFormatter.format(Date(fish.timestamp))}",
+                    "At: ${dateFormatter.format(Date(fish.fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -223,7 +206,7 @@ fun FishItem(
                                         imageVector = Icons.Default.MyLocation,
                                         contentDescription = null,
                                         tint =
-                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
                                             else LocalContentColor.current
                                     )
                                 }
@@ -242,7 +225,7 @@ fun FishItem(
                                         imageVector = Icons.Default.Map,
                                         contentDescription = null,
                                         tint =
-                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
                                             else LocalContentColor.current
                                     )
                                 }
@@ -261,7 +244,7 @@ fun FishItem(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = null,
                                         tint =
-                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
                                             else LocalContentColor.current
                                     )
                                 }
@@ -280,14 +263,14 @@ fun FishItem(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = null,
                                         tint =
-                                            if (fish.latitude != null) Color(0xFF4CAF50)
+                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
                                             else LocalContentColor.current
                                     )
                                 }
                             )
                         }
 
-                        if (fish.latitude != null && onClearLocation != null) {
+                        if (fish.fish.latitude != null && onClearLocation != null) {
                             DropdownMenuItem(
                                 text = { Text("Clear Location") },
                                 onClick = {
@@ -322,184 +305,4 @@ fun FishItem(
             }
         }
     }
-}
-
-@Composable
-fun MapPickerSelectionDialog(
-    initialLatLng: LatLng,
-    onDismiss: () -> Unit,
-    onConfirm: (LatLng) -> Unit
-) {
-    var selectedLocation by remember { mutableStateOf(initialLatLng) }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.weight(1f)) {
-                    MapLibreView(
-                        modifier = Modifier.fillMaxSize(),
-                        initialLatLng = selectedLocation,
-                        onMapClick = { selectedLocation = it },
-                        markerPosition = selectedLocation
-                    )
-                    
-                    Text(
-                        "Tap map to set location",
-                        modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black
-                    )
-                }
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(onClick = onDismiss) { Text("Cancel") }
-                    Button(onClick = { onConfirm(selectedLocation) }) { Text("Update Location") }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ManageSpeciesDialog(
-    species: List<Species>,
-    onDismiss: () -> Unit,
-    onAddSpecies: (String) -> Unit,
-    onDeleteSpecies: (Species) -> Unit
-) {
-    var newSpeciesName by remember { mutableStateOf("") }
-    val sortedSpecies = remember(species) { species.sortedBy { it.name } }
-
-    var speciesToDelete by remember { mutableStateOf<Species?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Manage Species") },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth().heightIn(max = 450.dp)) {
-                OutlinedTextField(
-                    value = newSpeciesName,
-                    onValueChange = { newSpeciesName = it },
-                    placeholder = { Text("New Species") },
-                    label = { Text("Add New Species") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (newSpeciesName.isNotBlank()) {
-                                onAddSpecies(newSpeciesName.trim())
-                                newSpeciesName = ""
-                            }
-                        }
-                    ),
-                    trailingIcon = {
-                        IconButton(
-                            enabled = newSpeciesName.isNotBlank(),
-                            onClick = {
-                                onAddSpecies(newSpeciesName.trim())
-                                newSpeciesName = ""
-                            }
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
-                        }
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (sortedSpecies.isEmpty()) {
-                    // Default message for empty list
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "No fish species added yet.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        itemsIndexed(sortedSpecies, key = { _, species -> species.id }) { index, species ->
-                            // Calculate the background color based on the index
-                            val backgroundColor = if (index % 2 == 0) {
-                                MaterialTheme.colorScheme.surface
-                            } else {
-                                // Use a very light tint of your primary or surfaceVariant
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                            }
-
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        text = species.name,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                },
-                                trailingContent = {
-                                    IconButton(onClick = { speciesToDelete = species }) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Delete",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                },
-                                colors = ListItemDefaults.colors(
-                                    containerColor = backgroundColor
-                                )
-                            )
-                            HorizontalDivider(thickness = 0.5.dp)
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) { Text("Close") }
-        }
-    )
-
-    // Confirmation Sub-Dialog
-    speciesToDelete?.let { species ->
-        AlertDialog(
-            onDismissRequest = { speciesToDelete = null },
-            title = { Text("Delete Species?") },
-            text = { Text("Are you sure you want to delete '${species.name}'? This cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDeleteSpecies(species)
-                        speciesToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { speciesToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-
 }

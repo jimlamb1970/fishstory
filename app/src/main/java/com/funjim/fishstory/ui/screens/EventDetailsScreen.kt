@@ -58,6 +58,8 @@ fun EventDetailsScreen(
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(eventId) {
+        // TODO -- selectTrip needs to be done as well as selectEvent
+        viewModel.selectTrip(tripId)
         viewModel.selectEvent(eventId)
     }
 

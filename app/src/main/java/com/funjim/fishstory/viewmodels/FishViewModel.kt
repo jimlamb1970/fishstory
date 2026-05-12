@@ -252,12 +252,12 @@ class FishViewModel(
 
     private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {
         val sorted = when (order) {
-            FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.timestamp }
-            FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.length }
+            FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.fish.timestamp }
+            FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.fish.length }
             FishSortOrder.LURE -> list.sortedBy { it.fullLureName }
-            FishSortOrder.SPECIES_AZ -> list.sortedBy { it.speciesName }
-            FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fishermanName }
-            FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.holeNumber ?: 999 }
+            FishSortOrder.SPECIES_AZ -> list.sortedBy { it.species?.name ?: "" }
+            FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fisherman?.fullName ?: "" }
+            FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.fish.holeNumber ?: 999 }
             else -> list
         }
         return if (reversed) sorted.reversed() else sorted

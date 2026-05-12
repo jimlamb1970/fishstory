@@ -103,13 +103,13 @@ fun FishListScreen(
 
     val locationPickerFish = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
-        existingLng = fishToUpdateLocation?.longitude,
+        existingLat = fishToUpdateLocation?.fish?.latitude,  // Passed from your DB object
+        existingLng = fishToUpdateLocation?.fish?.longitude,
         onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             fishToUpdateLocation?.let { fishDetails ->
                 scope.launch {
-                    val fish = viewModel.getFishById(fishDetails.id)
+                    val fish = viewModel.getFishById(fishDetails.fish.id)
                     if (fish != null) {
                         viewModel.upsertFish(fish.copy(latitude = lat, longitude = lng))
                     }
@@ -304,7 +304,7 @@ fun FishListScreen(
                         val totalItems = fishForScope.size
                         itemsIndexed(
                             fishForScope,
-                            key = { _, item -> item.id }
+                            key = { _, item -> item.fish.id }
                         ) { index, fishDetails ->
                             FishItem(
                                 fish = fishDetails,
@@ -313,22 +313,21 @@ fun FishListScreen(
                                 includeTrip = tripId.isNullOrEmpty(),
                                 includeEvent = eventId.isNullOrEmpty(),
                                 includeFisherman = fishermanId.isNullOrEmpty(),
-                                photos = emptyList(),
                                 onClick = {
-                                    navigateToFishDetails(fishDetails.id)
+                                    navigateToFishDetails(fishDetails.fish.id)
                                 },
                                 onEdit = {
                                     scope.launch {
                                         onAddFish(
-                                            fishDetails.tripId,
-                                            fishDetails.eventId,
-                                            fishDetails.id
+                                            fishDetails.trip.id,
+                                            fishDetails.event.id,
+                                            fishDetails.fish.id
                                         )
                                     }
                                 },
                                 onDelete = {
                                     scope.launch {
-                                        fishToDelete = viewModel.getFishById(fishDetails.id)
+                                        fishToDelete = viewModel.getFishById(fishDetails.fish.id)
                                     }
                                 },
                                 onSetLocation = {
@@ -340,7 +339,7 @@ fun FishListScreen(
                                         scope.launch {
                                             val location = viewModel.fetchLocation()
                                             if (location != null) {
-                                                val fish = viewModel.getFishById(fishDetails.id)
+                                                val fish = viewModel.getFishById(fishDetails.fish.id)
                                                 if (fish != null) {
                                                     viewModel.upsertFish(
                                                         fish.copy(
@@ -368,7 +367,7 @@ fun FishListScreen(
                                 onUseTripLocation = if (trip?.latitude != null) {
                                     {
                                         scope.launch {
-                                            val fish = viewModel.getFishById(fishDetails.id)
+                                            val fish = viewModel.getFishById(fishDetails.fish.id)
                                             if (fish != null) {
                                                 viewModel.upsertFish(
                                                     fish.copy(
@@ -388,7 +387,7 @@ fun FishListScreen(
                                 onUseEventLocation = if (event?.latitude != null) {
                                     {
                                         scope.launch {
-                                            val fish = viewModel.getFishById(fishDetails.id)
+                                            val fish = viewModel.getFishById(fishDetails.fish.id)
                                             if (fish != null) {
                                                 viewModel.upsertFish(
                                                     fish.copy(
@@ -411,7 +410,7 @@ fun FishListScreen(
                                 },
                                 onClearLocation = {
                                     scope.launch {
-                                        val fish = viewModel.getFishById(fishDetails.id)
+                                        val fish = viewModel.getFishById(fishDetails.fish.id)
                                         if (fish != null) {
                                             viewModel.upsertFish(
                                                 fish.copy(

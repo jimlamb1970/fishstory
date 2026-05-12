@@ -256,28 +256,28 @@ fun TripItem(
                             }
                         }
                     }
+                }
 
-                    val caughtCount = trip.totalCaught
-                    val keptCount = trip.totalKept
-                    val now = System.currentTimeMillis()
-                    if (caughtCount != 0  || now >= trip.trip.startDate) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = AppIcons.Default.LeapingFish,
-                                    contentDescription = "Fish",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                BoldingNumbersText(
-                                    text = "Kept $keptCount of $caughtCount",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
+                val caughtCount = trip.totalCaught
+                val keptCount = trip.totalKept
+                val now = System.currentTimeMillis()
+                if (caughtCount != 0  || now >= trip.trip.startDate) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = AppIcons.Default.LeapingFish,
+                                contentDescription = "Fish",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            BoldingNumbersText(
+                                text = "Kept $keptCount of $caughtCount",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
                         }
                     }
                 }

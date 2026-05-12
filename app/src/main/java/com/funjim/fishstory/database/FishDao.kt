@@ -8,7 +8,6 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithCounts
-import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
@@ -21,42 +20,20 @@ interface FishDao {
     @Query(
         """
         SELECT 
-            fish_table.id, 
-            species_table.name AS speciesName, 
-            (CASE 
-                WHEN fisherman_table.nickname IS NOT NULL AND fisherman_table.nickname != '' 
-                THEN fisherman_table.firstName || ' "' || fisherman_table.nickname || '" ' || fisherman_table.lastName 
-                ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
-            END) AS fishermanName, 
-            lure_table.name AS lureName,
-            primary_color.name AS lurePrimaryColorName, 
-            secondary_color.name AS lureSecondaryColorName,
-            lure_table.glows AS lureGlows,
-            glow_color_table.name AS lureGlowColorName,
-            fish_table.length, 
-            fish_table.isReleased,
-            fish_table.timestamp, 
-            fish_table.latitude, 
-            fish_table.longitude,
-            fish_table.eventId,
-            event_table.name AS eventName,
-            fish_table.tripId,
-            trip_table.name AS tripName,
-            fish_table.holeNumber
-        FROM fish_table
-        INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN event_table ON fish_table.eventId = event_table.id
-        INNER JOIN species_table ON fish_table.speciesId = species_table.id
-        INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
-        LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
-        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
-        LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
-        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
-          AND (:eventId IS NULL OR fish_table.eventId = :eventId)
-          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
-          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
-        ORDER BY fish_table.timestamp DESC
+            f.*, 
+            pc.name AS lurePrimaryColorName, 
+            sc.name AS lureSecondaryColorName,
+            gc.name AS lureGlowColorName
+        FROM fish_table AS f
+        LEFT JOIN lure_table AS l ON f.lureId = l.id
+        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
+        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
+        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
+        WHERE (:tripId IS NULL OR f.tripId = :tripId)
+          AND (:eventId IS NULL OR f.eventId = :eventId)
+          AND (:fishermanId IS NULL OR f.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR f.lureId = :lureId)
+        ORDER BY f.timestamp DESC
     """
     )
     fun getFishWithDetails(
@@ -70,39 +47,17 @@ interface FishDao {
     @Query(
         """
         SELECT 
-            fish_table.id, 
-            species_table.name AS speciesName, 
-            (CASE 
-                WHEN fisherman_table.nickname IS NOT NULL AND fisherman_table.nickname != '' 
-                THEN fisherman_table.firstName || ' "' || fisherman_table.nickname || '" ' || fisherman_table.lastName 
-                ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
-            END) AS fishermanName, 
-            lure_table.name AS lureName,
-            primary_color.name AS lurePrimaryColorName, 
-            secondary_color.name AS lureSecondaryColorName,
-            lure_table.glows AS lureGlows,
-            glow_color_table.name AS lureGlowColorName,
-            fish_table.length, 
-            fish_table.isReleased,
-            fish_table.timestamp, 
-            fish_table.latitude, 
-            fish_table.longitude,
-            fish_table.eventId,
-            event_table.name AS eventName,
-            fish_table.tripId,
-            trip_table.name AS tripName,
-            fish_table.holeNumber
-        FROM fish_table
-        INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN event_table ON fish_table.eventId = event_table.id
-        INNER JOIN species_table ON fish_table.speciesId = species_table.id
-        INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
-        LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
-        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
-        LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
-        WHERE fish_table.tripId = :tripId
-        ORDER BY fish_table.timestamp DESC
+            f.*, 
+            pc.name AS lurePrimaryColorName, 
+            sc.name AS lureSecondaryColorName,
+            gc.name AS lureGlowColorName
+        FROM fish_table AS f
+        LEFT JOIN lure_table AS l ON f.lureId = l.id
+        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
+        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
+        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
+        WHERE f.tripId = :tripId
+        ORDER BY f.timestamp DESC
     """
     )
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>>
@@ -111,39 +66,17 @@ interface FishDao {
     @Query(
         """
         SELECT 
-            fish_table.id, 
-            species_table.name AS speciesName, 
-            (CASE 
-                WHEN fisherman_table.nickname IS NOT NULL AND fisherman_table.nickname != '' 
-                THEN fisherman_table.firstName || ' "' || fisherman_table.nickname || '" ' || fisherman_table.lastName 
-                ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
-            END) AS fishermanName, 
-            lure_table.name AS lureName,
-            primary_color.name AS lurePrimaryColorName, 
-            secondary_color.name AS lureSecondaryColorName,
-            lure_table.glows AS lureGlows,
-            glow_color_table.name AS lureGlowColorName,
-            fish_table.length, 
-            fish_table.isReleased,
-            fish_table.timestamp, 
-            fish_table.latitude, 
-            fish_table.longitude,
-            fish_table.eventId,
-            event_table.name AS eventName,
-            fish_table.tripId,
-            trip_table.name AS tripName,
-            fish_table.holeNumber
-        FROM fish_table
-        INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN event_table ON fish_table.eventId = event_table.id
-        INNER JOIN species_table ON fish_table.speciesId = species_table.id
-        INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
-        LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
-        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
-        LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
-        WHERE fish_table.fishermanId = :fishermanId
-        ORDER BY fish_table.timestamp DESC
+            f.*, 
+            pc.name AS lurePrimaryColorName, 
+            sc.name AS lureSecondaryColorName,
+            gc.name AS lureGlowColorName
+        FROM fish_table AS f
+        LEFT JOIN lure_table AS l ON f.lureId = l.id
+        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
+        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
+        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
+        WHERE f.fishermanId = :fishermanId
+        ORDER BY f.timestamp DESC
     """
     )
     fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>>
@@ -152,39 +85,17 @@ interface FishDao {
     @Query(
         """
         SELECT 
-            fish_table.id, 
-            species_table.name AS speciesName, 
-            (CASE 
-                WHEN fisherman_table.nickname IS NOT NULL AND fisherman_table.nickname != '' 
-                THEN fisherman_table.firstName || ' "' || fisherman_table.nickname || '" ' || fisherman_table.lastName 
-                ELSE fisherman_table.firstName || ' ' || fisherman_table.lastName 
-            END) AS fishermanName,
-            lure_table.name AS lureName,
-            primary_color.name AS lurePrimaryColorName, 
-            secondary_color.name AS lureSecondaryColorName,
-            lure_table.glows AS lureGlows,
-            glow_color_table.name AS lureGlowColorName,
-            fish_table.length, 
-            fish_table.isReleased,
-            fish_table.timestamp, 
-            fish_table.latitude, 
-            fish_table.longitude,
-            fish_table.eventId,
-            event_table.name AS eventName,
-            fish_table.tripId,
-            trip_table.name AS tripName,
-            fish_table.holeNumber
-        FROM fish_table
-        INNER JOIN trip_table ON fish_table.tripId = trip_table.id
-        INNER JOIN event_table ON fish_table.eventId = event_table.id
-        INNER JOIN species_table ON fish_table.speciesId = species_table.id
-        INNER JOIN fisherman_table ON fish_table.fishermanId = fisherman_table.id
-        LEFT JOIN lure_table ON fish_table.lureId = lure_table.id
-        LEFT JOIN lure_color_table AS primary_color ON lure_table.primaryColorId = primary_color.id
-        LEFT JOIN lure_color_table AS secondary_color ON lure_table.secondaryColorId = secondary_color.id
-        LEFT JOIN lure_color_table AS glow_color_table ON lure_table.glowColorId = glow_color_table.id
-        WHERE fish_table.eventId = :eventId
-        ORDER BY fish_table.timestamp DESC
+            f.*, 
+            pc.name AS lurePrimaryColorName, 
+            sc.name AS lureSecondaryColorName,
+            gc.name AS lureGlowColorName
+        FROM fish_table AS f
+        LEFT JOIN lure_table AS l ON f.lureId = l.id
+        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
+        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
+        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
+        WHERE f.eventId = :eventId
+        ORDER BY f.timestamp DESC
     """
     )
     fun getFishForEvent(eventId: String): Flow<List<FishWithDetails>>
