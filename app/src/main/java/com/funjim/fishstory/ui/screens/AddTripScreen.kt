@@ -35,6 +35,7 @@ import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -120,7 +121,7 @@ fun AddTripScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                tripViewModel.getCurrentLocation(context)?.let { loc ->
+                getCurrentLocation(context)?.let { loc ->
                     if (currentStep == WizardStep.TripInfo) {
                         tripViewModel.updateTripDraft {
                             it.copy(
@@ -166,7 +167,7 @@ fun AddTripScreen(
                 if (hasLocationPermission(context)) {
                     scope.launch {
                         @SuppressLint("MissingPermission")
-                        val location = tripViewModel.getCurrentLocation(context)
+                        val location = getCurrentLocation(context)
                         if (location != null) {
                             tripViewModel.updateTripDraft {
                                 it.copy(latitude = location.latitude, longitude = location.longitude)
@@ -273,7 +274,7 @@ fun AddTripScreen(
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
-                                                tripViewModel.getCurrentLocation(context)?.let { loc ->
+                                                getCurrentLocation(context)?.let { loc ->
                                                     if (onTripStep) {
                                                         tripViewModel.updateTripDraft {
                                                             it.copy(
@@ -671,7 +672,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         // Trip summary card
                         val currentTrip = TripSummary(
                             trip = tripDraft,
-                            eventCount = 0,
+                            photos = emptyList(),
+                            eventCount = eventSummaries.size,
                             totalCaught = 0,
                             totalKept = 0,
                             fishermanCount = tripFishermenIds.size,
@@ -690,6 +692,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 fromReview = true
                                 tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             },
+                            onLongClick = { showTripMenu = true },
                             onAction = { action ->
                                 when (action) {
                                     is TripAction.OpenMap -> {
@@ -708,7 +711,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             // Define the dropdown menu to be used with the TripItem card
                             TripMenu(
                                 expanded = showTripMenu,
-                                onMenuClick = { onTripAction(TripAction.Menu(tripSummary = currentTrip)) },
                                 onDismiss = { showTripMenu = false }
                             ) {
                                 DropdownMenuItem(

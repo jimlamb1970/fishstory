@@ -20,13 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.EventWizardStep
 import com.funjim.fishstory.viewmodels.TripViewModel
-import com.funjim.fishstory.viewmodels.WizardStep
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -103,7 +102,7 @@ fun AddEventScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                tripViewModel.getCurrentLocation(context)?.let { loc ->
+                getCurrentLocation(context)?.let { loc ->
                     if (currentStep == EventWizardStep.EventInfo) {
                         tripViewModel.updateEventDraft {
                             it.copy(
@@ -184,7 +183,7 @@ fun AddEventScreen(
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
-                                                tripViewModel.getCurrentLocation(context)?.let { loc ->
+                                                getCurrentLocation(context)?.let { loc ->
                                                     tripViewModel.updateEventDraft {
                                                         it.copy(
                                                             latitude = loc.latitude,

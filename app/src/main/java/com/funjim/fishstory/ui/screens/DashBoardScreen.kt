@@ -1,8 +1,12 @@
 package com.funjim.fishstory.ui.screens
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,12 +33,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoGraph
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -46,10 +48,13 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,10 +69,15 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.TripItemWithMenu
+import com.funjim.fishstory.ui.utils.hasLocationPermission
+import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(
@@ -77,7 +87,123 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val activeTripEvents by viewModel.activeTripEvents.collectAsStateWithLifecycle()
 
+    // State to keep track of which trip we are currently modifying
+    var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
+    var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
+    var showMenu by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.entries.all { it.value }
+        if (granted) {
+            selectedTrip?.let { summary ->
+                scope.launch {
+                    // We add the Suppress warning here because we just verified 'granted'
+                    @SuppressLint("MissingPermission")
+                    val location = getCurrentLocation(context)
+                    location?.let {
+                        viewModel.saveTrip(
+                            summary.trip.copy(latitude = it.latitude, longitude = it.longitude)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+    val locationPicker = rememberLocationPickerState(
+        deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
+        existingLat = selectedTrip?.trip?.latitude,
+        existingLng = selectedTrip?.trip?.longitude,
+        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onLocationConfirmed = { lat, lng ->
+            selectedTrip?.let { summary ->
+                viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng))
+            }
+        }
+    )
+
+    val onAction: (TripAction) -> Unit = { action ->
+        when (action) {
+            is TripAction.View -> {}
+            is TripAction.Menu -> {
+                showMenu = true
+                selectedTrip = action.tripSummary
+            }
+            is TripAction.OpenMap -> {
+                val mapUri =
+                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}")
+                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context,
+                        "Could not open map",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            is TripAction.UseCurrentLocation -> {
+                showMenu = false
+                if (hasLocationPermission(context)) {
+                    scope.launch {
+                        @SuppressLint("MissingPermission")
+                        val location = getCurrentLocation(context)
+                        if (location != null) {
+                            viewModel.saveTrip(
+                                action.tripSummary.trip.copy(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
+                                )
+                            )
+                            Toast.makeText(
+                                context,
+                                "Location updated",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Could not get location",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            }
+            is TripAction.SelectLocation -> {
+                showMenu = false
+                locationPicker.openPicker()
+            }
+            is TripAction.ClearLocation -> {
+                showMenu = false
+                scope.launch {
+                    viewModel.saveTrip(
+                        action.tripSummary.trip.copy(latitude = null, longitude = null)
+                    )
+                    Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+            is TripAction.Delete -> {
+                showMenu = false
+                tripToDelete = action.tripSummary
+            }
+        }
+    }
 
     // Scaffold automatically calculates the "Safe Area" for the Top Bar and Bottom Bar
     Scaffold(
@@ -177,31 +303,47 @@ fun DashboardScreen(
 
             val totalItems = state.recentTrips.size
             itemsIndexed(state.recentTrips) { index, trip ->
-                TripItem(
-                    trip = trip,
+                TripItemWithMenu(
+                    tripSummary = trip,
                     index = index,
                     totalItems = totalItems,
                     modifier = Modifier.padding(),
-                    onClick = { onNavigate("trip_details/${trip.trip.id}") },
-                    onAction = { action ->
-                        when (action) {
-                            is TripAction.OpenMap -> {
-                                val mapUri = Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
-                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            else -> {}
-                        }
-                    }
+                    onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
+                    onAction = onAction,
+                    showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
+                    onMenuDismiss = { showMenu = false }
                 )
-
                 //TripHistoryRow(trip)
             }
         }
+    }
+    // DELETE CONFIRMATION
+    tripToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { tripToDelete = null },
+            title = { Text("Delete Trip?") },
+            text = { Text("""Are you sure you want to delete '${item.trip.name}'?
+
+This cannot be undone.
+
+All events (${item.eventCount}) and fish (${item.totalCaught}) associated with this trip will also be deleted.""") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteTrip(item.trip)
+                        tripToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { tripToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

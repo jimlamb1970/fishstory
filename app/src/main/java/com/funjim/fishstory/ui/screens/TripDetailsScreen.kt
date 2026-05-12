@@ -43,6 +43,7 @@ import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -91,7 +92,7 @@ fun TripDetailsScreen(
         val granted = permissions.entries.all { it.value }
         if (granted) {
             scope.launch {
-                val location = viewModel.getTripCurrentLocation(context)
+                val location = getCurrentLocation(context)
                 if (location != null) {
                     if (updateTripLocation) {
                         tripSummary?.trip?.let { trip ->
@@ -187,7 +188,7 @@ fun TripDetailsScreen(
                                             Manifest.permission.ACCESS_FINE_LOCATION
                                     ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = viewModel.getTripCurrentLocation(context)
+                                            val location = getCurrentLocation(context)
                                             if (location != null) {
                                                 tripSummary?.trip?.let { trip ->
                                                     viewModel.saveTrip(
@@ -392,7 +393,7 @@ fun TripDetailsScreen(
                     val totalItems = eventSummaries.size
                     itemsIndexed(eventSummaries) { index, eventSummary ->
                         EventItem(
-                            eventSummary = eventSummary,
+                            item = eventSummary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             index = index,
                             totalItems = totalItems,
@@ -401,7 +402,7 @@ fun TripDetailsScreen(
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
-                                        val location = viewModel.getTripCurrentLocation(context)
+                                        val location = getCurrentLocation(context)
                                         if (location != null) {
                                             viewModel.upsertEvent(eventSummary.event.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()

@@ -15,9 +15,7 @@ import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,31 +57,6 @@ class TripViewModel(
     // --- Location Logic ---
     private val _deviceLocation = MutableStateFlow<Location?>(null)
     val deviceLocation = _deviceLocation.asStateFlow()
-
-    @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context): Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // TODO - can this be replaced by getCurrentLocation in LocationUtils?
-    @RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
-    suspend fun getTripCurrentLocation(context: Context): Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
-            ).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     fun fetchDeviceLocationOnce(context: Context) {
         if (_deviceLocation.value != null) return
 
@@ -100,7 +73,7 @@ class TripViewModel(
         if (hasFineLocation || hasCoarseLocation) {
             viewModelScope.launch {
                 try {
-                    _deviceLocation.value = getTripCurrentLocation(context)
+                    _deviceLocation.value = getCurrentLocation(context)
                 } catch (e: SecurityException) {
                     // Handle the case where permission was revoked mid-flight
                     _deviceLocation.value = null
@@ -355,12 +328,6 @@ class TripViewModel(
     fun saveTrip(trip: Trip) {
         viewModelScope.launch {
             tripRepo.upsertTrip(trip)
-        }
-    }
-
-    fun deleteTrip(trip: Trip) {
-        viewModelScope.launch {
-            tripRepo.deleteTripById(trip.id)
         }
     }
 

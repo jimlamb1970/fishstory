@@ -33,50 +33,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// TODO -- update this card to work like TripItem card with regards to menu
 @Composable
 fun EventItem(
-    eventSummary: EventSummary,
+    item: EventSummary,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
-    onClick: () -> Unit,
-    onDelete: (() -> Unit)? = null,
-    onSetLocation: (() -> Unit)? = null,
-    onSelectLocation: (() -> Unit)? = null,
-    onUseTripLocation: (() -> Unit)? = null,
-    onClearLocation: (() -> Unit)? = null
-) {
-    EventItem(
-        event = eventSummary.event,
-        modifier = modifier,
-        photos = eventSummary.photos,
-        index = index,
-        totalItems = totalItems,
-        fishermenCount = eventSummary.fishermanCount,
-        tackleBoxCount = eventSummary.tackleBoxCount,
-        fishCaught = eventSummary.fishCaught,
-        fishKept = eventSummary.fishKept,
-        onDelete = onDelete,
-        onClick = onClick,
-        onSetLocation = onSetLocation,
-        onSelectLocation = onSelectLocation,
-        onUseTripLocation = onUseTripLocation,
-        onClearLocation = onClearLocation
-    )
-}
-
-@Composable
-fun EventItem(
-    event: Event,
-    modifier: Modifier = Modifier,
-    photos: List<Photo> = emptyList(),
-    index: Int = 0,
-    totalItems: Int = 0,
-    fishermenCount: Int = 0,
-    tackleBoxCount: Int = 0,
-    fishCaught: Int = 0,
-    fishKept: Int = 0,
     onClick: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
@@ -89,8 +51,8 @@ fun EventItem(
     }
     val now = System.currentTimeMillis()
 
-    val startString = dateTimeFormatter.format(Date(event.startTime))
-    val endString = dateTimeFormatter.format(Date(event.endTime))
+    val startString = dateTimeFormatter.format(Date(item.event.startTime))
+    val endString = dateTimeFormatter.format(Date(item.event.endTime))
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -112,7 +74,7 @@ fun EventItem(
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { menuExpanded = true }
-        ),
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.primary
@@ -125,20 +87,30 @@ fun EventItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThumbnailBox(
-                thumbnail = photos.firstOrNull()?.thumbnail,
+                thumbnail = item.photos.firstOrNull()?.thumbnail,
                 imageVector = AppIcons.Default.Boat
             )
 
             Spacer(modifier = Modifier.width(8.dp))
+            val currentEvent = item.event
+            val currentTrip = item.trip
+
+            val eventLat = currentEvent.latitude
+            val tripLat = currentTrip.latitude
+
+            // Precedence logic: Use Event if it exists, otherwise use Trip
+            val activeLat = eventLat ?: tripLat
+            val activeLng = currentEvent.longitude ?: currentTrip.longitude
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(event.name,
+                    Text(
+                        item.event.name,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
-                    if (event.latitude != null && event.longitude != null) {
+                    if (activeLat != null && activeLng != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -148,7 +120,7 @@ fun EventItem(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${event.latitude},${event.longitude}")
+                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
@@ -161,6 +133,13 @@ fun EventItem(
                                     }
                                 }
                         )
+                        if (eventLat == null) {
+                            Text(
+                                text = "(Trip)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
 
@@ -186,12 +165,12 @@ fun EventItem(
                     )
                 }
 
-                if (fishCaught != 0 || now >= event.startTime || fishermenCount != -1) {
+                if (item.fishCaught != 0 || now >= item.event.startTime || item.fishermanCount != -1) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        if (fishCaught != 0 || now >= event.startTime) {
+                        if (item.fishCaught != 0 || now >= item.event.startTime) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = AppIcons.Default.LeapingFish,
@@ -200,14 +179,14 @@ fun EventItem(
                                     modifier = Modifier.size(24.dp)
                                 )
                                 BoldingNumbersText(
-                                    text = "Kept $fishKept of $fishCaught",
+                                    text = "Kept ${item.fishKept} of ${item.fishCaught}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
 
-                        if (fishermenCount != -1) {
+                        if (item.fishermanCount != -1) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -219,7 +198,7 @@ fun EventItem(
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Text(
-                                    text = fishermenCount.toString(),
+                                    text = item.fishermanCount.toString(),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -236,7 +215,7 @@ fun EventItem(
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Text(
-                                    text = tackleBoxCount.toString(),
+                                    text = item.tackleBoxCount.toString(),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -244,106 +223,91 @@ fun EventItem(
                         }
                     }
                 }
-            }
-            if ((onSelectLocation != null) ||
-                (onSetLocation != null) ||
-                (onUseTripLocation != null) ||
-                (onClearLocation != null) ||
-                (onDelete != null)
-            ) {
-                Box {
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false }
-                    ) {
-                        if (onSetLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Use Current Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSetLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.MyLocation,
-                                        contentDescription = null,
-                                        tint =
-                                            if (event.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
 
-                        if (onSelectLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Select on Map") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSelectLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Map,
-                                        contentDescription = null,
-                                        tint =
-                                            if (event.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
+                if ((onSelectLocation != null) ||
+                    (onSetLocation != null) ||
+                    (onUseTripLocation != null) ||
+                    (onClearLocation != null) ||
+                    (onDelete != null)
+                ) {
+                    Box {
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            if (onSetLocation != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Use Current Location") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSetLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.MyLocation,
+                                            contentDescription = null,
+                                            tint =
+                                                if (activeLat != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
+                                        )
+                                    }
+                                )
+                            }
 
-                        if (onUseTripLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Use Trip Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onUseTripLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint =
-                                            if (event.latitude != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
+                            if (onSelectLocation != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Select on Map") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSelectLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Map,
+                                            contentDescription = null,
+                                            tint =
+                                                if (activeLat != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
+                                        )
+                                    }
+                                )
+                            }
 
-                        if (event.latitude != null && onClearLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Clear Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onClearLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.LocationOff,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                        }
-                        if (onDelete != null) {
-                            DropdownMenuItem(
-                                text = { Text("Delete") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onDelete()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
+                            if (eventLat != null && onClearLocation != null) {
+                                DropdownMenuItem(
+                                    text = {
+                                        if (tripLat == null) Text("Clear Location")
+                                        else Text("Reset Location")
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onClearLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOff,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
+                            if (onDelete != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onDelete()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }

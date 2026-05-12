@@ -173,13 +173,6 @@ fun LureListScreen(
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
-                                photos = emptyList(),
-                                onAddPhoto = null,
-                                onDeletePhoto = null,
-                                /* TODO - enable photos for lures
-                            onAddPhoto = { photo -> scope.launch { viewModel.addPhoto(photo) } },
-                            onDeletePhoto = { photo -> scope.launch { viewModel.deletePhoto(photo) } },
-                             */
                                 onEdit = { onEdit(item.lureSummary.lure.id) },
                                 onDelete = { lureToDelete = item.lureSummary.lure }
                             )

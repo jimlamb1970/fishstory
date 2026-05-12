@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -23,9 +24,6 @@ fun LureItem(
     primaryColorName: String?,
     secondaryColorName: String?,
     glowColorName: String?,
-    photos: List<Photo>,
-    onAddPhoto: ((Photo) -> Unit)? = null,
-    onDeletePhoto: ((Photo) -> Unit)? = null,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -43,129 +41,126 @@ fun LureItem(
     }
 
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .combinedClickable(
+                onClick = { },
+                onLongClick = { menuExpanded = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = MaterialTheme.colorScheme.primary
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ThumbnailBox(
-                    thumbnail = item.photos.firstOrNull()?.thumbnail,
-                    imageVector = AppIcons.Default.Lure
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ThumbnailBox(
+                thumbnail = item.photos.firstOrNull()?.thumbnail,
+                imageVector = AppIcons.Default.Lure
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.lure.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
+                val colors = mutableListOf<String>()
+                if (!primaryColorName.isNullOrBlank()) {
+                    colors.add(primaryColorName)
+                }
+                if (!secondaryColorName.isNullOrBlank()) {
+                    colors.add(secondaryColorName)
+                }
+                if (colors.isNotEmpty()) {
+                    val sb = StringBuilder(if (colors.size == 1) "Color: " else "Colors: ")
+                    sb.append(colors.joinToString("/"))
                     Text(
-                        text = item.lure.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    val colors = mutableListOf<String>()
-                    if (!primaryColorName.isNullOrBlank()) {
-                        colors.add(primaryColorName)
-                    }
-                    if (!secondaryColorName.isNullOrBlank()) {
-                        colors.add(secondaryColorName)
-                    }
-                    if (colors.isNotEmpty()) {
-                        val sb = StringBuilder(if (colors.size == 1) "Color: " else "Colors: ")
-                        sb.append(colors.joinToString("/"))
-                        Text(
-                            text = sb.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    if (item.lure.glows) {
-                        val sb = StringBuilder("Glows")
-                        if (!glowColorName.isNullOrBlank()) {
-                            sb.append(": $glowColorName")
-                        }
-                        Text(
-                            text = sb.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface)
-                    }
-
-                    Text(
-                        text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
+                        text = sb.toString(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-
-                    if (item.caughtCount != 0) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Default.LeapingFish,
-                                contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            BoldingNumbersText(
-                                text = "Kept ${item.keptCount} of ${item.caughtCount}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box {
-                            IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Edit") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onEdit()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Delete") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onDelete()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                        }
+                if (item.lure.glows) {
+                    val sb = StringBuilder("Glows")
+                    if (!glowColorName.isNullOrBlank()) {
+                        sb.append(": $glowColorName")
+                    }
+                    Text(
+                        text = sb.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface)
+                }
+
+                Text(
+                    text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                if (item.caughtCount != 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.LeapingFish,
+                            contentDescription = "Fish",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        BoldingNumbersText(
+                            text = "Kept ${item.keptCount} of ${item.caughtCount}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                     }
                 }
             }
 
-            // TODO - Support adding and deleting photos here or just in the edit screen?
-            //if (onAddPhoto != null && onDeletePhoto != null) {
-            //}
+            Box {
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    )
+                }
+            }
+        }
     }
 }

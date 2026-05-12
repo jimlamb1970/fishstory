@@ -39,6 +39,7 @@ import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -85,7 +86,7 @@ fun EventDetailsScreen(
             val granted = permissions.entries.all { it.value }
             if (granted) {
                 scope.launch {
-                    val location = viewModel.getTripCurrentLocation(context)
+                    val location = getCurrentLocation(context)
                     if (location != null) {
                         eventSummary?.event?.let { event ->
                             viewModel.upsertEvent(
@@ -173,7 +174,7 @@ fun EventDetailsScreen(
                                             Manifest.permission.ACCESS_FINE_LOCATION
                                     ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = viewModel.getTripCurrentLocation(context)
+                                            val location = getCurrentLocation(context)
                                             if (location != null) {
                                                 eventSummary?.event?.let { event ->
                                                     viewModel.upsertEvent(

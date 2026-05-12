@@ -420,7 +420,7 @@ fun AddFishScreen(
                             if (hasLocationPermission) {
                                 scope.launch {
                                     val location = getCurrentLocation(context)
-                                    viewModel.updateLocation(location?.first ?: 0.0, location?.second ?: 0.0)
+                                    viewModel.updateLocation(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
                                 }
                             }
                         },

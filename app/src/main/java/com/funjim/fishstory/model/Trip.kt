@@ -50,6 +50,13 @@ data class TripWithFishermen(
 
 data class TripWithDetails(
     @Embedded val trip: Trip,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "tripId"
+    )
+    val events: List<Event>,
+
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
@@ -60,11 +67,7 @@ data class TripWithDetails(
         )
     )
     val fishermen: List<Fisherman>,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "tripId"
-    )
-    val events: List<Event>,
+
     @Relation(
         parentColumn = "id",        // Trip ID
         entityColumn = "id",        // Photo ID
@@ -75,17 +78,23 @@ data class TripWithDetails(
         )
     )
     val photos: List<Photo>,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "tripId"
-    )
-    val fish: List<Fish>
-)
+ )
 
 // TODO - rename values to better match EventSummary
 data class TripSummary(
     @Embedded val trip: Trip,
+
+    @Relation(
+        parentColumn = "id",        // Event ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoTripCrossRef::class,
+            parentColumn = "tripId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>,
+
     val eventCount: Int = 0,
     val totalCaught: Int = 0,
     val totalKept: Int = 0,

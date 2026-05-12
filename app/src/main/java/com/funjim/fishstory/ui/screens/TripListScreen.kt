@@ -13,24 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.LocationOff
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,8 +29,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.TripAction
-import com.funjim.fishstory.ui.utils.TripItem
-import com.funjim.fishstory.ui.utils.TripMenu
+import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripListFilter
@@ -120,7 +110,6 @@ fun TripListScreen(
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-
             }
             is TripAction.UseCurrentLocation -> {
                 showMenu = false
@@ -170,7 +159,6 @@ fun TripListScreen(
                     Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
                         .show()
                 }
-
             }
             is TripAction.Delete -> {
                 showMenu = false
@@ -350,57 +338,5 @@ All events (${item.eventCount}) and fish (${item.totalCaught}) associated with t
                 }
             }
         )
-    }
-}
-
-@Composable
-fun TripItemWithMenu(
-    tripSummary: TripSummary,
-    index: Int,
-    totalItems: Int,
-    modifier: Modifier = Modifier,
-    onNavigateToDetails: (String) -> Unit,
-    onAction: (TripAction) -> Unit,
-    showMenu: Boolean,
-    onMenuDismiss: () -> Unit
-) {
-    TripItem(
-        trip = tripSummary,
-        index = index,
-        totalItems = totalItems,
-        modifier = modifier,
-        onClick = { onNavigateToDetails(tripSummary.trip.id) },
-        onAction = onAction
-    ) {
-        TripMenu(
-            expanded = showMenu,
-            onMenuClick = { onAction(TripAction.Menu(tripSummary)) },
-            onDismiss = onMenuDismiss
-        ) {
-            // Centralized Menu Actions
-            val lat = tripSummary.trip.latitude
-            DropdownMenuItem(
-                text = { Text("Use Current Location") },
-                onClick = { onAction(TripAction.UseCurrentLocation(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.MyLocation, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
-            )
-            DropdownMenuItem(
-                text = { Text("Select on Map") },
-                onClick = { onAction(TripAction.SelectLocation(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.Map, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
-            )
-            if (lat != null) {
-                DropdownMenuItem(
-                    text = { Text("Clear Location") },
-                    onClick = { onAction(TripAction.ClearLocation(tripSummary)) },
-                    leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) }
-                )
-            }
-            DropdownMenuItem(
-                text = { Text("Delete") },
-                onClick = { onAction(TripAction.Delete(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
-            )
-        }
     }
 }

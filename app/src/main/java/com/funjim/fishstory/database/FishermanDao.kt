@@ -187,6 +187,7 @@ WHERE f.id = :fId
     )
     fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanFullStatistics>
 
+    @Transaction
     @Query("""
     SELECT 
         t.*, 
@@ -209,6 +210,7 @@ WHERE f.id = :fId
 """)
     fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripSummary>>
 
+    @Transaction
     @Query("""
     SELECT 
         t.*, 
@@ -232,6 +234,7 @@ WHERE f.id = :fId
 """)
     fun getUpcomingTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
 
+    @Transaction
     @Query("""
     SELECT 
         t.*, 
@@ -255,6 +258,7 @@ WHERE f.id = :fId
 """)
     fun getActiveTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
 
+    @Transaction
     @Query("""
     SELECT 
         t.*, 

@@ -68,6 +68,7 @@ interface TripDao {
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?>
 
+    @Transaction
     @Query("""
 WITH 
 -- 1. Identify the single biggest fish for every trip

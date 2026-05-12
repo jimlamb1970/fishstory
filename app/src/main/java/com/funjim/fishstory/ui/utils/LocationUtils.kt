@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -92,15 +94,14 @@ class LocationPickerResult(val openPicker: () -> Unit)
 {
 }
 
-@SuppressLint("MissingPermission")
-suspend fun getCurrentLocation(context: Context): Pair<Double, Double>? {
+@RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
+suspend fun getCurrentLocation(context: Context): Location? {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     return try {
-        val location = fusedLocationClient.getCurrentLocation(
+        fusedLocationClient.getCurrentLocation(
             Priority.PRIORITY_HIGH_ACCURACY,
             CancellationTokenSource().token
         ).await()
-        location?.let { it.latitude to it.longitude }
     } catch (e: Exception) {
         null
     }

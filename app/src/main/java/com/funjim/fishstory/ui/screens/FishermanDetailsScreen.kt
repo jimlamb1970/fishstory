@@ -329,6 +329,7 @@ fun FishermanDetailsScreen(
                                     totalItems = totalActiveItems,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
+                                    onLongClick = {},
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
@@ -368,6 +369,7 @@ fun FishermanDetailsScreen(
                                     totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
+                                    onLongClick = {},
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
