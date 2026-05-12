@@ -56,6 +56,7 @@ import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
+import com.funjim.fishstory.ui.utils.LocationProviderImpl
 
 class MainActivity : ComponentActivity() {
 
@@ -73,16 +74,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private val dashboardViewModel: DashboardViewModel by viewModels {
-        val repository = (application as FishstoryApplication).tripRepository
-        DashboardViewModelFactory(repository)
+        val locationProvider = (application as FishstoryApplication).locationProvider
+        val tripRepo = (application as FishstoryApplication).tripRepository
+        DashboardViewModelFactory(locationProvider, tripRepo)
     }
     private val addFishViewModel: AddFishViewModel by viewModels {
+        val locationProvider = (application as FishstoryApplication).locationProvider
         val fishRepo = (application as FishstoryApplication).fishRepository
         val lureRepo = (application as FishstoryApplication).lureRepository
         val photoRepo = (application as FishstoryApplication).photoRepository
         val tripRepo = (application as FishstoryApplication).tripRepository
 
         AddFishViewModelFactory(
+            locationProvider = locationProvider,
             fishRepo = fishRepo,
             lureRepo = lureRepo,
             photoRepo = photoRepo,
@@ -90,11 +94,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private val fishViewModel: FishViewModel by viewModels {
+        val locationProvider = (application as FishstoryApplication).locationProvider
         val fishRepo = (application as FishstoryApplication).fishRepository
         val lureRepo = (application as FishstoryApplication).lureRepository
         val tripRepo = (application as FishstoryApplication).tripRepository
 
-        FishViewModelFactory(fishRepo = fishRepo, lureRepo = lureRepo, tripRepo = tripRepo)
+        FishViewModelFactory(
+            locationProvider = locationProvider,
+            fishRepo = fishRepo,
+            lureRepo = lureRepo,
+            tripRepo = tripRepo)
     }
 
     private val importViewModel: ImportViewModel by viewModels {
@@ -109,14 +118,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private val tripListViewModel: TripListViewModel by viewModels {
+        val locationProvider = (application as FishstoryApplication).locationProvider
         val tripRepository = (application as FishstoryApplication).tripRepository
-        TripListViewModelFactory(tripRepository)
+        TripListViewModelFactory(
+            locationProvider = locationProvider,
+            tripRepository)
     }
     private val tripViewModel: TripViewModel by viewModels {
+        val locationProvider = (application as FishstoryApplication).locationProvider
         val fishermanRepository = (application as FishstoryApplication).fishermanRepository
         val photoRepository = (application as FishstoryApplication).photoRepository
         val tripRepository = (application as FishstoryApplication).tripRepository
-        TripViewModelFactory(fishermanRepository, photoRepository, tripRepository)
+        TripViewModelFactory(
+            locationProvider = locationProvider,
+            fishermanRepository,
+            photoRepository,
+            tripRepository)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

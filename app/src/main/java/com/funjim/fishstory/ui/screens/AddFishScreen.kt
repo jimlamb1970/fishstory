@@ -44,11 +44,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 
@@ -419,8 +417,10 @@ fun AddFishScreen(
                         onClick = {
                             if (hasLocationPermission) {
                                 scope.launch {
-                                    val location = getCurrentLocation(context)
-                                    viewModel.updateLocation(location?.latitude ?: 0.0, location?.longitude ?: 0.0)
+                                    val location = viewModel.fetchLocation()
+                                    viewModel.updateLocation(
+                                        location?.latitude ?: 0.0,
+                                        location?.longitude ?: 0.0)
                                 }
                             }
                         },

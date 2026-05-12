@@ -1,12 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.location.Location
 import android.net.Uri
-import androidx.annotation.RequiresPermission
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,9 +10,7 @@ import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,15 +22,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 class AddFishViewModel(
+    private val locationProvider: LocationProvider,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
-) : ViewModel() {
+) : ViewModel(), LocationProvider by locationProvider {
     // UI State flows
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
@@ -183,50 +175,6 @@ class AddFishViewModel(
         }
     }
 
-    private val _deviceLocation = MutableStateFlow<Location?>(null)
-    val deviceLocation = _deviceLocation.asStateFlow()
-
-    @RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
-    suspend fun getFishCurrentLocation(context: Context): Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
-            ).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun fetchDeviceLocationOnce(context: Context) {
-        if (_deviceLocation.value != null) return
-
-        // 1. Explicitly check if permissions are granted
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarseLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        // 2. Only launch the coroutine if at least one is granted
-        if (hasFineLocation || hasCoarseLocation) {
-            viewModelScope.launch {
-                try {
-                    _deviceLocation.value = getFishCurrentLocation(context)
-                } catch (e: SecurityException) {
-                    // Handle the case where permission was revoked mid-flight
-                    _deviceLocation.value = null
-                }
-            }
-        } else {
-            // 3. Optional: Trigger a UI event to ask the user for permission
-            println("Location permission not granted")
-        }
-    }
-
     // In your FishViewModel
     private val _draftFish = MutableStateFlow<Fish?>(null)
     val draftFish = _draftFish.asStateFlow()
@@ -321,6 +269,7 @@ class AddFishViewModel(
 }
 
 class AddFishViewModelFactory(
+    private val locationProvider: LocationProvider,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
@@ -329,7 +278,12 @@ class AddFishViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddFishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AddFishViewModel(fishRepo, lureRepo, photoRepo, tripRepo) as T
+            return AddFishViewModel(
+                locationProvider,
+                fishRepo,
+                lureRepo,
+                photoRepo,
+                tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

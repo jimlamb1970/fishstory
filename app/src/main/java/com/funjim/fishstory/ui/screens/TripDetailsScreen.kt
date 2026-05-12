@@ -36,14 +36,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
-import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -92,7 +90,7 @@ fun TripDetailsScreen(
         val granted = permissions.entries.all { it.value }
         if (granted) {
             scope.launch {
-                val location = getCurrentLocation(context)
+                val location = viewModel.fetchLocation()
                 if (location != null) {
                     if (updateTripLocation) {
                         tripSummary?.trip?.let { trip ->
@@ -128,7 +126,7 @@ fun TripDetailsScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = tripSummary?.trip?.latitude,  // Passed from your DB object
         existingLng = tripSummary?.trip?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             tripSummary?.trip?.let { trip ->
                 scope.launch {
@@ -142,7 +140,7 @@ fun TripDetailsScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = eventToUpdateLocation?.event?.latitude,  // Passed from your DB object
         existingLng = eventToUpdateLocation?.event?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             eventToUpdateLocation?.event?.let { event ->
                 scope.launch {
@@ -188,7 +186,7 @@ fun TripDetailsScreen(
                                             Manifest.permission.ACCESS_FINE_LOCATION
                                     ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = getCurrentLocation(context)
+                                            val location = viewModel.fetchLocation()
                                             if (location != null) {
                                                 tripSummary?.trip?.let { trip ->
                                                     viewModel.saveTrip(
@@ -402,7 +400,7 @@ fun TripDetailsScreen(
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                     scope.launch {
-                                        val location = getCurrentLocation(context)
+                                        val location = viewModel.fetchLocation()
                                         if (location != null) {
                                             viewModel.upsertEvent(eventSummary.event.copy(latitude = location.latitude, longitude = location.longitude))
                                             Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()

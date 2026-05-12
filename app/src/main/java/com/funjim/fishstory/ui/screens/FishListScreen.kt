@@ -105,7 +105,7 @@ fun FishListScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = fishToUpdateLocation?.latitude,  // Passed from your DB object
         existingLng = fishToUpdateLocation?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             fishToUpdateLocation?.let { fishDetails ->
                 scope.launch {
@@ -338,7 +338,7 @@ fun FishListScreen(
                                         ) == PackageManager.PERMISSION_GRANTED
                                     ) {
                                         scope.launch {
-                                            val location = viewModel.getFishCurrentLocation(context)
+                                            val location = viewModel.fetchLocation()
                                             if (location != null) {
                                                 val fish = viewModel.getFishById(fishDetails.id)
                                                 if (fish != null) {

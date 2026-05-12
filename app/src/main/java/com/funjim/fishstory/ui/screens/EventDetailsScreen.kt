@@ -34,12 +34,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -86,7 +84,7 @@ fun EventDetailsScreen(
             val granted = permissions.entries.all { it.value }
             if (granted) {
                 scope.launch {
-                    val location = getCurrentLocation(context)
+                    val location = viewModel.fetchLocation()
                     if (location != null) {
                         eventSummary?.event?.let { event ->
                             viewModel.upsertEvent(
@@ -112,7 +110,7 @@ fun EventDetailsScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = eventSummary?.event?.latitude,  // Passed from your DB object
         existingLng = eventSummary?.event?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             eventSummary?.event?.let { event ->
                 scope.launch {
@@ -174,7 +172,7 @@ fun EventDetailsScreen(
                                             Manifest.permission.ACCESS_FINE_LOCATION
                                     ) == PackageManager.PERMISSION_GRANTED) {
                                         scope.launch {
-                                            val location = getCurrentLocation(context)
+                                            val location = viewModel.fetchLocation()
                                             if (location != null) {
                                                 eventSummary?.event?.let { event ->
                                                     viewModel.upsertEvent(

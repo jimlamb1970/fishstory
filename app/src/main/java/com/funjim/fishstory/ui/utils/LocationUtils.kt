@@ -15,24 +15,54 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.funjim.fishstory.repository.LocationRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.maplibre.android.geometry.LatLng
 
 class LocationUtils
 
-fun hasLocationPermission(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+interface LocationProvider {
+    val deviceLocation: StateFlow<Location?>
+    suspend fun fetchLocation(): Location?
+    suspend fun fetchDeviceLocationOnce(): Location?
+
+    fun hasLocationPermission(): Boolean
+}
+
+class LocationProviderImpl(
+    private val repository: LocationRepository
+) : LocationProvider {
+    private val _deviceLocation = MutableStateFlow<Location?>(null)
+    override val deviceLocation = _deviceLocation.asStateFlow()
+
+    override suspend fun fetchLocation(): Location? {
+        if (repository.hasLocationPermission()) {
+            return repository.getDeviceLocation()
+        }
+        return null
+    }
+
+    override suspend fun fetchDeviceLocationOnce(): Location? {
+        if (_deviceLocation.value != null) return deviceLocation.value
+
+        if (repository.hasLocationPermission()) {
+            _deviceLocation.value = repository.getDeviceLocation()
+            return deviceLocation.value
+        }
+        return null
+    }
+
+    override fun hasLocationPermission(): Boolean {
+        return repository.hasLocationPermission()
+    }
 }
 
 @Composable
@@ -92,17 +122,4 @@ fun rememberLocationPickerState(
 
 class LocationPickerResult(val openPicker: () -> Unit)
 {
-}
-
-@RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
-suspend fun getCurrentLocation(context: Context): Location? {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    return try {
-        fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            CancellationTokenSource().token
-        ).await()
-    } catch (e: Exception) {
-        null
-    }
 }

@@ -1,13 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
-import android.location.Location
 import android.net.Uri
-import androidx.annotation.RequiresPermission
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,7 +8,7 @@ import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
-import com.funjim.fishstory.ui.utils.getCurrentLocation
+import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +24,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import kotlin.collections.get
 import kotlin.collections.map
@@ -50,41 +42,11 @@ enum class EventWizardStep {
     EventCrew           // Step 2 – fishermen + tackle boxes for event
 }
 class TripViewModel(
+    private val locationProvider: LocationProvider,
     private val fishermanRepo: FishermanRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
-) : ViewModel() {
-    // --- Location Logic ---
-    private val _deviceLocation = MutableStateFlow<Location?>(null)
-    val deviceLocation = _deviceLocation.asStateFlow()
-    fun fetchDeviceLocationOnce(context: Context) {
-        if (_deviceLocation.value != null) return
-
-        // 1. Explicitly check if permissions are granted
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarseLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        // 2. Only launch the coroutine if at least one is granted
-        if (hasFineLocation || hasCoarseLocation) {
-            viewModelScope.launch {
-                try {
-                    _deviceLocation.value = getCurrentLocation(context)
-                } catch (e: SecurityException) {
-                    // Handle the case where permission was revoked mid-flight
-                    _deviceLocation.value = null
-                }
-            }
-        } else {
-            // 3. Optional: Trigger a UI event to ask the user for permission
-            println("Location permission not granted")
-        }
-    }
-
+) : ViewModel(), LocationProvider by locationProvider {
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
@@ -560,6 +522,7 @@ data class TripUiState(
 )
 
 class TripViewModelFactory(
+    private val locationProvider: LocationProvider,
     private val fishermanRepository: FishermanRepository,
     private val photoRepository: PhotoRepository,
     private val tripRepository: TripRepository
@@ -567,7 +530,11 @@ class TripViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripViewModel(fishermanRepository, photoRepository, tripRepository) as T
+            return TripViewModel(
+                locationProvider,
+                fishermanRepository,
+                photoRepository,
+                tripRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

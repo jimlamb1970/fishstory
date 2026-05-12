@@ -69,13 +69,10 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.TripAction
-import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
-import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import kotlinx.coroutines.launch
 
@@ -102,9 +99,7 @@ fun DashboardScreen(
         if (granted) {
             selectedTrip?.let { summary ->
                 scope.launch {
-                    // We add the Suppress warning here because we just verified 'granted'
-                    @SuppressLint("MissingPermission")
-                    val location = getCurrentLocation(context)
+                    val location = viewModel.fetchLocation()
                     location?.let {
                         viewModel.saveTrip(
                             summary.trip.copy(latitude = it.latitude, longitude = it.longitude)
@@ -120,7 +115,7 @@ fun DashboardScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = selectedTrip?.trip?.latitude,
         existingLng = selectedTrip?.trip?.longitude,
-        onFetchLocation = { viewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             selectedTrip?.let { summary ->
                 viewModel.saveTrip(summary.trip.copy(latitude = lat, longitude = lng))
@@ -151,10 +146,9 @@ fun DashboardScreen(
             }
             is TripAction.UseCurrentLocation -> {
                 showMenu = false
-                if (hasLocationPermission(context)) {
+                if (viewModel.hasLocationPermission()) {
                     scope.launch {
-                        @SuppressLint("MissingPermission")
-                        val location = getCurrentLocation(context)
+                        val location = viewModel.fetchLocation()
                         if (location != null) {
                             viewModel.saveTrip(
                                 action.tripSummary.trip.copy(

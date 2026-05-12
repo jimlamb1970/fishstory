@@ -35,8 +35,6 @@ import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
-import com.funjim.fishstory.ui.utils.getCurrentLocation
-import com.funjim.fishstory.ui.utils.hasLocationPermission
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import com.funjim.fishstory.viewmodels.WizardStep
@@ -100,7 +98,7 @@ fun AddTripScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = tripDraft.latitude,
         existingLng = tripDraft.longitude,
-        onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { tripViewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             tripViewModel.updateTripDraft { it.copy(latitude = lat, longitude = lng) }
         }
@@ -110,7 +108,7 @@ fun AddTripScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = eventDraft.latitude,
         existingLng = eventDraft.longitude,
-        onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = { scope.launch { tripViewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
             tripViewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
@@ -121,7 +119,7 @@ fun AddTripScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                getCurrentLocation(context)?.let { loc ->
+                tripViewModel.fetchLocation()?.let { loc ->
                     if (currentStep == WizardStep.TripInfo) {
                         tripViewModel.updateTripDraft {
                             it.copy(
@@ -164,10 +162,10 @@ fun AddTripScreen(
             is TripAction.OpenMap -> {}
             is TripAction.UseCurrentLocation -> {
                 showTripMenu = false
-                if (hasLocationPermission(context)) {
+                if (tripViewModel.hasLocationPermission()) {
                     scope.launch {
                         @SuppressLint("MissingPermission")
-                        val location = getCurrentLocation(context)
+                        val location = tripViewModel.fetchLocation()
                         if (location != null) {
                             tripViewModel.updateTripDraft {
                                 it.copy(latitude = location.latitude, longitude = location.longitude)
@@ -272,9 +270,9 @@ fun AddTripScreen(
                                     leadingIcon = { Icon(Icons.Default.MyLocation, null) },
                                     onClick = {
                                         locationMenuExpanded = false
-                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        if (tripViewModel.hasLocationPermission()) {
                                             scope.launch {
-                                                getCurrentLocation(context)?.let { loc ->
+                                                tripViewModel.fetchLocation()?.let { loc ->
                                                     if (onTripStep) {
                                                         tripViewModel.updateTripDraft {
                                                             it.copy(

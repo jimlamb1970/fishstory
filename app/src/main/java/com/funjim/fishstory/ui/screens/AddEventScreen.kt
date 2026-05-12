@@ -22,7 +22,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
-import com.funjim.fishstory.ui.utils.getCurrentLocation
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.EventWizardStep
 import com.funjim.fishstory.viewmodels.TripViewModel
@@ -91,7 +90,9 @@ fun AddEventScreen(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = eventDraft.latitude,
         existingLng = eventDraft.longitude,
-        onFetchLocation = { tripViewModel.fetchDeviceLocationOnce(context) },
+        onFetchLocation = {
+            scope.launch { tripViewModel.fetchDeviceLocationOnce() }
+        },
         onLocationConfirmed = { lat, lng ->
             tripViewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
@@ -102,7 +103,7 @@ fun AddEventScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                getCurrentLocation(context)?.let { loc ->
+                tripViewModel.fetchLocation()?.let { loc ->
                     if (currentStep == EventWizardStep.EventInfo) {
                         tripViewModel.updateEventDraft {
                             it.copy(
@@ -183,7 +184,7 @@ fun AddEventScreen(
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
-                                                getCurrentLocation(context)?.let { loc ->
+                                                tripViewModel.fetchLocation()?.let { loc ->
                                                     tripViewModel.updateEventDraft {
                                                         it.copy(
                                                             latitude = loc.latitude,

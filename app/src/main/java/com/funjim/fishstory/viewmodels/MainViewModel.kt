@@ -19,16 +19,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.util.UUID
 import kotlin.collections.List
 
 // Placeholder data structure for serialization example. Replace with actual DB entities.
@@ -81,16 +73,6 @@ class MainViewModel(
     fun triggerSelect() {
         viewModelScope.launch {
             _selectEvent.value += 1
-        }
-    }
-
-    private val _deviceLocation = MutableStateFlow<android.location.Location?>(null)
-    val deviceLocation = _deviceLocation.asStateFlow()
-
-    fun fetchDeviceLocationOnce(context: Context) {
-        if (_deviceLocation.value != null) return // already fetched, do nothing
-        viewModelScope.launch {
-            _deviceLocation.value = getCurrentLocation(context)
         }
     }
 

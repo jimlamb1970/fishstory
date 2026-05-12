@@ -5,12 +5,22 @@ import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.LocationRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
+import com.funjim.fishstory.ui.utils.LocationProviderImpl
 
 class FishstoryApplication : Application() {
     val database: FishstoryDatabase by lazy { FishstoryDatabase.getDatabase(this) }
+
+    val locationRepository by lazy {
+        LocationRepository(context = applicationContext)
+    }
+
+    val locationProvider by lazy {
+        LocationProviderImpl(locationRepository)
+    }
 
     val fishermanRepository by lazy {
         FishermanRepository(

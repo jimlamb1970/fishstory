@@ -1,20 +1,11 @@
 package com.funjim.fishstory.viewmodels
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
-import android.location.Location
-import androidx.annotation.RequiresPermission
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.TripRepository
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,67 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class TripListViewModel(
+    private val locationProvider: LocationProvider,
     private val tripRepo: TripRepository
-) : ViewModel() {
-    // --- Location Logic ---
-    private val _deviceLocation = MutableStateFlow<Location?>(null)
-    val deviceLocation = _deviceLocation.asStateFlow()
-
-    @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context): Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // TODO - can this be replaced by getCurrentLocation in LocationUtils?
-    @RequiresPermission(anyOf = ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"])
-    suspend fun getTripCurrentLocation(context: Context): Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
-            ).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun fetchDeviceLocationOnce(context: Context) {
-        if (_deviceLocation.value != null) return
-
-        // 1. Explicitly check if permissions are granted
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarseLocation = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        // 2. Only launch the coroutine if at least one is granted
-        if (hasFineLocation || hasCoarseLocation) {
-            viewModelScope.launch {
-                try {
-                    _deviceLocation.value = getTripCurrentLocation(context)
-                } catch (e: SecurityException) {
-                    // Handle the case where permission was revoked mid-flight
-                    _deviceLocation.value = null
-                }
-            }
-        } else {
-            // 3. Optional: Trigger a UI event to ask the user for permission
-            println("Location permission not granted")
-        }
-    }
-
+) : ViewModel(), LocationProvider by locationProvider {
     private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
     val tripFilter = _tripFilter.asStateFlow()
     fun updateTripFilter(filter: TripListFilter) { _tripFilter.value = filter }
@@ -136,12 +71,13 @@ data class TripListUiState(
 )
 
 class TripListViewModelFactory(
+    private val locationProvider: LocationProvider,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripListViewModel(tripRepository) as T
+            return TripListViewModel(locationProvider, tripRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
