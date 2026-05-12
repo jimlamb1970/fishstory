@@ -174,7 +174,7 @@ fun FishermanSummary(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.Groups,
+                AppIcons.Default.Fisherman,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )

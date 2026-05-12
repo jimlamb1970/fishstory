@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.LureSortOrder
@@ -236,6 +237,7 @@ fun FishermanTackleBoxScreen(
 
                     VerticalScrollToItemBar(
                         state = listState,
+                        imageVector = AppIcons.Default.Lure,
                         onToggleAlignment = { isLeftAligned = !isLeftAligned },
                         modifier = Modifier
                             .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)

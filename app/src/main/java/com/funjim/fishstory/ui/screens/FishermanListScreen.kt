@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -153,6 +154,7 @@ fun FishermanListScreen(
 
                 VerticalScrollToItemBar(
                     state = listState,
+                    imageVector = AppIcons.Default.Fisherman,
                     onToggleAlignment = { isLeftAligned = !isLeftAligned },
                     modifier = Modifier
                         .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
