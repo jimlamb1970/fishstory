@@ -41,13 +41,15 @@ private val LightColorScheme = lightColorScheme(
 var themeMap = mapOf(
     "Dark" to DarkColorScheme,
     "Light" to LightColorScheme,
-    "Wisconsin Badgers" to LightBadgersColorScheme,
-    "Michigan State Spartans" to LightSpartansColorScheme,
-    "Michigan Wolverines Light" to LightMichiganColorScheme,
-    "Michigan Wolverines Dark" to DarkMichiganColorScheme,
-    "Minnesota Golden Gophers" to LightGophersColorScheme,
+    "Detroit Tigers Dark" to DarkDetroitTigersColorScheme,
+    "Detroit Tigers Light" to LightDetroitTigersColorScheme,
     "Green Bay Packers" to LightPackersColorScheme,
-    "Minnesota Vikings" to LightVikingsColorScheme
+    "Michigan State Spartans" to LightSpartansColorScheme,
+    "Michigan Wolverines Dark" to DarkMichiganColorScheme,
+    "Michigan Wolverines Light" to LightMichiganColorScheme,
+    "Minnesota Golden Gophers" to LightGophersColorScheme,
+    "Minnesota Vikings" to LightVikingsColorScheme,
+    "Wisconsin Badgers" to LightBadgersColorScheme,
 )
 
 
