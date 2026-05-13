@@ -7,10 +7,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -207,7 +203,7 @@ fun FishermanSummary(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Icon(
-                Icons.Default.Inventory,
+                AppIcons.Default.TackleBox,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )
