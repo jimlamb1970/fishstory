@@ -20,12 +20,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.collections.get
 import kotlin.collections.map
@@ -267,10 +267,9 @@ class TripViewModel(
         .flatMapLatest { photoRepo.getPhotosForEvent(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    suspend fun fetchEventThumbnail(eventId: String): ByteArray? {
-        return withContext(Dispatchers.IO) {
-            photoRepo.fetchEventThumbnail(id = eventId)
-        }
+    fun eventThumbnail(eventId: String): Flow<ByteArray?> {
+        return photoRepo.fetchEventThumbnail(eventId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     // TODO -- get this from somehwere else

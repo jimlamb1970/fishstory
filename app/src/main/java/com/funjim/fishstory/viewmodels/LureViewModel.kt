@@ -1,6 +1,7 @@
 package com.funjim.fishstory.viewmodels
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,7 +9,9 @@ import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +19,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.collections.map
 
 class LureViewModel(
@@ -119,6 +124,11 @@ class LureViewModel(
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? {
         return repository.getLureWithPhotos(id)
+    }
+
+    fun lureThumbnail(lureId: String): Flow<ByteArray?> {
+        return photoRepo.fetchLureThumbnail(lureId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     suspend fun doesPhotoExist(uri: Uri): Boolean {

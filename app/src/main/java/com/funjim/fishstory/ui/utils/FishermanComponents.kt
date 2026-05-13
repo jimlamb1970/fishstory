@@ -20,6 +20,8 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -27,14 +29,11 @@ fun FishermanItem(
     fisherman: FishermanSummary,
     index: Int = 0,
     totalItems: Int = 0,
+    thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
-    onFetchThumbnail: suspend (String) -> ByteArray?,
     onDelete: () -> Unit
 ) {
-    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
-    LaunchedEffect(fisherman.fisherman.id) {
-        thumbnail = onFetchThumbnail(fisherman.fisherman.id)
-    }
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     val caughtCount = fisherman.totalCatches
     val releasedCount = fisherman.totalReleased
@@ -227,8 +226,8 @@ fun FishermanItemPreview() {
                 totalReleased = 2,
                 totalTrips = 5
             ),
+            thumbnailFlow = flowOf(null),
             onClick = {},
-            onFetchThumbnail = { null },
             onDelete = {},
         )
     }

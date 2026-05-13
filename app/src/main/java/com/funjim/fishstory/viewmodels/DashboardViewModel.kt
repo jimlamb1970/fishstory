@@ -13,6 +13,7 @@ import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -112,10 +114,9 @@ class DashboardViewModel(
             initialValue = emptyList()
         )
 
-    suspend fun fetchThumbnail(tripId: String): ByteArray? {
-        return withContext(Dispatchers.IO) {
-            photoRepo.fetchTripThumbnail(tripId)
-        }
+    fun tripThumbnail(tripId: String): Flow<ByteArray?> {
+        return photoRepo.fetchTripThumbnail(tripId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun saveTrip(trip: Trip) {

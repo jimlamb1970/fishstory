@@ -9,6 +9,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
+import android.util.Log
 import android.util.Size
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.model.Photo
@@ -327,7 +328,16 @@ class PhotoRepository(
         }
     }
 
-    suspend fun fetchTripThumbnail(id: String) = photoDao.getThumbnailForTrip(id)
-    suspend fun fetchEventThumbnail(id: String) = photoDao.getThumbnailForEvent(id)
-    suspend fun fetchFishermanThumbnail(id: String) = photoDao.getThumbnailForFisherman(id)
+    fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForTrip(id)
+    }
+    fun fetchEventThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForEvent(id)
+    }
+    fun fetchFishermanThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForFisherman(id)
+    }
+    fun fetchLureThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForLure(id)
+    }
 }

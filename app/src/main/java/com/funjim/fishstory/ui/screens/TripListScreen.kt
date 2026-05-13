@@ -253,8 +253,8 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
+                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -269,8 +269,8 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
+                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -285,8 +285,8 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.completedTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
+                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }

@@ -36,6 +36,7 @@ import com.funjim.fishstory.ui.utils.TripMenu
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import com.funjim.fishstory.viewmodels.WizardStep
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -683,12 +684,12 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         TripItem(
                             trip = currentTrip,
                             modifier = Modifier.padding(),
+                            thumbnailFlow = flowOf(null),
                             onClick = {
                                 fromReview = true
                                 tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             },
                             onLongClick = { showTripMenu = true },
-                            onFetchThumbnail = { null },
                             onAction = { action ->
                                 when (action) {
                                     is TripAction.OpenMap -> {
@@ -805,6 +806,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     ),
                                     index = index,
                                     totalItems = totalItems,
+                                    thumbnailFlow = flowOf(null),
                                     onClick = {
                                         fromReview = true
 
@@ -813,7 +815,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 
                                         tripViewModel.updateWizardStep(WizardStep.EventInfo)
                                     },
-                                    onFetchThumbnail = { null }
                                 )
                             }
 

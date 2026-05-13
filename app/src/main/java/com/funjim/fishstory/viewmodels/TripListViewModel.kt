@@ -8,11 +8,13 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,10 +68,9 @@ class TripListViewModel(
         }
     }
 
-    suspend fun fetchTripThumbnail(tripId: String): ByteArray? {
-        return withContext(Dispatchers.IO) {
-            photoRepo.fetchTripThumbnail(tripId)
-        }
+    fun tripThumbnail(tripId: String): Flow<ByteArray?> {
+        return photoRepo.fetchTripThumbnail(tripId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 }
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,8 +41,8 @@ fun TripItemWithMenu(
     index: Int,
     totalItems: Int,
     modifier: Modifier = Modifier,
+    thumbnailFlow: Flow<ByteArray?>,
     onNavigateToDetails: (String) -> Unit,
-    onFetchThumbnail: suspend (String) -> ByteArray?,
     onAction: (TripAction) -> Unit,
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
@@ -51,9 +52,9 @@ fun TripItemWithMenu(
         index = index,
         totalItems = totalItems,
         modifier = modifier,
+        thumbnailFlow = thumbnailFlow,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
-        onFetchThumbnail = onFetchThumbnail,
         onAction = onAction
     ) {
         TripMenu(
@@ -94,16 +95,13 @@ fun TripItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
+    thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    onFetchThumbnail: suspend (String) -> ByteArray?,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
 ) {
-    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
-    LaunchedEffect(trip.trip.id) {
-        thumbnail = onFetchThumbnail(trip.trip.id)
-    }
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())

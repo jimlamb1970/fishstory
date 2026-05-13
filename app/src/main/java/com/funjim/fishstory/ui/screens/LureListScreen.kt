@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -173,6 +174,7 @@ fun LureListScreen(
                                 primaryColorName = item.primaryColorName,
                                 secondaryColorName = item.secondaryColorName,
                                 glowColorName = item.glowColorName,
+                                thumbnailFlow = viewModel.lureThumbnail(item.lureSummary.lure.id),
                                 onEdit = { onEdit(item.lureSummary.lure.id) },
                                 onDelete = { lureToDelete = item.lureSummary.lure }
                             )

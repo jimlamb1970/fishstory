@@ -34,30 +34,6 @@ import java.io.IOException
 import java.security.MessageDigest
 import java.util.UUID
 
-fun generateThumbnail(context: Context,uri: Uri): ByteArray {
-    val bitmap = context.contentResolver.loadThumbnail(uri, Size(200, 200), null)
-
-    return ByteArrayOutputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
-        bitmap.recycle()
-        out.toByteArray()
-    }
-}
-
-fun md5Hash(context: Context, uri: Uri): String {
-    val digest = MessageDigest.getInstance("MD5")
-    context.contentResolver.openInputStream(uri)?.use { input ->
-        val buffer = ByteArray(8192)
-        var bytes = input.read(buffer)
-        while (bytes != -1) {
-            digest.update(buffer, 0, bytes)
-            bytes = input.read(buffer)
-        }
-    } ?: throw IOException("Could not open input stream for URI: $uri")
-
-    return digest.digest().joinToString("") { "%02x".format(it) }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLureScreen(

@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 
 @Composable
 fun LureItem(
@@ -24,9 +28,12 @@ fun LureItem(
     primaryColorName: String?,
     secondaryColorName: String?,
     glowColorName: String?,
+    thumbnailFlow: Flow<ByteArray?>,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
     var menuExpanded by remember { mutableStateOf(false) }
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
@@ -60,7 +67,7 @@ fun LureItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThumbnailBox(
-                thumbnail = item.photos.firstOrNull()?.thumbnail,
+                thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Lure
             )
 

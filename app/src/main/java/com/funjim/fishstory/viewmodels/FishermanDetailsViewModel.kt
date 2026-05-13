@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -113,12 +114,10 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }
 
-    suspend fun fetchThumbnail(tripId: String): ByteArray? {
-        return withContext(Dispatchers.IO) {
-            photoRepo.fetchTripThumbnail(tripId)
-        }
+    fun tripThumbnail(tripId: String): Flow<ByteArray?> {
+        return photoRepo.fetchTripThumbnail(tripId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-
 
     fun createTackleBox(fishermanId: String, name: String) {
         viewModelScope.launch { repository.createTackleBox(fishermanId, name) }

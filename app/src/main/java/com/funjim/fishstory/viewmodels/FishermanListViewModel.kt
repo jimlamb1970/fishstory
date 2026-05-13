@@ -58,10 +58,9 @@ class FishermanListViewModel(
         }
     }
 
-    suspend fun fetchFishermanThumbnail(fishermanId: String): ByteArray? {
-        return withContext(Dispatchers.IO) {
-            photoRepo.fetchFishermanThumbnail(fishermanId)
-        }
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 }
 

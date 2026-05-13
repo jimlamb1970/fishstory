@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,18 +35,15 @@ fun EventItem(
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
+    thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
-    onFetchThumbnail: suspend (String) -> ByteArray?,
     onDelete: (() -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
-    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
-    LaunchedEffect(item.event.id) {
-        thumbnail = onFetchThumbnail(item.event.id)
-    }
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())

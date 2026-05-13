@@ -113,7 +113,7 @@ interface PhotoDao {
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
 """)
-    suspend fun getThumbnailForTrip(tripId: String): ByteArray?
+    fun getThumbnailForTrip(tripId: String): Flow<ByteArray?>
 
     @Query("""
     SELECT thumbnail FROM photo_table 
@@ -122,7 +122,7 @@ interface PhotoDao {
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
 """)
-    suspend fun getThumbnailForEvent(eventId: String): ByteArray?
+    fun getThumbnailForEvent(eventId: String): Flow<ByteArray?>
 
     @Query("""
     SELECT thumbnail FROM photo_table 
@@ -131,5 +131,14 @@ interface PhotoDao {
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
 """)
-    suspend fun getThumbnailForFisherman(fishermanId: String): ByteArray?
+    fun getThumbnailForFisherman(fishermanId: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
+    WHERE lureId = :lureId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForLure(lureId: String): Flow<ByteArray?>
 }
