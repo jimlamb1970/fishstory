@@ -327,6 +327,7 @@ class PhotoRepository(
         }
     }
 
-    suspend fun fetchTripThumbnail(tripId: String) = photoDao.getThumbnailForTrip(tripId)
-    suspend fun fetchEventThumbnail(eventId: String) = photoDao.getThumbnailForEvent(eventId)
+    suspend fun fetchTripThumbnail(id: String) = photoDao.getThumbnailForTrip(id)
+    suspend fun fetchEventThumbnail(id: String) = photoDao.getThumbnailForEvent(id)
+    suspend fun fetchFishermanThumbnail(id: String) = photoDao.getThumbnailForFisherman(id)
 }

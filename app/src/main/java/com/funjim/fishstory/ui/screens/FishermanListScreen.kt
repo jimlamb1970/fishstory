@@ -143,10 +143,11 @@ fun FishermanListScreen(
                             fisherman = fisherman,
                             index = index,
                             totalItems = totalItems,
-                            onDelete = { fishermanToDelete = fisherman },
                             onClick = {
                                 navigateToFishermanDetails(fisherman.fisherman.id)
-                            }
+                            },
+                            onFetchThumbnail = { id -> viewModel.fetchFishermanThumbnail(id) },
+                            onDelete = { fishermanToDelete = fisherman }
                         )
                     }
                 }

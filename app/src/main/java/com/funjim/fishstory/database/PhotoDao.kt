@@ -123,4 +123,13 @@ interface PhotoDao {
     LIMIT 1
 """)
     suspend fun getThumbnailForEvent(eventId: String): ByteArray?
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_fisherman_cross_ref ON photo_table.id = photo_fisherman_cross_ref.photoId
+    WHERE fishermanId = :fishermanId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    suspend fun getThumbnailForFisherman(fishermanId: String): ByteArray?
 }

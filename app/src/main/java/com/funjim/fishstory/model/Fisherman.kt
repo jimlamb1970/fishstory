@@ -106,17 +106,6 @@ data class FishermanWithDetails(
 
 data class FishermanSummary(
     @Embedded val fisherman: Fisherman,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(
-            value = PhotoFishermanCrossRef::class,
-            parentColumn = "fishermanId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>,
-
     val totalCatches: Int,
     val totalReleased: Int,
     val totalTrips: Int

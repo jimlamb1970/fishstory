@@ -27,10 +27,15 @@ fun FishermanItem(
     fisherman: FishermanSummary,
     index: Int = 0,
     totalItems: Int = 0,
-    onDelete: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFetchThumbnail: suspend (String) -> ByteArray?,
+    onDelete: () -> Unit
 ) {
-    val tripCount = fisherman.totalTrips
+    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
+    LaunchedEffect(fisherman.fisherman.id) {
+        thumbnail = onFetchThumbnail(fisherman.fisherman.id)
+    }
+
     val caughtCount = fisherman.totalCatches
     val releasedCount = fisherman.totalReleased
     val keptCount = caughtCount - releasedCount
@@ -68,7 +73,7 @@ fun FishermanItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThumbnailBox(
-                thumbnail = fisherman.photos.firstOrNull()?.thumbnail,
+                thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Fisherman
             )
 
@@ -218,13 +223,13 @@ fun FishermanItemPreview() {
         FishermanItem(
             fisherman = FishermanSummary(
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
-                photos = emptyList(),
                 totalCatches = 10,
                 totalReleased = 2,
                 totalTrips = 5
             ),
+            onClick = {},
+            onFetchThumbnail = { null },
             onDelete = {},
-            onClick = {}
         )
     }
 }

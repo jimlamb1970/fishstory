@@ -269,7 +269,7 @@ class TripViewModel(
 
     suspend fun fetchEventThumbnail(eventId: String): ByteArray? {
         return withContext(Dispatchers.IO) {
-            photoRepo.fetchEventThumbnail(eventId = eventId)
+            photoRepo.fetchEventThumbnail(id = eventId)
         }
     }
 
