@@ -56,27 +56,30 @@ import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
-import com.funjim.fishstory.ui.utils.LocationProviderImpl
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels {
         val database = (application as FishstoryApplication).database
         MainViewModelFactory(
-            database.tripDao(),
-            database.fishermanDao(),
-            database.eventDao(),
-            database.lureDao(),
-            database.fishDao(),
-            database.photoDao(),
-            database.tackleBoxDao()
+            tripDao = database.tripDao(),
+            fishermanDao = database.fishermanDao(),
+            eventDao = database.eventDao(),
+            lureDao = database.lureDao(),
+            fishDao = database.fishDao(),
+            photoDao =  database.photoDao(),
+            tackleBoxDao = database.tackleBoxDao()
         )
     }
 
     private val dashboardViewModel: DashboardViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
+        val photoRepo = (application as FishstoryApplication).photoRepository
         val tripRepo = (application as FishstoryApplication).tripRepository
-        DashboardViewModelFactory(locationProvider, tripRepo)
+        DashboardViewModelFactory(
+            locationProvider = locationProvider,
+            photoRepo = photoRepo,
+            tripRepo = tripRepo)
     }
     private val addFishViewModel: AddFishViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
@@ -119,10 +122,12 @@ class MainActivity : ComponentActivity() {
 
     private val tripListViewModel: TripListViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
-        val tripRepository = (application as FishstoryApplication).tripRepository
+        val photoRepo = (application as FishstoryApplication).photoRepository
+        val tripRepo = (application as FishstoryApplication).tripRepository
         TripListViewModelFactory(
             locationProvider = locationProvider,
-            tripRepository)
+            photoRepo = photoRepo,
+            tripRepo = tripRepo)
     }
     private val tripViewModel: TripViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider

@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +24,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DashboardViewModel(
     private val locationProvider: LocationProvider,
-    private val repository: TripRepository
+    private val photoRepo: PhotoRepository,
+    private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     private val currentTime = flow {
         while (true) {
@@ -34,9 +39,9 @@ class DashboardViewModel(
     }
 
     val uiState: StateFlow<DashboardUiState> = combine(
-        repository.getActiveTripSummaries(),
-        repository.getUpcomingTrips(),
-        repository.getPreviousTripSummaries()
+        tripRepo.getActiveTripSummaries(),
+        tripRepo.getUpcomingTrips(),
+        tripRepo.getPreviousTripSummaries()
     ) { active, upcoming, previous ->
         DashboardUiState(
             activeTrips = active,
@@ -53,7 +58,7 @@ class DashboardViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activeTripEvents: StateFlow<SegmentGroups> = currentTime
         .flatMapLatest { now ->
-            repository.getSegmentsForActiveTrips(now).map { allSegments ->
+            tripRepo.getSegmentsForActiveTrips(now).map { allSegments ->
                 // Split them into the 3 groups here
                 SegmentGroups(
                     previous = allSegments.filter { it.event.endTime < now },
@@ -83,7 +88,7 @@ class DashboardViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                repository.getSegmentSummaries(id)
+                tripRepo.getSegmentSummaries(id)
             }
         }
         .stateIn(
@@ -99,7 +104,7 @@ class DashboardViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                repository.getActiveSegmentsForTrip(id)
+                tripRepo.getActiveSegmentsForTrip(id)
             }
         }
         .stateIn(
@@ -108,14 +113,20 @@ class DashboardViewModel(
             initialValue = emptyList()
         )
 
+    suspend fun fetchThumbnail(tripId: String): ByteArray? {
+        return withContext(Dispatchers.IO) {
+            photoRepo.fetchThumbnail(tripId)
+        }
+    }
+
     fun saveTrip(trip: Trip) {
         viewModelScope.launch {
-            repository.upsertTrip(trip)
+            tripRepo.upsertTrip(trip)
         }
     }
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
-            repository.deleteTripById(trip.id)
+            tripRepo.deleteTripById(trip.id)
         }
     }
 }
@@ -136,12 +147,16 @@ data class SegmentGroups(
 
 class DashboardViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(locationProvider, tripRepo) as T
+            return DashboardViewModel(
+                locationProvider,
+                photoRepo,
+                tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

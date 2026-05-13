@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FishermanDetailsViewModel(
     private val repository: FishermanRepository,
@@ -110,6 +112,13 @@ class FishermanDetailsViewModel(
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }
+
+    suspend fun fetchThumbnail(tripId: String): ByteArray? {
+        return withContext(Dispatchers.IO) {
+            photoRepo.fetchThumbnail(tripId)
+        }
+    }
+
 
     fun createTackleBox(fishermanId: String, name: String) {
         viewModelScope.launch { repository.createTackleBox(fishermanId, name) }

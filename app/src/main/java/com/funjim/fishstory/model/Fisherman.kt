@@ -20,7 +20,9 @@ data class Fisherman(
     val id: String = UUID.randomUUID().toString(),
     val firstName: String = "",
     val lastName: String = "",
-    val nickname: String = ""
+    val nickname: String = "",
+    val isLocked: Boolean = false,
+    val isFavorite: Boolean = false
 ) {
     @get:Ignore
     val fullName: String

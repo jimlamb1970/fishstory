@@ -106,4 +106,12 @@ interface PhotoDao {
 """)
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
 
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_trip_cross_ref ON photo_table.id = photo_trip_cross_ref.photoId
+    WHERE tripId = :tripId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    suspend fun fetchThumbnail(tripId: String): ByteArray?
 }

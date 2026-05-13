@@ -17,7 +17,9 @@ data class Trip(
     val startDate: Long = System.currentTimeMillis(),
     val endDate: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val isLocked: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 data class TripWithPhotos(
@@ -80,24 +82,11 @@ data class TripWithDetails(
     val photos: List<Photo>,
  )
 
-// TODO - rename values to better match EventSummary
 data class TripSummary(
     @Embedded val trip: Trip,
-
-    @Relation(
-        parentColumn = "id",        // Event ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoTripCrossRef::class,
-            parentColumn = "tripId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>,
-
     val eventCount: Int = 0,
-    val totalCaught: Int = 0,
-    val totalKept: Int = 0,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
     val fishermanCount: Int = 0,
     val tackleBoxCount: Int = 0,
     val bigFishName: String? = null,

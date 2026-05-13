@@ -328,6 +328,7 @@ fun FishermanDetailsScreen(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
+                                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
@@ -344,7 +345,6 @@ fun FishermanDetailsScreen(
                                                     ).show()
                                                 }
                                             }
-
                                             else -> {}
                                         }
                                     }
@@ -368,6 +368,7 @@ fun FishermanDetailsScreen(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
+                                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {

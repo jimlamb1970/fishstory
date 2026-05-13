@@ -78,7 +78,9 @@ data class Fish(
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val holeNumber: Int? = null
+    val holeNumber: Int? = null,
+    val isLocked: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 data class FishWithPhotos(

@@ -96,8 +96,8 @@ SELECT
     t.*,
     -- Counts
     (SELECT COUNT(*) FROM event_table et WHERE et.tripId = t.id) as eventCount,
-    (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id) as totalCaught,
-    (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id AND f.isReleased = 0) as totalKept,
+    (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
+    (SELECT COUNT(*) FROM fish_table f WHERE f.tripId = t.id AND f.isReleased = 0) as fishKept,
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
     

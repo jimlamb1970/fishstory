@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,9 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TripListViewModel(
     private val locationProvider: LocationProvider,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
@@ -61,6 +65,12 @@ class TripListViewModel(
             tripRepo.deleteTripById(trip.id)
         }
     }
+
+    suspend fun fetchThumbnail(tripId: String): ByteArray? {
+        return withContext(Dispatchers.IO) {
+            photoRepo.fetchThumbnail(tripId)
+        }
+    }
 }
 
 data class TripListUiState(
@@ -72,12 +82,16 @@ data class TripListUiState(
 
 class TripListViewModelFactory(
     private val locationProvider: LocationProvider,
-    private val tripRepository: TripRepository
+    private val photoRepo: PhotoRepository,
+    private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TripListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripListViewModel(locationProvider, tripRepository) as T
+            return TripListViewModel(
+                locationProvider,
+                photoRepo,
+                tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

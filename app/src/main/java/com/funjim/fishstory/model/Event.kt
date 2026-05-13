@@ -25,7 +25,9 @@ data class Event(
     val startTime: Long = System.currentTimeMillis(),
     val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val isLocked: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 data class EventWithPhotos(
@@ -85,7 +87,6 @@ data class EventWithDetails(
     val fish: List<Fish>
 )
 
-// TODO - rename values to better match TripSummary
 data class EventSummary(
     @Embedded val event: Event,
     @Relation(

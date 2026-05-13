@@ -1,7 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -303,6 +302,7 @@ fun DashboardScreen(
                     totalItems = totalItems,
                     modifier = Modifier.padding(),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
+                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                     onMenuDismiss = { showMenu = false }
@@ -320,7 +320,7 @@ fun DashboardScreen(
 
 This cannot be undone.
 
-All events (${item.eventCount}) and fish (${item.totalCaught}) associated with this trip will also be deleted.""") },
+All events (${item.eventCount}) and fish (${item.fishCaught}) associated with this trip will also be deleted.""") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -408,19 +408,19 @@ fun ActiveTripCard(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable( onClick = { onTripClick(trip.trip.id) })
             )
-            if (trip.totalCaught != currentEvent.fishCaught) {
+            if (trip.fishCaught != currentEvent.fishCaught) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(
                         label = "CAUGHT",
-                        value = "${trip.totalCaught}",
+                        value = "${trip.fishCaught}",
                         color = MaterialTheme.colorScheme.primary
                     )
                     StatItem(
                         label = "KEPT",
-                        value = "${trip.totalKept}",
+                        value = "${trip.fishKept}",
                         color = MaterialTheme.colorScheme.primary
                     )
                 }

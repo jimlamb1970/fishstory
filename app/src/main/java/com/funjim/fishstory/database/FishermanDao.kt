@@ -192,8 +192,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS totalCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        COUNT(f.id) AS fishCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -215,8 +215,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS totalCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        COUNT(f.id) AS fishCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -239,8 +239,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS totalCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        COUNT(f.id) AS fishCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -263,8 +263,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS totalCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        COUNT(f.id) AS fishCaught,
+        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,

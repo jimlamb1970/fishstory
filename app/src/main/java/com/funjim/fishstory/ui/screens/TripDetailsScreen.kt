@@ -333,7 +333,7 @@ fun TripDetailsScreen(
                             }
                         )
 
-                        if (details.totalCaught != 0 || now >= details.trip.startDate) {
+                        if (details.fishCaught != 0 || now >= details.trip.startDate) {
                             HorizontalDivider()
 
                             TripHighlightCard(
@@ -574,11 +574,11 @@ fun TripHighlightCard(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 StatItem(
                     label = "CAUGHT",
-                    value = "${tripSummary.totalCaught}",
+                    value = "${tripSummary.fishCaught}",
                     color = MaterialTheme.colorScheme.primary)
                 StatItem(
                     label = "KEPT",
-                    value = "${tripSummary.totalKept}",
+                    value = "${tripSummary.fishKept}",
                     color = Color(0xFF4CAF50)) // Harvest Green
             }
 

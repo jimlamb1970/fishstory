@@ -59,7 +59,9 @@ data class Lure(
     val secondaryColorId: String?,
     val hasSingleHook: Boolean,
     val glows: Boolean,
-    val glowColorId: String?
+    val glowColorId: String?,
+    val isLocked: Boolean = false,
+    val isFavorite: Boolean = false
 ) {
     fun getDisplayName(primaryColorName: String?, secondaryColorName: String?, glowColorName: String?): String {
         val sb = StringBuilder(name)

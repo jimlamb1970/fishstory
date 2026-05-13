@@ -27,7 +27,8 @@ import kotlinx.serialization.Serializable
 )
 data class PhotoTripCrossRef(
     val photoId: String,
-    val tripId: String
+    val tripId: String,
+    val isPrimary: Boolean = false
 )
 
 @Serializable
@@ -52,7 +53,8 @@ data class PhotoTripCrossRef(
 )
 data class PhotoEventCrossRef(
     val photoId: String,
-    val eventId: String
+    val eventId: String,
+    val isPrimary: Boolean = false
 )
 
 @Serializable
@@ -77,7 +79,8 @@ data class PhotoEventCrossRef(
 )
 data class PhotoLureCrossRef(
     val photoId: String,
-    val lureId: String
+    val lureId: String,
+    val isPrimary: Boolean = false
 )
 
 @Serializable
@@ -102,7 +105,8 @@ data class PhotoLureCrossRef(
 )
 data class PhotoFishermanCrossRef(
     val photoId: String,
-    val fishermanId: String
+    val fishermanId: String,
+    val isPrimary: Boolean = false
 )
 
 @Serializable
@@ -127,5 +131,6 @@ data class PhotoFishermanCrossRef(
 )
 data class PhotoFishCrossRef(
     val photoId: String,
-    val fishId: String
+    val fishId: String,
+    val isPrimary: Boolean = false
 )

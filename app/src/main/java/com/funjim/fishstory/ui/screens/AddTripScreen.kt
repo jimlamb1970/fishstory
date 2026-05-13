@@ -3,7 +3,6 @@ package com.funjim.fishstory.ui.screens
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
@@ -670,10 +668,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                         // Trip summary card
                         val currentTrip = TripSummary(
                             trip = tripDraft,
-                            photos = emptyList(),
                             eventCount = eventSummaries.size,
-                            totalCaught = 0,
-                            totalKept = 0,
+                            fishCaught = 0,
+                            fishKept = 0,
                             fishermanCount = tripFishermenIds.size,
                             tackleBoxCount = tripTackleBoxMap.size,
                             bigFishName = null,
@@ -691,6 +688,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                 tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             },
                             onLongClick = { showTripMenu = true },
+                            onFetchThumbnail = { null },
                             onAction = { action ->
                                 when (action) {
                                     is TripAction.OpenMap -> {

@@ -326,4 +326,6 @@ class PhotoRepository(
             photoDao.deleteFishPhoto(PhotoFishCrossRef(photo.id, fishId))
         }
     }
+
+    suspend fun fetchThumbnail(tripId: String) = photoDao.fetchThumbnail(tripId)
 }

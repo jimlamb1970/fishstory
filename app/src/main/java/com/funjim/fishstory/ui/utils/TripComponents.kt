@@ -41,6 +41,7 @@ fun TripItemWithMenu(
     totalItems: Int,
     modifier: Modifier = Modifier,
     onNavigateToDetails: (String) -> Unit,
+    onFetchThumbnail: suspend (String) -> ByteArray?,
     onAction: (TripAction) -> Unit,
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
@@ -52,6 +53,7 @@ fun TripItemWithMenu(
         modifier = modifier,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
+        onFetchThumbnail = onFetchThumbnail,
         onAction = onAction
     ) {
         TripMenu(
@@ -94,12 +96,18 @@ fun TripItem(
     totalItems: Int = 0,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onFetchThumbnail: suspend (String) -> ByteArray?,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
 ) {
+    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
+
     val dateTimeFormatter = remember {
-//        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    }
+
+    LaunchedEffect(trip.trip.id) {
+        thumbnail = onFetchThumbnail(trip.trip.id)
     }
 
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
@@ -137,7 +145,7 @@ fun TripItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThumbnailBox(
-                thumbnail = trip.photos.firstOrNull()?.thumbnail,
+                thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Boat
             )
 
@@ -257,8 +265,8 @@ fun TripItem(
                     }
                 }
 
-                val caughtCount = trip.totalCaught
-                val keptCount = trip.totalKept
+                val caughtCount = trip.fishCaught
+                val keptCount = trip.fishKept
                 val now = System.currentTimeMillis()
                 if (caughtCount != 0  || now >= trip.trip.startDate) {
                     Row(
