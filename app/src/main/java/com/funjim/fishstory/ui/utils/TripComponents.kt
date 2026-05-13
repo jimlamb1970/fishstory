@@ -101,13 +101,12 @@ fun TripItem(
     actions: @Composable () -> Unit = {}
 ) {
     var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
+    LaunchedEffect(trip.trip.id) {
+        thumbnail = onFetchThumbnail(trip.trip.id)
+    }
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    }
-
-    LaunchedEffect(trip.trip.id) {
-        thumbnail = onFetchThumbnail(trip.trip.id)
     }
 
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))

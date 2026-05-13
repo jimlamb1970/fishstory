@@ -254,7 +254,7 @@ fun TripListScreen(
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
+                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -270,7 +270,7 @@ fun TripListScreen(
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
+                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -286,7 +286,7 @@ fun TripListScreen(
                                     totalItems = state.completedTrips.size,
                                     modifier = Modifier.padding(8.dp, 4.dp),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFetchThumbnail = { id -> viewModel.fetchThumbnail(id) },
+                                    onFetchThumbnail = { id -> viewModel.fetchTripThumbnail(id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }

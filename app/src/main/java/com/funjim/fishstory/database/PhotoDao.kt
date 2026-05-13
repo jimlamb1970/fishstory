@@ -113,5 +113,14 @@ interface PhotoDao {
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
 """)
-    suspend fun fetchThumbnail(tripId: String): ByteArray?
+    suspend fun getThumbnailForTrip(tripId: String): ByteArray?
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_event_cross_ref ON photo_table.id = photo_event_cross_ref.photoId
+    WHERE eventId = :eventId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    suspend fun getThumbnailForEvent(eventId: String): ByteArray?
 }

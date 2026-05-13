@@ -66,9 +66,9 @@ class TripListViewModel(
         }
     }
 
-    suspend fun fetchThumbnail(tripId: String): ByteArray? {
+    suspend fun fetchTripThumbnail(tripId: String): ByteArray? {
         return withContext(Dispatchers.IO) {
-            photoRepo.fetchThumbnail(tripId)
+            photoRepo.fetchTripThumbnail(tripId)
         }
     }
 }

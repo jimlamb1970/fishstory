@@ -9,6 +9,7 @@ import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.collections.get
 import kotlin.collections.map
@@ -264,6 +266,12 @@ class TripViewModel(
         .filterNotNull()
         .flatMapLatest { photoRepo.getPhotosForEvent(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    suspend fun fetchEventThumbnail(eventId: String): ByteArray? {
+        return withContext(Dispatchers.IO) {
+            photoRepo.fetchEventThumbnail(eventId = eventId)
+        }
+    }
 
     // TODO -- get this from somehwere else
     var lureColors: Flow<List<LureColor>> = fishermanRepo.allLureColors

@@ -94,17 +94,6 @@ data class EventSummary(
         entityColumn = "id"        // The primary key in your Trip entity
     )
     val trip: Trip,
-    @Relation(
-        parentColumn = "id",        // Event ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoEventCrossRef::class,
-            parentColumn = "eventId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>,
-
     val fishCaught: Int,
     val fishKept: Int,
     val fishermanCount: Int,

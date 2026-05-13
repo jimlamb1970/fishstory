@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.repository.PhotoRepository
@@ -115,7 +114,7 @@ class DashboardViewModel(
 
     suspend fun fetchThumbnail(tripId: String): ByteArray? {
         return withContext(Dispatchers.IO) {
-            photoRepo.fetchThumbnail(tripId)
+            photoRepo.fetchTripThumbnail(tripId)
         }
     }
 

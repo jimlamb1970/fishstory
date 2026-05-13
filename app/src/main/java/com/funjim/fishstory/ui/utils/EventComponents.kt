@@ -35,17 +35,22 @@ fun EventItem(
     index: Int = 0,
     totalItems: Int = 0,
     onClick: () -> Unit,
+    onFetchThumbnail: suspend (String) -> ByteArray?,
     onDelete: (() -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null
 ) {
+    var thumbnail by remember { mutableStateOf<ByteArray?>(null) }
+    LaunchedEffect(item.event.id) {
+        thumbnail = onFetchThumbnail(item.event.id)
+    }
+
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())
     }
     val now = System.currentTimeMillis()
-
     val startString = dateTimeFormatter.format(Date(item.event.startTime))
     val endString = dateTimeFormatter.format(Date(item.event.endTime))
 
@@ -82,7 +87,7 @@ fun EventItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ThumbnailBox(
-                thumbnail = item.photos.firstOrNull()?.thumbnail,
+                thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Boat
             )
 

@@ -786,7 +786,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             itemsIndexed(eventSummaries, key = { _, event -> event.event.id }) { index, event ->
                                 val currentSummary = EventSummary(
                                     event = event.event,
-                                    photos = emptyList(),
                                     trip = tripDraft,
                                     fishCaught = 0,
                                     fishKept = 0,
@@ -813,7 +812,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         tripViewModel.updateEventDraft { event.event }
 
                                         tripViewModel.updateWizardStep(WizardStep.EventInfo)
-                                    }
+                                    },
+                                    onFetchThumbnail = { null }
                                 )
                             }
 

@@ -396,6 +396,7 @@ fun TripDetailsScreen(
                             index = index,
                             totalItems = totalItems,
                             onClick = { navigateToEventDetails(eventSummary.event.id) },
+                            onFetchThumbnail = { id -> viewModel.fetchEventThumbnail(eventId = id) },
                             onDelete = { eventToDelete = eventSummary },
                             onSetLocation = {
                                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
