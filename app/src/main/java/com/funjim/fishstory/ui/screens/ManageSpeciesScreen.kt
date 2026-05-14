@@ -1,7 +1,10 @@
 package com.funjim.fishstory.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,10 +17,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert // Added for the anchor icon
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,15 +47,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.FishViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ManageSpeciesScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit
 ) {
-//    val speciesList by viewModel.species.collectAsStateWithLifecycle(initialValue = emptyList())
     val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
@@ -59,15 +65,12 @@ fun ManageSpeciesScreen(
 
     val context = LocalContext.current
 
-    // 1. Logic: Filter list based on search query
     val filteredSpecies = remember(searchQuery, speciesSummaries) {
         speciesSummaries.filter {
             it.species.name.contains(searchQuery, ignoreCase = true)
         }.sortedBy { it.species.name }
     }
 
-    // 2. Logic: Should we show the "Add" button?
-    // Show if the query isn't empty and doesn't exactly match an existing name
     val showAddButton = searchQuery.isNotBlank() &&
             speciesSummaries.none { it.species.name.equals(searchQuery.trim(), ignoreCase = true) }
 
@@ -115,45 +118,75 @@ fun ManageSpeciesScreen(
 
             // THE LIST
             LazyColumn(modifier = Modifier.weight(1f)) {
-                itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, species ->
-                    // Your Zebra Striping
+                itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, summary ->
+                    val species = summary.species
+                    val thumbnail by viewModel.speciesThumbnail(species.id).collectAsStateWithLifecycle(initialValue = null)
+                    var menuExpanded by remember { mutableStateOf(false) }
+
                     val backgroundColor = if (index % 2 == 0) MaterialTheme.colorScheme.surface
                     else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
 
+                    val preventDelete = summary.caughtCount > 0 || summary.keptCount > 0
+
                     ListItem(
-                        modifier = Modifier.background(backgroundColor),
-                        headlineContent = { Text(species.species.name) },
+                        modifier = Modifier
+                            .background(backgroundColor)
+                            .combinedClickable(
+                                onClick = { },
+                                onLongClick = { menuExpanded = true }
+                            ),
+                        headlineContent = { Text(species.name) },
                         supportingContent = {
-                            Text("Caught: ${species.caughtCount}, Kept: ${species.keptCount}")
+                            Text("Caught: ${summary.caughtCount}, Kept: ${summary.keptCount}")
+                        },
+                        leadingContent = {
+                            ThumbnailBox(thumbnail = thumbnail)
                         },
                         trailingContent = {
-                            Row {
-                                val preventDelete = species.caughtCount > 0 || species.keptCount > 0
-
-                                IconButton(onClick = {
-                                    speciesToEdit = species.species
-                                    editName = species.species.name
-                                }) {
-                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                                }
-                                IconButton(
-                                    onClick = {
-                                        if (preventDelete) {
-                                            Toast.makeText(
-                                                context,
-                                                "Can't delete this species. There are fish logged for it.",
-                                                Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            speciesToDelete = species.species
-                                        }
-                                    }
-                                ) {
+                            // By putting the Box and the Menu here, it stays centered
+                            // vertically on the right side of the row.
+                            Box {
+                                IconButton(onClick = { menuExpanded = true }) {
                                     Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint =
-                                            if (!preventDelete) MaterialTheme.colorScheme.error
-                                            else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "Options"
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            speciesToEdit = species
+                                            editName = species.name
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            if (preventDelete) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Can't delete this species. There are fish logged for it.",
+                                                    Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                speciesToDelete = species
+                                            }
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Delete",
+                                                tint = if (!preventDelete) MaterialTheme.colorScheme.error
+                                                else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
+                                            )
+                                        }
                                     )
                                 }
                             }
@@ -168,7 +201,6 @@ fun ManageSpeciesScreen(
         }
     }
 
-    // TODO -- prevent deletion of species that are in use
     // DELETE CONFIRMATION
     speciesToDelete?.let { species ->
         AlertDialog(
