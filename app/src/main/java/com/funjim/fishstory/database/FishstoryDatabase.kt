@@ -26,7 +26,7 @@ import com.funjim.fishstory.model.*
         PhotoFishermanCrossRef::class,
         PhotoFishCrossRef::class
     ], 
-    version = 29,
+    version = 1,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {

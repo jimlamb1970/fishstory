@@ -728,7 +728,7 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
         val counts = IntArray(sizeBuckets.size)
         fishList.forEach { fish ->
             val bucket = when {
-                fish.fish.length <= 8 -> 0
+                fish.fish.length!! <= 8 -> 0
                 fish.fish.length <= 10 -> 1
                 fish.fish.length <= 12 -> 2
                 fish.fish.length <= 14 -> 3

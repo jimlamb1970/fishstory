@@ -119,10 +119,12 @@ fun FishItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val lengthStr = if (fish.fish.length != null)
+                        " - " + fish.fish.length.toDisplayString(useMetric = false, useFractions = true)
+                    else ""
+
                     Text(
-                        text = buildString {
-                            append("${fish.species?.name} - ${fish.fish.length}\"")
-                        },
+                        text = "${fish.species.name}$lengthStr",
                         style = MaterialTheme.typography.titleMedium
                     )
 

@@ -68,12 +68,12 @@ data class Species(
 data class Fish(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val speciesId: String?,
-    val fishermanId: String?,
+    val speciesId: String,
+    val fishermanId: String,
     val tripId: String,
     val eventId: String,
     val lureId: String? = null,
-    val length: Double,
+    val length: Long? = null,
     val isReleased: Boolean = true,
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
@@ -104,13 +104,13 @@ data class FishWithDetails(
         parentColumn = "speciesId",
         entityColumn = "id"
     )
-    val species: Species?,
+    val species: Species,
 
     @Relation(
         parentColumn = "fishermanId",
         entityColumn = "id"
     )
-    val fisherman: Fisherman?,
+    val fisherman: Fisherman,
 
     @Relation(
         parentColumn = "tripId",

@@ -47,6 +47,8 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.inchesToStorage
+import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 
@@ -337,15 +339,18 @@ fun AddFishScreen(
                 ) {
                     StepperField(
                         label = "Length (in)",
-                        value = fish.length.toString(),
+                        value = fish.length?.toInches()?.toString() ?: "",
                         onValueChange = { length ->
-                            viewModel.updateLength(length.toDoubleOrNull() ?: 0.0)
+                            val newLength = (length.toDoubleOrNull() ?: 0.0).inchesToStorage()
+                            viewModel.updateLength(newLength)
                         },
                         onIncrement = {
-                            viewModel.updateLength(fish.length + 0.25)
+                            val newLength = fish.length?.plus((0.25).inchesToStorage())
+                            viewModel.updateLength(newLength ?: 0)
                         },
                         onDecrement = {
-                            viewModel.updateLength(fish.length - 0.25)
+                            val newLength = fish.length?.minus((0.25).inchesToStorage())
+                            viewModel.updateLength(newLength ?: 0)
                         },
                         modifier = Modifier.weight(1f)
                     )

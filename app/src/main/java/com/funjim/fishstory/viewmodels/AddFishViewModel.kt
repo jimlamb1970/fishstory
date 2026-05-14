@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
+import com.funjim.fishstory.ui.utils.inchesToStorage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -195,11 +196,11 @@ class AddFishViewModel(
         // If fish is null, create a default "new" fish
         _draftFish.value = fish ?: Fish(
             id = UUID.randomUUID().toString(),
-            speciesId = null,
-            fishermanId = null,
+            speciesId = "",
+            fishermanId = "",
             tripId = tripId,
             eventId = eventId,
-            length = 10.0,
+            length = (10.0).inchesToStorage(),
             timestamp = System.currentTimeMillis(),
             holeNumber = 1
         )
@@ -217,7 +218,7 @@ class AddFishViewModel(
             current?.copy(holeNumber = holeNumber)
         }
     }
-    fun updateLength(length: Double) {
+    fun updateLength(length: Long) {
         _draftFish.update { current ->
             current?.copy(length = length)
         }

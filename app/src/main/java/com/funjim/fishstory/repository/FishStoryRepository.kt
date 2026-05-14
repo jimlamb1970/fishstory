@@ -169,15 +169,16 @@ class FishStoryRepository(
                 tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
 
                 val length = row[13].toDoubleOrNull() ?: 0.0
+                val newLength = (length * 254000.0).toLong()
                 val isKept = row[14].contains("Y", ignoreCase = true)
 
                 val fish = Fish(
-                    speciesId = speciesId,
+                    speciesId = "",
                     fishermanId = fishermanId,
                     tripId = tripId,
                     eventId = segmentId,
                     lureId = lureId,
-                    length = length,
+                    length = newLength,
                     isReleased = !isKept,
                     timestamp = timestamp,
                     holeNumber = hole
