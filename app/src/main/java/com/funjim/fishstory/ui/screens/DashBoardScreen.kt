@@ -559,7 +559,7 @@ fun DashboardGrid(
         Triple("Fishermen", AppIcons.Default.Fisherman, onFishermenClick),
         Triple("Lures", AppIcons.Default.Lure, onLuresClick), // Or a custom hook icon
         Triple("Reports", Icons.Default.AutoGraph, onReportsClick), // Or a custom hook icon
-        Triple("Settings", Icons.Default.Settings, onSettingsClick)
+        Triple("Settings", AppIcons.Default.Settings, onSettingsClick)
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
