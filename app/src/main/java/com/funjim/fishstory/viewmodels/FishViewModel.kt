@@ -258,8 +258,8 @@ class FishViewModel(
             FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.fish.timestamp }
             FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.fish.length }
             FishSortOrder.LURE -> list.sortedBy { it.fullLureName }
-            FishSortOrder.SPECIES_AZ -> list.sortedBy { it.species?.name ?: "" }
-            FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fisherman?.fullName ?: "" }
+            FishSortOrder.SPECIES_AZ -> list.sortedBy { it.species.name ?: "" }
+            FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fisherman.fullName ?: "" }
             FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.fish.holeNumber ?: 999 }
             else -> list
         }
@@ -344,6 +344,11 @@ class FishViewModel(
     fun fishThumbnail(fishId: String): Flow<ByteArray?> {
         return photoRepo.fetchFishThumbnail(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
+        return photoRepo.fetchSpeciesThumbnail(speciesId)
+            .flowOn(Dispatchers.IO)
     }
 }
 

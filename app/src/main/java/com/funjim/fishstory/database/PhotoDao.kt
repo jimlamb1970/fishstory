@@ -11,6 +11,7 @@ import com.funjim.fishstory.model.PhotoEventCrossRef
 import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.PhotoFishermanCrossRef
 import com.funjim.fishstory.model.PhotoLureCrossRef
+import com.funjim.fishstory.model.PhotoSpeciesCrossRef
 import com.funjim.fishstory.model.PhotoTripCrossRef
 import kotlinx.coroutines.flow.Flow
 
@@ -30,9 +31,6 @@ interface PhotoDao {
 
     @Query("SELECT id FROM photo_table WHERE hashcode = :hashcode LIMIT 1")
     suspend fun getPhotoIdByHash(hashcode: String): String?
-
-    @Upsert
-    suspend fun upsertPhotoEventCrossRef(crossRef: PhotoEventCrossRef)
 
     @Delete
     suspend fun deletePhoto(photo: Photo)
@@ -57,6 +55,10 @@ interface PhotoDao {
     suspend fun addFishPhoto(crossRef: PhotoFishCrossRef)
     @Delete
     suspend fun deleteFishPhoto(crossRef: PhotoFishCrossRef)
+    @Upsert
+    suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesCrossRef)
+    @Delete
+    suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesCrossRef)
 
 
     @Query("""
@@ -150,4 +152,13 @@ interface PhotoDao {
     LIMIT 1
 """)
     fun getThumbnailForLure(lureId: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
+    WHERE speciesId = :speciesId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForSpecies(speciesId: String): Flow<ByteArray?>
 }

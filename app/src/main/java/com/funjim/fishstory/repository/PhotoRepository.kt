@@ -17,6 +17,7 @@ import com.funjim.fishstory.model.PhotoEventCrossRef
 import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.PhotoFishermanCrossRef
 import com.funjim.fishstory.model.PhotoLureCrossRef
+import com.funjim.fishstory.model.PhotoSpeciesCrossRef
 import com.funjim.fishstory.model.PhotoTripCrossRef
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -342,5 +343,8 @@ class PhotoRepository(
     }
     fun fetchLureThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForLure(id)
+    }
+    fun fetchSpeciesThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForSpecies(id)
     }
 }

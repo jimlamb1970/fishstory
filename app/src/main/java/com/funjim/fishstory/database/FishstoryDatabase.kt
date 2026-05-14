@@ -8,24 +8,29 @@ import com.funjim.fishstory.model.*
 
 @Database(
     entities = [
-        Trip::class, 
-        Fisherman::class, 
-        TripFishermanCrossRef::class, 
         Event::class,
-        Lure::class, 
-        LureColor::class,
         Fish::class,
-        Species::class,
+        Fisherman::class,
+        Lure::class,
+        LureColor::class,
+        Note::class,
         Photo::class,
+        Species::class,
         TackleBox::class,
-        TackleBoxLureCrossRef::class,
+        Trip::class,
         EventFishermanCrossRef::class,
-        PhotoTripCrossRef::class,
+        TripFishermanCrossRef::class,
+        TackleBoxLureCrossRef::class,
+        NoteFishCrossRef::class,
+        NoteEventCrossRef::class,
+        NoteTripCrossRef::class,
         PhotoEventCrossRef::class,
-        PhotoLureCrossRef::class,
+        PhotoFishCrossRef::class,
         PhotoFishermanCrossRef::class,
-        PhotoFishCrossRef::class
-    ], 
+        PhotoLureCrossRef::class,
+        PhotoSpeciesCrossRef::class,
+        PhotoTripCrossRef::class
+    ],
     version = 1,
     exportSchema = false
 )
@@ -34,6 +39,7 @@ abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun fishermanDao(): FishermanDao
     abstract fun eventDao(): EventDao
     abstract fun lureDao(): LureDao
+    abstract fun noteDao(): NoteDao
     abstract fun fishDao(): FishDao
     abstract fun photoDao(): PhotoDao
     abstract fun tackleBoxDao(): TackleBoxDao

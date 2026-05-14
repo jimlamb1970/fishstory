@@ -133,4 +133,29 @@ data class PhotoFishCrossRef(
     val photoId: String,
     val fishId: String,
     val isPrimary: Boolean = false
+)@Serializable
+
+@Entity(
+    primaryKeys = ["photoId", "speciesId"],
+    tableName = "photo_species_cross_ref",
+    indices = [Index(value = ["speciesId"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = Photo::class,
+            parentColumns = ["id"],
+            childColumns = ["photoId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Species::class,
+            parentColumns = ["id"],
+            childColumns = ["speciesId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class PhotoSpeciesCrossRef(
+    val photoId: String,
+    val speciesId: String,
+    val isPrimary: Boolean = false
 )
