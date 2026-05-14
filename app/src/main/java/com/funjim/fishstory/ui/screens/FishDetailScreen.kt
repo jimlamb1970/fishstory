@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.ReleasedChip
+import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -194,9 +195,12 @@ private fun FishDetailContent(fish: FishWithDetails) {
         HorizontalDivider()
 
         // Core details
-        DetailRow(label = "Species", value = fish.species?.name ?: "Unknown")
-        DetailRow(label = "Fisherman", value = fish.fisherman?.fullName ?: "Unknown")
-        DetailRow(label = "Length", value = "${fish.fish.length}\"")
+        DetailRow(label = "Species", value = fish.species.name ?: "Unknown")
+        DetailRow(label = "Fisherman", value = fish.fisherman.fullName ?: "Unknown")
+        DetailRow(label = "Length", value = "${fish.fish.length?.toDisplayString(
+            useMetric = false,
+            useFractions = true
+        )}")
         DetailRow(label = "Caught", value = dateFormatter.format(Date(fish.fish.timestamp)))
 
         fish.fish.holeNumber?.let {

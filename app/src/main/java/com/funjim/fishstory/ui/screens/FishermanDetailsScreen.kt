@@ -51,6 +51,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
+import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
 
@@ -782,7 +783,10 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             if (stats.largestFishLength != null) {
                 StatItem(
                     label = "LARGEST FISH",
-                    value = "${stats.largestFishLength}\"",
+                    value = stats.largestFishLength.toDisplayString(
+                        useMetric = false,
+                        useFractions = true
+                    ),
                     description = stats.largestFishSpecies,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -838,7 +842,10 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
             if (stats.smallestFishLength != null) {
                 StatItem(
                     label = "SMALLEST FISH",
-                    value = "${stats.smallestFishLength}\"",
+                    value = stats.smallestFishLength.toDisplayString(
+                        useMetric = false,
+                        useFractions = true
+                    ),
                     description = stats.smallestFishSpecies,
                     color = MaterialTheme.colorScheme.primary
                 )

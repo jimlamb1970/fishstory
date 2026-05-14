@@ -39,6 +39,7 @@ import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -138,7 +139,6 @@ fun EventDetailsScreen(
 
             // Precedence logic: Use Event if it exists, otherwise use Trip
             val activeLat = eventLat ?: tripLat
-            val activeLng = currentEvent?.longitude ?: currentTrip?.longitude
 
             TopAppBar(
                 title = { Text("Event Details") },
@@ -528,7 +528,10 @@ fun EventHighlightCard(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
                     name = summary.bigFishName,
-                    description = "(${summary.bigFishLength}\" : ${summary.bigFishSpecies})",
+                    description = "(${summary.bigFishLength?.toDisplayString(
+                        useMetric = false,
+                        useFractions = true
+                    )} : ${summary.bigFishSpecies})",
                     modifier = Modifier.weight(1f))
             }
         }

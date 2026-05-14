@@ -676,7 +676,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             tackleBoxCount = tripTackleBoxMap.size,
                             bigFishName = null,
                             bigFishSpecies = "",
-                            bigFishLength = 0.0,
+                            bigFishLength = null,
                             mostCaughtName = null,
                             mostCaught = 0
                         )
@@ -794,7 +794,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     tackleBoxCount = event.tackleBoxCount,
                                     bigFishName = null,
                                     bigFishSpecies = "",
-                                    bigFishLength = 0.0,
+                                    bigFishLength = null,
                                     mostCaughtName = null,
                                     mostCaught = 0
                                 )

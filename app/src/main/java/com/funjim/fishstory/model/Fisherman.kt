@@ -127,10 +127,10 @@ data class FishermanFullStatistics(
     val tackleBoxesWithLures: List<TackleBoxWithLures?>,
 
     // Fish Extremes
-    val largestFishLength: Double?,
+    val largestFishLength: Long?,
     val largestFishTimestamp: Long?,
     val largestFishSpecies: String?,
-    val smallestFishLength: Double?,
+    val smallestFishLength: Long?,
     val smallestFishTimestamp: Long?,
     val smallestFishSpecies: String?,
 

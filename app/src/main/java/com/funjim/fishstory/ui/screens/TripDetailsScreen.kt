@@ -43,6 +43,7 @@ import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -598,7 +599,12 @@ fun TripHighlightCard(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
                     name = tripSummary.bigFishName,
-                    description = "(${tripSummary.bigFishLength}\" : ${tripSummary.bigFishSpecies})",
+                    description = "(${
+                        tripSummary.bigFishLength?.toDisplayString(
+                            useMetric = false,
+                            useFractions = true
+                        )
+                    } : ${tripSummary.bigFishSpecies})",
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f))
             }

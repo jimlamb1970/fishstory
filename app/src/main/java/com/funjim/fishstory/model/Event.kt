@@ -100,7 +100,7 @@ data class EventSummary(
     val tackleBoxCount: Int,
     val bigFishName: String? = null,
     val bigFishSpecies: String? = null,
-    val bigFishLength: Double? = null,
+    val bigFishLength: Long? = null,
     val mostCaughtName: String? = null,
     val mostCaught: Int? = null
 )

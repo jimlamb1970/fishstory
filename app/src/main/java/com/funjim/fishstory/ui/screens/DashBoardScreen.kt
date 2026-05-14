@@ -73,6 +73,7 @@ import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
 
 @Composable
@@ -450,7 +451,10 @@ fun ActiveTripCard(
                         name = trip.bigFishName,
                         description =
                             if (trip.bigFishLength == null) ""
-                            else "(${trip.bigFishLength} : ${trip.bigFishSpecies})",
+                            else "(${trip.bigFishLength.toDisplayString(
+                                useMetric = false,
+                                useFractions = true
+                            )} : ${trip.bigFishSpecies})",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -492,7 +496,10 @@ fun ActiveTripCard(
                         name = currentEvent.bigFishName,
                         description =
                             if (currentEvent.bigFishLength == null) ""
-                            else "(${currentEvent.bigFishLength} : ${currentEvent.bigFishSpecies})",
+                            else "(${currentEvent.bigFishLength.toDisplayString(
+                                useMetric = false,
+                                useFractions = true
+                            )} : ${currentEvent.bigFishSpecies})",
                         modifier = Modifier.weight(1f)
                     )
                 }
