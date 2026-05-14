@@ -337,6 +337,9 @@ class PhotoRepository(
     fun fetchFishermanThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForFisherman(id)
     }
+    fun fetchFishThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForFish(id)
+    }
     fun fetchLureThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForLure(id)
     }

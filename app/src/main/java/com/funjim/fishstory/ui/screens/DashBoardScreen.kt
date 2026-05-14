@@ -301,7 +301,7 @@ fun DashboardScreen(
                     index = index,
                     totalItems = totalItems,
                     modifier = Modifier.padding(),
-                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
+                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,

@@ -100,12 +100,14 @@ class MainActivity : ComponentActivity() {
         val locationProvider = (application as FishstoryApplication).locationProvider
         val fishRepo = (application as FishstoryApplication).fishRepository
         val lureRepo = (application as FishstoryApplication).lureRepository
+        val photoRepo = (application as FishstoryApplication).photoRepository
         val tripRepo = (application as FishstoryApplication).tripRepository
 
         FishViewModelFactory(
             locationProvider = locationProvider,
             fishRepo = fishRepo,
             lureRepo = lureRepo,
+            photoRepo = photoRepo,
             tripRepo = tripRepo)
     }
 

@@ -7,10 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +31,7 @@ class FishViewModel(
     private val locationProvider: LocationProvider,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     // UI State flows
@@ -337,12 +340,18 @@ class FishViewModel(
             fishRepo.deleteSpecies(species)
         }
     }
+
+    fun fishThumbnail(fishId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishThumbnail(fishId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
 }
 
 class FishViewModelFactory(
     private val locationProvider: LocationProvider,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -352,6 +361,7 @@ class FishViewModelFactory(
                 locationProvider,
                 fishRepo,
                 lureRepo,
+                photoRepo,
                 tripRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

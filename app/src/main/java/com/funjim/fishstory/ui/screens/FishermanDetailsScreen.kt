@@ -326,7 +326,7 @@ fun FishermanDetailsScreen(
                                     index = index,
                                     totalItems = totalActiveItems,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
+                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
                                     onAction = { action ->
@@ -366,7 +366,7 @@ fun FishermanDetailsScreen(
                                     index = index,
                                     totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.name),
+                                    thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
                                     onAction = { action ->

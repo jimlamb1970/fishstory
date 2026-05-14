@@ -133,18 +133,6 @@ data class FishWithDetails(
     val lurePrimaryColorName: String?,
     val lureSecondaryColorName: String?,
     val lureGlowColorName: String?,
-
-    // If you need the photo specifically for this fish
-    @Relation(
-        parentColumn = "id", // Fish ID
-        entityColumn = "id", // Photo ID
-        associateBy = Junction(
-            value = PhotoFishCrossRef::class,
-            parentColumn = "fishId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo> = emptyList()
 ) {
     val fullLureName: String
         get() {

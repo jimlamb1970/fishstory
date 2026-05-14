@@ -32,6 +32,7 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
@@ -46,6 +47,7 @@ fun FishItem(
     includeTrip: Boolean = false,
     includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
+    thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -53,6 +55,8 @@ fun FishItem(
     onSelectLocation: () -> Unit,
     onClearLocation: () -> Unit
 ) {
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -96,7 +100,7 @@ fun FishItem(
                 ReleasedChip(fish.fish.isReleased)
                 Spacer(modifier = Modifier.height(4.dp))
                 ThumbnailBox(
-                    thumbnail = fish.photos.firstOrNull()?.thumbnail,
+                    thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFish
                 )
             }
