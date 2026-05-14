@@ -28,6 +28,8 @@ import java.io.IOException
 import java.security.MessageDigest
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
+import androidx.room.withTransaction
+import com.funjim.fishstory.database.FishstoryDatabase
 
 data class PhotoMetadata(
     val hashcode: String,
@@ -55,7 +57,7 @@ data class PhotoMetadata(
 }
 
 class PhotoRepository(
-    private val application: Application,
+    private val database: FishstoryDatabase,
     private val context: Context,
     private val photoDao: PhotoDao
 ) {
@@ -346,5 +348,30 @@ class PhotoRepository(
     }
     fun fetchSpeciesThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForSpecies(id)
+    }
+
+    suspend fun updateSpeciesThumbnail(speciesId: String, uri: Uri) = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            // 1) Check if existing species photo cross reference exists.
+            val existingPhoto = photoDao.getPhotoForSpecies(speciesId)
+
+            // 2) If it does, delete the photo that corresponds to the cross reference from the photo table
+            if (existingPhoto != null) {
+                photoDao.deletePhoto(existingPhoto)
+            }
+
+            val metadata = getPhotoMetadata(uri)
+
+            // 3) Create a new entry for the photo table
+            val photo = Photo(
+                uri = "species_thumb_${speciesId}_${System.currentTimeMillis()}",
+                hashcode = metadata.hashcode,
+                thumbnail = metadata.thumbnail
+            )
+            photoDao.insertPhoto(photo)
+
+            // 4) Add the new photo species cross ref
+            photoDao.addSpeciesPhoto(PhotoSpeciesCrossRef(photo.id, speciesId, true))
+        }
     }
 }

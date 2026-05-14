@@ -133,6 +133,8 @@ data class FishWithDetails(
     val lurePrimaryColorName: String?,
     val lureSecondaryColorName: String?,
     val lureGlowColorName: String?,
+
+    val photoCount: Int = 0
 ) {
     val fullLureName: String
         get() {

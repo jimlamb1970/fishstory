@@ -109,6 +109,14 @@ interface PhotoDao {
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
 
     @Query("""
+        SELECT photo_table.* FROM photo_table
+        INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
+        WHERE photo_species_cross_ref.speciesId = :speciesId
+        LIMIT 1
+    """)
+    suspend fun getPhotoForSpecies(speciesId: String): Photo?
+
+    @Query("""
     SELECT thumbnail FROM photo_table 
     INNER JOIN photo_trip_cross_ref ON photo_table.id = photo_trip_cross_ref.photoId
     WHERE tripId = :tripId 

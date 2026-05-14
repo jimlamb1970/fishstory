@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -346,6 +347,11 @@ class FishViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateSpeciesThumbnail(speciesId, uri) // Your Room DAO execution
+        }
+    }
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)

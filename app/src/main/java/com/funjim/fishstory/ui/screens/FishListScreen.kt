@@ -313,7 +313,9 @@ fun FishListScreen(
                                 includeTrip = tripId.isNullOrEmpty(),
                                 includeEvent = eventId.isNullOrEmpty(),
                                 includeFisherman = fishermanId.isNullOrEmpty(),
-                                thumbnailFlow = viewModel.fishThumbnail(fishDetails.fish.id),
+                                thumbnailFlow =
+                                    if (fishDetails.photoCount == 0) viewModel.speciesThumbnail(fishDetails.fish.speciesId)
+                                    else viewModel.fishThumbnail(fishDetails.fish.id),
                                 onClick = {
                                     navigateToFishDetails(fishDetails.fish.id)
                                 },

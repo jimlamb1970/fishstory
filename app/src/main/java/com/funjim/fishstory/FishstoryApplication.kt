@@ -66,7 +66,7 @@ class FishstoryApplication : Application() {
 
     val photoRepository by lazy {
         PhotoRepository(
-            application = this,
+            database = database,
             context = applicationContext,
             photoDao = database.photoDao()
         )

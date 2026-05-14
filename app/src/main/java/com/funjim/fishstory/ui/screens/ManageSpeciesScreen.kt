@@ -1,12 +1,15 @@
 package com.funjim.fishstory.ui.screens
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert // Added for the anchor icon
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -41,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +67,25 @@ fun ManageSpeciesScreen(
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
     var editName by remember { mutableStateOf("") }
 
+    // Tracks which species is receiving a new image
+    var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
+
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // PHOTO PICKER & PROCESSING PIPELINE
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val species = currentSpeciesForPhoto
+        if (uri != null && species != null) {
+            // Note: In production, integrate your UCrop intent here using the URI,
+            // then process the cropped output URI.
+            // Below is the direct conversion/compression flow:
+            viewModel.updateSpeciesThumbnail(species.id, uri)
+        }
+        currentSpeciesForPhoto = null // Reset selection state
+    }
 
     val filteredSpecies = remember(searchQuery, speciesSummaries) {
         speciesSummaries.filter {
@@ -140,11 +162,22 @@ fun ManageSpeciesScreen(
                             Text("Caught: ${summary.caughtCount}, Kept: ${summary.keptCount}")
                         },
                         leadingContent = {
-                            ThumbnailBox(thumbnail = thumbnail)
+                            // Wrapped in a Box with combinedClickable for long-press registration
+                            Box(
+                                modifier = Modifier.combinedClickable(
+                                    onClick = { /* Regular tap on image does nothing or shows preview */ },
+                                    onLongClick = {
+                                        currentSpeciesForPhoto = species
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                                )
+                            ) {
+                                ThumbnailBox(thumbnail = thumbnail)
+                            }
                         },
                         trailingContent = {
-                            // By putting the Box and the Menu here, it stays centered
-                            // vertically on the right side of the row.
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
                                     Icon(
