@@ -48,7 +48,7 @@ class FishermanRepository(
             val sorted = when (order) {
                 FishermanSortOrder.NAME_AZ -> summaries.sortedBy { it.fisherman.fullName.lowercase() }
                 FishermanSortOrder.MOST_CATCHES -> summaries.sortedByDescending { it.totalCatches }
-                FishermanSortOrder.MOST_KEPT -> summaries.sortedByDescending { it.totalCatches - it.totalReleased }
+                FishermanSortOrder.MOST_KEPT -> summaries.sortedByDescending { it.totalKept }
                 FishermanSortOrder.MOST_TRIPS -> summaries.sortedByDescending { it.totalTrips }
             }
             if (reversed) sorted.reversed() else sorted

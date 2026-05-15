@@ -190,7 +190,8 @@ private fun FishDetailContent(fish: FishWithDetails) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ReleasedChip(fish.fish.isReleased)
+        // TODO - need to redo this for multi catches
+        ReleasedChip(fish.fish.keptCount == 0)
 
         HorizontalDivider()
 

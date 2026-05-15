@@ -89,8 +89,8 @@ interface FishermanDao {
     @Query("""
     SELECT 
         f.*, 
-        (SELECT COUNT(*) FROM fish_table WHERE fishermanId = f.id) AS totalCatches,
-        (SELECT COUNT(*) FROM fish_table WHERE fishermanId = f.id AND isReleased = 1) AS totalReleased,
+        (SELECT COALESCE(SUM(ft.caughtCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalCatches,
+        (SELECT COALESCE(SUM(ft.keptCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalKept,
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips
     FROM fisherman_table AS f
     GROUP BY f.id
@@ -192,8 +192,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS fishCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -215,8 +215,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS fishCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -239,8 +239,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS fishCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,
@@ -263,8 +263,8 @@ WHERE f.id = :fId
     SELECT 
         t.*, 
         0 as eventCount,
-        COUNT(f.id) AS fishCaught,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS fishKept,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
         NULL as bigFishName,

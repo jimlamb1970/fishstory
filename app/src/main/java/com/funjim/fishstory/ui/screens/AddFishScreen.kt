@@ -164,7 +164,8 @@ fun AddFishScreen(
                         draftFish?.fishermanId != original.fish.fishermanId ||
                         draftFish?.lureId != original.fish.lureId ||
                         draftFish?.length != original.fish.length ||
-                        draftFish?.isReleased != original.fish.isReleased ||
+                        draftFish?.caughtCount != original.fish.caughtCount ||
+                        draftFish?.keptCount != original.fish.keptCount ||
                         draftFish?.timestamp != original.fish.timestamp ||
                         draftFish?.latitude != original.fish.latitude ||
                         draftFish?.longitude != original.fish.longitude ||
@@ -457,9 +458,9 @@ fun AddFishScreen(
                 }
 
                 CheckBoxWithText(
-                    label = "Released",
-                    checked = fish.isReleased,
-                    onCheckedChange = { released -> viewModel.updateReleased(released) },
+                    label = "Kept",
+                    checked = (fish.keptCount > 0),
+                    onCheckedChange = { kept -> viewModel.updateKeptCount(if (kept) 1 else 0) },
                     enabled = true
                 )
 

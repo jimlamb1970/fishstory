@@ -36,8 +36,7 @@ fun FishermanItem(
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     val caughtCount = fisherman.totalCatches
-    val releasedCount = fisherman.totalReleased
-    val keptCount = caughtCount - releasedCount
+    val keptCount = fisherman.totalKept
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -223,7 +222,7 @@ fun FishermanItemPreview() {
             fisherman = FishermanSummary(
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
                 totalCatches = 10,
-                totalReleased = 2,
+                totalKept = 2,
                 totalTrips = 5
             ),
             thumbnailFlow = flowOf(null),

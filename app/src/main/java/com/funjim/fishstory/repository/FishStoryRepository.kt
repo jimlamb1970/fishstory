@@ -179,7 +179,8 @@ class FishStoryRepository(
                     eventId = segmentId,
                     lureId = lureId,
                     length = newLength,
-                    isReleased = !isKept,
+                    caughtCount = 1,
+                    keptCount = if (isKept) 1 else 0,
                     timestamp = timestamp,
                     holeNumber = hole
                 )

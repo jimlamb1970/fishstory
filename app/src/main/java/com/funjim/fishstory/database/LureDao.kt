@@ -103,8 +103,8 @@ interface LureDao {
         p.name AS primaryName, 
         s.name AS secondaryName, 
         g.name AS glowName,
-        COUNT(f.id) AS caughtCount,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS keptCount,
+        SUM(f.caughtCount) AS caughtCount,
+        SUM(f.keptCount) AS keptCount,
         MAX(f.length) AS largestFish,
         MIN(f.length) AS smallest
     FROM lure_table AS l

@@ -200,6 +200,7 @@ class AddFishViewModel(
             fishermanId = "",
             tripId = tripId,
             eventId = eventId,
+            caughtCount = 1,
             length = (10.0).inchesToStorage(),
             timestamp = System.currentTimeMillis(),
             holeNumber = 1
@@ -236,9 +237,9 @@ class AddFishViewModel(
         }
     }
 
-    fun updateReleased(released: Boolean) {
+    fun updateKeptCount(kept: Int) {
         _draftFish.update { current ->
-            current?.copy(isReleased = released)
+            current?.copy(keptCount = kept)
         }
     }
 

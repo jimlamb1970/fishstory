@@ -152,8 +152,8 @@ interface FishDao {
     @Query("""
     SELECT 
         s.*, 
-        COUNT(f.id) AS caughtCount,
-        SUM(CASE WHEN f.isReleased = 0 THEN 1 ELSE 0 END) AS keptCount,
+        SUM(f.caughtCount) AS caughtCount,
+        SUM(f.keptCount) AS keptCount,
         MAX(f.length) AS largestFish,
         MIN(f.length) AS smallest
     FROM species_table AS s
@@ -164,8 +164,8 @@ interface FishDao {
 
     @Query("""
     SELECT 
-        COUNT(fish_table.id) AS totalCaught,
-        SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept,
+        SUM(fish_table.caughtCount) AS totalCaught,
+        SUM(fish_table.keptCount) AS totalKept,
         COUNT(DISTINCT fish_table.tripId) AS tripCount,
         COUNT(DISTINCT fish_table.eventId) AS eventCount,
         COUNT(DISTINCT fish_table.fishermanId) AS fishermanCount,
@@ -185,8 +185,8 @@ interface FishDao {
 
     @Query("""
     SELECT trip_table.*, 
-           COUNT(fish_table.id) AS totalCaught,
-           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+           SUM(fish_table.caughtCount) AS totalCaught,
+           SUM(fish_table.keptCount) AS totalKept
     FROM trip_table
     JOIN fish_table ON trip_table.id = fish_table.lureId
     WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
@@ -206,8 +206,8 @@ interface FishDao {
 
     @Query("""
     SELECT event_table.*, 
-           COUNT(fish_table.id) AS totalCaught,
-           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+           SUM(fish_table.caughtCount) AS totalCaught,
+           SUM(fish_table.keptCount) AS totalKept
     FROM event_table
     JOIN fish_table ON event_table.id = fish_table.lureId
     WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
@@ -227,8 +227,8 @@ interface FishDao {
 
     @Query("""
     SELECT fisherman_table.*, 
-           COUNT(fish_table.id) AS totalCaught,
-           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+           SUM(fish_table.caughtCount) AS totalCaught,
+           SUM(fish_table.keptCount) AS totalKept
     FROM fisherman_table
     JOIN fish_table ON fisherman_table.id = fish_table.lureId
     WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
@@ -248,8 +248,8 @@ interface FishDao {
 
     @Query("""
     SELECT species_table.*, 
-           COUNT(fish_table.id) AS totalCaught,
-           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+           SUM(fish_table.caughtCount) AS totalCaught,
+           SUM(fish_table.keptCount) AS totalKept
     FROM species_table
     JOIN fish_table ON species_table.id = fish_table.lureId
     WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
@@ -272,8 +272,8 @@ interface FishDao {
            p.name AS primaryName, 
            s.name AS secondaryName, 
            g.name AS glowName,
-           COUNT(fish_table.id) AS totalCaught,
-           SUM(CASE WHEN fish_table.isReleased = 0 THEN 1 ELSE 0 END) AS totalKept
+           SUM(fish_table.caughtCount) AS totalCaught,
+           SUM(fish_table.keptCount) AS totalKept
     FROM lure_table
     LEFT JOIN lure_color_table p ON primaryColorId = p.id
     LEFT JOIN lure_color_table s ON secondaryColorId = s.id

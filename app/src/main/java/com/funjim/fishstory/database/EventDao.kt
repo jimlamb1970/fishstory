@@ -51,8 +51,8 @@ MostCaughtPerEvent AS (
 SELECT 
     s.*,
     -- Basic Counts
-    (SELECT COUNT(*) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
-    (SELECT COUNT(*) FROM fish_table f WHERE f.eventId = s.id AND f.isReleased = 0) as fishKept,
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
     
@@ -183,8 +183,8 @@ MostCaughtPerEvent AS (
 SELECT 
     s.*,
     -- Basic Counts
-    (SELECT COUNT(*) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
-    (SELECT COUNT(*) FROM fish_table f WHERE f.eventId = s.id AND f.isReleased = 0) as fishKept,
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
     
