@@ -2,32 +2,33 @@ package com.funjim.fishstory.ui.utils
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.LureSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import androidx.core.graphics.toColorInt
+import com.funjim.fishstory.model.LureSummaryWithColors
 
 @Composable
 fun LureItem(
-    item: LureSummary,
+    item: LureSummaryWithColors,
     index: Int = 0,
     totalItems: Int = 0,
-    primaryColorName: String?,
-    secondaryColorName: String?,
-    glowColorName: String?,
     thumbnailFlow: Flow<ByteArray?>,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -74,47 +75,87 @@ fun LureItem(
             Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.lure.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                val colors = mutableListOf<String>()
-                if (!primaryColorName.isNullOrBlank()) {
-                    colors.add(primaryColorName)
-                }
-                if (!secondaryColorName.isNullOrBlank()) {
-                    colors.add(secondaryColorName)
-                }
-                if (colors.isNotEmpty()) {
-                    val sb = StringBuilder(if (colors.size == 1) "Color: " else "Colors: ")
-                    sb.append(colors.joinToString("/"))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy((4).dp)
+                ) {
                     Text(
-                        text = sb.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = item.lureSummary.lure.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
+                    //LureColorComposition(item.primaryColor?.hexCode, item.secondaryColor?.hexCode, item.glowColor?.hexCode)
                 }
 
-                if (item.lure.glows) {
-                    val sb = StringBuilder("Glows")
-                    if (!glowColorName.isNullOrBlank()) {
-                        sb.append(": $glowColorName")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy((4).dp)
+                ) {
+                    if (item.primaryColor != null) {
+                        if (item.primaryColor.hexCode.isNullOrBlank()) {
+                            Text(
+                                text = item.primaryColor.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        } else {
+                            ColorCircleBadge(
+                                hexCode = item.primaryColor.hexCode,
+                                label = "P"
+                            )
+                        }
                     }
-                    Text(
-                        text = sb.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface)
-                }
 
+                    if (item.secondaryColor != null) {
+                        if (item.secondaryColor.hexCode.isNullOrBlank()) {
+                            Text(
+                                text = item.secondaryColor.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        } else {
+                            ColorCircleBadge(
+                                hexCode = item.secondaryColor.hexCode,
+                                label = "S"
+                            )
+                        }
+                    }
+
+                    if (item.lureSummary.lure.glows) {
+                        val sb = StringBuilder("Glows")
+                        if (item.glowColor != null) {
+                            if (item.glowColor.hexCode.isNullOrBlank()) {
+                                sb.append(": ${item.glowColor.name}")
+                                Text(
+                                    text = sb.toString(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            } else {
+                                ColorCircleBadge(
+                                    hexCode = item.glowColor.hexCode,
+                                    label = "G",
+                                    isGlow = true
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = sb.toString(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
                 Text(
-                    text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
+                    text = if (item.lureSummary.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                if (item.caughtCount != 0) {
+                if (item.lureSummary.caughtCount != 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -126,7 +167,7 @@ fun LureItem(
                             modifier = Modifier.size(24.dp)
                         )
                         BoldingNumbersText(
-                            text = "Kept ${item.keptCount} of ${item.caughtCount}",
+                            text = "Kept ${item.lureSummary.keptCount} of ${item.lureSummary.caughtCount}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -170,4 +211,76 @@ fun LureItem(
             }
         }
     }
+}
+
+@Composable
+fun LureColorComposition(
+    primaryHex: String?,
+    secondaryHex: String?,
+    glowHex: String?,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy((-6).dp) // Negative spacing overlaps them elegantly
+    ) {
+        // 1. Primary Color (Bottom layer if overlapping)
+        if (!primaryHex.isNullOrBlank()) {
+            ColorCircleBadge(hexCode = primaryHex, label = "P")
+        }
+
+        // 2. Secondary Color
+        if (!secondaryHex.isNullOrBlank()) {
+            ColorCircleBadge(hexCode = secondaryHex, label = "S")
+        }
+
+        // 3. Glow Color (With a subtle dashed border to indicate it glows)
+        if (!glowHex.isNullOrBlank()) {
+            ColorCircleBadge(
+                hexCode = glowHex,
+                label = "G",
+                isGlow = true
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorCircleBadge(
+    hexCode: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    isGlow: Boolean = false
+) {
+    val color = remember(hexCode) {
+        try { Color(hexCode.toColorInt()) } catch (e: Exception) { Color.Gray }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(color)
+            .border(
+                width = if (isGlow) 1.5.dp else 2.dp,
+                color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                shape = CircleShape
+            )
+    ) {
+        // Optional: Put a tiny, high-contrast letter inside so colorblind users know which is which
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (isColorDark(color)) Color.White else Color.Black,
+            modifier = Modifier.alpha(0.9f)
+        )
+    }
+}
+
+// Quick helper to determine if text should be white or black inside the circle
+fun isColorDark(color: Color): Boolean {
+    val luminance = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue)
+    return luminance < 0.5
 }

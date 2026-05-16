@@ -18,7 +18,8 @@ import java.util.UUID
 data class LureColor(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val name: String
+    val name: String,
+    val hexCode: String? = null
 )
 
 @Serializable
@@ -154,7 +155,7 @@ fun LureSummaryWithNamesTuple.toLureSummary(): LureSummary {
 
 data class LureSummaryWithColors(
     val lureSummary: LureSummary,
-    val primaryColorName: String?,
-    val secondaryColorName: String?,
-    val glowColorName: String?
+    val primaryColor: LureColor?,
+    val secondaryColor: LureColor?,
+    val glowColor: LureColor?
 )

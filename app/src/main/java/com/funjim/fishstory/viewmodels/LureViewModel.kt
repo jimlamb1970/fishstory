@@ -53,9 +53,9 @@ class LureViewModel(
         val displayList = lures.map { lure ->
             LureSummaryWithColors(
                 lureSummary = lure,
-                primaryColorName = colorMap[lure.lure.primaryColorId]?.name,
-                secondaryColorName = colorMap[lure.lure.secondaryColorId]?.name,
-                glowColorName = colorMap[lure.lure.glowColorId]?.name,
+                primaryColor = colorMap[lure.lure.primaryColorId],
+                secondaryColor = colorMap[lure.lure.secondaryColorId],
+                glowColor = colorMap[lure.lure.glowColorId],
             )
         }
 
@@ -69,9 +69,9 @@ class LureViewModel(
     private fun applySorting(list: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
         return when (order) {
             LureSortOrder.NAME -> list.sortedBy { it.lureSummary.lure.name }
-            LureSortOrder.PRIMARY_COLOR -> list.sortedBy { it.primaryColorName }
-            LureSortOrder.SECONDARY_COLOR -> list.sortedBy { it.secondaryColorName }
-            LureSortOrder.GLOW_COLOR -> list.sortedBy { it.glowColorName }
+            LureSortOrder.PRIMARY_COLOR -> list.sortedBy { it.primaryColor?.name }
+            LureSortOrder.SECONDARY_COLOR -> list.sortedBy { it.secondaryColor?.name }
+            LureSortOrder.GLOW_COLOR -> list.sortedBy { it.glowColor?.name }
             LureSortOrder.GLOW -> list.sortedBy { it.lureSummary.lure.glows }
             LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lureSummary.lure.hasSingleHook }
         }

@@ -44,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -71,7 +70,6 @@ fun ManageSpeciesScreen(
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     // PHOTO PICKER & PROCESSING PIPELINE
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -102,7 +100,9 @@ fun ManageSpeciesScreen(
                 title = { Text("Manage Species") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

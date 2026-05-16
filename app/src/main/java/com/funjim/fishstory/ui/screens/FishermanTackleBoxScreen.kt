@@ -332,7 +332,7 @@ private fun LureTackleBoxItem(
                 )
                 // Secondary details row
                 val details = buildList {
-                    if (item.lureSummary.lure.glows) add("Glows${if (!item.glowColorName.isNullOrBlank()) " (${item.glowColorName})" else ""}")
+                    if (item.lureSummary.lure.glows) add("Glows${if (item.glowColor != null) " (${item.glowColor.name})" else ""}")
                     add(if (item.lureSummary.lure.hasSingleHook) "Single hook" else "Treble hook")
                 }
                 if (details.isNotEmpty()) {

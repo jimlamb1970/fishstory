@@ -168,12 +168,9 @@ fun LureListScreen(
                             allLures,
                             key = { _, item -> item.lureSummary.lure.id }) { index, item ->
                             LureItem(
-                                item = item.lureSummary,
+                                item = item,
                                 index = index,
                                 totalItems = totalItems,
-                                primaryColorName = item.primaryColorName,
-                                secondaryColorName = item.secondaryColorName,
-                                glowColorName = item.glowColorName,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lureSummary.lure.id),
                                 onEdit = { onEdit(item.lureSummary.lure.id) },
                                 onDelete = { lureToDelete = item.lureSummary.lure }
