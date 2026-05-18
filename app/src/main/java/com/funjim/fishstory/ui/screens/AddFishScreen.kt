@@ -416,12 +416,9 @@ fun AddFishScreen(
                 }
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     val tripLat = selectedTrip?.latitude
                     val eventLat = selectedEvent?.latitude
                     val fishLat = fish.latitude
@@ -469,7 +466,7 @@ fun AddFishScreen(
                     label = "Kept",
                     checked = (fish.keptCount > 0),
                     onCheckedChange = { kept -> viewModel.updateKeptCount(if (kept) 1 else 0) },
-                    enabled = true
+                    enabled = true,
                 )
 
                 PhotoPickerRow(
@@ -499,8 +496,7 @@ fun AddFishScreen(
                     },
                     onPhotoDeleted = { photo ->
                         viewModel.deletePhoto(photo)
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
+                    }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -651,12 +647,10 @@ fun CheckBoxWithText(
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
-            .alpha(if (enabled) 1f else 0.5f) // Visual cue for disabled state
+            .alpha(if (enabled) 1f else 0.5f)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
                 checked = checked,
@@ -665,7 +659,7 @@ fun CheckBoxWithText(
                 modifier = Modifier.size(24.dp)
             )
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(8.dp))
 
             Text(
                 text = label,
