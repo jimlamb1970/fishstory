@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.utils.DateTimeUtils.toLocalDateTime
 import com.funjim.fishstory.ui.utils.DateTimeUtils.updateDate
 import com.funjim.fishstory.ui.utils.DateTimeUtils.updateTime
@@ -46,8 +45,12 @@ import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
+import com.funjim.fishstory.ui.utils.sortLures
 import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
@@ -103,7 +106,6 @@ fun AddFishScreen(
 
     // Data from ViewModel
     val speciesList by viewModel.species.collectAsState(initial = emptyList())
-    val colors by viewModel.lureColors.collectAsState(initial = emptyList())
 
     val selectedTrip by viewModel.selectedTrip.collectAsState(initial = null)
     val selectedEvent by viewModel.selectedEvent.collectAsState(initial = null)
@@ -128,7 +130,7 @@ fun AddFishScreen(
     }
 
     val selectedLure = remember(draftFish, rawLures) {
-        rawLures.find { it.id == draftFish?.lureId }
+        rawLures.find { it.lure.id == draftFish?.lureId }
     }
 
     val timestamp = remember(draftFish) {
@@ -175,14 +177,7 @@ fun AddFishScreen(
         }
     }
 
-    val luresSorted = remember(rawLures, colors) {
-        rawLures.map { lure ->
-            val primaryColorName = colors.find { it.id == lure.primaryColorId }?.name
-            val secondaryColorName = colors.find { it.id == lure.secondaryColorId }?.name
-            val glowColorName = colors.find { it.id == lure.glowColorId }?.name
-            lure to lure.getDisplayName(primaryColorName, secondaryColorName, glowColorName)
-        }.sortedBy { it.second }
-    }
+    val luresSorted by remember(rawLures) { derivedStateOf{ sortLures(rawLures) } }
 
     var addNewSpecies by remember { mutableStateOf(false) }
     var addSpeciesName by remember { mutableStateOf("") }
@@ -328,7 +323,19 @@ fun AddFishScreen(
                             selectedItem = selectedLure,
                             onSelected = { lure -> viewModel.updateLure(lure) },
                             onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { lure ->
+                                val thumbnailFlow = remember(lure.lure.id) {
+                                    viewModel.lureThumbnail(lure.lure.id)
+                                }
+
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Lure
+                                )
+                            }
                         )
                     }
                 }
@@ -823,93 +830,6 @@ fun FishermanSelectionField(
                                 searchQuery = ""
                             },
                             colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LureSelectionField(
-    items: List<Pair<Lure, String>>,
-    selectedItem: Lure?,
-    onSelected: (Lure) -> Unit,
-    onAdd: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    // Display for the current selection
-    OutlinedTextField(
-        value = selectedItem?.name ?: "Select Lure",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Lure") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Lures...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // List inside the sheet
-                val filtered = items.filter { it.second.contains(searchQuery, ignoreCase = true) }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
-
-                        ListItem(
-                            headlineContent = { Text(item.second) },
-                            modifier = Modifier.clickable {
-                                onSelected(item.first)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                        )
-                    }
-                    // "Add New" option
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("Add lures to tackle box...", color = MaterialTheme.colorScheme.primary) },
-                            leadingContent = { Icon(Icons.Default.Add, null) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onAdd()
-                            }
                         )
                     }
                 }

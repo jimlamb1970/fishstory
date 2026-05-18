@@ -45,9 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
+import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -213,7 +216,6 @@ fun FishermanDetailsScreen(
 
                                         if (tackleBox != null) {
                                             TackleBoxCard(
-                                                viewModel,
                                                 tackleBox,
                                                 index = page,
                                                 totalItems = totalTackleBoxes,
@@ -260,7 +262,6 @@ fun FishermanDetailsScreen(
                             itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
                                 tackleBoxWithLures?.let {
                                     TackleBoxCard(
-                                        viewModel,
                                         tackleBoxWithLures,
                                         index = index,
                                         totalItems = totalTackleBoxes,
@@ -596,7 +597,6 @@ fun FishermanLoadingView() {
 // TODO -- remove viewmodel dependency
 @Composable
 fun TackleBoxCard(
-    viewModel: FishermanDetailsViewModel,
     tackleBoxWithLures: TackleBoxWithLures,
     index: Int = 0,
     totalItems: Int = 0,
@@ -607,8 +607,20 @@ fun TackleBoxCard(
     var expanded by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
-    val lureNames by viewModel.getFormattedLureList(tackleBoxWithLures.tackleBox.id)
-        .collectAsState(initial = "")
+    val sortedLures by remember(tackleBoxWithLures.lures) {
+        derivedStateOf {
+            val getColorsSortingString = { colors: List<LureColor> ->
+                colors.map { it.name }.sorted().joinToString(",")
+            }
+
+            tackleBoxWithLures.lures.sortedWith(
+                compareBy<LureWithColors> { it.lure.name }
+                    .thenBy { getColorsSortingString(it.primaryColors) }
+                    .thenBy { getColorsSortingString(it.secondaryColors) }
+                    .thenBy { getColorsSortingString(it.glowColors) }
+            )
+        }
+    }
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -702,12 +714,22 @@ fun TackleBoxCard(
                     thickness = 1.dp
                 )
                 Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = lureNames,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
+                    sortedLures.forEach { lure ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            LureCompositionWithColors(
+                                name = "• ${lure.lure.name}",
+                                lure.primaryColors,
+                                lure.secondaryColors,
+                                lure.lure.glows,
+                                lure.glowColors,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 50.dp, bottom = 4.dp),
+                                size = 20.dp)
+                        }
+                    }
                 }
             }
         }

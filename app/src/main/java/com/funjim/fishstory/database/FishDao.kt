@@ -267,17 +267,12 @@ interface FishDao {
         lureId: String?
     ): Flow<SpeciesWithCounts?>
 
+    @Transaction
     @Query("""
     SELECT lure_table.*, 
-           p.name AS primaryName, 
-           s.name AS secondaryName, 
-           g.name AS glowName,
            SUM(fish_table.caughtCount) AS totalCaught,
            SUM(fish_table.keptCount) AS totalKept
     FROM lure_table
-    LEFT JOIN lure_color_table p ON primaryColorId = p.id
-    LEFT JOIN lure_color_table s ON secondaryColorId = s.id
-    LEFT JOIN lure_color_table g ON glowColorId = g.id
     JOIN fish_table ON lure_table.id = fish_table.lureId
     WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)

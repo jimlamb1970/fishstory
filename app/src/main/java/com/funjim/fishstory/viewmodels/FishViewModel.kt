@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
+import com.funjim.fishstory.ui.utils.sortLures
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,9 +49,6 @@ class FishViewModel(
     // Exposed State for the UI
     val species = fishRepo.allSpecies
     val speciesSummaries = fishRepo.speciesSummaries
-
-    private val _lureColors = lureRepo.allLureColors
-    val lureColors = _lureColors
 
     val selectedTripId = _selectedTripId.asStateFlow()
     val selectedEventId = _selectedEventId.asStateFlow()
@@ -179,7 +177,7 @@ class FishViewModel(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val luresWithFish: StateFlow<List<LureWithName>> = combine(
+    val luresWithFish: StateFlow<List<LureWithColors>> = combine(
         _selectedTripId,
         _selectedEventId,
         _selectedFishermanId
@@ -187,8 +185,7 @@ class FishViewModel(
         Triple(tripId, eventId, fishermanId)
     }.flatMapLatest { (tripId, eventId, fishermanId) ->
         fishRepo.getLures(tripId, eventId, fishermanId)
-    }.map { list ->
-        list.sortedBy { it.displayName }
+    }.map { list -> sortLures(list)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -218,23 +215,6 @@ class FishViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
         )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                lureRepo.getLuresInTackleBox(id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishForScope: StateFlow<List<FishWithDetails>> = combine(
@@ -344,6 +324,11 @@ class FishViewModel(
 
     fun fishThumbnail(fishId: String): Flow<ByteArray?> {
         return photoRepo.fetchFishThumbnail(fishId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun lureThumbnail(lureId: String): Flow<ByteArray?> {
+        return photoRepo.fetchLureThumbnail(lureId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 

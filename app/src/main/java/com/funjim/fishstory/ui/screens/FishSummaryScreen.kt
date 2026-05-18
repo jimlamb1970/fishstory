@@ -25,9 +25,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.FishSummary
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.LureWithName
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -189,7 +191,19 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                thumbnailProvider = { lure ->
+                    val thumbnailFlow = remember(lure.lure.id) {
+                        viewModel.lureThumbnail(lure.lure.id)
+                    }
+
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Lure
+                    )
+                }
             )
         }
     }
@@ -201,7 +215,7 @@ private fun FishVisual(
     trip: Trip?,
     event: Event?,
     fisherman: Fisherman?,
-    lure: LureWithName?,
+    lure: LureWithColors?,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -221,7 +235,7 @@ private fun FishVisual(
     val latitude = event?.latitude ?: trip?.latitude
     val longitude = event?.longitude ?: trip?.longitude
 
-    val names = listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.displayName)
+    val names = listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.lure?.name)
 
     Card(
         onClick = onClick,
@@ -590,88 +604,6 @@ fun FishermanSelectionField(
                         HorizontalDivider()
                         ListItem(
                             headlineContent = { Text("All Fishermen", color = MaterialTheme.colorScheme.primary) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onClear()
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LureSelectionField(
-    items: List<LureWithName>,
-    selectedItem: LureWithName?,
-    onSelected: (LureWithName) -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = selectedItem?.displayName ?: "Select Lure (optional)",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false,
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Lure") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Lures...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val filtered = items.filter { it.displayName.contains(searchQuery, ignoreCase = true) }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
-
-                        ListItem(
-                            headlineContent = { Text(item.displayName) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                        )
-                    }
-
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("All Lures", color = MaterialTheme.colorScheme.primary) },
                             modifier = Modifier.clickable {
                                 showSheet = false
                                 onClear()

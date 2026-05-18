@@ -8,19 +8,20 @@ import com.funjim.fishstory.model.*
 
 @Database(
     entities = [
-        Event::class,
-        Fish::class,
-        Fisherman::class,
-        Lure::class,
-        LureColor::class,
+        Event::class,                       // Backed up
+        Fish::class,                        // Backed up
+        Fisherman::class,                   // Backed up
+        Lure::class,                        // Backed up
+        LureColor::class,                   // Backed up
         Note::class,
-        Photo::class,
-        Species::class,
-        TackleBox::class,
-        Trip::class,
-        EventFishermanCrossRef::class,
-        TripFishermanCrossRef::class,
-        TackleBoxLureCrossRef::class,
+        Photo::class,                       // Backed up
+        Species::class,                     // Backed up
+        TackleBox::class,                   // Backed up
+        Trip::class,                        // Backed up
+        EventFishermanCrossRef::class,      // Backed up
+        LureGlowColorCrossRef::class,
+        LurePrimaryColorCrossRef::class,
+        LureSecondaryColorCrossRef::class,
         NoteFishCrossRef::class,
         NoteEventCrossRef::class,
         NoteTripCrossRef::class,
@@ -29,7 +30,9 @@ import com.funjim.fishstory.model.*
         PhotoFishermanCrossRef::class,
         PhotoLureCrossRef::class,
         PhotoSpeciesCrossRef::class,
-        PhotoTripCrossRef::class
+        PhotoTripCrossRef::class,
+        TackleBoxLureCrossRef::class,       // Backed up
+        TripFishermanCrossRef::class        // Backed up
     ],
     version = 1,
     exportSchema = false

@@ -12,7 +12,9 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
 import com.funjim.fishstory.ui.utils.inchesToStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,9 +44,6 @@ class AddFishViewModel(
 
     // Exposed State for the UI
     val species = fishRepo.allSpecies
-
-    private val _lureColors = lureRepo.allLureColors
-    val lureColors = _lureColors
 
     val selectedTripId = _selectedTripId.asStateFlow()
     val selectedEventId = _selectedEventId.asStateFlow()
@@ -100,7 +100,7 @@ class AddFishViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
+    val tackleBoxWithLures: StateFlow<List<LureWithColors>> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
@@ -182,6 +182,11 @@ class AddFishViewModel(
     private val _fishPhotos = MutableStateFlow<List<Photo>>(emptyList())
     val fishPhotos = _fishPhotos.asStateFlow()
 
+    fun lureThumbnail(lureId: String): Flow<ByteArray?> {
+        return photoRepo.fetchLureThumbnail(lureId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun clearDraftFish() {
         _draftFish.value = null
         _fishPhotos.value = emptyList()
@@ -231,9 +236,9 @@ class AddFishViewModel(
         }
     }
 
-    fun updateLure(lure: Lure?) {
+    fun updateLure(lure: LureWithColors?) {
         _draftFish.update { current ->
-            current?.copy(lureId = lure?.id)
+            current?.copy(lureId = lure?.lure?.id)
         }
     }
 

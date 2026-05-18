@@ -19,7 +19,10 @@ data class LureColor(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val hexCode: String? = null
+    val hexCode: String? = null,
+    val hexCode2: String? = null,
+    val hexCode3: String? = null,
+    val hexCode4: String? = null
 )
 
 @Serializable
@@ -64,30 +67,98 @@ data class Lure(
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 ) {
-    fun getDisplayName(primaryColorName: String?, secondaryColorName: String?, glowColorName: String?): String {
+    fun getDisplayName(): String {
         val sb = StringBuilder(name)
-        
-        val colors = mutableListOf<String>()
-        if (!primaryColorName.isNullOrBlank()) {
-            colors.add(primaryColorName)
-        }
-        if (!secondaryColorName.isNullOrBlank()) {
-            colors.add(secondaryColorName)
-        }
 
-        if (colors.isNotEmpty()) {
-            sb.append(" : ${colors.joinToString("/")}")
-        }
+        sb.append(" : Need to fix for colors")
 
-        if (glows) {
-            sb.append(", Glow")
-            if (!glowColorName.isNullOrBlank()) {
-                sb.append(" : $glowColorName")
-            }
-        }
         return sb.toString()
     }
 }
+
+@Serializable
+@Entity(
+    tableName = "lure_primary_color_cross_ref",
+    primaryKeys = ["lureId", "colorId"],
+    indices = [
+        Index(value = ["lureId"]),
+        Index(value = ["colorId"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Lure::class,
+            parentColumns = ["id"],
+            childColumns = ["lureId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LureColor::class,
+            parentColumns = ["id"],
+            childColumns = ["colorId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class LurePrimaryColorCrossRef(
+    val lureId: String,  // Maps to lure_table.id
+    val colorId: String  // Maps to lure_color_table.id
+)
+
+@Serializable
+@Entity(
+    tableName = "lure_secondary_color_cross_ref",
+    primaryKeys = ["lureId", "colorId"],
+    indices = [
+        Index(value = ["lureId"]),
+        Index(value = ["colorId"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Lure::class,
+            parentColumns = ["id"],
+            childColumns = ["lureId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LureColor::class,
+            parentColumns = ["id"],
+            childColumns = ["colorId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class LureSecondaryColorCrossRef(
+    val lureId: String,  // Maps to lure_table.id
+    val colorId: String  // Maps to lure_color_table.id
+)
+
+@Serializable
+@Entity(
+    tableName = "lure_glow_color_cross_ref",
+    primaryKeys = ["lureId", "colorId"],
+    indices = [
+        Index(value = ["lureId"]),
+        Index(value = ["colorId"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Lure::class,
+            parentColumns = ["id"],
+            childColumns = ["lureId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LureColor::class,
+            parentColumns = ["id"],
+            childColumns = ["colorId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class LureGlowColorCrossRef(
+    val lureId: String,  // Maps to lure_table.id
+    val colorId: String  // Maps to lure_color_table.id
+)
 
 data class LureWithPhotos(
     @Embedded val lure: Lure,
@@ -103,59 +174,94 @@ data class LureWithPhotos(
     val photos: List<Photo>
 )
 
-data class LureWithNamesTuple(
+data class LureWithColors(
     @Embedded val lure: Lure,
-    val primaryName: String?,
-    val secondaryName: String?,
-    val glowName: String?
-)
 
-data class LureWithName(
-    val lure: Lure,
-    val displayName: String
-)
-
-fun LureWithNamesTuple.toLureWithName(): LureWithName {
-    return LureWithName(
-        lure = lure,
-        displayName = lure.getDisplayName(primaryName, secondaryName, glowName)
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LurePrimaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
     )
-}
+    val primaryColors: List<LureColor>,
 
-data class LureSummaryWithNamesTuple(
-    @Embedded val lure: Lure,
-    val primaryName: String?,
-    val secondaryName: String?,
-    val glowName: String?,
-    val caughtCount: Int,
-    val keptCount: Int,
-    val largestFish: Double,
-    val smallest: Double
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureSecondaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+
+    val secondaryColors: List<LureColor>,
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureGlowColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+    val glowColors: List<LureColor>
 )
 
 data class LureSummary(
-    val lure: Lure,
-    val displayName: String,
+    @Embedded val lure: Lure,
     val caughtCount: Int,
     val keptCount: Int,
     val largestFish: Double,
-    val smallest: Double
+    val smallestFish: Double
 )
-
-fun LureSummaryWithNamesTuple.toLureSummary(): LureSummary {
-    return LureSummary(
-        lure = lure,
-        displayName = lure.getDisplayName(primaryName, secondaryName, glowName),
-        caughtCount = caughtCount,
-        keptCount = keptCount,
-        largestFish = largestFish,
-        smallest = smallest
-    )
-}
-
 data class LureSummaryWithColors(
-    val lureSummary: LureSummary,
-    val primaryColor: LureColor?,
-    val secondaryColor: LureColor?,
-    val glowColor: LureColor?
+    @Embedded val lure: Lure,
+
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LurePrimaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+    val primaryColors: List<LureColor>,
+
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureSecondaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+
+    val secondaryColors: List<LureColor>,
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureGlowColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+    val glowColors: List<LureColor>,
+
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallestFish: Double
 )

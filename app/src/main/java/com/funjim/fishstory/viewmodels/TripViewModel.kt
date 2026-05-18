@@ -110,6 +110,7 @@ class TripViewModel(
     fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
         return tripRepo.getFishermanIdsForTrip(tripId)
     }
+
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }
@@ -275,22 +276,8 @@ class TripViewModel(
     // TODO -- get this from somehwere else
     var lureColors: Flow<List<LureColor>> = fishermanRepo.allLureColors
 
-    fun getLureNamesInTackleBox(tackleBoxId: String?): Flow<List<String>> {
-        val luresFlow = fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
-
-        // Combine the two flows: lures and colors
-        return combine(luresFlow, lureColors) { lures, colors ->
-            // Create a map for O(1) color lookup performance
-            val colorMap = colors.associate { it.id to it.name }
-
-            lures.map { lure ->
-                val primary = colorMap[lure.primaryColorId]
-                val secondary = colorMap[lure.secondaryColorId]
-                val glow = colorMap[lure.glowColorId]
-
-                lure.getDisplayName(primary, secondary, glow)
-            }.sorted()
-        }
+    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
+        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
 
     // --- Actions ---

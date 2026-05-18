@@ -6,15 +6,12 @@ import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureSummary
-import com.funjim.fishstory.model.LureWithName
+import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
-import com.funjim.fishstory.model.toLureSummary
-import com.funjim.fishstory.model.toLureWithName
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 class LureRepository(
     private val lureDao: LureDao,
@@ -25,22 +22,18 @@ class LureRepository(
     // Data Streams
     val allLureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
 
-    fun getAllLures(): Flow<List<LureWithName>> {
-        return lureDao.getLuresWithNames().map { tupleList ->
-            tupleList.map { it.toLureWithName() }
-        }
+    fun getAllLures(): Flow<List<LureWithColors>> {
+        return lureDao.getLuresWithColors()
     }
 
-    fun getAllLureSummaries(): Flow<List<LureSummary>> {
-        return lureDao.getLureSummariesWithNames().map { tupleList ->
-            tupleList.map { it.toLureSummary() }
-        }
+    fun getLureSummariesWithColors(): Flow<List<LureSummaryWithColors>> {
+        return lureDao.getLureSummariesWithColors()
     }
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? = lureDao.getLureWithPhotos(id)
 
     // Tackle Box Logic
-    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<Lure>> {
+    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {
         return tackleBoxDao.getLuresInTackleBox(tackleBoxId)
     }
 

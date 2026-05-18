@@ -36,6 +36,7 @@ data class Fisherman(
 data class TackleBoxWithLures(
     @Embedded val tackleBox: TackleBox,
     @Relation(
+        entity = Lure::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
@@ -44,7 +45,7 @@ data class TackleBoxWithLures(
             entityColumn = "lureId"
         )
     )
-    val lures: List<Lure>
+    val lures: List<LureWithColors>
 )
 
 data class FishermanWithTackleBox(

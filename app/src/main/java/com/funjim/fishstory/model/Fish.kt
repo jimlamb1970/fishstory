@@ -190,7 +190,7 @@ data class SpeciesWithCounts(
 )
 
 data class LureWithCounts(
-    @Embedded val lure: LureWithNamesTuple,
+    @Embedded val lure: LureWithColors,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )

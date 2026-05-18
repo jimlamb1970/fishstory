@@ -6,7 +6,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -14,8 +13,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
@@ -24,9 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.screens.SpeciesSelectionField
 import com.funjim.fishstory.viewmodels.TripViewModel
 
 // ---------------------------------------------------------------------------
@@ -78,7 +74,7 @@ fun CrewAndTackleBoxPicker(
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
     // Provides the lure count for a given tackle box (null = no box selected).
     getLureCount: @Composable (tackleBoxId: String?) -> Int,
-    getLuresForTacklebox: @Composable (tackleBoxId: String?) -> List<String>,
+    getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     // CTA label on the confirm button.
     confirmLabel: String,
     onConfirm: () -> Unit,
@@ -144,7 +140,8 @@ fun CrewAndTackleBoxPicker(
                 itemsIndexed(crewEntries, key = { _, entry -> entry.fisherman.id }) { index, entry ->
                     val availableBoxes = getTackleBoxesForFisherman(entry.fisherman.id)
                     val lureCount = getLureCount(entry.selectedTackleBoxId)
-                    val lures = getLuresForTacklebox(entry.selectedTackleBoxId)
+                    val lures = getLuresInTacklebox(entry.selectedTackleBoxId).sortedBy { it.lure.name }
+
                     FishermanCrewRow(
                         entry = entry,
                         index = index,
@@ -199,7 +196,7 @@ private fun FishermanCrewRow(
     totalItems: Int = 0,
     availableBoxes: List<TackleBox>,
     lureCount: Int,
-    lures: List<String>,
+    lures: List<LureWithColors>,
     onSelectionChanged: (Boolean) -> Unit,
     onTackleBoxChanged: (String?) -> Unit,
     navigateToEditTackleBox: (String) -> Unit,
@@ -207,6 +204,8 @@ private fun FishermanCrewRow(
 ) {
     val selectedBox = availableBoxes.find { it.id == entry.selectedTackleBoxId }
     var luresExpanded by remember { mutableStateOf(false) }
+
+    val sortedLures by remember(lures) { derivedStateOf { sortLures(lures) } }
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
@@ -327,13 +326,21 @@ private fun FishermanCrewRow(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
                         )
-                    else lures.forEach { lure ->
-                        Text(
-                            text = "• $lure",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
-                        )
+                    else sortedLures.forEach { lure ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            LureCompositionWithColors(
+                                name = "• ${lure.lure.name}",
+                                lure.primaryColors,
+                                lure.secondaryColors,
+                                lure.lure.glows,
+                                lure.glowColors,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 50.dp, bottom = 4.dp),
+                                size = 20.dp)
+                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -484,8 +491,8 @@ fun TripViewModelCrewPickerBridge(
             tripViewModel.getLureCountForTackleBox(tackleBoxId)
                 .collectAsState(initial = 0).value
         },
-        getLuresForTacklebox = { tackleBoxId ->
-            tripViewModel.getLureNamesInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+        getLuresInTacklebox = { tackleBoxId ->
+            tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
         },
         confirmLabel = confirmLabel,
         onConfirm = onConfirm,
@@ -577,7 +584,6 @@ fun TackleBoxSelectionField(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             },
-//                            leadingContent = { Icon(Icons.Default.Remove, null) },
                             modifier = Modifier.clickable {
                                 showSheet = false
                                 onClear()

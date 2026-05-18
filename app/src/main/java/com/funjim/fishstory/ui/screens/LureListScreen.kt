@@ -166,14 +166,14 @@ fun LureListScreen(
                         val totalItems = allLures.size
                         itemsIndexed(
                             allLures,
-                            key = { _, item -> item.lureSummary.lure.id }) { index, item ->
+                            key = { _, item -> item.lure.id }) { index, item ->
                             LureItem(
                                 item = item,
+                                thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 index = index,
                                 totalItems = totalItems,
-                                thumbnailFlow = viewModel.lureThumbnail(item.lureSummary.lure.id),
-                                onEdit = { onEdit(item.lureSummary.lure.id) },
-                                onDelete = { lureToDelete = item.lureSummary.lure }
+                                onEdit = { onEdit(item.lure.id) },
+                                onDelete = { lureToDelete = item.lure }
                             )
                         }
                     }

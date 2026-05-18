@@ -78,25 +78,6 @@ class FishermanDetailsViewModel(
         .flatMapLatest { photoRepo.getPhotosForFisherman(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun getLureNames(tackleBoxId: String?): Flow<List<String>> {
-        return repository.getLureNamesInTackleBox(tackleBoxId)
-    }
-    // In your ViewModel
-    fun getFormattedLureList(tackleBoxId: String): StateFlow<String> {
-        return getLureNames(tackleBoxId)
-            .map { names ->
-                if (names.isEmpty()) "No lures in this box"
-                else names.joinToString(separator = "\n", limit = 8, truncated = "...and more") { lureName ->
-                    "• $lureName"
-                }
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = "Loading lures..."
-            )
-    }
-
     // Actions
     fun updateFisherman(fisherman: Fisherman) {
         viewModelScope.launch { repository.updateFisherman(fisherman) }

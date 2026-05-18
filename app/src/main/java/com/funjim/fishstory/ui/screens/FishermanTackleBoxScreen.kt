@@ -25,10 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureSummaryWithColors
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.SortChip
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +59,7 @@ fun FishermanTackleBoxScreen(
     var editedName by remember { mutableStateOf("") }
 
     // Build a set of IDs in the tackle box for 'inBox'' lookup
-    val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.id }.toSet() }
+    val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.lure.id }.toSet() }
 
     val inBoxCount = luresInBoxIds.size
 
@@ -207,10 +210,11 @@ fun FishermanTackleBoxScreen(
                         val totalItems = allLures.size
                         itemsIndexed(
                             allLures,
-                            key = { _, item -> item.lureSummary.lure.id }) { index, item ->
-                            val inBox = item.lureSummary.lure.id in luresInBoxIds
+                            key = { _, item -> item.lure.id }) { index, item ->
+                            val inBox = item.lure.id in luresInBoxIds
                             LureTackleBoxItem(
                                 item = item,
+                                thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 index = index,
                                 totalItems = totalItems,
                                 inTackleBox = inBox,
@@ -219,12 +223,12 @@ fun FishermanTackleBoxScreen(
                                         if (checked) {
                                             viewModel.addLureToTackleBox(
                                                 tackleBoxId,
-                                                item.lureSummary.lure.id
+                                                item.lure.id
                                             )
                                         } else {
                                             viewModel.removeLureFromTackleBox(
                                                 tackleBoxId,
-                                                item.lureSummary.lure.id
+                                                item.lure.id
                                             )
                                         }
                                     }
@@ -288,11 +292,13 @@ fun FishermanTackleBoxScreen(
 @Composable
 private fun LureTackleBoxItem(
     item: LureSummaryWithColors,
+    thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
     inTackleBox: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -324,24 +330,31 @@ private fun LureTackleBoxItem(
                 onCheckedChange = onCheckedChange
             )
             Spacer(modifier = Modifier.width(8.dp))
+
+            ThumbnailBox(
+                thumbnail = thumbnail,
+                imageVector = AppIcons.Default.Lure
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.lureSummary.displayName,
+                    text = item.lure.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
                 )
-                // Secondary details row
-                val details = buildList {
-                    if (item.lureSummary.lure.glows) add("Glows${if (item.glowColor != null) " (${item.glowColor.name})" else ""}")
-                    add(if (item.lureSummary.lure.hasSingleHook) "Single hook" else "Treble hook")
-                }
-                if (details.isNotEmpty()) {
-                    Text(
-                        text = details.joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                LureColorComposition(
+                    item.primaryColors,
+                    item.secondaryColors,
+                    item.lure.glows,
+                    item.glowColors
+                )
+                Text(
+                    text = if (item.lure.hasSingleHook) "Single hook" else "Treble hook",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

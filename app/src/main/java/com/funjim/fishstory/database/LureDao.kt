@@ -1,12 +1,15 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureSummaryWithNamesTuple
+import com.funjim.fishstory.model.LureGlowColorCrossRef
+import com.funjim.fishstory.model.LurePrimaryColorCrossRef
+import com.funjim.fishstory.model.LureSecondaryColorCrossRef
+import com.funjim.fishstory.model.LureSummary
+import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithPhotos
-import com.funjim.fishstory.model.LureWithNamesTuple
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -62,6 +65,15 @@ interface LureDao {
     @Upsert
     suspend fun upsertLure(lure: Lure)
 
+    @Upsert
+    suspend fun upsertLurePrimaryColorCrossRef(crossRef: LurePrimaryColorCrossRef)
+
+    @Upsert
+    suspend fun upsertLureSecondaryColorCrossRef(crossRef: LureSecondaryColorCrossRef)
+
+    @Upsert
+    suspend fun upsertLureGlowColorCrossRef(crossRef: LureGlowColorCrossRef)
+
     @Delete
     suspend fun deleteLure(lure: Lure)
 
@@ -84,6 +96,7 @@ interface LureDao {
     @Delete
     suspend fun deleteLureColor(color: LureColor)
 
+    /*
     @Query("""
     SELECT *, 
            p.name AS primaryName, 
@@ -95,41 +108,48 @@ interface LureDao {
     LEFT JOIN lure_color_table g ON glowColorId = g.id
 """)
     fun getLuresWithNames(): Flow<List<LureWithNamesTuple>>
+*/
 
     @Transaction
     @Query("""
     SELECT 
         l.*, 
-        p.name AS primaryName, 
-        s.name AS secondaryName, 
-        g.name AS glowName,
         SUM(f.caughtCount) AS caughtCount,
         SUM(f.keptCount) AS keptCount,
         MAX(f.length) AS largestFish,
-        MIN(f.length) AS smallest
+        MIN(f.length) AS smallestFish
     FROM lure_table AS l
-    LEFT JOIN lure_color_table p ON l.primaryColorId = p.id
-    LEFT JOIN lure_color_table s ON l.secondaryColorId = s.id
-    LEFT JOIN lure_color_table g ON l.glowColorId = g.id
     LEFT JOIN fish_table AS f ON l.id = f.lureId
     GROUP BY l.id
 """)
-    fun getLureSummariesWithNames(): Flow<List<LureSummaryWithNamesTuple>>
+    fun getLureSummaries(): Flow<List<LureSummary>>
 
+    @Transaction
+    @Query("SELECT * FROM lure_table")
+    fun getLuresWithColors(): Flow<List<LureWithColors>>
+
+    @Transaction
     @Query("""
-        SELECT lure_table.*, 
-           p.name AS primaryName, 
-           s.name AS secondaryName, 
-           g.name AS glowName
-        FROM lure_table 
+    SELECT 
+        l.*, 
+        SUM(f.caughtCount) AS caughtCount,
+        SUM(f.keptCount) AS keptCount,
+        MAX(f.length) AS largestFish,
+        MIN(f.length) AS smallestFish
+    FROM lure_table AS l
+    LEFT JOIN fish_table AS f ON l.id = f.lureId
+    GROUP BY l.id
+""")
+    fun getLureSummariesWithColors(): Flow<List<LureSummaryWithColors>>
+
+    @Transaction
+    @Query("""
+        SELECT DISTINCT lure_table.* FROM lure_table 
         INNER JOIN fish_table ON lure_table.id = fish_table.lureId 
-        LEFT JOIN lure_color_table p ON primaryColorId = p.id
-        LEFT JOIN lure_color_table s ON secondaryColorId = s.id
-        LEFT JOIN lure_color_table g ON glowColorId = g.id
         WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
         GROUP BY lure_table.id
     """)
-    fun getLuresWithFish(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<LureWithNamesTuple>>
+    fun getLuresWithFish(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<LureWithColors>>
 }

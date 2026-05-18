@@ -9,6 +9,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.PhotoFishermanCrossRef
 import com.funjim.fishstory.model.PhotoTripCrossRef
@@ -100,21 +101,6 @@ class FishermanRepository(
     fun getPastTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
         fishermanDao.getPastTripSummariesForFisherman(id, System.currentTimeMillis())
 
-    fun getLureNamesInTackleBox(tackleBoxId: String?): Flow<List<String>> {
-        val luresFlow = tackleBoxDao.getLuresInTackleBox(tackleBoxId ?: "")
-        val colorsFlow = lureDao.getAllLureColors()
-
-        return combine(luresFlow, colorsFlow) { lures, colors ->
-            val colorMap = colors.associate { it.id to it.name }
-            lures.map { lure ->
-                val primary = colorMap[lure.primaryColorId]
-                val secondary = colorMap[lure.secondaryColorId]
-                val glow = colorMap[lure.glowColorId]
-                lure.getDisplayName(primary, secondary, glow)
-            }.sorted()
-        }
-    }
-
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(fishermanId: String, name: String) =
         tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId, name = name))
@@ -124,7 +110,7 @@ class FishermanRepository(
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> =
         tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
 
-    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<Lure>> =
+    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> =
         tackleBoxDao.getLuresInTackleBox(tackleBoxId)
 
     suspend fun deleteTackleBox(tackleBox: TackleBox) = tackleBoxDao.deleteTackleBox(tackleBox)

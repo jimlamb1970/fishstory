@@ -1,7 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,6 +8,7 @@ import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.ui.utils.sortLures
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.collections.map
 
 class LureViewModel(
     private val repository: LureRepository,
@@ -38,28 +36,13 @@ class LureViewModel(
     private val _lureColors = repository.allLureColors
     val lureColors = _lureColors
 
-    val luresWithName: StateFlow<List<LureWithName>> = repository.getAllLures()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     // Combine lures, colors, and photos into the UI model
     val luresWithDisplay: StateFlow<List<LureSummaryWithColors>> = combine(
-        repository.getAllLureSummaries(),
-        repository.allLureColors,
+        repository.getLureSummariesWithColors(),
         _sortOrder,
         _isReversed
-    ) { lures, colors, sort, reversed ->
-        val colorMap = colors.associateBy { it.id }
-
-        val displayList = lures.map { lure ->
-            LureSummaryWithColors(
-                lureSummary = lure,
-                primaryColor = colorMap[lure.lure.primaryColorId],
-                secondaryColor = colorMap[lure.lure.secondaryColorId],
-                glowColor = colorMap[lure.lure.glowColorId],
-            )
-        }
-
-        val sortedList = applySorting(displayList, sort)
+    ) { lures, sort, reversed ->
+        val sortedList = applySorting(lures, sort)
         if (reversed) sortedList.reversed() else sortedList
     }.stateIn(
         viewModelScope,
@@ -68,12 +51,12 @@ class LureViewModel(
 
     private fun applySorting(list: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
         return when (order) {
-            LureSortOrder.NAME -> list.sortedBy { it.lureSummary.lure.name }
-            LureSortOrder.PRIMARY_COLOR -> list.sortedBy { it.primaryColor?.name }
-            LureSortOrder.SECONDARY_COLOR -> list.sortedBy { it.secondaryColor?.name }
-            LureSortOrder.GLOW_COLOR -> list.sortedBy { it.glowColor?.name }
-            LureSortOrder.GLOW -> list.sortedBy { it.lureSummary.lure.glows }
-            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lureSummary.lure.hasSingleHook }
+            LureSortOrder.NAME -> sortLures(list, order)
+            LureSortOrder.PRIMARY_COLOR -> sortLures(list, order)
+            LureSortOrder.SECONDARY_COLOR -> sortLures(list, order)
+            LureSortOrder.GLOW_COLOR -> sortLures(list, order)
+            LureSortOrder.GLOW -> list.sortedBy { it.lure.glows }
+            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hasSingleHook }
         }
     }
 
@@ -185,7 +168,7 @@ class LureViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxWithLures: StateFlow<List<Lure>> = _selectedTackleBoxId
+    val tackleBoxWithLures: StateFlow<List<LureWithColors>> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList())
