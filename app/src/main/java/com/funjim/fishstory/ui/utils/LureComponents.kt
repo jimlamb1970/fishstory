@@ -283,8 +283,8 @@ fun LureColorComposition(
 ) {
     FlowRow(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         primary.forEach { color ->
             if (color.hexCode.isNullOrBlank()) {
@@ -374,37 +374,6 @@ fun LureColorComposition(
 }
 
 @Composable
-fun LureColorComposition(
-    primaryHex: String?,
-    secondaryHex: String?,
-    glowHex: String?,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy((-6).dp) // Negative spacing overlaps them elegantly
-    ) {
-        // 1. Primary Color (Bottom layer if overlapping)
-        if (!primaryHex.isNullOrBlank()) {
-            ColorCircleBadge(hexCode = primaryHex, label = "P")
-        }
-
-        // 2. Secondary Color
-        if (!secondaryHex.isNullOrBlank()) {
-            ColorCircleBadge(hexCode = secondaryHex, label = "S")
-        }
-
-        // 3. Glow Color (With a subtle dashed border to indicate it glows)
-        if (!glowHex.isNullOrBlank()) {
-            ColorCircleBadge(
-                hexCode = glowHex,
-                label = "G",
-                isGlow = true
-            )
-        }
-    }
-}
-@Composable
 fun ColorCircleBadge(
     hexCode: String,
     label: String,
@@ -417,8 +386,6 @@ fun ColorCircleBadge(
 
     Box(
         modifier = modifier
-//            .minimumInteractiveComponentSize() // Prevents overlapping and layout collapse
-//            .then(modifier) // Consumes the .size(28.dp) safely
             .aspectRatio(1f) // Crucial: forces the shape to stay a perfect circle even if sizes match weirdly
             .clip(CircleShape)
             .border(
@@ -586,42 +553,31 @@ fun LureSelectionField(
                             MaterialTheme.colorScheme.primary
                         }
 
-                        OutlinedCard(
+                        ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
                                 .clickable {
                                     onSelected(item)
                                     showSheet = false
                                     searchQuery = ""
                                 },
-                            colors = CardDefaults.cardColors(
-                                containerColor = backgroundColor,
-                                contentColor = MaterialTheme.colorScheme.primary
-                            ),
-                            border = BorderStroke(1.dp, color = borderColor)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            leadingContent = {
                                 thumbnailProvider(item)
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy((4).dp)
-                                    ) {
-                                        Text(
-                                            text = item.lure.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                            },
+                            headlineContent = {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = item.lure.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
 
                                     LureColorComposition(
                                         primary = item.primaryColors,
@@ -630,8 +586,12 @@ fun LureSelectionField(
                                         glow = item.glowColors
                                     )
                                 }
-                            }
-                        }
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
                     }
 
                     if (onAdd != null) {

@@ -463,6 +463,15 @@ fun LureColorSelectionField(
                         val isClickable = isChecked || !isSelectionLocked
 
                         ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable(enabled = isClickable) {
+                                    onSelected(item)
+                                },
                             leadingContent = {
                                 if (item.hexCode.isNullOrBlank()) {
                                     ThumbnailBox(
@@ -498,10 +507,10 @@ fun LureColorSelectionField(
                                     enabled = isClickable
                                 )
                             },
-                            modifier = Modifier.clickable(enabled = isClickable) {
-                                onSelected(item)
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
 
