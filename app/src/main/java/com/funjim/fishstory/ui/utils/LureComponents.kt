@@ -32,6 +32,7 @@ import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureSummaryWithColors
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
 import com.funjim.fishstory.viewmodels.LureSortOrder
 
 @Composable
@@ -389,26 +390,47 @@ fun ColorCircleBadge(
         try { Color(hexCode.toColorInt()) } catch (e: Exception) { Color.Gray }
     }
 
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color)
-            .border(
-                width = if (isGlow) 1.5.dp else 2.dp,
-                color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
-                shape = CircleShape
+    val hexList = remember(hexCode) {
+        hexCode.split(",").filter { it.isNotBlank() }
+    }
+
+    if (hexList.size > 1) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .border(
+                    width = if (isGlow) 1.5.dp else 2.dp,
+                    color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // Dynamic layout grid depending on hex count
+            MultiColorCirclePreview(hexList = hexList)
+        }
+    } else {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(color)
+                .border(
+                    width = if (isGlow) 1.5.dp else 2.dp,
+                    color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                    shape = CircleShape
+                )
+        ) {
+            // Optional: Put a tiny, high-contrast letter inside so colorblind users know which is which
+            Text(
+                text = if (label.length > 1) label[0].toString() else label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isColorDark(color)) Color.White else Color.Black,
+                modifier = Modifier.alpha(0.9f)
             )
-    ) {
-        // Optional: Put a tiny, high-contrast letter inside so colorblind users know which is which
-        Text(
-            text = if (label.length > 1) label[0].toString() else label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isColorDark(color)) Color.White else Color.Black,
-            modifier = Modifier.alpha(0.9f)
-        )
+        }
     }
 }
 
@@ -529,10 +551,8 @@ fun LureSelectionField(
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-//                            MaterialTheme.colorScheme.surface
                             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-//                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                         }
 

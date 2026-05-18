@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -74,22 +75,20 @@ fun ManageColorsScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var colorToDelete by remember { mutableStateOf<LureColor?>(null) }
-    var colorToSelect by remember { mutableStateOf<LureColor?>(null) }
     var colorToEdit by remember { mutableStateOf<LureColor?>(null) }
-    var editName by remember { mutableStateOf("") }
 
-    // Tracks which species is receiving a new image
+    var colorToPickFor by remember { mutableStateOf<LureColor?>(null) }
+    var pickMaxHexCodes by remember { mutableStateOf(1) } // Supports 1 or 4 hex values
+
+    var editName by remember { mutableStateOf("") }
     var currentColorForPhoto by remember { mutableStateOf<LureColor?>(null) }
 
-    // 1. Logic: Filter list based on search query
     val filteredColors = remember(searchQuery, colorsList) {
         colorsList.filter {
             it.name.contains(searchQuery, ignoreCase = true)
         }.sortedBy { it.name }
     }
 
-    // 2. Logic: Should we show the "Add" button?
-    // Show if the query isn't empty and doesn't exactly match an existing name
     val showAddButton = searchQuery.isNotBlank() &&
             colorsList.none { it.name.equals(searchQuery.trim(), ignoreCase = true) }
 
@@ -114,7 +113,6 @@ fun ManageColorsScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // SEARCH & ADD SECTION
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -137,10 +135,10 @@ fun ManageColorsScreen(
                 singleLine = true
             )
 
-            // THE LIST
             LazyColumn(modifier = Modifier.weight(1f)) {
                 itemsIndexed(filteredColors, key = { _, s -> s.id }) { index, item ->
                     var menuExpanded by remember { mutableStateOf(false) }
+                    var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
                     // Your Zebra Striping
                     val backgroundColor = if (index % 2 == 0) MaterialTheme.colorScheme.surface
@@ -200,7 +198,7 @@ fun ManageColorsScreen(
                                     onClick = { /* Regular tap on image does nothing or shows preview */ },
                                     onLongClick = {
                                         currentColorForPhoto = item
-                                        colorToSelect = item
+                                        thumbnailMenuExpanded = true
                                     }
                                 )
                             ) {
@@ -210,6 +208,25 @@ fun ManageColorsScreen(
                                         imageVector = Icons.Default.Palette
                                     )
                                 } else {
+                                    val hexList = remember(item.hexCode) {
+                                        item.hexCode.split(",").filter { it.isNotBlank() }
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(72.dp)
+                                            .clip(CircleShape)
+                                            .border(
+                                                4.dp,
+                                                MaterialTheme.colorScheme.onSurface,
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Dynamic layout grid depending on hex count
+                                        MultiColorCirclePreview(hexList = hexList)
+                                    }
+
+                                    /*
                                     val color = remember(item.hexCode) {
                                         try {
                                             Color(item.hexCode.toColorInt())
@@ -230,6 +247,45 @@ fun ManageColorsScreen(
                                                 shape = CircleShape
                                             )
                                     )
+
+ */
+                                }
+
+                                DropdownMenu(
+                                    expanded = thumbnailMenuExpanded,
+                                    onDismissRequest = { thumbnailMenuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Select Single Color") },
+                                        onClick = {
+                                            thumbnailMenuExpanded = false
+                                            pickMaxHexCodes = 1
+                                            colorToPickFor = item
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Select Multiple Colors (Up to 4)") },
+                                        onClick = {
+                                            thumbnailMenuExpanded = false
+                                            pickMaxHexCodes = 4
+                                            colorToPickFor = item
+                                        }
+                                    )
+                                    if (!item.hexCode.isNullOrBlank()) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Clear Color(s)",
+                                                    color = MaterialTheme.colorScheme.error
+                                                )
+                                            },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                // Save out a null reference to clear
+                                                viewModel.upsertLureColor(item.copy(hexCode = null))
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -300,15 +356,282 @@ Lures that were using this color may not have a color assigned to them.
         )
     }
 
-    colorToSelect?.let { item ->
+    colorToPickFor?.let { item ->
         AdvancedColorPickerDialog(
             initialColor = item.hexCode,
-            onDismiss = { colorToSelect = null },
-            onSave = { code ->
-                viewModel.upsertLureColor(item.copy(hexCode = code))
-                colorToSelect = null
-            })
+            maxAllowedColors = pickMaxHexCodes, // Tell picker if it allows multi-select
+            onDismiss = { colorToPickFor = null },
+            onSave = { finalizedCommaSeparatedString ->
+                viewModel.upsertLureColor(item.copy(hexCode = finalizedCommaSeparatedString))
+                colorToPickFor = null
+            }
+        )
     }
+}
+
+@Composable
+fun MultiColorCirclePreview(hexList: List<String>) {
+    val colors = remember(hexList) {
+        hexList.map { hex ->
+            try {
+                Color(hex.toColorInt())
+            } catch (e: Exception) {
+                Color.Transparent
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        when (colors.size) {
+            1 -> {
+                Box(modifier = Modifier.fillMaxSize().background(colors[0]))
+            }
+            2 -> {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f).background(colors[0]))
+                Box(modifier = Modifier.fillMaxWidth().weight(1f).background(colors[1]))
+            }
+            3 -> {
+                // Split top row into half, bottom row solid or mixed
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[0]))
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[1]))
+                }
+                Box(modifier = Modifier.fillMaxWidth().weight(1f).background(colors[2]))
+            }
+            else -> { // 4 colors (Quadrants)
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[0]))
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[1]))
+                }
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[2]))
+                    Box(modifier = Modifier.fillMaxHeight().weight(1f).background(colors[3]))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AdvancedColorPickerDialog(
+    initialColor: String?, // Now could be something like "#FF0000,#00FF00" or null
+    maxAllowedColors: Int, // Governs if we cap at 1 or 4 selections
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    val predefinedColors = listOf(
+        // --- High-Visibility & Attractors ---
+        "#7FFF00", // Chartreuse (Traditional Yellow-Green)
+        "#DFFF00", // Chartreuse (Neon/Web/Fluorescent)
+        "#00FF00", // Lime Green
+        "#FF69B4", // Hot Pink / Bubblegum
+        "#FF00FF", // Magenta / Fuchsia
+        "#FF4500", // Orange (Firetiger Orange)
+        "#FFCC00", // Bright Yellow
+
+        // --- Natural & Forage Mimics ---
+        "#556B2F", // Green Pumpkin / Pumpkinseed
+        "#708238", // Watermelon Green
+        "#6B8E23", // Olive Drab
+        "#4682B4", // Shad Blue / Tennessee Shad
+        "#F8F8FF", // Pearl White
+        "#E6DFD3", // Bone / Off-White
+        "#990000", // Crawfish Red
+        "#8B4513", // Saddle Brown
+
+        // --- Metallics & Flash ---
+        "#C0C0C0", // Silver / Chrome
+        "#FFD700", // Gold
+        "#B87333", // Copper
+
+        // MISC
+        "#0000FF", // BLUE
+        "#FFFF00", // YELLOW
+        "#FFA500", // ORANGE
+        "#4B0082", // PURPLE
+
+        // --- The Wonderbread Pattern ---
+        "#FFFFFF", // Wonderbread Base (Pure White)
+        "#FFF79A", // Wonderbread Dot 1 (Pastel Yellow)
+        "#FEC3E1", // Wonderbread Dot 2 (Pastel Pink)
+        "#A9E2F3", // Wonderbread Dot 3 (Pastel Blue)
+
+        // --- Contrast & Accents ---
+        "#000000", // Black (Strong Silhouette)
+        "#FF0000", // Red (Bleeding Red)
+        "#300060"  // Deep Purple
+    )
+
+    // Parse existing hex inputs, stripping hash markers
+    var selectedHexList by remember {
+        mutableStateOf(
+            initialColor?.split(",")
+                ?.filter { it.isNotBlank() }
+                ?.map { it.removePrefix("#").trim().uppercase() }
+                ?.take(maxAllowedColors)
+                ?: listOf("FFFFFF")
+        )
+    }
+
+    // Active working cursor (for text field adjustment manipulation)
+    var activeFieldInput by remember { mutableStateOf(selectedHexList.firstOrNull() ?: "FFFFFF") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = if (maxAllowedColors > 1) "Select Colors (Up to 4)" else "Select Lure Color",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Live Multi-Color Preview Row Block
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Selected:", style = MaterialTheme.typography.labelMedium)
+                    selectedHexList.forEach { hex ->
+                        val chipColor = try { Color("#$hex".toColorInt()) } catch(e: Exception) { Color.Gray }
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(chipColor)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                                .clickable {
+                                    // Tap a badge to remove it if multi-mode is on
+                                    if (selectedHexList.size > 1) {
+                                        selectedHexList = selectedHexList.filter { it != hex }
+                                        activeFieldInput = selectedHexList.last()
+                                    }
+                                }
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Quick Select Palette",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(5),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.height(100.dp)
+                ) {
+                    items(predefinedColors) { rawHex ->
+                        val cleanHex = rawHex.removePrefix("#").uppercase()
+                        val isSelected = selectedHexList.contains(cleanHex)
+                        val itemColor = remember { Color(android.graphics.Color.parseColor(rawHex)) }
+
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .background(itemColor)
+                                .border(
+                                    width = if (isSelected) 3.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = CircleShape
+                                )
+                                .clickable {
+                                    if (maxAllowedColors == 1) {
+                                        selectedHexList = listOf(cleanHex)
+                                        activeFieldInput = cleanHex
+                                    } else {
+                                        if (isSelected) {
+                                            // Remove if selected
+                                            if (selectedHexList.size > 1) {
+                                                selectedHexList = selectedHexList.filter { it != cleanHex }
+                                            }
+                                        } else if (selectedHexList.size < 4) {
+                                            // Add item up to 4 elements max
+                                            selectedHexList = selectedHexList + cleanHex
+                                        }
+                                        activeFieldInput = cleanHex
+                                    }
+                                }
+                        )
+                    }
+                }
+
+                HorizontalDivider(thickness = 0.5.dp)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    val fallbackPreview = remember(activeFieldInput) {
+                        try { Color("#$activeFieldInput".toColorInt()) } catch (e: Exception) { Color.LightGray }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(fallbackPreview)
+                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                    )
+
+                    OutlinedTextField(
+                        value = activeFieldInput,
+                        onValueChange = { newValue ->
+                            val filtered = newValue.filter { it.isDigit() || it.uppercaseChar() in 'A'..'F' }
+                            if (filtered.length <= 6) {
+                                activeFieldInput = filtered
+                                if (filtered.length == 6) {
+                                    // Update the selected item list entry actively
+                                    if (maxAllowedColors == 1) {
+                                        selectedHexList = listOf(filtered.uppercase())
+                                    } else {
+                                        val updated = selectedHexList.toMutableList()
+                                        if (updated.isNotEmpty()) {
+                                            updated[updated.lastIndex] = filtered.uppercase()
+                                            selectedHexList = updated
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        leadingIcon = { Text("#", style = MaterialTheme.typography.bodyLarge) },
+                        label = { Text(if (maxAllowedColors > 1) "Modify Last Hex" else "Hex Code") },
+                        placeholder = { Text("RRGGBB") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    // Combine all selected hex values with standard leading '#' hashes into a clear comma-string
+                    val databaseOutputString = selectedHexList.joinToString(",") { hex ->
+                        "#${hex.uppercase().padEnd(6, '0')}"
+                    }
+                    onSave(databaseOutputString)
+                    onDismiss()
+                },
+                enabled = selectedHexList.all { it.length == 6 }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

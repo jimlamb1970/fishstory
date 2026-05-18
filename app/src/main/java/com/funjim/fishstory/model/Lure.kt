@@ -19,10 +19,7 @@ data class LureColor(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val hexCode: String? = null,
-    val hexCode2: String? = null,
-    val hexCode3: String? = null,
-    val hexCode4: String? = null
+    val hexCode: String? = null
 )
 
 @Serializable

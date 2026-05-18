@@ -65,6 +65,7 @@ interface TackleBoxDao {
     @Delete
     suspend fun removeLureFromTackleBox(crossRef: TackleBoxLureCrossRef)
 
+    @Transaction
     @Query("""
         SELECT lure_table.* FROM lure_table
         INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId
