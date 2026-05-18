@@ -140,7 +140,6 @@ fun ManageColorsScreen(
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    // Your Zebra Striping
                     val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
                         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                     } else {

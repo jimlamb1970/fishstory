@@ -332,11 +332,18 @@ class FishViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            photoRepo.updateSpeciesThumbnail(speciesId, uri) // Your Room DAO execution
+    fun deleteSpeciesThumbnail(speciesId: String) {
+        viewModelScope.launch {
+            photoRepo.deleteSpeciesThumbnail(speciesId)
         }
     }
+
+    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateSpeciesThumbnail(speciesId, uri)
+        }
+    }
+
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)

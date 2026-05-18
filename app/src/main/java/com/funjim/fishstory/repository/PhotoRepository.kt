@@ -350,6 +350,17 @@ class PhotoRepository(
         return photoDao.getThumbnailForSpecies(id)
     }
 
+    suspend fun deleteSpeciesThumbnail(speciesId: String) {
+        // Check if existing species photo cross reference exists
+        val existingPhoto = photoDao.getPhotoForSpecies(speciesId)
+
+        // If it does, delete the photo that corresponds to the cross reference from the photo table
+        // Deleting the photo will delete the cross reference too
+        if (existingPhoto != null) {
+            photoDao.deletePhoto(existingPhoto)
+        }
+    }
+
     suspend fun updateSpeciesThumbnail(speciesId: String, uri: Uri) = withContext(Dispatchers.IO) {
         database.withTransaction {
             // 1) Check if existing species photo cross reference exists.

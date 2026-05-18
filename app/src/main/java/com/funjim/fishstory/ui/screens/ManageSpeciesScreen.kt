@@ -6,7 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -141,37 +142,51 @@ fun ManageSpeciesScreen(
 
             // THE LIST
             LazyColumn(modifier = Modifier.weight(1f)) {
+                val filteredSize = filteredSpecies.size
                 itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, summary ->
                     val species = summary.species
                     val thumbnail by viewModel.speciesThumbnail(species.id).collectAsStateWithLifecycle(initialValue = null)
-                    var menuExpanded by remember { mutableStateOf(false) }
 
-                    val backgroundColor = if (index % 2 == 0) MaterialTheme.colorScheme.surface
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
                     val preventDelete = summary.caughtCount > 0 || summary.keptCount > 0
 
+                    val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    }
+
+                    val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                        MaterialTheme.colorScheme.tertiary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+
                     ListItem(
                         modifier = Modifier
-                            .background(backgroundColor)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                            .clip(MaterialTheme.shapes.medium)
                             .combinedClickable(
-                                onClick = { },
+                                onClick = { /* do nothing */ },
                                 onLongClick = { menuExpanded = true }
                             ),
-                        headlineContent = { Text(species.name) },
-                        supportingContent = {
-                            Text("Caught: ${summary.caughtCount}, Kept: ${summary.keptCount}")
-                        },
                         leadingContent = {
                             // Wrapped in a Box with combinedClickable for long-press registration
                             Box(
                                 modifier = Modifier.combinedClickable(
-                                    onClick = { /* Regular tap on image does nothing or shows preview */ },
-                                    onLongClick = {
+                                    onClick = {
                                         currentSpeciesForPhoto = species
                                         photoPickerLauncher.launch(
                                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                         )
+                                    },
+                                    onLongClick = {
+                                        currentSpeciesForPhoto = species
+                                        thumbnailMenuExpanded = true
                                     }
                                 )
                             ) {
@@ -179,7 +194,41 @@ fun ManageSpeciesScreen(
                                     thumbnail = thumbnail,
                                     modifier = Modifier.size(48.dp)
                                 )
+                                DropdownMenu(
+                                    expanded = thumbnailMenuExpanded,
+                                    onDismissRequest = { thumbnailMenuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Select Thumbnail") },
+                                        onClick = {
+                                            currentSpeciesForPhoto = species
+                                            thumbnailMenuExpanded = false
+                                            photoPickerLauncher.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        }
+                                    )
+                                    if (thumbnail != null) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Reset Thumbnail",
+                                                    color = MaterialTheme.colorScheme.error
+                                                )
+                                            },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                // Save out a null reference to clear
+                                                viewModel.deleteSpeciesThumbnail(species.id)
+                                            }
+                                        )
+                                    }
+                                }
                             }
+                        },
+                        headlineContent = { Text(species.name) },
+                        supportingContent = {
+                            Text("Caught: ${summary.caughtCount}, Kept: ${summary.keptCount}")
                         },
                         trailingContent = {
                             Box {
