@@ -147,57 +147,36 @@ fun ManageColorsScreen(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     }
 
+                    val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                        MaterialTheme.colorScheme.tertiary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+
                     ListItem(
                         modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                            .clip(MaterialTheme.shapes.medium)
                             .combinedClickable(
-                                onClick = { },
+                                onClick = { /* do nothing */ },
                                 onLongClick = { menuExpanded = true }
                             ),
-                        headlineContent = { Text(item.name) },
-                        trailingContent = {
-                            Box {
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Options"
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Edit") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            colorToEdit = item
-                                            editName = item.name
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = "Edit") }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Delete") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            colorToDelete = item
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete",
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        },
                         leadingContent = {
-                            // Wrapped in a Box with combinedClickable for long-press registration
                             Box(
                                 modifier = Modifier.combinedClickable(
-                                    onClick = { /* Regular tap on image does nothing or shows preview */ },
+                                    onClick = {
+                                        if (item.hexCode.isNullOrBlank()) {
+                                            pickMaxHexCodes = 1
+                                            colorToPickFor = item
+                                        } else {
+                                            pickMaxHexCodes =
+                                                if (item.hexCode.contains(',')) { 4 }
+                                                else { 1 }
+                                            colorToPickFor = item
+                                        }
+                                    },
                                     onLongClick = {
                                         currentColorForPhoto = item
                                         thumbnailMenuExpanded = true
@@ -268,6 +247,46 @@ fun ManageColorsScreen(
                                 }
                             }
                         },
+                        headlineContent = { Text(item.name) },
+                        trailingContent = {
+                            Box {
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "Options"
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            colorToEdit = item
+                                            editName = item.name
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = "Edit") }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            colorToDelete = item
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Delete",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        },
                         colors = ListItemDefaults.colors(
                             containerColor = backgroundColor
                         )
@@ -314,13 +333,13 @@ Lures that were using this color may not have a color assigned to them.
     colorToEdit?.let { item ->
         AlertDialog(
             onDismissRequest = { colorToEdit = null },
-            title = { Text("Rename Species") },
+            title = { Text("Rename Color") },
             text = {
                 OutlinedTextField(
                     value = editName,
                     onValueChange = { editName = it },
                     singleLine = true,
-                    label = { Text("Species Name") }
+                    label = { Text("Color Name") }
                 )
             },
             confirmButton = {
