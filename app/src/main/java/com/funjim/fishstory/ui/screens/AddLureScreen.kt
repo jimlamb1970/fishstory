@@ -1,37 +1,38 @@
 package com.funjim.fishstory.ui.screens
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.net.Uri
-import android.util.Size
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureWithPhotos
+import com.funjim.fishstory.model.LureGlowColorCrossRef
+import com.funjim.fishstory.model.LurePrimaryColorCrossRef
+import com.funjim.fishstory.model.LureSecondaryColorCrossRef
+import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.security.MessageDigest
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,29 +47,31 @@ fun AddLureScreen(
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val sortedColors = remember(colors) { colors.sortedBy { it.name } }
 
-    var originalLure by remember { mutableStateOf<LureWithPhotos?>(null) }
+    var originalLure by remember { mutableStateOf<LureWithDetails?>(null) }
 
     // Form State
     var name by remember { mutableStateOf("") }
-    var selectedPrimaryColorId by remember { mutableStateOf<String?>(null) }
-    var selectedSecondaryColorId by remember { mutableStateOf<String?>(null) }
-    var isSingleHook by remember { mutableStateOf(false) }
+    var hookCount by remember { mutableIntStateOf(1) }
     var glows by remember { mutableStateOf(false) }
-    var selectedGlowColorId by remember { mutableStateOf<String?>(null) }
     var photos by remember { mutableStateOf<List<Photo>>(emptyList()) }
 
+    var selectedPrimaryColors by remember { mutableStateOf<List<LureColor>>(emptyList()) }
+    var selectedSecondaryColors by remember { mutableStateOf<List<LureColor>>(emptyList()) }
+    var selectedGlowColors by remember { mutableStateOf<List<LureColor>>(emptyList()) }
+
     val hasChanges by remember(
-        originalLure, name, selectedPrimaryColorId, selectedSecondaryColorId,
-        isSingleHook, glows, selectedGlowColorId, photos
+        originalLure, name, hookCount, glows,
+        selectedPrimaryColors, selectedSecondaryColors, selectedGlowColors,
+        photos
     ) {
         derivedStateOf {
             originalLure?.let { original ->
                 name != original.lure.name ||
-                        selectedPrimaryColorId != original.lure.primaryColorId ||
-                        selectedSecondaryColorId != original.lure.secondaryColorId ||
-                        isSingleHook != original.lure.hasSingleHook ||
+                        hookCount != original.lure.hookCount ||
                         glows != original.lure.glows ||
-                        selectedGlowColorId != original.lure.glowColorId ||
+                        selectedPrimaryColors != original.primaryColors ||
+                        selectedSecondaryColors != original.secondaryColors ||
+                        selectedGlowColors != original.glowColors ||
                         photos != original.photos
             } ?: name.isNotBlank() // If lureId is null, check if it's a valid new lure
         }
@@ -77,16 +80,17 @@ fun AddLureScreen(
     // Load data if editing
     LaunchedEffect(lureId) {
         if (lureId != null) {
-            val lure = viewModel.getLureWithPhotos(lureId) // Ensure this exists in your ViewModel
+            val lure = viewModel.getLureWithDetails(lureId) // Ensure this exists in your ViewModel
             lure?.let {
                 originalLure = it
 
                 name = it.lure.name
-                selectedPrimaryColorId = it.lure.primaryColorId
-                selectedSecondaryColorId = it.lure.secondaryColorId
-                isSingleHook = it.lure.hasSingleHook
+                hookCount = it.lure.hookCount
                 glows = it.lure.glows
-                selectedGlowColorId = it.lure.glowColorId
+
+                selectedPrimaryColors = it.primaryColors
+                selectedSecondaryColors = it.secondaryColors
+                selectedGlowColors = it.glowColors
                 photos = it.photos
             }
         }
@@ -120,7 +124,7 @@ fun AddLureScreen(
                 .padding(16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedTextField(
                 value = name,
@@ -129,38 +133,71 @@ fun AddLureScreen(
                 placeholder = { Text("e.g. Rapala Shad Rap") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next // Moves focus to the next field/dismisses
-                )
             )
 
             LureColorSelectionField(
                 items = sortedColors,
-                selectedItem = selectedPrimaryColorId,
+                selectedItems = selectedPrimaryColors,
                 label = "Primary Color",
-                onSelected = { selectedPrimaryColorId = it },
+                onSelected = {
+                    selectedPrimaryColors = if (selectedPrimaryColors.contains(it)) {
+                        selectedPrimaryColors - it
+                    } else {
+                        selectedPrimaryColors + it
+                    }
+                    if (selectedPrimaryColors.isEmpty()) {
+                        selectedPrimaryColors = selectedSecondaryColors
+                        selectedSecondaryColors = emptyList()
+                    }
+                },
                 onAdd = { showAddColorDialog = ColorTarget.PRIMARY },
                 onClear = {
-                    selectedPrimaryColorId = selectedSecondaryColorId
-                    selectedSecondaryColorId = null
+                    selectedPrimaryColors = selectedSecondaryColors
+                    selectedSecondaryColors = emptyList()
                 },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (selectedPrimaryColorId != null) {
-                LureColorSelectionField(
-                    items = sortedColors,
-                    selectedItem = selectedSecondaryColorId,
-                    label = "Secondary Color",
-                    onSelected = { selectedSecondaryColorId = it },
-                    onAdd = { showAddColorDialog = ColorTarget.SECONDARY },
-                    onClear = { selectedSecondaryColorId = null },
-                    modifier = Modifier.fillMaxWidth()
+            if (selectedPrimaryColors.isNotEmpty()) {
+                LureColorComposition(
+                    primary = selectedPrimaryColors
                 )
             }
 
+            if (selectedPrimaryColors.isNotEmpty()) {
+                LureColorSelectionField(
+                    items = sortedColors,
+                    selectedItems = selectedSecondaryColors,
+                    label = "Secondary Color",
+                    onSelected = {
+                        selectedSecondaryColors = if (selectedSecondaryColors.contains(it)) {
+                            selectedSecondaryColors - it
+                        } else {
+                            selectedSecondaryColors + it
+                        }
+                    },
+                    onAdd = { showAddColorDialog = ColorTarget.SECONDARY },
+                    onClear = { selectedSecondaryColors = emptyList() },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            if (selectedSecondaryColors.isNotEmpty()) {
+                LureColorComposition(
+                    secondary = selectedSecondaryColors
+                )
+            }
+
+            // TODO -- change this to an Int field
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isSingleHook, onCheckedChange = { isSingleHook = it })
+                Checkbox(
+                    checked = (hookCount == 1),
+                    onCheckedChange = {
+                        hookCount = if (it) {
+                            1
+                        } else {
+                            3
+                        }
+                    })
                 Text("Single Hook")
             }
 
@@ -169,8 +206,8 @@ fun AddLureScreen(
                     checked = glows,
                     onCheckedChange = {
                         glows = it
-                        if (!glows && selectedGlowColorId != null) {
-                            selectedGlowColorId = null
+                        if (!glows && selectedGlowColors.isNotEmpty()) {
+                            selectedGlowColors = emptyList()
                         }
                     })
                 Text("Glows")
@@ -179,12 +216,25 @@ fun AddLureScreen(
             if (glows) {
                 LureColorSelectionField(
                     items = sortedColors,
-                    selectedItem = selectedGlowColorId,
+                    selectedItems = selectedGlowColors,
                     label = "Glow Color",
-                    onSelected = { selectedGlowColorId = it },
+                    onSelected = {
+                        selectedGlowColors = if (selectedGlowColors.contains(it)) {
+                            selectedGlowColors - it
+                        } else {
+                            selectedGlowColors + it
+                        }
+                    },
                     onAdd = { showAddColorDialog = ColorTarget.GLOW },
-                    onClear = { selectedGlowColorId = null },
+                    onClear = { selectedGlowColors = emptyList() },
                     modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (selectedGlowColors.isNotEmpty()) {
+                LureColorComposition(
+                    glows = glows,
+                    glow = selectedGlowColors
                 )
             }
 
@@ -198,7 +248,8 @@ fun AddLureScreen(
                             photos = photos + (Photo(
                                 uri = uri.toString(),
                                 hashcode = metadata.hashcode,
-                                thumbnail = metadata.thumbnail))
+                                thumbnail = metadata.thumbnail
+                            ))
                         }
                     }
                 },
@@ -208,11 +259,11 @@ fun AddLureScreen(
                         photos = photos + (Photo(
                             uri = uri.toString(),
                             hashcode = metadata.hashcode,
-                            thumbnail = metadata.thumbnail))
+                            thumbnail = metadata.thumbnail
+                        ))
                     }
                 },
                 onPhotoDeleted = { photo -> photos = photos.filter { it != photo } },
-                modifier = Modifier.padding(top = 8.dp)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -223,13 +274,35 @@ fun AddLureScreen(
                         val newLure = Lure(
                             id = lureId ?: UUID.randomUUID().toString(),
                             name = name,
-                            primaryColorId = selectedPrimaryColorId,
-                            secondaryColorId = selectedSecondaryColorId,
-                            hasSingleHook = isSingleHook,
+                            hookCount = hookCount,
                             glows = glows,
-                            glowColorId = selectedGlowColorId
                         )
                         viewModel.upsertLure(newLure)
+
+                        selectedPrimaryColors.forEach { primaryColor ->
+                            viewModel.upsertLurePrimaryColorCrossRef(
+                                LurePrimaryColorCrossRef(
+                                    newLure.id,
+                                    primaryColor.id
+                                )
+                            )
+                        }
+                        selectedSecondaryColors.forEach { secondaryColor ->
+                            viewModel.upsertLureSecondaryColorCrossRef(
+                                LureSecondaryColorCrossRef(
+                                    newLure.id,
+                                    secondaryColor.id
+                                )
+                            )
+                        }
+                        selectedGlowColors.forEach { glowColor ->
+                            viewModel.upsertLureGlowColorCrossRef(
+                                LureGlowColorCrossRef(
+                                    newLure.id,
+                                    glowColor.id
+                                )
+                            )
+                        }
 
                         // Logic to identify the changes
                         val originalPhotos = originalLure?.photos ?: emptyList()
@@ -272,9 +345,9 @@ fun AddLureScreen(
                             viewModel.addLureColor(newColor)
                             val id = newColor.id
                             when (showAddColorDialog) {
-                                ColorTarget.PRIMARY -> selectedPrimaryColorId = id
-                                ColorTarget.SECONDARY -> selectedSecondaryColorId = id
-                                ColorTarget.GLOW -> selectedGlowColorId = id
+                                ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + newColor
+                                ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + newColor
+                                ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + newColor
                                 null -> {}
                             }
                             showAddColorDialog = null
@@ -299,9 +372,9 @@ fun AddLureScreen(
 @Composable
 fun LureColorSelectionField(
     items: List<LureColor>,
-    selectedItem: String?,
+    selectedItems: List<LureColor>,
     label: String,
-    onSelected: (String) -> Unit,
+    onSelected: (LureColor) -> Unit,
     onAdd: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier
@@ -309,11 +382,11 @@ fun LureColorSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val selectedItem = items.find { it.id == selectedItem }
+    val maxSelections = 4
 
     // Display for the current selection
     OutlinedTextField(
-        value = selectedItem?.name ?: "Select Color",
+        value = "${selectedItems.size} of $maxSelections colors selected",
         onValueChange = {},
         readOnly = true,
         modifier = modifier.clickable { showSheet = true },
@@ -327,18 +400,40 @@ fun LureColorSelectionField(
         trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
     )
 
+
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Colors (${selectedItems.size} of $maxSelections)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 // Search bar inside the sheet
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Lures...") },
+                    label = { Text("Search Colors...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -347,47 +442,69 @@ fun LureColorSelectionField(
 
                 // List inside the sheet
                 val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                val isSelectionLocked = selectedItems.size >= maxSelections
 
                 LazyColumn {
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                         }
 
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+
+                        val isChecked = selectedItems.contains(item)
+                        val isClickable = isChecked || !isSelectionLocked
+
                         ListItem(
+                            leadingContent = {
+                                if (item.hexCode.isNullOrBlank()) {
+                                    ThumbnailBox(
+                                        thumbnail = null,
+                                        imageVector = Icons.Default.Palette,
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                } else {
+                                    val hexList = remember(item.hexCode) {
+                                        item.hexCode.split(",").filter { it.isNotBlank() }
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(CircleShape)
+                                            .border(
+                                                2.dp,
+                                                borderColor,
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Dynamic layout grid depending on hex count
+                                        MultiColorCirclePreview(hexList = hexList)
+                                    }
+                                }
+                            },
                             headlineContent = { Text(item.name) },
-                            modifier = Modifier.clickable {
-                                onSelected(item.id)
-                                showSheet = false
-                                searchQuery = ""
+                            trailingContent = {
+                                Checkbox(
+                                    checked = isChecked,
+                                    onCheckedChange = null,
+                                    enabled = isClickable
+                                )
+                            },
+                            modifier = Modifier.clickable(enabled = isClickable) {
+                                onSelected(item)
                             },
                             colors = ListItemDefaults.colors(containerColor = backgroundColor)
                         )
                     }
 
-                    if (selectedItem != null) {
-                        item {
-                            HorizontalDivider()
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        "No color",
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
-                            )
-                        }
-                    }
-
-                    // "Add New" option
                     item {
                         HorizontalDivider()
                         ListItem(

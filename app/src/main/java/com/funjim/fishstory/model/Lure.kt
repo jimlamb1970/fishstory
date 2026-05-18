@@ -23,44 +23,13 @@ data class LureColor(
 )
 
 @Serializable
-@Entity(
-    tableName = "lure_table",
-    foreignKeys = [
-        ForeignKey(
-            entity = LureColor::class,
-            parentColumns = ["id"],
-            childColumns = ["primaryColorId"],
-            onDelete = ForeignKey.SET_NULL
-        ),
-        ForeignKey(
-            entity = LureColor::class,
-            parentColumns = ["id"],
-            childColumns = ["secondaryColorId"],
-            onDelete = ForeignKey.SET_NULL
-        ),
-        ForeignKey(
-            entity = LureColor::class,
-            parentColumns = ["id"],
-            childColumns = ["glowColorId"],
-            onDelete = ForeignKey.SET_NULL
-        )
-    ],
-    indices = [
-        Index(value = ["primaryColorId"]),
-        Index(value = ["secondaryColorId"]),
-        Index(value = ["glowColorId"])
-    ]
-)
-
+@Entity(tableName = "lure_table")
 data class Lure(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val primaryColorId: String?,
-    val secondaryColorId: String?,
-    val hasSingleHook: Boolean,
-    val glows: Boolean,
-    val glowColorId: String?,
+    val hookCount: Int = 1,
+    val glows: Boolean = false,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 ) {
@@ -209,6 +178,57 @@ data class LureWithColors(
         )
     )
     val glowColors: List<LureColor>
+)
+
+data class LureWithDetails(
+    @Embedded val lure: Lure,
+
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LurePrimaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+    val primaryColors: List<LureColor>,
+
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureSecondaryColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+
+    val secondaryColors: List<LureColor>,
+    @Relation(
+        entity = LureColor::class,
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // LureColor ID
+        associateBy = Junction(
+            value = LureGlowColorCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "colorId"
+        )
+    )
+    val glowColors: List<LureColor>,
+
+    @Relation(
+        parentColumn = "id",        // Lure ID
+        entityColumn = "id",        // Photo ID
+        associateBy = Junction(
+            value = PhotoLureCrossRef::class,
+            parentColumn = "lureId",
+            entityColumn = "photoId"
+        )
+    )
+    val photos: List<Photo>
 )
 
 data class LureSummary(

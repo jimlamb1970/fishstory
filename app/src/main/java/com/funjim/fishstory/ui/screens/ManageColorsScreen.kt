@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -136,17 +135,20 @@ fun ManageColorsScreen(
             )
 
             LazyColumn(modifier = Modifier.weight(1f)) {
+                val filteredSize = filteredColors.size
                 itemsIndexed(filteredColors, key = { _, s -> s.id }) { index, item ->
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
                     // Your Zebra Striping
-                    val backgroundColor = if (index % 2 == 0) MaterialTheme.colorScheme.surface
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                    val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    }
 
                     ListItem(
                         modifier = Modifier
-                            .background(backgroundColor)
                             .combinedClickable(
                                 onClick = { },
                                 onLongClick = { menuExpanded = true }
@@ -205,7 +207,8 @@ fun ManageColorsScreen(
                                 if (item.hexCode.isNullOrBlank()) {
                                     ThumbnailBox(
                                         thumbnail = null,
-                                        imageVector = Icons.Default.Palette
+                                        imageVector = Icons.Default.Palette,
+                                        modifier = Modifier.size(48.dp)
                                     )
                                 } else {
                                     val hexList = remember(item.hexCode) {
@@ -213,10 +216,10 @@ fun ManageColorsScreen(
                                     }
                                     Box(
                                         modifier = Modifier
-                                            .size(72.dp)
+                                            .size(48.dp)
                                             .clip(CircleShape)
                                             .border(
-                                                4.dp,
+                                                2.dp,
                                                 MaterialTheme.colorScheme.onSurface,
                                                 CircleShape
                                             ),
@@ -225,30 +228,6 @@ fun ManageColorsScreen(
                                         // Dynamic layout grid depending on hex count
                                         MultiColorCirclePreview(hexList = hexList)
                                     }
-
-                                    /*
-                                    val color = remember(item.hexCode) {
-                                        try {
-                                            Color(item.hexCode.toColorInt())
-                                        } catch (e: Exception) {
-                                            Color.Transparent
-                                        }
-                                    }
-
-                                    Box(
-                                        modifier = Modifier
-                                            .size(72.dp)
-                                            .clip(CircleShape)
-                                            .background(color)
-                                            // The border uses the theme's surface color to create a "cutout" look
-                                            .border(
-                                                width = 4.dp,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                shape = CircleShape
-                                            )
-                                    )
-
- */
                                 }
 
                                 DropdownMenu(

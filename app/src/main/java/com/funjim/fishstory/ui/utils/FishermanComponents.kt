@@ -72,7 +72,8 @@ fun FishermanItem(
         ) {
             ThumbnailBox(
                 thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Fisherman
+                imageVector = AppIcons.Default.Fisherman,
+                modifier = Modifier.size(72.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))

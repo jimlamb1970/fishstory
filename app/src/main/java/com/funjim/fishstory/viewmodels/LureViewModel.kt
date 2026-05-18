@@ -56,7 +56,7 @@ class LureViewModel(
             LureSortOrder.SECONDARY_COLOR -> sortLures(list, order)
             LureSortOrder.GLOW_COLOR -> sortLures(list, order)
             LureSortOrder.GLOW -> list.sortedBy { it.lure.glows }
-            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hasSingleHook }
+            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hookCount }
         }
     }
 
@@ -107,6 +107,20 @@ class LureViewModel(
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? {
         return repository.getLureWithPhotos(id)
+    }
+
+    suspend fun getLureWithDetails(id: String): LureWithDetails? {
+        return repository.getLureWithDetails(id)
+    }
+
+    suspend fun upsertLurePrimaryColorCrossRef(crossRef: LurePrimaryColorCrossRef) {
+        repository.upsertLurePrimaryColorCrossRef(crossRef)
+    }
+    suspend fun upsertLureSecondaryColorCrossRef(crossRef: LureSecondaryColorCrossRef) {
+        repository.upsertLureSecondaryColorCrossRef(crossRef)
+    }
+    suspend fun upsertLureGlowColorCrossRef(crossRef: LureGlowColorCrossRef) {
+        repository.upsertLureGlowColorCrossRef(crossRef)
     }
 
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {

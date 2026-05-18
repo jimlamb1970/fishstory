@@ -101,7 +101,8 @@ fun FishItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.LeapingFish
+                    imageVector = AppIcons.Default.LeapingFish,
+                    modifier = Modifier.size(72.dp)
                 )
             }
 

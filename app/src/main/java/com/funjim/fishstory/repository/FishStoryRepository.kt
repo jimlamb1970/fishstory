@@ -156,17 +156,18 @@ class FishStoryRepository(
                     }
                 }
 
+                // To do this, now have to look up the cross references as well as the lure
                 val lure = Lure(
                     name = row[7],
-                    primaryColorId = primaryId,
-                    secondaryColorId = secondaryId,
-                    hasSingleHook = true,
+//                    primaryColorId = primaryId,
+//                    secondaryColorId = secondaryId,
+                    hookCount = 1,
                     glows = glows,
-                    glowColorId = glowId
+//                    glowColorId = glowId
                 )
-                val lureId = lureDao.getOrCreate(lure)
+//                val lureId = lureDao.getOrCreate(lure)
 
-                tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
+//                tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
 
                 val length = row[13].toDoubleOrNull() ?: 0.0
                 val newLength = (length * 254000.0).toLong()
@@ -177,7 +178,7 @@ class FishStoryRepository(
                     fishermanId = fishermanId,
                     tripId = tripId,
                     eventId = segmentId,
-                    lureId = lureId,
+//                    lureId = lureId,
                     length = newLength,
                     caughtCount = 1,
                     keptCount = if (isKept) 1 else 0,

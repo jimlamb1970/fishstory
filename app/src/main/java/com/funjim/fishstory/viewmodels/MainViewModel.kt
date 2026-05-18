@@ -31,12 +31,15 @@ data class DatabaseExportData(
     val fishermen: List<Fisherman>,
     val tripFishermanCrossRef: List<TripFishermanCrossRef>,
     val eventFishermanCrossRef: List<EventFishermanCrossRef>,
+    val colors: List<LureColor>,
     val lures: List<Lure>,
+    val lurePrimaryColorCrossRef: List<LurePrimaryColorCrossRef>,
+    val lureSecondaryColorCrossRef: List<LureSecondaryColorCrossRef>,
+    val lureGlowColorCrossRef: List<LureGlowColorCrossRef>,
     val tackleboxes: List<TackleBox>,
     val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
-    val colors: List<LureColor>,
-    val fish: List<Fish>,
     val species: List<Species>,
+    val fish: List<Fish>,
     val photos: List<Photo>
 )
 
@@ -123,6 +126,9 @@ class MainViewModel(
                     eventFishermanCrossRef = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
                     colors = lureDao.getAllLureColors().firstOrNull() ?: emptyList(),
                     lures = lureDao.getAllLures().firstOrNull() ?: emptyList(),
+                    lurePrimaryColorCrossRef = lureDao.getAllLurePrimaryColorCrossRefs().firstOrNull() ?: emptyList(),
+                    lureSecondaryColorCrossRef = lureDao.getAllLureSecondaryColorCrossRefs().firstOrNull() ?: emptyList(),
+                    lureGlowColorCrossRef = lureDao.getAllLureGlowColorCrossRefs().firstOrNull() ?: emptyList(),
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
                     tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
                     species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
@@ -151,12 +157,15 @@ class MainViewModel(
                     fishermanDao.deleteAllFishermen()
                     tripDao.deleteAllTripFishermanCrossRefs()
                     eventDao.deleteAllEventFishermanCrossRefs()
+                    lureDao.deleteAllLureColors()
                     lureDao.deleteAllLures()
+                    lureDao.deleteAllLurePrimaryColorCrossRefs()
+                    lureDao.deleteAllLureSecondaryColorCrossRefs()
+                    lureDao.deleteAllLureGlowColorCrossRefs()
                     tackleBoxDao.deleteAllTackleBoxes()
                     tackleBoxDao.deleteAllTackleBoxLureCrossRefs()
-                    lureDao.deleteAllLureColors()
-                    fishDao.deleteAllFish()
                     fishDao.deleteAllSpecies()
+                    fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
 
                     data.trips.forEach { tripDao.insertTrip(it) }
@@ -166,24 +175,10 @@ class MainViewModel(
                     data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
                     data.eventFishermanCrossRef.forEach { eventDao.insertEventFishermanCrossRef(it) }
                     data.colors.forEach { lureDao.insertLureColor(it) }
-                    data.lures.forEach {
-                        val primaryColorId = it.primaryColorId
-                        val secondaryColorId = it.secondaryColorId
-                        val glowColorId = it.glowColorId
-
-                        val newLure = it.copy(primaryColorId = null, secondaryColorId = null, glowColorId = null)
-                        lureDao.upsertLure(newLure)
-                        if (primaryColorId != null) {
-                            lureDao.upsertLurePrimaryColorCrossRef(LurePrimaryColorCrossRef(it.id, primaryColorId))
-                        }
-                        if (secondaryColorId != null) {
-                            lureDao.upsertLureSecondaryColorCrossRef(LureSecondaryColorCrossRef(it.id, secondaryColorId))
-                        }
-                        if (glowColorId != null) {
-                            lureDao.upsertLureGlowColorCrossRef(LureGlowColorCrossRef(it.id, glowColorId))
-                        }
-                    }
-
+                    data.lures.forEach { lureDao.insertLure(it) }
+                    data.lurePrimaryColorCrossRef.forEach { lureDao.upsertLurePrimaryColorCrossRef(it) }
+                    data.lureSecondaryColorCrossRef.forEach { lureDao.upsertLureSecondaryColorCrossRef(it) }
+                    data.lureGlowColorCrossRef.forEach { lureDao.upsertLureGlowColorCrossRef(it) }
                     data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }

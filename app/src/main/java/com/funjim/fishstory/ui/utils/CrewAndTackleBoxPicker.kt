@@ -338,8 +338,10 @@ private fun FishermanCrewRow(
                                 lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 50.dp, bottom = 4.dp),
-                                size = 20.dp)
+                                modifier = Modifier
+                                    .padding(start = 50.dp, bottom = 4.dp),
+                                colorBadgeSize = 20.dp
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))

@@ -143,7 +143,8 @@ fun TripItem(
         ) {
             ThumbnailBox(
                 thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Boat
+                imageVector = AppIcons.Default.Boat,
+                modifier = Modifier.size(72.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))

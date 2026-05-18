@@ -36,7 +36,7 @@ fun ThumbnailBox(
 ) {
     Box(
         modifier = modifier
-            .size(72.dp)
+            .size(40.dp)
             .clip(RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {

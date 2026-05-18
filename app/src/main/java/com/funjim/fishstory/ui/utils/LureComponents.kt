@@ -80,7 +80,8 @@ fun LureItem(
         ) {
             ThumbnailBox(
                 thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Lure
+                imageVector = AppIcons.Default.Lure,
+                modifier = Modifier.size(72.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -99,13 +100,14 @@ fun LureItem(
                 }
 
                 LureColorComposition(
-                    item.primaryColors,
-                    item.secondaryColors,
-                    item.lure.glows,
-                    item.glowColors)
+                    primary = item.primaryColors,
+                    secondary = item.secondaryColors,
+                    glows = item.lure.glows,
+                    glow = item.glowColors
+                )
 
                 Text(
-                    text = if (item.lure.hasSingleHook) "Single Hook" else "Multiple Hooks",
+                    text = "Number of hooks: ${item.lure.hookCount}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -178,7 +180,7 @@ fun LureCompositionWithColors(
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.titleMedium,
     color: Color = MaterialTheme.colorScheme.primary,
-    size: Dp = 28.dp
+    colorBadgeSize: Dp = 28.dp
 ) {
     Row(
         modifier = modifier,
@@ -204,7 +206,10 @@ fun LureCompositionWithColors(
                 ColorCircleBadge(
                     hexCode = color.hexCode,
                     label = color.name,
-                    size = size)
+                    modifier = Modifier
+                        .size(colorBadgeSize)
+                        .align(Alignment.CenterVertically)
+                )
             }
         }
 
@@ -226,7 +231,10 @@ fun LureCompositionWithColors(
                 ColorCircleBadge(
                     hexCode = color.hexCode,
                     label = color.name,
-                    size = size)
+                    modifier = Modifier
+                        .size(colorBadgeSize)
+                        .align(Alignment.CenterVertically)
+                )
             }
         }
 
@@ -255,61 +263,75 @@ fun LureCompositionWithColors(
                         hexCode = color.hexCode,
                         label = color.name,
                         isGlow = true,
-                        size = size)
+                        modifier = Modifier
+                            .size(colorBadgeSize)
+                            .align(Alignment.CenterVertically)
+                    )
                 }
             }
         }
     }
 }
-
 @Composable
 fun LureColorComposition(
-    primary: List<LureColor>,
-    secondary: List<LureColor>,
-    glows: Boolean,
-    glow: List<LureColor>,
     modifier: Modifier = Modifier,
-    size: Dp = 28.dp
+    primary: List<LureColor> = emptyList(),
+    secondary: List<LureColor> = emptyList(),
+    glows: Boolean = false,
+    glow: List<LureColor> = emptyList(),
+    colorBadgeSize: Dp = 28.dp
 ) {
-    Row(
+    FlowRow(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(1.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         primary.forEach { color ->
             if (color.hexCode.isNullOrBlank()) {
                 Text(
                     text = color.name,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             } else {
                 ColorCircleBadge(
                     hexCode = color.hexCode,
                     label = color.name,
-                    size = size)
+                    modifier = Modifier
+                        .size(colorBadgeSize)
+                        .align(Alignment.CenterVertically)
+                )
             }
         }
 
-        secondary.forEach { color ->
+        if (secondary.isNotEmpty()) {
             if (primary.isNotEmpty()) {
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
-            if (color.hexCode.isNullOrBlank()) {
-                Text(
-                    text = color.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            } else {
-                ColorCircleBadge(
-                    hexCode = color.hexCode,
-                    label = color.name,
-                    size = size)
+            secondary.forEach { color ->
+                if (color.hexCode.isNullOrBlank()) {
+                    Text(
+                        text = color.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.align(Alignment.CenterVertically)
+
+                    )
+                } else {
+                    ColorCircleBadge(
+                        hexCode = color.hexCode,
+                        label = color.name,
+                        modifier = Modifier
+                            .size(colorBadgeSize)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
             }
         }
 
@@ -318,13 +340,16 @@ fun LureColorComposition(
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+
                 )
             }
             Text(
                 text = "Glows",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.align(Alignment.CenterVertically)
             )
             glow.forEach { color ->
                 if (color.hexCode.isNullOrBlank()) {
@@ -338,13 +363,15 @@ fun LureColorComposition(
                         hexCode = color.hexCode,
                         label = color.name,
                         isGlow = true,
-                        size = size)
+                        modifier = Modifier
+                            .size(colorBadgeSize)
+                            .align(Alignment.CenterVertically)
+                    )
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun LureColorComposition(
@@ -377,59 +404,56 @@ fun LureColorComposition(
         }
     }
 }
-
 @Composable
 fun ColorCircleBadge(
     hexCode: String,
     label: String,
     modifier: Modifier = Modifier,
-    isGlow: Boolean = false,
-    size: Dp = 28.dp
+    isGlow: Boolean = false
 ) {
-    val color = remember(hexCode) {
-        try { Color(hexCode.toColorInt()) } catch (e: Exception) { Color.Gray }
-    }
-
     val hexList = remember(hexCode) {
         hexCode.split(",").filter { it.isNotBlank() }
     }
 
-    if (hexList.size > 1) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .border(
-                    width = if (isGlow) 1.5.dp else 2.dp,
-                    color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
-                    CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
+    Box(
+        modifier = modifier
+//            .minimumInteractiveComponentSize() // Prevents overlapping and layout collapse
+//            .then(modifier) // Consumes the .size(28.dp) safely
+            .aspectRatio(1f) // Crucial: forces the shape to stay a perfect circle even if sizes match weirdly
+            .clip(CircleShape)
+            .border(
+                width = if (isGlow) 1.5.dp else 2.dp,
+                color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (hexList.size > 1) {
             // Dynamic layout grid depending on hex count
             MultiColorCirclePreview(hexList = hexList)
-        }
-    } else {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .background(color)
-                .border(
-                    width = if (isGlow) 1.5.dp else 2.dp,
-                    color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
-                    shape = CircleShape
+        } else {
+            val color = remember(hexCode) {
+                try {
+                    Color(hexCode.toColorInt())
+                } catch (e: Exception) {
+                    Color.Gray
+                }
+            }
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color)
+            ) {
+                Text(
+                    text = if (label.length > 1) label[0].toString() else label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isColorDark(color)) Color.White else Color.Black,
+                    modifier = Modifier.alpha(0.9f)
                 )
-        ) {
-            // Optional: Put a tiny, high-contrast letter inside so colorblind users know which is which
-            Text(
-                text = if (label.length > 1) label[0].toString() else label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isColorDark(color)) Color.White else Color.Black,
-                modifier = Modifier.alpha(0.9f)
-            )
+            }
         }
     }
 }
@@ -600,10 +624,10 @@ fun LureSelectionField(
                                     }
 
                                     LureColorComposition(
-                                        item.primaryColors,
-                                        item.secondaryColors,
-                                        item.lure.glows,
-                                        item.glowColors
+                                        primary = item.primaryColors,
+                                        secondary = item.secondaryColors,
+                                        glows = item.lure.glows,
+                                        glow = item.glowColors
                                     )
                                 }
                             }

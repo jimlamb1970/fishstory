@@ -333,7 +333,8 @@ private fun LureTackleBoxItem(
 
             ThumbnailBox(
                 thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Lure
+                imageVector = AppIcons.Default.Lure,
+                modifier = Modifier.size(48.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -345,13 +346,13 @@ private fun LureTackleBoxItem(
                     fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
                 )
                 LureColorComposition(
-                    item.primaryColors,
-                    item.secondaryColors,
-                    item.lure.glows,
-                    item.glowColors
+                    primary = item.primaryColors,
+                    secondary = item.secondaryColors,
+                    glows = item.lure.glows,
+                    glow = item.glowColors
                 )
                 Text(
-                    text = if (item.lure.hasSingleHook) "Single hook" else "Treble hook",
+                    text = "Number of hooks: ${item.lure.hookCount}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -219,12 +219,14 @@ private fun FishDetailContent(fish: FishWithDetails) {
                 fontWeight = FontWeight.Bold
             )
             DetailRow(label = "Name", value = fish.lure.name)
-            fish.lurePrimaryColorName?.let { DetailRow(label = "Primary Color", value = it) }
-            fish.lureSecondaryColorName?.let { DetailRow(label = "Secondary Color", value = it) }
+            // TODO -- need to redo this
+//            fish.lurePrimaryColorName?.let { DetailRow(label = "Primary Color", value = it) }
+//            fish.lureSecondaryColorName?.let { DetailRow(label = "Secondary Color", value = it) }
             if (fish.lure.glows) {
                 DetailRow(
                     label = "Glows",
-                    value = fish.lureGlowColorName?.let { "Yes — $it" } ?: "Yes"
+//                    value = fish.lureGlowColorName?.let { "Yes — $it" } ?: "Yes"
+                    value = "Yes"
                 )
             }
         } else {

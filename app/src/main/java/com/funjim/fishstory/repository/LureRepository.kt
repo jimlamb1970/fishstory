@@ -6,8 +6,12 @@ import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureGlowColorCrossRef
+import com.funjim.fishstory.model.LurePrimaryColorCrossRef
+import com.funjim.fishstory.model.LureSecondaryColorCrossRef
 import com.funjim.fishstory.model.LureSummaryWithColors
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
@@ -31,6 +35,18 @@ class LureRepository(
     }
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? = lureDao.getLureWithPhotos(id)
+
+    suspend fun getLureWithDetails(id: String): LureWithDetails? = lureDao.getLureWithDetails(id)
+
+    suspend fun upsertLurePrimaryColorCrossRef(crossRef: LurePrimaryColorCrossRef) {
+        lureDao.upsertLurePrimaryColorCrossRef(crossRef)
+    }
+    suspend fun upsertLureSecondaryColorCrossRef(crossRef: LureSecondaryColorCrossRef) {
+        lureDao.upsertLureSecondaryColorCrossRef(crossRef)
+    }
+    suspend fun upsertLureGlowColorCrossRef(crossRef: LureGlowColorCrossRef) {
+        lureDao.upsertLureGlowColorCrossRef(crossRef)
+    }
 
     // Tackle Box Logic
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {

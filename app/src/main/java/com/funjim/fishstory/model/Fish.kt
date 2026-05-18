@@ -131,20 +131,13 @@ data class FishWithDetails(
     )
     val lure: Lure?,
 
-    val lurePrimaryColorName: String?,
-    val lureSecondaryColorName: String?,
-    val lureGlowColorName: String?,
-
     val photoCount: Int = 0
 ) {
     val fullLureName: String
         get() {
             if (lure == null) return "No Lure"
-            val colors = listOfNotNull(lurePrimaryColorName, lureSecondaryColorName)
-                .joinToString("/")
-            val glow = if (lure.glows) " (Glow: ${lureGlowColorName})" else ""
 
-            return if (colors.isEmpty()) "${lure.name}$glow" else "${lure.name} ($colors)$glow"
+            return lure.name
         }
 }
 

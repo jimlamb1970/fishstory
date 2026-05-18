@@ -21,15 +21,9 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            pc.name AS lurePrimaryColorName, 
-            sc.name AS lureSecondaryColorName,
-            gc.name AS lureGlowColorName,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
         LEFT JOIN lure_table AS l ON f.lureId = l.id
-        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
-        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
-        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
         WHERE (:tripId IS NULL OR f.tripId = :tripId)
           AND (:eventId IS NULL OR f.eventId = :eventId)
           AND (:fishermanId IS NULL OR f.fishermanId = :fishermanId)
@@ -49,15 +43,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            pc.name AS lurePrimaryColorName, 
-            sc.name AS lureSecondaryColorName,
-            gc.name AS lureGlowColorName,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
-        LEFT JOIN lure_table AS l ON f.lureId = l.id
-        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
-        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
-        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
         WHERE f.tripId = :tripId
         ORDER BY f.timestamp DESC
     """
@@ -69,15 +56,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            pc.name AS lurePrimaryColorName, 
-            sc.name AS lureSecondaryColorName,
-            gc.name AS lureGlowColorName,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
-        LEFT JOIN lure_table AS l ON f.lureId = l.id
-        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
-        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
-        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
         WHERE f.fishermanId = :fishermanId
         ORDER BY f.timestamp DESC
     """
@@ -89,15 +69,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            pc.name AS lurePrimaryColorName, 
-            sc.name AS lureSecondaryColorName,
-            gc.name AS lureGlowColorName,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
-        LEFT JOIN lure_table AS l ON f.lureId = l.id
-        LEFT JOIN lure_color_table AS pc ON l.primaryColorId = pc.id
-        LEFT JOIN lure_color_table AS sc ON l.secondaryColorId = sc.id
-        LEFT JOIN lure_color_table AS gc ON l.glowColorId = gc.id
         WHERE f.eventId = :eventId
         ORDER BY f.timestamp DESC
     """
