@@ -313,7 +313,7 @@ fun AddFishScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Fisherman,
+                            imageVector = AppIcons.Default.LeapingFish,
                             modifier = Modifier.size(48.dp)
                         )
                     }
