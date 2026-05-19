@@ -125,7 +125,7 @@ fun FishDetailScreen(
             viewModel.eventThumbnail(fish.fish.eventId)
         }
         val fishermanThumbnailFlow = remember(fish.fish.fishermanId) {
-            viewModel.fishermanThumbnail(fish.fish.eventId)
+            viewModel.fishermanThumbnail(fish.fish.fishermanId)
         }
         val lureThumbnailFlow = remember(fish.fish.lureId) {
             viewModel.lureThumbnail(fish.fish.lureId ?: "")
