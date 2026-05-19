@@ -9,7 +9,7 @@ val VikesGoldContainer = Color(0xFFFFF176)   // A bright, soft gold
 val VikesPurple = Color(0xFF4F2683)
 val VikesGold = Color(0xFFFFC62F)
 val OnVikesPurpleContainer = Color(0xFF21005D) // Deep purple text for the light container
-val OnVikesGoldContainer = Color(0xFF241D00)   // Dark gold/black text for the gold containerimport com.funjim.fishstory.ui.theme.VikesPurpleContainer
+val OnVikesGoldContainer = Color(0xFF241D00)   // Dark gold/black text for the gold container
 
 val LightVikingsColorScheme = lightColorScheme(
     primary = VikesPurple,
@@ -17,11 +17,11 @@ val LightVikingsColorScheme = lightColorScheme(
     primaryContainer = VikesPurpleContainer,
     onPrimaryContainer = VikesPurple,
 
-    secondary = VikesPurple, // Keeping it consistent
+    secondary = VikesPurple,
     onSecondary = Color.White,
 
     tertiary = VikesGold,
-    onTertiary = VikesPurple, // Blue text on Maize background looks sharp
+    onTertiary = VikesPurple,
     tertiaryContainer = VikesGoldContainer,
     onTertiaryContainer = VikesPurple,
 

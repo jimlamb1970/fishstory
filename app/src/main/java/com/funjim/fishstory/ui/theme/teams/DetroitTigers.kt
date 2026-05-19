@@ -16,7 +16,7 @@ val TigersOrange = Color(0xFFFA4616)
 val OnTigersOrangeContainer = Color(0xFF3E0E00) // Deep rust/black text
 val OnTigersNavy = Color(0xFFFFFFFF)            // White text on navy buttons
 
-val DarkDetroitTigersColorScheme = lightColorScheme(
+val DarkDetroitTigersColorScheme = darkColorScheme(
     primary = TigersOrange,
     onPrimary = TigersNavy,
     primaryContainer = TigersOrangeContainer,
