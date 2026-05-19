@@ -126,10 +126,11 @@ data class FishWithDetails(
     val event: Event,
 
     @Relation(
+        entity = Lure::class,
         parentColumn = "lureId",
         entityColumn = "id"
     )
-    val lure: Lure?,
+    val lure: LureWithColors?,
 
     val photoCount: Int = 0
 ) {
@@ -137,7 +138,7 @@ data class FishWithDetails(
         get() {
             if (lure == null) return "No Lure"
 
-            return lure.name
+            return lure.lure.name
         }
 }
 

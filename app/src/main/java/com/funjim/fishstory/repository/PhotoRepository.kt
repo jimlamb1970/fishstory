@@ -238,6 +238,7 @@ class PhotoRepository(
     fun getPhotosForTrip(id: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(id)
     fun getPhotosForEvent(id: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(id)
     fun getPhotosForFisherman(id: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(id)
+    fun getPhotosForFish(id: String): Flow<List<Photo>> = photoDao.getPhotosForFish(id)
 
     suspend fun addPhoto(
         uri: Uri,
@@ -330,6 +331,13 @@ class PhotoRepository(
             photoDao.deleteFishPhoto(PhotoFishCrossRef(photo.id, fishId))
         }
     }
+
+    suspend fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) =
+        addPhoto(uri, selected) { photoId ->
+            photoDao.addFishPhoto(PhotoFishCrossRef(photoId, fishId))
+        }
+    suspend fun deleteFishPhoto(fishId: String, photoId: String) =
+        photoDao.deleteFishPhoto(PhotoFishCrossRef(photoId, fishId))
 
     fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForTrip(id)

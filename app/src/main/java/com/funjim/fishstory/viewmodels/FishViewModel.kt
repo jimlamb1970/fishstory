@@ -322,6 +322,23 @@ class FishViewModel(
         }
     }
 
+    fun fishPhotos(fishId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForFish(fishId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+
+    fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addFishPhoto(fishId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+    fun deleteFishPhoto(fishId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishPhoto(fishId, photoId) }
+    }
+
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
