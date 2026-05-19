@@ -525,7 +525,28 @@ fun LureSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Lure",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -536,7 +557,9 @@ fun LureSelectionField(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val filtered = items.filter { it.lure.name.contains(searchQuery, ignoreCase = true) }
+                val filtered = items.filter {
+                    it.lure.name.contains(searchQuery, ignoreCase = true)
+                }
 
                 LazyColumn {
                     val filteredSize = filtered.size
@@ -617,7 +640,7 @@ fun LureSelectionField(
                             ListItem(
                                 headlineContent = {
                                     Text(
-                                        "Clear selected lure",
+                                        "Reset Lure",
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 },
