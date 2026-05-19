@@ -400,7 +400,6 @@ fun LureColorSelectionField(
         trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
     )
 
-
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
@@ -438,7 +437,7 @@ fun LureColorSelectionField(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // List inside the sheet
                 val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }

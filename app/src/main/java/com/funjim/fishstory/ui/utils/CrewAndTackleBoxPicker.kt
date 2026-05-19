@@ -18,11 +18,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.viewmodels.TripViewModel
 
 // ---------------------------------------------------------------------------
@@ -539,8 +541,28 @@ fun TackleBoxSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Tackle Box",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -549,9 +571,8 @@ fun TackleBoxSelectionField(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // List inside the sheet
                 val filtered = items.filter {
                     it.name.contains(searchQuery, ignoreCase = true)
                 }.sortedBy { it.name }
@@ -560,37 +581,60 @@ fun TackleBoxSelectionField(
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        }
+
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
                         }
 
                         ListItem(
-                            headlineContent = { Text(item.name) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                ThumbnailBox(
+                                    thumbnail = null,
+                                    imageVector = AppIcons.Default.TackleBox,
+                                    modifier = Modifier.size(36.dp)
+                                )
                             },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            headlineContent = { Text(item.name) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
 
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    "No tackle box",
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onClear()
-                            }
-                        )
+                    if (selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Reset Tackle Box",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
+                        }
                     }
 
                     // "Add New" option

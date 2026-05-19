@@ -5,12 +5,16 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -211,6 +215,138 @@ fun FishermanSummary(
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FishermanSelectionField(
+    items: List<Fisherman>,
+    modifier: Modifier = Modifier,
+    defaultText : String = "Select Fisherman (optional)",
+    selectedItem: Fisherman?,
+    onSelected: (Fisherman) -> Unit,
+    onClear: (() -> Unit)? = null,
+    thumbnailProvider: @Composable (Fisherman) -> Unit
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = selectedItem?.fullName ?: defaultText,
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false,
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Fisherman") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Fisherman",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Fishermen...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter {
+                    it.fullName.contains(searchQuery, ignoreCase = true)
+                }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                        } else {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        }
+
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+
+                        ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                thumbnailProvider(item)
+                            },
+                            headlineContent = { Text(item.fullName) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                    }
+
+                    if (onClear != null && selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Reset Fisherman",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

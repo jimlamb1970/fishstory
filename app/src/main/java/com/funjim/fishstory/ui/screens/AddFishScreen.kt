@@ -39,13 +39,15 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.funjim.fishstory.model.FishWithPhotos
-import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -301,19 +303,46 @@ fun AddFishScreen(
                     selectedItem = selectedSpecies,
                     onSelected = { species -> viewModel.updateSpecies(species) },
                     onAdd = { addNewSpecies = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    thumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.speciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.Fisherman,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 )
 
                 FishermanSelectionField(
                     items = eventFishermen,
                     selectedItem = selectedFisherman,
+                    defaultText = "Select Fisherman",
                     onSelected = { fisherman ->
                         viewModel.updateFisherman(fisherman)
                         viewModel.updateLure(null)
                         viewModel.selectFisherman(fisherman.id)
                         viewModel.selectTackleBox(fishermanTackleBoxMap[fisherman.id] ?: "")
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    thumbnailProvider = { fisherman ->
+                        val thumbnailFlow = remember(fisherman.id) {
+                            viewModel.fishermanThumbnail(fisherman.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.Fisherman,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 )
 
                 selectedFisherman?.let { fisherman ->
@@ -323,6 +352,7 @@ fun AddFishScreen(
                             selectedItem = selectedLure,
                             onSelected = { lure -> viewModel.updateLure(lure) },
                             onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
+                            onClear = { viewModel.updateLure(null) },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { lure ->
                                 val thumbnailFlow = remember(lure.lure.id) {
@@ -677,7 +707,8 @@ fun SpeciesSelectionField(
     selectedItem: Species?,
     onSelected: (Species) -> Unit,
     onAdd: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    thumbnailProvider: @Composable (Species) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -704,8 +735,28 @@ fun SpeciesSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Species",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -714,29 +765,45 @@ fun SpeciesSelectionField(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // List inside the sheet
                 val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
                 LazyColumn {
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        }
+
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
                         }
 
                         ListItem(
-                            headlineContent = { Text(item.name) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                thumbnailProvider(item)
                             },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            headlineContent = { Text(item.name) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                     // "Add New" option
@@ -749,82 +816,6 @@ fun SpeciesSelectionField(
                                 showSheet = false
                                 onAdd()
                             }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FishermanSelectionField(
-    items: List<Fisherman>,
-    selectedItem: Fisherman?,
-    onSelected: (Fisherman) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    // Display for the current selection
-    OutlinedTextField(
-        value = selectedItem?.fullName ?: "Select Fisherman",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Fisherman") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Fishermen...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // List inside the sheet
-                val filtered = items.filter {
-                    it.fullName.contains(searchQuery, ignoreCase = true)
-                }.sortedBy { it.fullName }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            // Use a very light tint of your primary or surfaceVariant
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
-                        }
-
-                        ListItem(
-                            headlineContent = { Text(item.fullName) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
                         )
                     }
                 }

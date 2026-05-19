@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,9 +27,11 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.FishSummary
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
@@ -149,7 +152,20 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                thumbnailProvider = { trip ->
+                    val thumbnailFlow = remember(trip.id) {
+                        viewModel.tripThumbnail(trip.id)
+                    }
+
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Boat,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             )
 
             EventSelectionField(
@@ -163,7 +179,20 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                thumbnailProvider = { event ->
+                    val thumbnailFlow = remember(event.id) {
+                        viewModel.eventThumbnail(event.id)
+                    }
+
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Boat,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             )
 
             FishermanSelectionField(
@@ -177,18 +206,27 @@ fun FishSummaryScreen(
                 },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                thumbnailProvider = { fisherman ->
+                    val thumbnailFlow = remember(fisherman.id) {
+                        viewModel.fishermanThumbnail(fisherman.id)
+                    }
+
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Fisherman,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             )
 
             LureSelectionField(
                 items = lures,
                 selectedItem = selectedLure,
-                onSelected = { lure ->
-                    viewModel.selectLure(lure.lure.id)
-                },
-                onClear = {
-                    viewModel.selectLure(null)
-                },
+                onSelected = { lure -> viewModel.selectLure(lure.lure.id) },
+                onClear = { viewModel.selectLure(null) },
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth(),
@@ -377,7 +415,8 @@ fun TripSelectionField(
     selectedItem: Trip?,
     onSelected: (Trip) -> Unit,
     onClear: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    thumbnailProvider: @Composable (Trip) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -403,7 +442,28 @@ fun TripSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Trip",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -420,31 +480,56 @@ fun TripSelectionField(
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        }
+
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
                         }
 
                         ListItem(
-                            headlineContent = { Text(item.name) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                thumbnailProvider(item)
                             },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            headlineContent = { Text(item.name) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
 
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("All Trips", color = MaterialTheme.colorScheme.primary) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onClear()
-                            }
-                        )
+                    if (selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Reset Trip",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -460,7 +545,8 @@ fun EventSelectionField(
     selectedItem: Event?,
     onSelected: (Event) -> Unit,
     onClear: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    thumbnailProvider: @Composable (Event) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -486,11 +572,32 @@ fun EventSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Event",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Trips...") },
+                    label = { Text("Search Events...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -503,113 +610,56 @@ fun EventSelectionField(
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
                         val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                         } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        }
+
+                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.primary
                         }
 
                         ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                thumbnailProvider(item)
+                            },
                             headlineContent = { Text(item.name) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
 
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("All Events", color = MaterialTheme.colorScheme.primary) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onClear()
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FishermanSelectionField(
-    items: List<Fisherman>,
-    selectedItem: Fisherman?,
-    onSelected: (Fisherman) -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = selectedItem?.fullName ?: "Select Fisherman (optional)",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false,
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Fisherman") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Fishermen...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val filtered = items.filter { it.fullName.contains(searchQuery, ignoreCase = true) }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                    if (selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Reset Event",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
                         }
-
-                        ListItem(
-                            headlineContent = { Text(item.fullName) },
-                            modifier = Modifier.clickable {
-                                onSelected(item)
-                                showSheet = false
-                                searchQuery = ""
-                            },
-                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                        )
-                    }
-
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("All Fishermen", color = MaterialTheme.colorScheme.primary) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onClear()
-                            }
-                        )
                     }
                 }
             }

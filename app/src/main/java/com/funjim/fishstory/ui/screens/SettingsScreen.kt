@@ -17,14 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.ui.theme.FishstoryTheme
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.theme.themeMap
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
-import kotlin.collections.find
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,10 +154,12 @@ fun SettingsScreen(
                 Text("Manage Species")
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
             ThemeSelectionField(
                 items = themeMap,
                 selectedItem = null,
                 label = "Theme",
+                modifier = Modifier.fillMaxWidth(),
                 onSelected = { theme -> onThemeChange(theme) },
                 onClear = { onThemeChange("") }
             )
@@ -202,8 +202,28 @@ fun ThemeSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Theme",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -212,32 +232,45 @@ fun ThemeSelectionField(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // List inside the sheet
                 val filteredMap = items.filterKeys { key ->
                     key.contains(searchQuery, ignoreCase = true)
                 }
+
                 LazyColumn {
                     val filteredSize = filteredMap.size
-
                     filteredMap.entries.forEachIndexed { index, item ->
                         item {
                             val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                                MaterialTheme.colorScheme.surface
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                             } else {
-                                // Use a very light tint of your primary or surfaceVariant
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            }
+
+                            val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
+                                MaterialTheme.colorScheme.tertiary
+                            } else {
+                                MaterialTheme.colorScheme.primary
                             }
 
                             ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    // TODO -- hide the border for now
+                                    //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item.key)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
                                 headlineContent = { Text(item.key) },
-                                modifier = Modifier.clickable {
-                                    onSelected(item.key)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                                colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                                colors = ListItemDefaults.colors(
+                                    containerColor = backgroundColor,
+                                    headlineColor = MaterialTheme.colorScheme.primary
+                                )
                             )
                         }
                     }
@@ -247,7 +280,7 @@ fun ThemeSelectionField(
                         ListItem(
                             headlineContent = {
                                 Text(
-                                    "No theme",
+                                    "Reset Theme",
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             },

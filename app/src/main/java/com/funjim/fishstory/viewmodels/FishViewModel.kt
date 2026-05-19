@@ -322,13 +322,28 @@ class FishViewModel(
         }
     }
 
+    fun eventThumbnail(eventId: String): Flow<ByteArray?> {
+        return photoRepo.fetchEventThumbnail(eventId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun fishThumbnail(fishId: String): Flow<ByteArray?> {
         return photoRepo.fetchFishThumbnail(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {
         return photoRepo.fetchLureThumbnail(lureId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun tripThumbnail(tripId: String): Flow<ByteArray?> {
+        return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 

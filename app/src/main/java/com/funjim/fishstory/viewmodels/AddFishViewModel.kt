@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -80,8 +81,9 @@ class AddFishViewModel(
         .flatMapLatest { id ->
             if (id.isNullOrBlank()) flowOf(emptyList())
             else tripRepo.getEventFishermen(id)
-        }
-        .stateIn(
+        }.map { list ->
+            list.sortedBy { it.fullName }
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
@@ -182,9 +184,19 @@ class AddFishViewModel(
     private val _fishPhotos = MutableStateFlow<List<Photo>>(emptyList())
     val fishPhotos = _fishPhotos.asStateFlow()
 
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {
         return photoRepo.fetchLureThumbnail(lureId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
+        return photoRepo.fetchSpeciesThumbnail(speciesId)
+            .flowOn(Dispatchers.IO)
     }
 
     fun clearDraftFish() {
