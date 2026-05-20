@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -29,21 +27,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.EventSummary
-import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -548,147 +543,3 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
     }
 }
 
-@Composable
-fun TripHighlightCard(
-    tripSummary: TripSummary,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Fish Summary",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-            )
-
-            // Top Row: The Numbers
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(
-                    label = "CAUGHT",
-                    value = "${tripSummary.fishCaught}",
-                    color = MaterialTheme.colorScheme.primary)
-                StatItem(
-                    label = "KEPT",
-                    value = "${tripSummary.fishKept}",
-                    color = Color(0xFF4CAF50)) // Harvest Green
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
-
-            // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = tripSummary.mostCaughtName,
-                    description = "(${tripSummary.mostCaught} fish)",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f))
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = tripSummary.bigFishName,
-                    description = "(${
-                        tripSummary.bigFishLength?.toDisplayString(
-                            useMetric = false,
-                            useFractions = true
-                        )
-                    } : ${tripSummary.bigFishSpecies})",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-fun StatItem(
-    label: String,
-    value: String,
-    description: String? = null,
-    labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = labelColor
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = color
-        )
-        if (description != null) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = color,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun AchievementItem(
-    icon: ImageVector,
-    label: String,
-    name: String?,
-    description: String? = null,
-    modifier: Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    // Parent Column to stack Label over the Icon/Name group
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier) {
-        // 1. Label at the very top
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 4.dp) // Space before the icon/name
-        )
-
-        // 2. Row to keep Icon and Name on the same line
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp), // Slightly smaller to let name lead
-                tint = color
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = name ?: "---",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = color
-            )
-        }
-
-        // 3. Description (Optional) stays at the bottom
-        if (description != null) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = color,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
-    }
-}

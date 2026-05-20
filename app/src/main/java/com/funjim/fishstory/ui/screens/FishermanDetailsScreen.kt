@@ -1,6 +1,5 @@
 package com.funjim.fishstory.ui.screens
 
-import android.content.ContentUris
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -26,12 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,21 +36,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
-import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
 
@@ -738,173 +732,3 @@ fun TackleBoxCard(
     }
 }
 
-@Composable
-fun FishermanHighlightCard(
-    stats: FishermanFullStatistics,
-    onClick: () -> Unit
-) {
-    val pagerState = rememberPagerState(pageCount = { 2 })
-    val scope = rememberCoroutineScope()
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            HorizontalPager(state = pagerState) { page ->
-                when (page) {
-                    0 -> HighlightsPage(stats)
-                    1 -> LowlightsPage(stats)
-                }
-            }
-
-            // Dot indicator
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(2) { i ->
-                    val isSelected = pagerState.currentPage == i
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 3.dp)
-                            .size(if (isSelected) 8.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            ).clickable {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(i)
-                                }
-                            }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HighlightsPage(stats: FishermanFullStatistics) {
-    Column {
-        Text(
-            text = "HIGHLIGHTS",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (stats.largestFishLength != null) {
-                StatItem(
-                    label = "LARGEST FISH",
-                    value = stats.largestFishLength.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    ),
-                    description = stats.largestFishSpecies,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-        if (!stats.bestTripName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                AchievementItem(
-                    icon = Icons.Default.Celebration,
-                    label = "Best Trip",
-                    name = stats.bestTripName,
-                    description = "(${stats.mostTripCatches} fish)",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-        if (!stats.bestEventName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                AchievementItem(
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    label = "Best Event",
-                    name = "${stats.bestEventName} - (${stats.bestEventTripName})",
-                    description = "(${stats.mostEventCatches} fish)",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LowlightsPage(stats: FishermanFullStatistics) {
-    Column {
-        Text(
-            text = "LOWLIGHTS",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            if (stats.smallestFishLength != null) {
-                StatItem(
-                    label = "SMALLEST FISH",
-                    value = stats.smallestFishLength.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    ),
-                    description = stats.smallestFishSpecies,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        if (!stats.worstTripName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                AchievementItem(
-                    icon = Icons.Default.Warning,
-                    label = "Worst Trip",
-                    name = stats.worstTripName,
-                    description = "(${stats.fewestTripCatches} fish)",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-        if (!stats.worstEventName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                AchievementItem(
-                    icon = Icons.AutoMirrored.Filled.TrendingDown,
-                    label = "Worst Event",
-                    name = "${stats.worstEventName} - (${stats.worstEventTripName})",
-                    description = "(${stats.fewestEventCatches} fish)",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}

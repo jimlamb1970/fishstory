@@ -19,8 +19,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -30,16 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
+import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -474,65 +470,6 @@ fun EventDetailsScreen(
                 }
             } ?: run {
                 Text("Loading...", modifier = Modifier.padding(16.dp))
-            }
-        }
-    }
-}
-@Composable
-fun EventHighlightCard(
-    summary: EventSummary,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Fish Summary",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-            )
-
-            // Top Row: The Numbers
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(
-                    label = "CAUGHT",
-                    value = "${summary.fishCaught}",
-                    color = MaterialTheme.colorScheme.primary)
-                StatItem(
-                    label = "KEPT",
-                    value = "${summary.fishKept}",
-                    color = Color(0xFF4CAF50)) // Harvest Green
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
-
-            // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = summary.mostCaughtName,
-                    description = "(${summary.mostCaught} fish)",
-                    modifier = Modifier.weight(1f))
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = summary.bigFishName,
-                    description = "(${summary.bigFishLength?.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    )} : ${summary.bigFishSpecies})",
-                    modifier = Modifier.weight(1f))
             }
         }
     }

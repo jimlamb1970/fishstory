@@ -32,6 +32,7 @@ import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
+import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
@@ -310,12 +311,14 @@ private fun FishVisual(
                         value = "${summary.counts.totalCaught}",
                         labelColor = MaterialTheme.colorScheme.onSurface,
                         color = MaterialTheme.colorScheme.primary)
+
                     Icon(
                         imageVector = AppIcons.Default.LeapingFishWithFins,
                         contentDescription = "Fish",
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
+
                     StatItem(
                         label = "KEPT",
                         value = "${summary.counts.totalKept}",

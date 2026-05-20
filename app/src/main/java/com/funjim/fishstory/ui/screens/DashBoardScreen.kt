@@ -71,6 +71,8 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AchievementItem
+import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
@@ -398,7 +400,7 @@ fun ActiveTripCard(
                     Text(
                         text = "${currentIndex + 1} / ${activeEvents.size}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -417,19 +419,21 @@ fun ActiveTripCard(
                     StatItem(
                         label = "CAUGHT",
                         value = "${trip.fishCaught}",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                     StatItem(
                         label = "KEPT",
                         value = "${trip.fishKept}",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
 
                 Row(
@@ -443,7 +447,9 @@ fun ActiveTripCard(
                         description =
                             if (trip.mostCaught == null) ""
                             else "(${trip.mostCaught} fish)",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                     AchievementItem(
                         icon = Icons.Default.Person,
@@ -455,7 +461,9 @@ fun ActiveTripCard(
                                 useMetric = false,
                                 useFractions = true
                             )} : ${trip.bigFishSpecies})",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                 }
             }
@@ -467,15 +475,23 @@ fun ActiveTripCard(
                 modifier = Modifier.clickable( onClick = { onEventClick(currentEvent.event.tripId, currentEvent.event.id) })
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(label = "CAUGHT", value = "${currentEvent.fishCaught}", color = MaterialTheme.colorScheme.primary)
-                StatItem(label = "KEPT", value = "${currentEvent.fishKept}", color = MaterialTheme.colorScheme.primary) // Harvest Green
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${currentEvent.fishCaught}",
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    labelColor = MaterialTheme.colorScheme.onTertiary)
+                StatItem(
+                    label = "KEPT",
+                    value = "${currentEvent.fishKept}",
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    labelColor = MaterialTheme.colorScheme.onTertiary)
             }
 
             if (currentEvent.mostCaught != null && currentEvent.mostCaught != 0) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onTertiary
                 )
 
                 Row(
@@ -487,8 +503,9 @@ fun ActiveTripCard(
                         label = "Most Caught",
                         name = currentEvent.mostCaughtName,
                         description = "(${currentEvent.mostCaught} fish)",
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                     AchievementItem(
                         icon = Icons.Default.Person,
@@ -500,7 +517,9 @@ fun ActiveTripCard(
                                 useMetric = false,
                                 useFractions = true
                             )} : ${currentEvent.bigFishSpecies})",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                 }
             }
@@ -512,6 +531,7 @@ fun ActiveTripCard(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
                 ),
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onSecondary),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("LOG A CATCH")
@@ -530,9 +550,9 @@ fun ActiveTripCard(
                                 .size(if (index == currentIndex) 8.dp else 6.dp)
                                 .background(
                                     color = if (index == currentIndex)
-                                        MaterialTheme.colorScheme.primary
+                                        MaterialTheme.colorScheme.onSecondary
                                     else
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                        MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.3f),
                                     shape = CircleShape
                                 )
                         )

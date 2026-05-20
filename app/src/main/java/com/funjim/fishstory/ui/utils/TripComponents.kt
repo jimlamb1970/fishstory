@@ -207,58 +207,22 @@ fun TripItem(
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         if (eventCount != 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Default.Boat,
-                                    contentDescription = "Event",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = "$eventCount",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Boat,
+                                value = eventCount.toString()
+                            )
                         }
 
-                        if (fishermanCount != 1) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Default.Fisherman,
-                                    contentDescription = "Fishermen count",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = fishermanCount.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                        if (fishermanCount != -1) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Fisherman,
+                                value = fishermanCount.toString()
+                            )
 
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Default.TackleBox,
-                                    contentDescription = "Tackle Box count",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = tackleBoxCount.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                            CardItemWithValue(
+                                icon = AppIcons.Default.TackleBox,
+                                value = tackleBoxCount.toString()
+                            )
                         }
                     }
                 }
@@ -267,24 +231,11 @@ fun TripItem(
                 val keptCount = trip.fishKept
                 val now = System.currentTimeMillis()
                 if (caughtCount != 0  || now >= trip.trip.startDate) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = AppIcons.Default.LeapingFish,
-                                contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            BoldingNumbersText(
-                                text = "Kept $keptCount of $caughtCount",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
+                    FishCaughtItem(
+                        icon = AppIcons.Default.LeapingFish,
+                        caughtCount = caughtCount,
+                        keptCount = keptCount
+                    )
                 }
             }
 
