@@ -6,10 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-//import androidx.compose.material3.ExperimentalMaterial3Api
-//import androidx.compose.material3.Scaffold
-//import androidx.compose.material3.Surface
-//import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,10 +13,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.MainViewModel
 
 // --- Vico 3.x imports ---
@@ -39,6 +38,7 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.Fill
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import java.time.Instant
 
 import java.time.ZoneId
@@ -362,6 +362,10 @@ fun SpeciesBarChart(fishList: List<FishWithDetails>) {
         isSyncing = false
     }
 
+    val axisLabelComponent = rememberTextComponent(
+        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+
     val bottomAxisFormatter = remember(labels) {
         CartesianValueFormatter { _, x, _ ->
             labels.getOrNull(x.toInt()) ?: ""
@@ -374,8 +378,12 @@ fun SpeciesBarChart(fishList: List<FishWithDetails>) {
         CartesianChartHost(
             rememberCartesianChart(
                 rememberColumnCartesianLayer(),
-                startAxis = VerticalAxis.rememberStart(),
-                bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
+                startAxis = VerticalAxis.rememberStart(
+                    label = axisLabelComponent
+                ),
+                bottomAxis = HorizontalAxis.rememberBottom(
+                    label = axisLabelComponent,
+                    valueFormatter = bottomAxisFormatter),
             ),
             modelProducer,
             modifier = Modifier.height(200.dp),
@@ -405,6 +413,10 @@ fun FishermanBarChart(
         isSyncing = false
     }
 
+    val axisLabelComponent = rememberTextComponent(
+        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+
     val bottomAxisFormatter = remember(labels) {
         CartesianValueFormatter { _, x, _ ->
             labels.getOrNull(x.roundToInt()) ?: " "
@@ -420,8 +432,11 @@ fun FishermanBarChart(
             CartesianChartHost(
                 chart = rememberCartesianChart(
                     rememberColumnCartesianLayer(),
-                    startAxis = VerticalAxis.rememberStart(),
-                    bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomAxisFormatter),
+                    startAxis = VerticalAxis.rememberStart(
+                        label = axisLabelComponent),
+                    bottomAxis = HorizontalAxis.rememberBottom(
+                        label = axisLabelComponent,
+                        valueFormatter = bottomAxisFormatter),
                 ),
                 modelProducer = modelProducer,
                 modifier = Modifier.height(200.dp),
@@ -567,6 +582,10 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
         isSyncing = false
     }
 
+    val axisLabelComponent = rememberTextComponent(
+        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+
     val bottomAxisFormatter = remember(allFishermen) {
         CartesianValueFormatter { _, x, _ ->
             allFishermen.getOrNull(x.toInt()) ?: ""
@@ -592,8 +611,11 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
                     columnProvider = ColumnCartesianLayer.ColumnProvider.series(columnComponents),
                     mergeMode = { ColumnCartesianLayer.MergeMode.Stacked },
                 ),
-                startAxis = VerticalAxis.rememberStart(),
+                startAxis = VerticalAxis.rememberStart(
+                    label = axisLabelComponent
+                ),
                 bottomAxis = HorizontalAxis.rememberBottom(
+                    label = axisLabelComponent,
                     valueFormatter = bottomAxisFormatter
                 ),
             ),
@@ -666,6 +688,10 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
         isSyncing = false
     }
 
+    val axisLabelComponent = rememberTextComponent(
+        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+
     val bottomAxisFormatter = remember(startHour) {
         CartesianValueFormatter { _, x, _ ->
             val hour = (startHour + x.toInt())
@@ -699,8 +725,11 @@ fun CatchesByHourLineChart(fishList: List<FishWithDetails>) {
                 rememberLineCartesianLayer(
                     lineProvider = LineCartesianLayer.LineProvider.series(line)
                 ),
-                startAxis = VerticalAxis.rememberStart(),
+                startAxis = VerticalAxis.rememberStart(
+                    label = axisLabelComponent
+                ),
                 bottomAxis = HorizontalAxis.rememberBottom(
+                    label = axisLabelComponent,
                     valueFormatter = bottomAxisFormatter,
                     itemPlacer = HorizontalAxis.ItemPlacer.segmented()
                 ),
@@ -728,13 +757,13 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
         val counts = IntArray(sizeBuckets.size)
         fishList.forEach { fish ->
             val bucket = when {
-                fish.fish.length!! <= 8 -> 0
-                fish.fish.length <= 10 -> 1
-                fish.fish.length <= 12 -> 2
-                fish.fish.length <= 14 -> 3
-                fish.fish.length <= 16 -> 4
-                fish.fish.length <= 18 -> 5
-                fish.fish.length <= 20 -> 6
+                fish.fish.length?.toInches()!! <= 8 -> 0
+                fish.fish.length.toInches() <= 10 -> 1
+                fish.fish.length.toInches() <= 12 -> 2
+                fish.fish.length.toInches() <= 14 -> 3
+                fish.fish.length.toInches() <= 16 -> 4
+                fish.fish.length.toInches() <= 18 -> 5
+                fish.fish.length.toInches() <= 20 -> 6
                 else              -> 7
             }
             counts[bucket]++
@@ -772,6 +801,10 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
         isSyncing = false
     }
 
+    val axisLabelComponent = rememberTextComponent(
+        style = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+
     val bottomAxisFormatter = remember(sizeBuckets) {
         CartesianValueFormatter { _, x, _ ->
             sizeBuckets.getOrNull(startIndex + x.toInt()) ?: ""
@@ -793,8 +826,11 @@ fun CatchesBySizeBarChart(fishList: List<FishWithDetails>) {
         CartesianChartHost(
             chart = rememberCartesianChart(
                 rememberColumnCartesianLayer(),
-                startAxis = VerticalAxis.rememberStart(),
+                startAxis = VerticalAxis.rememberStart(
+                    label = axisLabelComponent
+                ),
                 bottomAxis = HorizontalAxis.rememberBottom(
+                    label = axisLabelComponent,
                     valueFormatter = bottomAxisFormatter,
                     itemPlacer = HorizontalAxis.ItemPlacer.segmented()
                 ),
