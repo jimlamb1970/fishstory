@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -254,16 +255,28 @@ fun AddTripScreen(
                 actions = {
                     if (currentStep == WizardStep.TripInfo || currentStep == WizardStep.EventInfo) {
                         val onTripStep = currentStep == WizardStep.TripInfo
-                        val hasLocation = if (onTripStep) tripDraft.latitude != null else eventDraft.latitude != null
+                        val onEventStep = currentStep == WizardStep.EventInfo
+
+                        val hasTripLocation = (tripDraft.latitude != null)
+                        val hasEventLocation = (eventDraft.latitude != null)
+
+                        val hasLocation = hasTripLocation || (onEventStep && hasEventLocation)
+
                         Box {
                             IconButton(onClick = { locationMenuExpanded = true }) {
                                 Icon(
                                     Icons.Default.LocationOn,
                                     contentDescription = "Location",
-                                    tint = if (hasLocation) Color(0xFF4CAF50) else LocalContentColor.current
+                                    tint =
+                                        if (hasLocation) Color(0xFF4CAF50)
+                                        else LocalContentColor.current
                                 )
                             }
-                            DropdownMenu(expanded = locationMenuExpanded, onDismissRequest = { locationMenuExpanded = false }) {
+
+                            DropdownMenu(
+                                expanded = locationMenuExpanded,
+                                onDismissRequest = { locationMenuExpanded = false }
+                            ) {
                                 DropdownMenuItem(
                                     text = { Text("Use Current Location") },
                                     leadingIcon = { Icon(Icons.Default.MyLocation, null) },
@@ -279,8 +292,7 @@ fun AddTripScreen(
                                                                 longitude = loc.longitude
                                                             )
                                                         }
-                                                    }
-                                                    else {
+                                                    } else {
                                                         tripViewModel.updateEventDraft {
                                                             it.copy(
                                                                 latitude = loc.latitude,
@@ -295,32 +307,24 @@ fun AddTripScreen(
                                         }
                                     }
                                 )
-                                if (!onTripStep && tripDraft.latitude != null) {
-                                    DropdownMenuItem(
-                                        text = { Text("Use Trip Location") },
-                                        leadingIcon = { Icon(Icons.Default.LocationOn, null) },
-                                        onClick = {
-                                            locationMenuExpanded = false
-                                            tripViewModel.updateEventDraft {
-                                                it.copy(
-                                                    latitude = tripDraft.latitude,
-                                                    longitude = tripDraft.longitude
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
+
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
                                     leadingIcon = { Icon(Icons.Default.Map, null) },
                                     onClick = {
                                         locationMenuExpanded = false
-                                        if (onTripStep) tripLocationPicker.openPicker() else eventLocationPicker.openPicker()
+                                        if (onTripStep) tripLocationPicker.openPicker()
+                                        else eventLocationPicker.openPicker()
                                     }
                                 )
-                                if (hasLocation) {
+
+                                if ((onTripStep && hasTripLocation) ||
+                                    (onEventStep && hasEventLocation)) {
                                     DropdownMenuItem(
-                                        text = { Text("Clear Location") },
+                                        text = {
+                                            if (onEventStep && hasTripLocation) Text("Reset Location")
+                                            else Text("Clear Location")
+                                        },
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.LocationOff,
@@ -366,7 +370,25 @@ fun AddTripScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text("Trip Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Trip Details",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            if (tripDraft.latitude != null) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "View on map",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                )
+                            }
+                        }
 
                         OutlinedTextField(
                             value = tripDraft.name,
@@ -399,12 +421,6 @@ fun AddTripScreen(
                         }
 
                         // TODO -- add duration
-
-                        // TODO -- change this to put the icon next to 'Trip Details'
-                        if (tripDraft.latitude != null) {
-                            LocationSetRow()
-                        }
-
                         Spacer(Modifier.weight(1f))
 
                         Button(
@@ -509,7 +525,33 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text("Event Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Event Details",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            if ((tripDraft.latitude != null) || (eventDraft.latitude != null)) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "View on map",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                )
+                                if (eventDraft.latitude == null) {
+                                    Text(
+                                        text = "(Trip)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
                         Text(
                             "An event is a single fishing session — e.g. morning run, afternoon drift.",
                             style = MaterialTheme.typography.bodyMedium,
@@ -562,10 +604,6 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         }
                                 }
                             }
-                        }
-
-                        if (eventDraft.latitude != null) {
-                            LocationSetRow()
                         }
 
                         Spacer(Modifier.weight(1f))
@@ -666,6 +704,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold)
 
+                        // Have to count how many of the tackle boxes
+                        val activeCount = tripTackleBoxMap.count { !it.value.isNullOrBlank() }
+
                         // Trip summary card
                         val currentTrip = TripSummary(
                             trip = tripDraft,
@@ -673,7 +714,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             fishCaught = 0,
                             fishKept = 0,
                             fishermanCount = tripFishermenIds.size,
-                            tackleBoxCount = tripTackleBoxMap.size,
+                            tackleBoxCount = activeCount,
                             bigFishName = null,
                             bigFishSpecies = "",
                             bigFishLength = null,
@@ -868,8 +909,15 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 @Composable
 private fun LocationSetRow() {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.LocationOn, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(18.dp))
+        Icon(
+            Icons.Default.LocationOn,
+            null,
+            tint = Color(0xFF4CAF50),
+            modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(4.dp))
-        Text("Location set", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
+        Text(
+            "Location set",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF4CAF50))
     }
 }
