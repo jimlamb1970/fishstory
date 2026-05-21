@@ -42,7 +42,7 @@ val DarkDetroitTigersColorScheme = darkColorScheme(
 
     // This is for the "outline" of the menu or cards
     outlineVariant = TigersOrange,
-    surfaceVariant = TigersNavy,
+    surfaceVariant = TigersOrange,
     onSurfaceVariant = TigersOrange,
 )
 

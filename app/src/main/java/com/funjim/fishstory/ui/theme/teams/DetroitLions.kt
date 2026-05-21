@@ -42,8 +42,8 @@ val DarkDetroitLionsColorScheme = darkColorScheme(
     surfaceContainerLow = LionsBlue,
     surfaceContainerHigh = LionsBlue,
 
-    outlineVariant = LionsSilver,
-    surfaceVariant = LionsBlue,
+    outlineVariant = OnLionsBlueContainer,
+    surfaceVariant = LionsSilver,
     onSurfaceVariant = LionsSilver,
 )
 
