@@ -34,6 +34,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.TripSelectionField
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -410,136 +411,6 @@ private fun FishVisual(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TripSelectionField(
-    items: List<Trip>,
-    selectedItem: Trip?,
-    onSelected: (Trip) -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier,
-    thumbnailProvider: @Composable (Trip) -> Unit
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = selectedItem?.name ?: "Select Trip (optional)",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Trip") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Trip",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                TextButton(
-                    onClick = {
-                        showSheet = false
-                        searchQuery = ""
-                    }
-                ) {
-                    Text("Done")
-                }
-            }
-
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Trips...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                            leadingContent = {
-                                thumbnailProvider(item)
-                            },
-                            headlineContent = { Text(item.name) },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-
-                    if (selectedItem != null) {
-                        item {
-                            HorizontalDivider()
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        "Reset Trip",
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

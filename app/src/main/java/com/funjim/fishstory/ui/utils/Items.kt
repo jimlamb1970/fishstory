@@ -75,7 +75,8 @@ fun AchievementItem(
 fun CardItemWithValue(
     icon: ImageVector,
     value: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -84,13 +85,13 @@ fun CardItemWithValue(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
+            tint = contentColor,
             modifier = Modifier.size(24.dp)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = contentColor,
         )
     }
 }
@@ -100,7 +101,8 @@ fun FishCaughtItem(
     icon: ImageVector,
     caughtCount: Int,
     keptCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -110,13 +112,13 @@ fun FishCaughtItem(
             Icon(
                 imageVector = icon,
                 contentDescription = "Fish",
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = contentColor,
                 modifier = Modifier.size(24.dp)
             )
             BoldingNumbersText(
                 text = "Kept $keptCount of $caughtCount",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = contentColor
             )
         }
     }
