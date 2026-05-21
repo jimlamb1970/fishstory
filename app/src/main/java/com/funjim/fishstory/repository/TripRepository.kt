@@ -123,11 +123,13 @@ class TripRepository(
     fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> =
         eventDao.getTackleBoxIdForFisherman(segmentId, fishermanId)
 
-    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> =
+    fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> =
         tripDao.getTripFishermenTackleBoxIds(tripId)
-    fun getFishermanTackleBoxMapping(eventId: String): Flow<Map<String, String?>> =
+    fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> =
         eventDao.getFishermanTackleBoxMapping(eventId)
 
+    fun getTripFishermen(tripId: String): Flow<List<Fisherman>> =
+        tripDao.getFishermenForTrip(tripId)
     fun getEventFishermen(eventId: String): Flow<List<Fisherman>> =
         eventDao.getFishermenForEvent(eventId)
 

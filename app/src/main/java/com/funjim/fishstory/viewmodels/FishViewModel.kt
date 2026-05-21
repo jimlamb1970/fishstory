@@ -208,7 +208,7 @@ class FishViewModel(
     val fishermanTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
         .flatMapLatest { id ->
             if (id.isNullOrBlank()) flowOf(emptyMap())
-            else tripRepo.getFishermanTackleBoxMapping(id)
+            else tripRepo.getTackleBoxMapForEvent(id)
         }
         .stateIn(
             scope = viewModelScope,

@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
@@ -147,6 +148,13 @@ ORDER BY t.startDate DESC
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
     fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanCrossRef>>
+
+    @Query("""
+    SELECT DISTINCT f.* FROM fisherman_table AS f
+    JOIN trip_fisherman_cross_ref AS xr ON f.id = xr.fishermanId
+    WHERE xr.tripId = :tripId
+""")
+    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
 
     @Query("SELECT fishermanId FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
     fun getFishermanIdsForTrip(tripId: String): Flow<List<String>>

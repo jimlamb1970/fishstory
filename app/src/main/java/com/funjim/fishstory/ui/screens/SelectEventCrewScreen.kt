@@ -30,47 +30,49 @@ fun SelectEventCrewScreen(
 ) {
     LaunchedEffect(tripId) {
         tripViewModel.selectTrip(tripId)
+    }
+    LaunchedEffect(eventId) {
         tripViewModel.selectEvent(eventId)
     }
 
-    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
-    val eventCrewOverride by tripViewModel.eventCrewOverride.collectAsStateWithLifecycle()
-
-    val tripCrew by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
-    val eventCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(emptyList())
-
-    val sortedFishermen = remember(tripCrew) { tripCrew.sortedBy { it.fullName } }
-    var initialSet by remember(eventCrew) {
-        mutableStateOf<Set<String>>(eventCrew.map { it.id }.toSet())
-    }
-    var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
 
-    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
+    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
+
+    val tripCrew by tripViewModel.getFishermenForTrip(tripId).collectAsState(initial = null)
+    val eventCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(initial = null)
+
+    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState(initial = null)
+    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState(initial = null)
+
+    val tripSet = remember(tripCrew) { tripCrew?.map { it.id }?.toSet() ?: emptySet() }
+    val eventSet = remember(eventCrew) { eventCrew?.map { it.id }?.toSet() ?: emptySet() }
+
+    val sortedFishermen = remember(tripCrew) { tripCrew?.sortedBy { it.fullName } ?: emptyList()}
+
+    var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     val workingTackleBoxMap = remember(eventId) { mutableStateMapOf<String, String?>() }
 
-    LaunchedEffect(eventTackleBoxMap, tripTackleBoxMap) {
-        // Only initialize if the map is currently empty and we have data to put in it
-        if (workingTackleBoxMap.isEmpty()) {
-            if (eventTackleBoxMap.isNotEmpty()) {
-                eventTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
-                    workingTackleBoxMap[fishermanId] = tackleBoxId
-                }
-            } else if (tripTackleBoxMap.isNotEmpty()){
-                tripViewModel.updateEventCrewOverride(true)
+    var hasInitialized by remember(eventId) { mutableStateOf(false) }
 
-                tripTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
-                    workingTackleBoxMap[fishermanId] = tackleBoxId
-                    tripViewModel.upsertEventFishermanCrossRef(
-                        eventId = eventId,
-                        fishermanId = fishermanId,
-                        tackleBoxId = tackleBoxId
-                    )
-                }
-            }
+    LaunchedEffect(eventTackleBoxMap, tripTackleBoxMap, tripSet, hasInitialized) {
+        if (hasInitialized) return@LaunchedEffect
+
+        if (eventTackleBoxMap == null || tripTackleBoxMap == null || tripCrew == null) return@LaunchedEffect
+
+        if (eventTackleBoxMap!!.isNotEmpty()) {
+            workingTackleBoxMap.clear()
+            addSet = emptySet()
+            workingTackleBoxMap.putAll(eventTackleBoxMap!!)
+            hasInitialized = true
+        } else {
+            workingTackleBoxMap.clear()
+            addSet = tripSet
+            workingTackleBoxMap.putAll(tripTackleBoxMap!!)
+            hasInitialized = true
         }
     }
 
@@ -88,14 +90,6 @@ fun SelectEventCrewScreen(
                     IconButton(onClick = {
                         tripViewModel.clearTrip()
                         tripViewModel.clearEvent()
-
-                        workingTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
-                            tripViewModel.deleteEventFishermanCrossRef(
-                                eventId = eventId,
-                                fishermanId = fishermanId
-                            )
-                        }
-                        tripViewModel.updateEventCrewOverride(false)
 
                         navigateBack()
                     }) {
@@ -115,18 +109,18 @@ fun SelectEventCrewScreen(
                 title = eventSummary?.event?.name ?: "Crew & Tackle Boxes",
                 subtitle = "Select who's on the boat and which tackle box each person will use.",
                 eligibleFishermen = sortedFishermen,
-                selectedIds = initialSet + addSet - removeSet,
+                selectedIds = eventSet + addSet - removeSet,
                 tackleBoxSelections = workingTackleBoxMap,
                 onSelectionChanged = { fishermanId, selected ->
                     if (selected) {
-                        if (initialSet.contains(fishermanId)) {
+                        if (eventSet.contains(fishermanId)) {
                             removeSet = removeSet - fishermanId
                         } else {
                             addSet = addSet + fishermanId
                             workingTackleBoxMap[fishermanId] = null
                         }
                     } else {
-                        if (initialSet.contains(fishermanId)) {
+                        if (eventSet.contains(fishermanId)) {
                             removeSet = removeSet + fishermanId
                         } else {
                             addSet = addSet - fishermanId

@@ -150,7 +150,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyMap()) // This clears the map when you set id to null
             } else {
-                getTripFishermenTackleBoxIds(tripId = id)
+                getTackleBoxMapForTrip(tripId = id)
             }
         }
         .stateIn(
@@ -166,7 +166,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyMap()) // This clears the map when you set id to null
             } else {
-                getEventFishermenTackleBoxIds(eventId = id)
+                getTackleBoxMapForEvent(eventId = id)
             }
         }
         .stateIn(
@@ -175,12 +175,12 @@ class TripViewModel(
             initialValue = emptyMap()
         )
 
-    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<String, String?>> {
-        return tripRepo.getTripFishermenTackleBoxIds(tripId)
+    fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> {
+        return tripRepo.getTackleBoxMapForTrip(tripId)
     }
 
-    fun getEventFishermenTackleBoxIds(eventId: String): Flow<Map<String, String?>> {
-        return tripRepo.getFishermanTackleBoxMapping(eventId)
+    fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> {
+        return tripRepo.getTackleBoxMapForEvent(eventId)
     }
 
     // TODO -- add sorting on Trip summaries

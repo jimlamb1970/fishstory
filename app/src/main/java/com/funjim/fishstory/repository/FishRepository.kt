@@ -31,10 +31,6 @@ class FishRepository(
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
-    fun getSegmentWithFishermen(segmentId: String): Flow<EventWithFishermen?> {
-        return eventDao.getEventWithFishermen(segmentId)
-    }
-
     fun getTrips(fishermanId: String?, lureId: String?): Flow<List<Trip>> =
         tripDao.getTripsWithFish(fishermanId, lureId)
     fun getEvents(tripId: String?, fishermanId: String?, lureId: String?) =

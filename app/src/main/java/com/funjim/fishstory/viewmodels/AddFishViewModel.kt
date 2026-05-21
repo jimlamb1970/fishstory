@@ -78,9 +78,21 @@ class AddFishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id.isNullOrBlank()) flowOf(emptyList())
-            else tripRepo.getEventFishermen(id)
+        .flatMapLatest { eventId ->
+            if (eventId.isNullOrBlank()) {
+                flowOf(emptyList())
+            } else {
+                tripRepo.getEventFishermen(eventId).flatMapLatest { eventCrew ->
+                    if (eventCrew.isNotEmpty()) {
+                        flowOf(eventCrew)
+                    } else {
+                        _selectedTripId.flatMapLatest { tripId ->
+                            if (tripId.isNullOrBlank()) flowOf(emptyList())
+                            else tripRepo.getTripFishermen(tripId)
+                        }
+                    }
+                }
+            }
         }.map { list ->
             list.sortedBy { it.fullName }
         }.stateIn(
@@ -91,9 +103,21 @@ class AddFishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishermanTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id.isNullOrBlank()) flowOf(emptyMap())
-            else tripRepo.getFishermanTackleBoxMapping(id)
+        .flatMapLatest { eventId ->
+            if (eventId.isNullOrBlank()) {
+                flowOf(emptyMap())
+            } else {
+                tripRepo.getTackleBoxMapForEvent(eventId).flatMapLatest { eventMap ->
+                    if (eventMap.isNotEmpty()) {
+                        flowOf(eventMap)
+                    } else {
+                        _selectedTripId.flatMapLatest { tripId ->
+                            if (tripId.isNullOrBlank()) flowOf(emptyMap())
+                            else tripRepo.getTackleBoxMapForTrip(tripId)
+                        }
+                    }
+                }
+            }
         }
         .stateIn(
             scope = viewModelScope,
