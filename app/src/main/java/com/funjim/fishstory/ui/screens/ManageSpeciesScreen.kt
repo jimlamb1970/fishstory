@@ -18,9 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HideImage
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -71,23 +73,19 @@ fun ManageSpeciesScreen(
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
     var editName by remember { mutableStateOf("") }
 
-    // Tracks which species is receiving a new image
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
 
     val context = LocalContext.current
 
-    // PHOTO PICKER & PROCESSING PIPELINE
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         val species = currentSpeciesForPhoto
         if (uri != null && species != null) {
-            // Note: In production, integrate your UCrop intent here using the URI,
-            // then process the cropped output URI.
-            // Below is the direct conversion/compression flow:
+            // TODO -- add ability to crop directly
             viewModel.updateSpeciesThumbnail(species.id, uri)
         }
-        currentSpeciesForPhoto = null // Reset selection state
+        currentSpeciesForPhoto = null
     }
 
     val filteredSpecies = remember(searchQuery, speciesSummaries) {
@@ -120,7 +118,6 @@ fun ManageSpeciesScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // SEARCH & ADD SECTION
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -143,7 +140,6 @@ fun ManageSpeciesScreen(
                 singleLine = true
             )
 
-            // THE LIST
             LazyColumn(modifier = Modifier.weight(1f)) {
                 val filteredSize = filteredSpecies.size
                 itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, summary ->
@@ -176,12 +172,7 @@ fun ManageSpeciesScreen(
                             // Wrapped in a Box with combinedClickable for long-press registration
                             Box(
                                 modifier = Modifier.combinedClickable(
-                                    onClick = {
-                                        currentSpeciesForPhoto = species
-                                        photoPickerLauncher.launch(
-                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                        )
-                                    },
+                                    onClick = { /* Do nothing */ },
                                     onLongClick = {
                                         currentSpeciesForPhoto = species
                                         thumbnailMenuExpanded = true
@@ -197,27 +188,33 @@ fun ManageSpeciesScreen(
                                     onDismissRequest = { thumbnailMenuExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Select Thumbnail") },
+                                        text = {
+                                            if (thumbnail != null) Text("Update Thumbnail")
+                                            else Text("Select Thumbnail")
+                                        },
                                         onClick = {
                                             currentSpeciesForPhoto = species
                                             thumbnailMenuExpanded = false
                                             photoPickerLauncher.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
-                                        }
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
                                     )
                                     if (thumbnail != null) {
                                         DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    "Reset Thumbnail",
-                                                    color = MaterialTheme.colorScheme.error
-                                                )
-                                            },
+                                            text = { Text("Reset Thumbnail") },
                                             onClick = {
                                                 thumbnailMenuExpanded = false
                                                 // Save out a null reference to clear
                                                 viewModel.deleteSpeciesThumbnail(species.id)
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.HideImage,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.error
+                                                )
                                             }
                                         )
                                     }
@@ -250,6 +247,39 @@ fun ManageSpeciesScreen(
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
+                                    DropdownMenuItem(
+                                        text = {
+                                            if (thumbnail != null) Text("Update Thumbnail")
+                                            else Text("Select Thumbnail")
+                                        },
+                                        onClick = {
+                                            currentSpeciesForPhoto = species
+                                            thumbnailMenuExpanded = false
+                                            photoPickerLauncher.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                                    )
+                                    if (thumbnail != null) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text("Reset Thumbnail")
+                                            },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                // Save out a null reference to clear
+                                                viewModel.deleteSpeciesThumbnail(species.id)
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.HideImage,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.error
+                                                )
+                                            }
+                                        )
+                                    }
                                     DropdownMenuItem(
                                         text = { Text("Delete") },
                                         onClick = {
