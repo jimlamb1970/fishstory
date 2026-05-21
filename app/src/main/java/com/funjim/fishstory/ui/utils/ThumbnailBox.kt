@@ -56,7 +56,7 @@ fun ThumbnailBox(
             Icon(
                 imageVector = imageVector,
                 contentDescription = "Fish",
-                tint = MaterialTheme.colorScheme.onSurface,
+//                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

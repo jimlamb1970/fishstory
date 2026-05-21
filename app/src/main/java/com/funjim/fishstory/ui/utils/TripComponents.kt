@@ -180,18 +180,18 @@ fun TripItem(
                     Text(
                         "$startString",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = contentColor
+                        color = secondaryContentColor
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Arrow",
-                        tint = contentColor,
+                        tint = secondaryContentColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         "$endString",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = contentColor
+                        color = secondaryContentColor
                     )
                 }
 
@@ -207,7 +207,7 @@ fun TripItem(
                             CardItemWithValue(
                                 icon = AppIcons.Default.Boat,
                                 value = eventCount.toString(),
-                                contentColor = contentColor
+                                contentColor = secondaryContentColor
                             )
                         }
 
@@ -215,13 +215,13 @@ fun TripItem(
                             CardItemWithValue(
                                 icon = AppIcons.Default.Fisherman,
                                 value = fishermanCount.toString(),
-                                contentColor = contentColor
+                                contentColor = secondaryContentColor
                             )
 
                             CardItemWithValue(
                                 icon = AppIcons.Default.TackleBox,
                                 value = tackleBoxCount.toString(),
-                                contentColor = contentColor
+                                contentColor = secondaryContentColor
                             )
                         }
                     }
@@ -235,7 +235,7 @@ fun TripItem(
                         icon = AppIcons.Default.LeapingFish,
                         caughtCount = caughtCount,
                         keptCount = keptCount,
-                        contentColor = contentColor
+                        contentColor = secondaryContentColor
                     )
                 }
             }
@@ -278,7 +278,7 @@ fun TripSelectionField(
         onValueChange = {},
         readOnly = true,
         modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
+        enabled = false,
         colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
             disabledBorderColor = MaterialTheme.colorScheme.outline,

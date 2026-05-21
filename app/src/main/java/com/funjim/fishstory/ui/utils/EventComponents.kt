@@ -7,8 +7,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -18,10 +21,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
@@ -52,16 +57,10 @@ fun EventItem(
     val startString = dateTimeFormatter.format(Date(item.event.startTime))
     val endString = dateTimeFormatter.format(Date(item.event.endTime))
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getCardContentColor()
+    val secondaryContentColor = getCardSecondaryContentColor()
 
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -75,7 +74,7 @@ fun EventItem(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            contentColor = contentColor,
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -106,7 +105,6 @@ fun EventItem(
                     Text(
                         item.event.name,
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                     if (activeLat != null && activeLng != null) {
@@ -114,7 +112,6 @@ fun EventItem(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
@@ -149,79 +146,54 @@ fun EventItem(
                     Text(
                         "$startString",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = secondaryContentColor
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Arrow",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = secondaryContentColor
                     )
                     Text(
                         "$endString",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = secondaryContentColor
                     )
                 }
 
-                if (item.fishCaught != 0 || now >= item.event.startTime || item.fishermanCount > 0) {
+                if (item.fishermanCount > 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        if (item.fishCaught != 0 || now >= item.event.startTime) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = AppIcons.Default.LeapingFish,
-                                    contentDescription = "Fish",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                BoldingNumbersText(
-                                    text = "Kept ${item.fishKept} of ${item.fishCaught}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
-                        }
+                        CardItemWithValue(
+                            icon = AppIcons.Default.Fisherman,
+                            value = item.fishermanCount.toString(),
+                            contentColor = secondaryContentColor
+                        )
 
-                        if (item.fishermanCount > 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Default.Fisherman,
-                                    contentDescription = "Fishermen count",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = item.fishermanCount.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Default.TackleBox,
-                                    contentDescription = "Tackle Box count",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = item.tackleBoxCount.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
+                        CardItemWithValue(
+                            icon = AppIcons.Default.TackleBox,
+                            value = item.tackleBoxCount.toString(),
+                            contentColor = secondaryContentColor
+                        )
                     }
                 }
+
+                if (item.fishCaught != 0 || now >= item.event.startTime) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFish,
+                            caughtCount = item.fishCaught,
+                            keptCount = item.fishKept,
+                            contentColor = secondaryContentColor
+                        )
+                    }
+                }
+
 
                 if ((onSelectLocation != null) ||
                     (onSetLocation != null) ||
@@ -307,6 +279,125 @@ fun EventItem(
                                     }
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EventSelectionField(
+    items: List<Event>,
+    selectedItem: Event?,
+    onSelected: (Event) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+    thumbnailProvider: @Composable (Event) -> Unit
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = selectedItem?.name ?: "Select Event (optional)",
+        onValueChange = {},
+        readOnly = true,
+        modifier = modifier.clickable { showSheet = true },
+        enabled = false,
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = { Text("Event") },
+        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
+    )
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Select Event",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search Events...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+                LazyColumn {
+                    val filteredSize = filtered.size
+                    itemsIndexed(filtered) { index, item ->
+                        val backgroundColor = getCardColor(index, filteredSize)
+                        val contentColor = getCardContentColor()
+
+                        ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // TODO -- hide the border for now
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    onSelected(item)
+                                    showSheet = false
+                                    searchQuery = ""
+                                },
+                            leadingContent = {
+                                thumbnailProvider(item)
+                            },
+                            headlineContent = { Text(item.name) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = backgroundColor,
+                                headlineColor = contentColor
+                            )
+                        )
+                    }
+
+                    if (selectedItem != null) {
+                        item {
+                            HorizontalDivider()
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "Reset Event",
+                                        color = getCardContentColor()
+                                    )
+                                },
+                                modifier = Modifier.clickable {
+                                    showSheet = false
+                                    onClear()
+                                }
+                            )
                         }
                     }
                 }
