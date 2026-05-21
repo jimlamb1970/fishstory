@@ -53,6 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getCardContentColor
 import com.funjim.fishstory.viewmodels.FishViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -152,23 +155,18 @@ fun ManageSpeciesScreen(
 
                     val preventDelete = summary.caughtCount > 0 || summary.keptCount > 0
 
-                    val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                    } else {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                    }
-
-                    val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                        MaterialTheme.colorScheme.tertiary
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
+                    val backgroundColor = getCardColor(index, filteredSize)
+                    val borderColor = getCardBorderColor(index, filteredSize)
+                    val contentColor = getCardContentColor()
 
                     ListItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                            .border(
+                                width = 1.dp,
+                                color = borderColor,
+                                shape = MaterialTheme.shapes.medium)
                             .clip(MaterialTheme.shapes.medium)
                             .combinedClickable(
                                 onClick = { /* do nothing */ },
@@ -269,17 +267,16 @@ fun ManageSpeciesScreen(
                                             Icon(
                                                 Icons.Default.Delete,
                                                 contentDescription = "Delete",
-                                                tint = if (!preventDelete) MaterialTheme.colorScheme.error
-                                                else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
+                                                tint =
+                                                    if (!preventDelete) MaterialTheme.colorScheme.error
+                                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
                                             )
                                         }
                                     )
                                 }
                             }
                         },
-                        colors = ListItemDefaults.colors(
-                            containerColor = backgroundColor
-                        )
+                        colors = ListItemDefaults.colors(containerColor = backgroundColor)
                     )
                     HorizontalDivider(thickness = 0.5.dp)
                 }

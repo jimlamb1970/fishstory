@@ -50,6 +50,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.SpeciesSelectionField
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
 import com.funjim.fishstory.ui.utils.sortLures
@@ -696,130 +697,6 @@ fun CheckBoxWithText(
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SpeciesSelectionField(
-    items: List<Species>,
-    selectedItem: Species?,
-    onSelected: (Species) -> Unit,
-    onAdd: () -> Unit,
-    modifier: Modifier = Modifier,
-    thumbnailProvider: @Composable (Species) -> Unit
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    // Display for the current selection
-    OutlinedTextField(
-        value = selectedItem?.name ?: "Select Species",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text("Species") },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Species",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                TextButton(
-                    onClick = {
-                        showSheet = false
-                        searchQuery = ""
-                    }
-                ) {
-                    Text("Done")
-                }
-            }
-
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Species...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
-
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                            leadingContent = {
-                                thumbnailProvider(item)
-                            },
-                            headlineContent = { Text(item.name) },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-                    // "Add New" option
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = { Text("Add new species...", color = MaterialTheme.colorScheme.primary) },
-                            leadingContent = { Icon(Icons.Default.Add, null) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onAdd()
-                            }
-                        )
-                    }
-                }
-            }
         }
     }
 }
