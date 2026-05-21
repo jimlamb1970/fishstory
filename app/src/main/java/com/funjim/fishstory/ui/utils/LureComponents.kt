@@ -48,16 +48,10 @@ fun LureItem(
 
     var menuExpanded by remember { mutableStateOf(false) }
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getCardContentColor()
+    val secondaryContentColor = getCardSecondaryContentColor()
 
     OutlinedCard(
         modifier = Modifier
@@ -69,7 +63,7 @@ fun LureItem(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            contentColor = contentColor
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -94,8 +88,7 @@ fun LureItem(
                 ) {
                     Text(
                         text = item.lure.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
 
@@ -109,26 +102,16 @@ fun LureItem(
                 Text(
                     text = "Number of hooks: ${item.lure.hookCount}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = secondaryContentColor
                 )
 
                 if (item.caughtCount != 0) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.Default.LeapingFish,
-                            contentDescription = "Fish",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        BoldingNumbersText(
-                            text = "Kept ${item.keptCount} of ${item.caughtCount}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
+                    FishCaughtItem(
+                        icon = AppIcons.Default.LeapingFish,
+                        caughtCount = item.caughtCount,
+                        keptCount = item.keptCount,
+                        contentColor = secondaryContentColor
+                    )
                 }
             }
 
@@ -179,7 +162,8 @@ fun LureCompositionWithColors(
     glow: List<LureColor>,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.titleMedium,
-    color: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.primary,
+    secondaryColor: Color = MaterialTheme.colorScheme.onSurface,
     colorBadgeSize: Dp = 28.dp
 ) {
     Row(
@@ -191,7 +175,7 @@ fun LureCompositionWithColors(
             Text(
                 text = name,
                 style = style,
-                color = color,
+                color = contentColor,
             )
         }
 
@@ -200,7 +184,7 @@ fun LureCompositionWithColors(
                 Text(
                     text = color.name,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = secondaryColor
                 )
             } else {
                 ColorCircleBadge(
@@ -218,14 +202,14 @@ fun LureCompositionWithColors(
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = secondaryColor
                 )
             }
             if (color.hexCode.isNullOrBlank()) {
                 Text(
                     text = color.name,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = secondaryColor
                 )
             } else {
                 ColorCircleBadge(
@@ -243,20 +227,20 @@ fun LureCompositionWithColors(
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = secondaryColor
                 )
             }
             Text(
                 text = "Glows",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
+                color = secondaryColor
             )
             glow.forEach { color ->
                 if (color.hexCode.isNullOrBlank()) {
                     Text(
                         text = color.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = secondaryColor
                     )
                 } else {
                     ColorCircleBadge(
@@ -272,6 +256,7 @@ fun LureCompositionWithColors(
         }
     }
 }
+
 @Composable
 fun LureColorComposition(
     modifier: Modifier = Modifier,
@@ -279,6 +264,7 @@ fun LureColorComposition(
     secondary: List<LureColor> = emptyList(),
     glows: Boolean = false,
     glow: List<LureColor> = emptyList(),
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     colorBadgeSize: Dp = 28.dp
 ) {
     FlowRow(
@@ -291,7 +277,7 @@ fun LureColorComposition(
                 Text(
                     text = color.name,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             } else {
@@ -310,7 +296,7 @@ fun LureColorComposition(
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
@@ -319,7 +305,7 @@ fun LureColorComposition(
                     Text(
                         text = color.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = contentColor,
                         modifier = Modifier.align(Alignment.CenterVertically)
 
                     )
@@ -340,7 +326,7 @@ fun LureColorComposition(
                 Text(
                     text = " / ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.align(Alignment.CenterVertically)
 
                 )
@@ -348,7 +334,7 @@ fun LureColorComposition(
             Text(
                 text = "Glows",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = contentColor,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
             glow.forEach { color ->
@@ -356,7 +342,7 @@ fun LureColorComposition(
                     Text(
                         text = color.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = contentColor
                     )
                 } else {
                     ColorCircleBadge(
@@ -390,7 +376,9 @@ fun ColorCircleBadge(
             .clip(CircleShape)
             .border(
                 width = if (isGlow) 1.5.dp else 2.dp,
-                color = if (isGlow) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                color =
+                    if (isGlow) MaterialTheme.colorScheme.tertiary
+                    else MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
@@ -519,6 +507,15 @@ fun LureSelectionField(
         trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
     )
 
+    if (selectedItem != null) {
+        LureColorComposition(
+            primary = selectedItem.primaryColors,
+            secondary = selectedItem.secondaryColors,
+            glows = selectedItem.lure.glows,
+            glow = selectedItem.glowColors
+        )
+    }
+
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
@@ -564,24 +561,13 @@ fun LureSelectionField(
                 LazyColumn {
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
+                        val backgroundColor = getCardColor(index, filteredSize)
+                        val contentColor = getCardContentColor()
 
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable {
                                     onSelected(item)
@@ -599,7 +585,7 @@ fun LureSelectionField(
                                     Text(
                                         text = item.lure.name,
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = contentColor
                                     )
 
                                     LureColorComposition(
@@ -612,7 +598,7 @@ fun LureSelectionField(
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
+                                headlineColor = contentColor
                             )
                         )
                     }

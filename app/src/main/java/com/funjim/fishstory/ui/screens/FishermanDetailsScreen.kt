@@ -719,7 +719,7 @@ fun TackleBoxCard(
                                 lure.lure.glows,
                                 lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier
                                     .padding(start = 50.dp, bottom = 4.dp),
                                 colorBadgeSize = 20.dp
