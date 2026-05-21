@@ -35,24 +35,41 @@ fun SelectEventCrewScreen(
 
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
+    val eventCrewOverride by tripViewModel.eventCrewOverride.collectAsStateWithLifecycle()
 
-    val eligibleFishermen by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
-    val initialCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(emptyList())
+    val tripCrew by tripViewModel.getFishermenForTrip(tripId).collectAsState(emptyList())
+    val eventCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(emptyList())
 
-    val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
-    var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
+    val sortedFishermen = remember(tripCrew) { tripCrew.sortedBy { it.fullName } }
+    var initialSet by remember(eventCrew) {
+        mutableStateOf<Set<String>>(eventCrew.map { it.id }.toSet())
+    }
     var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
 
+    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
     val workingTackleBoxMap = remember(eventId) { mutableStateMapOf<String, String?>() }
 
-    LaunchedEffect(eventTackleBoxMap) {
+    LaunchedEffect(eventTackleBoxMap, tripTackleBoxMap) {
         // Only initialize if the map is currently empty and we have data to put in it
-        if (workingTackleBoxMap.isEmpty() && eventTackleBoxMap.isNotEmpty()) {
-            eventTackleBoxMap.forEach { (fisherman, tackleBoxId) ->
-                workingTackleBoxMap[fisherman] = tackleBoxId
+        if (workingTackleBoxMap.isEmpty()) {
+            if (eventTackleBoxMap.isNotEmpty()) {
+                eventTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
+                    workingTackleBoxMap[fishermanId] = tackleBoxId
+                }
+            } else if (tripTackleBoxMap.isNotEmpty()){
+                tripViewModel.updateEventCrewOverride(true)
+
+                tripTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
+                    workingTackleBoxMap[fishermanId] = tackleBoxId
+                    tripViewModel.upsertEventFishermanCrossRef(
+                        eventId = eventId,
+                        fishermanId = fishermanId,
+                        tackleBoxId = tackleBoxId
+                    )
+                }
             }
         }
     }
@@ -71,6 +88,15 @@ fun SelectEventCrewScreen(
                     IconButton(onClick = {
                         tripViewModel.clearTrip()
                         tripViewModel.clearEvent()
+
+                        workingTackleBoxMap.forEach { (fishermanId, tackleBoxId) ->
+                            tripViewModel.deleteEventFishermanCrossRef(
+                                eventId = eventId,
+                                fishermanId = fishermanId
+                            )
+                        }
+                        tripViewModel.updateEventCrewOverride(false)
+
                         navigateBack()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel")
@@ -138,6 +164,7 @@ fun SelectEventCrewScreen(
                             )
                         }
                     }
+                    tripViewModel.updateEventCrewOverride(false)
                     navigateBack()
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->

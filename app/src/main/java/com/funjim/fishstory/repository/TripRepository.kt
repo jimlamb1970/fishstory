@@ -82,7 +82,7 @@ class TripRepository(
         eventDao.getEventsForTrip(tripId)
     fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> =
         eventDao.getEventsForActiveTrips(currentTime)
-    fun getSegmentSummaries(tripId: String): Flow<List<EventSummary>> =
+    fun getEventSummaries(tripId: String): Flow<List<EventSummary>> =
         eventDao.getTripEventSummaries(tripId)
 
     fun getEventWithDetails(segmentId: String): Flow<EventWithDetails?> =
@@ -136,7 +136,7 @@ class TripRepository(
     suspend fun deleteSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
         eventDao.deleteEventFishermanCrossRef(crossRef)
 
-    suspend fun removeFishermanCrossRefFromTripAndAllSegments(tripId: String, fishermanId: String) =
+    suspend fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) =
         tripDao.removeFishermanCrossRefFromTripAndAllEvents(tripId, fishermanId)
     suspend fun removeFishermenNotInSet(segmentId: String, newSet: Set<String>) =
         eventDao.removeFishermenNotInSet(segmentId, newSet)

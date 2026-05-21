@@ -75,9 +75,7 @@ fun AddTripScreen(
         tripViewModel.selectEvent(eventDraft.id)
     }
 
-//    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
     val eventSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
-//    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
@@ -87,8 +85,9 @@ fun AddTripScreen(
     var isFirstEvent by remember { mutableStateOf(true) }
     var fromReview by remember { mutableStateOf(false) }
 
-    var showTripMenu by remember { mutableStateOf(false) }
+    var overrideEventCrew by remember { mutableStateOf(false) }
 
+    var showTripMenu by remember { mutableStateOf(false) }
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
     // Location pickers
@@ -150,7 +149,13 @@ fun AddTripScreen(
     }
 
     // Progress indicator
-    val stepLabels = listOf("Trip", "Crew & Boxes", "Event", "Event Crew & Boxes", "Review")
+    val stepLabels = remember(overrideEventCrew) {
+        if (overrideEventCrew) {
+            listOf("Trip Details", "Trip Crew", "Event Details", "Event Crew Override", "Review & Done")
+        } else {
+            listOf("Trip Details", "Trip Crew", "Event Details", "Review & Done")
+        }
+    }
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
     val onTripAction: (TripAction) -> Unit = { action ->
@@ -246,7 +251,12 @@ fun AddTripScreen(
                                 tripViewModel.updateWizardStep(nextStep)
                             }
                             WizardStep.EventCrew -> tripViewModel.updateWizardStep(WizardStep.EventInfo)
-                            WizardStep.Review    -> tripViewModel.updateWizardStep(WizardStep.EventCrew)
+                            WizardStep.Review -> {
+                                val backStep =
+                                    if (overrideEventCrew) WizardStep.EventCrew
+                                    else WizardStep.EventInfo
+                                tripViewModel.updateWizardStep(backStep)
+                            }
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -467,7 +477,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     tackleBoxId = tripTackleBoxMap[fishermanId]
                                 )
                             } else {
-                                tripViewModel.removeFishermanCrossRefFromTripAndAllEvents(
+                                tripViewModel.removeFishermanFromTripAndAllEvents(
                                     tripId = tripDraft.id,
                                     fishermanId = fishermanId
                                 )
@@ -606,6 +616,41 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             }
                         }
 
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        // NEW: Form element to select whether we want to customize the crew for this session
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { overrideEventCrew = !overrideEventCrew }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = overrideEventCrew,
+                                    onCheckedChange = { overrideEventCrew = it }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "Specify Event Crew",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = "Customize who is fishing this event. If unchecked, the Trip Crew will be used.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
                         Spacer(Modifier.weight(1f))
 
                         Button(
@@ -614,15 +659,29 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                     // Add the new event
                                     tripViewModel.upsertEvent(eventDraft)
 
-                                    if (eventFishermenIds.isEmpty()) {
-                                        tripViewModel.updateEventFishermanIds(tripFishermenIds)
-                                        tripFishermenIds.forEach { fishermanId ->
-                                            tripViewModel.upsertEventFishermanCrossRef(
+                                    if (overrideEventCrew) {
+                                        if (eventFishermenIds.isEmpty()) {
+                                            tripViewModel.updateEventFishermanIds(tripFishermenIds)
+                                            tripFishermenIds.forEach { fishermanId ->
+                                                tripViewModel.upsertEventFishermanCrossRef(
+                                                    eventId = eventDraft.id,
+                                                    fishermanId = fishermanId,
+                                                    tackleBoxId = tripTackleBoxMap[fishermanId]
+                                                )
+                                            }
+                                        }
+                                        tripViewModel.updateWizardStep(WizardStep.EventCrew)
+                                    } else {
+                                        eventFishermenIds.forEach { fishermanId ->
+                                            tripViewModel.deleteEventFishermanCrossRef(
                                                 eventId = eventDraft.id,
-                                                fishermanId = fishermanId,
-                                                tackleBoxId = tripTackleBoxMap[fishermanId]
+                                                fishermanId = fishermanId
                                             )
                                         }
+                                        tripViewModel.updateEventFishermanIds(emptySet())
+
+                                        // Directly jump to summary validation stage
+                                        tripViewModel.updateWizardStep(WizardStep.Review)
                                     }
                                 }
 
@@ -631,7 +690,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             enabled = eventDraft.name.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Next: Select Event Crew")
+                            Text(
+                                if (overrideEventCrew) "Next: Select Event Crew"
+                                else "Next: Review Trip")
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowForward,
                                 null,
@@ -705,7 +766,9 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             fontWeight = FontWeight.Bold)
 
                         // Have to count how many of the tackle boxes
-                        val activeCount = tripTackleBoxMap.count { !it.value.isNullOrBlank() }
+                        val activeCount = remember(tripTackleBoxMap) {
+                            tripTackleBoxMap.count { !it.value.isNullOrBlank() }
+                        }
 
                         // Trip summary card
                         val currentTrip = TripSummary(
@@ -801,7 +864,8 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                             verticalAlignment = Alignment.CenterVertically) {
                             Text("Events (${eventSummaries.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
-                                // Reset event fields for a new one
+                                overrideEventCrew = false
+
                                 tripViewModel.updateEventDraft {
                                     it.copy(
                                         id = UUID.randomUUID().toString(),
@@ -842,9 +906,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
 
                                 EventItem(
                                     currentSummary,
-                                    modifier = Modifier.padding(
-                                        vertical = 4.dp
-                                    ),
+                                    modifier = Modifier.padding(vertical = 4.dp),
                                     index = index,
                                     totalItems = totalItems,
                                     thumbnailFlow = flowOf(null),
@@ -854,6 +916,7 @@ If a fisherman is removed from the trip, the fisherman will also be removed from
                                         tripViewModel.selectEvent(event.event.id)
                                         tripViewModel.updateEventDraft { event.event }
 
+                                        overrideEventCrew = event.fishermanCount > 0
                                         tripViewModel.updateWizardStep(WizardStep.EventInfo)
                                     },
                                 )

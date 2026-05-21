@@ -368,6 +368,7 @@ fun EventDetailsScreen(
                         FishermanSummary(
                             fishermanCount = details.fishermanCount,
                             tackleBoxCount = details.tackleBoxCount,
+                            allowOverride = true,
                             onClick = { navigateToSelectEventCrew() }
                         )
                     }

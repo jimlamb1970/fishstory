@@ -27,16 +27,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.collections.get
 import kotlin.collections.map
-import kotlin.collections.sorted
 
 enum class WizardStep {
     TripInfo,           // Step 1 – name, dates, location
     TripCrew,           // Step 2 – fishermen + tackle boxes for trip
     EventInfo,          // Step 3 – event name, dates, location
     EventCrew,          // Step 4 – fishermen + tackle boxes for event
-    Review              // Step 5 – list segments, add another or finish
+    Review              // Step 5 – list events, add another or finish
 }
 
 enum class EventWizardStep {
@@ -53,8 +51,8 @@ class TripViewModel(
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedEventId = MutableStateFlow<String?>(null)
-    private val _draftSegments = MutableStateFlow<List<Event>>(emptyList())
-    val draftSegments = _draftSegments.asStateFlow()
+    private val _eventCrewOverride = MutableStateFlow(false)
+    val eventCrewOverride = _eventCrewOverride.asStateFlow()
 
     val uiState: StateFlow<TripUiState> = combine(
         tripRepo.getActiveTripSummaries(),
@@ -76,9 +74,6 @@ class TripViewModel(
     // --- Data Streams ---
     private val allTripSummaries = tripRepo.allTripSummaries
     val allTrips = tripRepo.allTrips
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getSegmentsForTrip(tripId: String) = tripRepo.getSegmentsForTrip(tripId)
 
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
@@ -107,10 +102,6 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> {
-        return tripRepo.getFishermanIdsForTrip(tripId)
-    }
-
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }
@@ -121,7 +112,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyList())
             } else {
-                fishermanRepo.getFishermenForSegment(id)
+                fishermanRepo.getFishermenForEvent(id)
             }
         }
         .map { list ->
@@ -132,7 +123,7 @@ class TripViewModel(
             // SIDE EFFECT: Update the draft IDs whenever the list changes
             // This ensures the wizard state is "set" automatically
             val ids = list.map { it.id }.toSet()
-            _segmentFishermanIds.value = ids
+            _draftEventFishermanIds.value = ids
         }
         .stateIn(
             scope = viewModelScope,
@@ -140,8 +131,8 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    fun getFishermenForEvent(segmentId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForSegment(segmentId)
+    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
+        return fishermanRepo.getFishermenForEvent(eventId)
     }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
@@ -175,7 +166,7 @@ class TripViewModel(
             if (id == null) {
                 flowOf(emptyMap()) // This clears the map when you set id to null
             } else {
-                getSegmentFishermenTackleBoxIds(segmentId = id)
+                getEventFishermenTackleBoxIds(eventId = id)
             }
         }
         .stateIn(
@@ -188,8 +179,8 @@ class TripViewModel(
         return tripRepo.getTripFishermenTackleBoxIds(tripId)
     }
 
-    fun getSegmentFishermenTackleBoxIds(segmentId: String): Flow<Map<String, String?>> {
-        return tripRepo.getFishermanTackleBoxMapping(segmentId)
+    fun getEventFishermenTackleBoxIds(eventId: String): Flow<Map<String, String?>> {
+        return tripRepo.getFishermanTackleBoxMapping(eventId)
     }
 
     // TODO -- add sorting on Trip summaries
@@ -225,11 +216,11 @@ class TripViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                tripRepo.getSegmentSummaries(id)
+                tripRepo.getEventSummaries(id)
             }
         }
         .map { list ->
-            // Sort by whatever property makes sense for your segments
+            // Sort by whatever property makes sense for your events
             list.sortedBy { it.event.startTime }
         }
         .stateIn(
@@ -272,9 +263,6 @@ class TripViewModel(
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-
-    // TODO -- get this from somehwere else
-    var lureColors: Flow<List<LureColor>> = fishermanRepo.allLureColors
 
     fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
@@ -325,9 +313,9 @@ class TripViewModel(
         }
     }
 
-    fun removeFishermanCrossRefFromTripAndAllEvents(tripId: String, fishermanId: String) {
+    fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.removeFishermanCrossRefFromTripAndAllSegments(tripId, fishermanId)
+            tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
         }
     }
 
@@ -342,12 +330,6 @@ class TripViewModel(
     fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepo.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
-        }
-    }
-
-    fun removeSegmentFishermenNotInSet(segmentId: String, newSet: Set<String>) {
-        viewModelScope.launch {
-            tripRepo.removeFishermenNotInSet(segmentId, newSet)
         }
     }
 
@@ -395,17 +377,6 @@ class TripViewModel(
         }
     }
 
-    fun upsertDraftSegment(updatedEvent: Event) {
-        _draftSegments.update { currentList ->
-            val alreadyExists = currentList.any { it.id == updatedEvent.id }
-            if (alreadyExists) {
-                currentList.map { if (it.id == updatedEvent.id) updatedEvent else it }
-            } else {
-                currentList + updatedEvent
-            }
-        }
-    }
-
     fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addTripPhoto(tripId, uri, selected)
@@ -444,6 +415,10 @@ class TripViewModel(
         _selectedEventId.value = id
     }
 
+    fun updateEventCrewOverride(override: Boolean) {
+        _eventCrewOverride.value = override
+    }
+
     // --- Wizard Navigation State ---
     private val _currentWizardStep = MutableStateFlow(WizardStep.TripInfo)
     val currentWizardStep = _currentWizardStep.asStateFlow()
@@ -474,7 +449,7 @@ class TripViewModel(
         _selectedTripId.value = _tripDraft.value.id
     }
 
-    // --- Segment Draft State ---
+    // --- Event Draft State ---
     private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
     val eventDraft = _eventDraft.asStateFlow()
 
@@ -496,15 +471,15 @@ class TripViewModel(
         _tripFishermanIds.update { if (it.contains(id)) it - id else it + id }
     }
 
-    private val _segmentFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val eventFishermenIds = _segmentFishermanIds.asStateFlow()
+    private val _draftEventFishermanIds = MutableStateFlow<Set<String>>(emptySet())
+    val eventFishermenIds = _draftEventFishermanIds.asStateFlow()
 
     fun toggleEventFisherman(id: String) {
-        _segmentFishermanIds.update { if (it.contains(id)) it - id else it + id }
+        _draftEventFishermanIds.update { if (it.contains(id)) it - id else it + id }
     }
 
     fun updateEventFishermanIds(ids: Set<String>) {
-        _segmentFishermanIds.value = ids
+        _draftEventFishermanIds.value = ids
     }
 }
 

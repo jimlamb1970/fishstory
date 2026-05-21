@@ -164,6 +164,7 @@ fun FishermanSummary(
     fishermanCount: Int,
     tackleBoxCount: Int,
     modifier: Modifier = Modifier,
+    allowOverride: Boolean = false,
     onClick: () -> Unit) {
     OutlinedCard(
         modifier = modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
@@ -194,20 +195,30 @@ fun FishermanSummary(
                     modifier = Modifier.padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center, // Centers the text within the middle space
                 )
-                Text(
-                    "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    textAlign = TextAlign.Center, // Centers the text within the middle space
-                )
-                Text(
-                    "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    textAlign = TextAlign.Center, // Centers the text within the middle space
-                )
+                if (fishermanCount == 0 && allowOverride) {
+                    Text(
+                        "Trip Crew is being used\nTap to override",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                    )
+                } else {
+                    Text(
+                        "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                    )
+                    Text(
+                        "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Icon(

@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class DashboardViewModel(
     private val locationProvider: LocationProvider,
@@ -89,7 +88,7 @@ class DashboardViewModel(
                 flowOf(emptyList())
             } else {
                 // This query only runs for the currently selected trip
-                tripRepo.getSegmentSummaries(id)
+                tripRepo.getEventSummaries(id)
             }
         }
         .stateIn(

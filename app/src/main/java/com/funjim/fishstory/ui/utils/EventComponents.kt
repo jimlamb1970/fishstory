@@ -164,7 +164,7 @@ fun EventItem(
                     )
                 }
 
-                if (item.fishCaught != 0 || now >= item.event.startTime || item.fishermanCount != -1) {
+                if (item.fishCaught != 0 || now >= item.event.startTime || item.fishermanCount > 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -185,7 +185,7 @@ fun EventItem(
                             }
                         }
 
-                        if (item.fishermanCount != -1) {
+                        if (item.fishermanCount > 0) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
