@@ -107,7 +107,7 @@ fun SelectEventCrewScreen(
             Spacer(Modifier.height(16.dp))
             TripViewModelCrewPickerBridge(
                 title = eventSummary?.event?.name ?: "Crew & Tackle Boxes",
-                subtitle = """Select who's on the boat and which tackle box each person will use.
+                subtitle = """Select who's fishing and which tackle box each person will use.
                     |
                     |If no one is selected, the trip crew and tackle box assignments will be used."""
                     .trimMargin(),

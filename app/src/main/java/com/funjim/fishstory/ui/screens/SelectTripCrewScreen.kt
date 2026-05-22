@@ -81,9 +81,8 @@ fun SelectTripCrewScreen(
             TripViewModelCrewPickerBridge(
                 title = tripSummary?.trip?.name ?: "Crew & Tackle Boxes",
                 subtitle = """Select who's fishing and which tackle box each person will use.
-                    |                            
-                    |If a fisherman is removed from the trip, the fisherman will also be 
-                    |removed from all events."""
+                    |
+                    |If a fisherman is removed from the trip, the fisherman will also be removed from all events."""
                     .trimMargin(),
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,

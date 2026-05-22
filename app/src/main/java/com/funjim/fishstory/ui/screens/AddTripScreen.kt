@@ -462,9 +462,8 @@ fun AddTripScreen(
                     TripViewModelCrewPickerBridge(
                         title = "Trip Crew & Tackle Boxes",
                         subtitle = """Select who's fishing and which tackle box each person will use.
-                            |                            
-                            |If a fisherman is removed from the trip, the fisherman will also be 
-                            |removed from all events."""
+                            |
+                            |If a fisherman is removed from the trip, the fisherman will also be removed from all events."""
                             .trimMargin(),
                         eligibleFishermen = sortedFishermen,
                         selectedIds = tripFishermenIds,
@@ -711,7 +710,7 @@ fun AddTripScreen(
                     Spacer(Modifier.height(16.dp))
                     TripViewModelCrewPickerBridge(
                         title = "Event Crew & Tackle Boxes",
-                        subtitle = """Who's fishing "${eventDraft.name}"? Tackle boxes default to trip selections.
+                        subtitle = """Select who's fishing "${eventDraft.name}" and which tackle box each person will use.
                             |
                             |If no one is selected, the trip crew and tackle box assignments will be used."""
                             .trimMargin(),
