@@ -1,12 +1,14 @@
 package com.funjim.fishstory.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -57,7 +59,7 @@ fun FishermanListScreen(
                         Text("Fishermen")
                         val total = fishermanSummaries.size
                         Text(
-                            text = "($total)",
+                            text = " ($total)",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -120,7 +122,15 @@ fun FishermanListScreen(
                     }
                 }
 
-                IconButton(onClick = { viewModel.toggleReverse() }) {
+                IconButton(
+                    onClick = { viewModel.toggleReverse() },
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        ).size(34.dp)
+                ) {
                     Icon(
                         imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                         contentDescription = "Reverse Sort",
