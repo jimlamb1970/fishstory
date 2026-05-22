@@ -20,6 +20,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.theme.themeMap
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getCardContentColor
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -242,24 +244,10 @@ fun ThemeSelectionField(
                     val filteredSize = filteredMap.size
                     filteredMap.entries.forEachIndexed { index, item ->
                         item {
-                            val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                            } else {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                            }
-
-                            val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                                MaterialTheme.colorScheme.tertiary
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            }
-
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    // TODO -- hide the border for now
-                                    //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item.key)
@@ -268,8 +256,8 @@ fun ThemeSelectionField(
                                     },
                                 headlineContent = { Text(item.key) },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = backgroundColor,
-                                    headlineColor = MaterialTheme.colorScheme.primary
+                                    containerColor = getCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
                                 )
                             )
                         }
@@ -281,7 +269,7 @@ fun ThemeSelectionField(
                             headlineContent = {
                                 Text(
                                     "Reset Theme",
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = getCardContentColor()
                                 )
                             },
                             modifier = Modifier.clickable {

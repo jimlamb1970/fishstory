@@ -556,7 +556,6 @@ fun LureColorSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    // State to toggle layout style: true = Grid, false = List
     var isGridView by remember { mutableStateOf(true) }
 
     val maxSelections = 4
@@ -583,7 +582,6 @@ fun LureColorSelectionField(
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
-            // Sheet Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -601,7 +599,6 @@ fun LureColorSelectionField(
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Layout Toggle Button
                     IconButton(onClick = { isGridView = !isGridView }) {
                         Icon(
                             imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
@@ -621,12 +618,10 @@ fun LureColorSelectionField(
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp)
-                    .fillMaxHeight(0.8f)
+            Column(modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp)
+                .fillMaxHeight(0.8f)
             ) {
-                // Search bar inside the sheet
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -635,13 +630,12 @@ fun LureColorSelectionField(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
                 val isSelectionLocked = selectedItems.size >= maxSelections
                 val filteredSize = filtered.size
 
-                // DYNAMIC LAYOUT SWITCH
                 if (isGridView) {
                     // ── GRID VIEW ───────────────────────────────────────────
                     LazyVerticalGrid(
@@ -702,7 +696,7 @@ fun LureColorSelectionField(
                         }
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -758,7 +752,7 @@ fun LureColorSelectionField(
                         }
 
                         item {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         item {

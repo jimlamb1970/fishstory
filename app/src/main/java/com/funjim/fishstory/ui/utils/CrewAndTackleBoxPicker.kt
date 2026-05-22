@@ -6,20 +6,28 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
@@ -139,7 +147,7 @@ fun CrewAndTackleBoxPicker(
                 }
             } else {
                 val totalItems = crewEntries.size
-                itemsIndexed(crewEntries, key = { _, entry -> entry.fisherman.id }) { index, entry ->
+                listItemsIndexed(crewEntries, key = { _, entry -> entry.fisherman.id }) { index, entry ->
                     val availableBoxes = getTackleBoxesForFisherman(entry.fisherman.id)
                     val lureCount = getLureCount(entry.selectedTackleBoxId)
                     val lures = getLuresInTacklebox(entry.selectedTackleBoxId).sortedBy { it.lure.name }
@@ -212,17 +220,6 @@ private fun FishermanCrewRow(
     var showCreateDialog by remember { mutableStateOf(false) }
     var newTackleBoxName by remember { mutableStateOf("") }
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
-
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,10 +227,15 @@ private fun FishermanCrewRow(
             .animateContentSize(), // Smoothly animates the expansion
         onClick = { if (selectedBox != null) luresExpanded = !luresExpanded },
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            containerColor = getCardColor(index, totalItems, entry.isSelected),
+            contentColor = getCardContentColor()
         ),
-        border = BorderStroke(1.dp, color = borderColor)
+        border = BorderStroke(
+            width = if (entry.isSelected) 2.dp else 0.dp,
+            color =
+                if (entry.isSelected) getCardContentColor()
+                else Color.Transparent
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -245,13 +247,18 @@ private fun FishermanCrewRow(
             ) {
                 Checkbox(
                     checked = entry.isSelected,
-                    onCheckedChange = onSelectionChanged
+                    onCheckedChange = { selected ->
+                        luresExpanded = false
+                        onSelectionChanged(selected)
+                    }
                 )
                 Text(
                     text = entry.fisherman.fullName,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (entry.isSelected) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    fontWeight = if (entry.isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color =
+                        if (entry.isSelected) getCardSecondaryContentColor()
+                        else getCardSecondaryContentColor().copy(alpha = 0.4f)
                 )
             }
 
@@ -277,7 +284,9 @@ private fun FishermanCrewRow(
                         onTackleBoxChanged(null)
                         luresExpanded = false
                     },
-                    modifier = Modifier.padding(start = 50.dp, end = 16.dp, bottom = 4.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 50.dp, end = 16.dp, bottom = 4.dp)
                 )
 
                 if (entry.selectedTackleBoxId != null) {
@@ -292,7 +301,9 @@ private fun FishermanCrewRow(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (luresExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                imageVector =
+                                    if (luresExpanded) Icons.Default.ExpandLess
+                                    else Icons.Default.ExpandMore,
                                 contentDescription = "Toggle Lures"
                             )
                         }
@@ -300,7 +311,7 @@ private fun FishermanCrewRow(
                         Text(
                             text = "$lureCount lure${if (lureCount != 1) "s" else ""}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = getCardSecondaryContentColor(),
                             modifier = Modifier.weight(1f)
                         )
 
@@ -319,13 +330,13 @@ private fun FishermanCrewRow(
 
             // TODO -- Limit the number of lures visible?
             AnimatedVisibility(visible = luresExpanded) {
-                HorizontalDivider(thickness = 1.dp)
+                HorizontalDivider(thickness = 1.dp, color = getCardContentColor())
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     if (lures.isEmpty())
                         Text(
                             text = "No lures in this box",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = getCardSecondaryContentColor(),
                             modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
                         )
                     else sortedLures.forEach { lure ->
@@ -339,7 +350,7 @@ private fun FishermanCrewRow(
                                 lure.lure.glows,
                                 lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                contentColor = getCardSecondaryContentColor(),
                                 modifier = Modifier
                                     .padding(start = 50.dp, bottom = 4.dp),
                                 colorBadgeSize = 20.dp
@@ -519,13 +530,14 @@ fun TackleBoxSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    // Display for the current selection
+    var isGridView by remember { mutableStateOf(true) }
+
     OutlinedTextField(
         value = selectedItem?.name ?: "Select Tackle Box",
         onValueChange = {},
         readOnly = true,
         modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
+        enabled = false,
         colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
             disabledBorderColor = MaterialTheme.colorScheme.outline,
@@ -542,15 +554,30 @@ fun TackleBoxSelectionField(
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Select Tackle Box",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Select Tackle Box",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 TextButton(
                     onClick = {
@@ -562,7 +589,10 @@ fun TackleBoxSelectionField(
                 }
             }
 
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.8f)
+                .padding(start = 16.dp, end = 16.dp)
+            ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -576,88 +606,174 @@ fun TackleBoxSelectionField(
                 val filtered = items.filter {
                     it.name.contains(searchQuery, ignoreCase = true)
                 }.sortedBy { it.name }
+                val filteredSize = filtered.size
 
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        gridItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.id }
+                        ) { index, item ->
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
+                                headlineContent = {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp, horizontal = 4.dp)
+                                    ) {
+                                        ThumbnailBox(
+                                            thumbnail = null,
+                                            imageVector = AppIcons.Default.TackleBox,
+                                            modifier = Modifier.size(36.dp)
+                                        )
+                                        Text(
+                                            text = item.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 },
-                            leadingContent = {
-                                ThumbnailBox(
-                                    thumbnail = null,
-                                    imageVector = AppIcons.Default.TackleBox,
-                                    modifier = Modifier.size(36.dp)
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getGridCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
                                 )
-                            },
-                            headlineContent = { Text(item.name) },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-
-                    if (selectedItem != null) {
-                        item {
-                            HorizontalDivider()
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        "Reset Tackle Box",
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
                             )
                         }
-                    }
 
-                    // "Add New" option
-                    if (onAdd != null) {
-                        item {
-                            HorizontalDivider()
+                        if (selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ResetTackleBoxButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                CreateNewTackleBoxButton(onAdd = {
+                                    showSheet = false;
+                                    onAdd()
+                                } )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn {
+                        listItemsIndexed(filtered) { index, item ->
                             ListItem(
-                                headlineContent = {
-                                    Text(
-                                        "Create new tackle box...",
-                                        color = MaterialTheme.colorScheme.primary
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
+                                leadingContent = {
+                                    ThumbnailBox(
+                                        thumbnail = null,
+                                        imageVector = AppIcons.Default.TackleBox,
+                                        modifier = Modifier.size(36.dp)
                                     )
                                 },
-                                leadingContent = { Icon(Icons.Default.Add, null) },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onAdd()
-                                }
+                                headlineContent = { Text(item.name) },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
+                                )
                             )
+                        }
+
+                        if (selectedItem != null) {
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item {
+                                ResetTackleBoxButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item {
+                                CreateNewTackleBoxButton(onAdd = {
+                                    showSheet = false;
+                                    onAdd()
+                                } )
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ResetTackleBoxButton(onClear: () -> Unit) {
+    ListItem(
+        headlineContent = {
+            Text(
+                "Reset Tackle Box",
+                color = getCardContentColor(),
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        leadingContent = { Icon(Icons.Default.Clear, null) },
+        modifier = Modifier.clickable {
+            onClear()
+        }
+    )
+}
+
+@Composable
+private fun CreateNewTackleBoxButton(onAdd: () -> Unit) {
+    ListItem(
+        headlineContent = {
+            Text(
+                "Create new tackle box...",
+                color = getCardContentColor(),
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        leadingContent = { Icon(Icons.Default.Add, null) },
+        modifier = Modifier.clickable {
+            onAdd()
+        }
+    )
 }
