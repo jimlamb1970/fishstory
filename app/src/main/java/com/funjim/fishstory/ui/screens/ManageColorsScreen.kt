@@ -24,10 +24,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -165,17 +167,7 @@ fun ManageColorsScreen(
                         leadingContent = {
                             Box(
                                 modifier = Modifier.combinedClickable(
-                                    onClick = {
-                                        if (item.hexCode.isNullOrBlank()) {
-                                            pickMaxHexCodes = 1
-                                            colorToPickFor = item
-                                        } else {
-                                            pickMaxHexCodes =
-                                                if (item.hexCode.contains(',')) { 4 }
-                                                else { 1 }
-                                            colorToPickFor = item
-                                        }
-                                    },
+                                    onClick = { /* do nothing */ },
                                     onLongClick = {
                                         currentColorForPhoto = item
                                         thumbnailMenuExpanded = true
@@ -269,6 +261,40 @@ fun ManageColorsScreen(
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = "Edit") }
                                     )
+                                    DropdownMenuItem(
+                                        text = { Text("Select Single Color") },
+                                        onClick = {
+                                            thumbnailMenuExpanded = false
+                                            pickMaxHexCodes = 1
+                                            colorToPickFor = item
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.Palette, contentDescription = "Edit") }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Select Multiple Colors (Up to 4)") },
+                                        onClick = {
+                                            thumbnailMenuExpanded = false
+                                            pickMaxHexCodes = 4
+                                            colorToPickFor = item
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.Palette, contentDescription = "Edit") }
+                                    )
+                                    if (!item.hexCode.isNullOrBlank()) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Clear Color(s)",
+                                                    color = MaterialTheme.colorScheme.error
+                                                )
+                                            },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                // Save out a null reference to clear
+                                                viewModel.upsertLureColor(item.copy(hexCode = null))
+                                            },
+                                            leadingIcon = { Icon(Icons.Default.Clear, contentDescription = "Edit") }
+                                        )
+                                    }
                                     DropdownMenuItem(
                                         text = { Text("Delete") },
                                         onClick = {
