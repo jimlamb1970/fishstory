@@ -2,6 +2,7 @@ package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -325,10 +327,18 @@ fun FishermanSelectionField(
                             items = filtered,
                             key = { _, item -> item.id }
                         ) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -348,6 +358,9 @@ fun FishermanSelectionField(
                                         Text(
                                             text = item.fullName,
                                             style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
                                             maxLines = 2,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
@@ -355,59 +368,68 @@ fun FishermanSelectionField(
                                     }
                                 },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getGridCardColor(index, filteredSize),
+                                    containerColor = getGridCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (onClear != null && selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                ResetFishermanButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
+                                ModalResetButton(
+                                    title = "Reset Fisherman",
+                                    onClear = { showSheet = false; onClear() }
+                                )
                             }
                         }
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listItemsIndexed(filtered) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
                                         showSheet = false
                                         searchQuery = ""
                                     },
-                                leadingContent = {
-                                    thumbnailProvider(item)
+                                leadingContent = { thumbnailProvider(item) },
+                                headlineContent = {
+                                    Text(
+                                        item.fullName,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getCardContentColor()
+                                    )
                                 },
-                                headlineContent = { Text(item.fullName) },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getCardColor(index, filteredSize),
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (onClear != null && selectedItem != null) {
+                            item { HorizontalDivider() }
                             item {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item {
-                                ResetFishermanButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
+                                ModalResetButton(
+                                    title = "Reset Fisherman",
+                                    onClear = { showSheet = false; onClear() }
+                                )
                             }
                         }
                     }
@@ -415,23 +437,6 @@ fun FishermanSelectionField(
             }
         }
     }
-}
-
-@Composable
-private fun ResetFishermanButton(onClear: () -> Unit) {
-    ListItem(
-        headlineContent = {
-            Text(
-                "Reset Fisherman",
-                color = getCardContentColor(),
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        leadingContent = { Icon(Icons.Default.Clear, null) },
-        modifier = Modifier.clickable {
-            onClear()
-        }
-    )
 }
 
 @Preview(showBackground = true)

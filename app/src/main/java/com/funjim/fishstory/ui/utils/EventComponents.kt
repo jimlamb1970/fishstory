@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -394,10 +395,18 @@ fun EventSelectionField(
                             items = filtered,
                             key = { _, item -> item.id }
                         ) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -417,6 +426,9 @@ fun EventSelectionField(
                                         Text(
                                             text = item.name,
                                             style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
                                             maxLines = 2,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
@@ -424,32 +436,37 @@ fun EventSelectionField(
                                     }
                                 },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getGridCardColor(index, filteredSize),
+                                    containerColor = getGridCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                ResetEventButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
+                                ModalResetButton(
+                                    title = "Reset Event",
+                                    onClear = { showSheet = false; onClear() }
+                                )
                             }
                         }
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listItemsIndexed(filtered) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -459,24 +476,30 @@ fun EventSelectionField(
                                 leadingContent = {
                                     thumbnailProvider(item)
                                 },
-                                headlineContent = { Text(item.name) },
+                                headlineContent = {
+                                    Text(
+                                        text = item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getCardContentColor()
+                                    )
+                                },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getCardColor(index, filteredSize),
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (selectedItem != null) {
+                            item { HorizontalDivider() }
                             item {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item {
-                                ResetEventButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
+                                ModalResetButton(
+                                    title = "Reset Event",
+                                    onClear = { showSheet = false; onClear() }
+                                )
                             }
                         }
                     }
@@ -484,21 +507,4 @@ fun EventSelectionField(
             }
         }
     }
-}
-
-@Composable
-private fun ResetEventButton(onClear: () -> Unit) {
-    ListItem(
-        headlineContent = {
-            Text(
-                "Reset Event",
-                color = getCardContentColor(),
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        leadingContent = { Icon(Icons.Default.Clear, null) },
-        modifier = Modifier.clickable {
-            onClear()
-        }
-    )
 }

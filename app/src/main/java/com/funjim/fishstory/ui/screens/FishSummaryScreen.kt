@@ -117,6 +117,7 @@ fun FishSummaryScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
             FishVisual(
@@ -149,7 +150,7 @@ fun FishSummaryScreen(
                     viewModel.selectEvent(null)
                 },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 thumbnailProvider = { trip ->
                     val thumbnailFlow = remember(trip.id) {
@@ -176,7 +177,7 @@ fun FishSummaryScreen(
                     viewModel.selectEvent(null)
                 },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 thumbnailProvider = { event ->
                     val thumbnailFlow = remember(event.id) {
@@ -203,7 +204,7 @@ fun FishSummaryScreen(
                     viewModel.selectFisherman(null)
                 },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 thumbnailProvider = { fisherman ->
                     val thumbnailFlow = remember(fisherman.id) {
@@ -226,7 +227,7 @@ fun FishSummaryScreen(
                 onSelected = { lure -> viewModel.selectLure(lure.lure.id) },
                 onClear = { viewModel.selectLure(null) },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 thumbnailProvider = { lure ->
                     val thumbnailFlow = remember(lure.lure.id) {
@@ -276,7 +277,7 @@ private fun FishVisual(
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
             contentColor = MaterialTheme.colorScheme.onTertiary

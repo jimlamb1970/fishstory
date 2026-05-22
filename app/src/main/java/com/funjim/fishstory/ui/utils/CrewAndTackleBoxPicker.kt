@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -619,10 +620,18 @@ fun TackleBoxSelectionField(
                             items = filtered,
                             key = { _, item -> item.id }
                         ) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -645,6 +654,9 @@ fun TackleBoxSelectionField(
                                         Text(
                                             text = item.name,
                                             style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
                                             maxLines = 2,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
@@ -652,45 +664,47 @@ fun TackleBoxSelectionField(
                                     }
                                 },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getGridCardColor(index, filteredSize),
+                                    containerColor = getGridCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                ResetTackleBoxButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
+                                ModalResetButton(
+                                    title = "Reset Tackle Box",
+                                    onClear = { showSheet = false; onClear() }
+                                )
                             }
                         }
 
                         if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                CreateNewTackleBoxButton(onAdd = {
-                                    showSheet = false;
-                                    onAdd()
-                                } )
+                                ModalAddButton(
+                                    title = "Create new tackle box...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
                             }
                         }
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listItemsIndexed(filtered) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -704,76 +718,41 @@ fun TackleBoxSelectionField(
                                         modifier = Modifier.size(36.dp)
                                     )
                                 },
-                                headlineContent = { Text(item.name) },
+                                headlineContent = {
+                                    Text(
+                                        text = item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getCardContentColor()
+                                    )
+                                },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getCardColor(index, filteredSize),
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         if (selectedItem != null) {
-                            item {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item {
-                                ResetTackleBoxButton(onClear = {
-                                    showSheet = false;
-                                    onClear()
-                                } )
-                            }
+                            item { HorizontalDivider() }
+                            item { ModalResetButton(
+                                title = "Reset Tackle Box",
+                                onClear = { showSheet = false; onClear() }
+                            ) }
                         }
 
                         if (onAdd != null) {
-                            item {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-
-                            item {
-                                CreateNewTackleBoxButton(onAdd = {
-                                    showSheet = false;
-                                    onAdd()
-                                } )
-                            }
+                            item { HorizontalDivider() }
+                            item { ModalAddButton(
+                                title = "Create new tackle box...",
+                                onAdd = { showSheet = false; onAdd() }
+                            ) }
                         }
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun ResetTackleBoxButton(onClear: () -> Unit) {
-    ListItem(
-        headlineContent = {
-            Text(
-                "Reset Tackle Box",
-                color = getCardContentColor(),
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        leadingContent = { Icon(Icons.Default.Clear, null) },
-        modifier = Modifier.clickable {
-            onClear()
-        }
-    )
-}
-
-@Composable
-private fun CreateNewTackleBoxButton(onAdd: () -> Unit) {
-    ListItem(
-        headlineContent = {
-            Text(
-                "Create new tackle box...",
-                color = getCardContentColor(),
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        leadingContent = { Icon(Icons.Default.Add, null) },
-        modifier = Modifier.clickable {
-            onAdd()
-        }
-    )
 }

@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -144,10 +146,18 @@ fun SpeciesSelectionField(
                             items = filtered,
                             key = { _, item -> item.id }
                         ) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -167,6 +177,9 @@ fun SpeciesSelectionField(
                                         Text(
                                             text = item.name,
                                             style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
                                             maxLines = 2,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
@@ -174,27 +187,38 @@ fun SpeciesSelectionField(
                                     }
                                 },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getGridCardColor(index, filteredSize),
+                                    containerColor = getGridCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            HorizontalDivider()
                         }
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            AddSpeciesButton(onAdd = { showSheet = false; onAdd() } )
+                            ModalAddButton(
+                                title = "Add new species...",
+                                onAdd = { showSheet = false; onAdd() }
+                            )
                         }
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listItemsIndexed(filtered) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
@@ -202,42 +226,33 @@ fun SpeciesSelectionField(
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
-                                headlineContent = { Text(item.name) },
+                                headlineContent = {
+                                    Text(
+                                        item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getCardContentColor()
+                                    )
+                                },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getCardColor(index, filteredSize),
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
                                     headlineColor = getCardContentColor()
                                 )
                             )
                         }
 
+                        item { HorizontalDivider() }
                         item {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                        }
-
-                        item {
-                            AddSpeciesButton(onAdd = { showSheet = false; onAdd() } )
+                            ModalAddButton(
+                                title = "Add new species...",
+                                onAdd = { showSheet = false; onAdd() }
+                            )
                         }
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun AddSpeciesButton(onAdd: () -> Unit) {
-    ListItem(
-        headlineContent = {
-            Text(
-                "Add new species...",
-                color = getCardContentColor(),
-                fontWeight = FontWeight.SemiBold
-            )
-        },
-        leadingContent = { Icon(Icons.Default.Add, null) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable { onAdd() }
-    )
 }

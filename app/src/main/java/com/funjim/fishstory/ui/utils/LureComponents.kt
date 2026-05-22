@@ -6,14 +6,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -24,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -180,21 +188,10 @@ fun LureCompositionWithColors(
         }
 
         primary.forEach { color ->
-            if (color.hexCode.isNullOrBlank()) {
-                Text(
-                    text = color.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = secondaryColor
-                )
-            } else {
-                ColorCircleBadge(
-                    hexCode = color.hexCode,
-                    label = color.name,
-                    modifier = Modifier
-                        .size(colorBadgeSize)
-                        .align(Alignment.CenterVertically)
-                )
-            }
+            ProcessColor(
+                color,
+                contentColor = secondaryColor,
+                colorBadgeSize = colorBadgeSize)
         }
 
         secondary.forEach { color ->
@@ -205,21 +202,10 @@ fun LureCompositionWithColors(
                     color = secondaryColor
                 )
             }
-            if (color.hexCode.isNullOrBlank()) {
-                Text(
-                    text = color.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = secondaryColor
-                )
-            } else {
-                ColorCircleBadge(
-                    hexCode = color.hexCode,
-                    label = color.name,
-                    modifier = Modifier
-                        .size(colorBadgeSize)
-                        .align(Alignment.CenterVertically)
-                )
-            }
+            ProcessColor(
+                color,
+                contentColor = secondaryColor,
+                colorBadgeSize = colorBadgeSize)
         }
 
         if (glows) {
@@ -236,20 +222,103 @@ fun LureCompositionWithColors(
                 color = secondaryColor
             )
             glow.forEach { color ->
-                if (color.hexCode.isNullOrBlank()) {
-                    Text(
-                        text = color.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = secondaryColor
+                ProcessColor(
+                    color,
+                    contentColor = secondaryColor,
+                    colorBadgeSize = colorBadgeSize,
+                    glows = true)
+            }
+        }
+    }
+}
+
+@Composable
+fun ProcessColor(
+    color: LureColor,
+    glows: Boolean = false,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    colorBadgeSize: Dp = 28.dp
+) {
+    if (color.hexCode.isNullOrBlank()) {
+        Text(
+            text = color.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = contentColor
+        )
+    } else {
+        ColorCircleBadge(
+            hexCode = color.hexCode,
+            label = color.name,
+            modifier = Modifier.size(colorBadgeSize),
+            isGlow = glows
+        )
+    }
+}
+
+@Composable
+fun LureColorCompositionMultiLine(
+    modifier: Modifier = Modifier,
+    primary: List<LureColor> = emptyList(),
+    secondary: List<LureColor> = emptyList(),
+    glows: Boolean = false,
+    glow: List<LureColor> = emptyList(),
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    colorBadgeSize: Dp = 28.dp
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (primary.isNotEmpty() || secondary.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                primary.forEach { lureColor ->
+                    ProcessColor(
+                        color = lureColor,
+                        contentColor = contentColor,
+                        colorBadgeSize = colorBadgeSize
                     )
-                } else {
-                    ColorCircleBadge(
-                        hexCode = color.hexCode,
-                        label = color.name,
-                        isGlow = true,
-                        modifier = Modifier
-                            .size(colorBadgeSize)
-                            .align(Alignment.CenterVertically)
+                }
+
+                if (secondary.isNotEmpty()) {
+                    Text(
+                        text = " / ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = contentColor,
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                    secondary.forEach { lureColor ->
+                        ProcessColor(
+                            color = lureColor,
+                            contentColor = contentColor,
+                            colorBadgeSize = colorBadgeSize
+                        )
+                    }
+                }
+            }
+        }
+
+        if (glows || glow.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = "Glows ",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+                glow.forEach { lureColor ->
+                    ProcessColor(
+                        color = lureColor,
+                        contentColor = contentColor,
+                        colorBadgeSize = colorBadgeSize
                     )
                 }
             }
@@ -265,7 +334,7 @@ fun LureColorComposition(
     glows: Boolean = false,
     glow: List<LureColor> = emptyList(),
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    colorBadgeSize: Dp = 28.dp
+    colorBadgeSize: Dp = 28.dp,
 ) {
     FlowRow(
         modifier = modifier,
@@ -273,22 +342,10 @@ fun LureColorComposition(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         primary.forEach { color ->
-            if (color.hexCode.isNullOrBlank()) {
-                Text(
-                    text = color.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = contentColor,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-            } else {
-                ColorCircleBadge(
-                    hexCode = color.hexCode,
-                    label = color.name,
-                    modifier = Modifier
-                        .size(colorBadgeSize)
-                        .align(Alignment.CenterVertically)
-                )
-            }
+            ProcessColor(
+                color = color,
+                contentColor = contentColor,
+                colorBadgeSize = colorBadgeSize)
         }
 
         if (secondary.isNotEmpty()) {
@@ -301,23 +358,10 @@ fun LureColorComposition(
                 )
             }
             secondary.forEach { color ->
-                if (color.hexCode.isNullOrBlank()) {
-                    Text(
-                        text = color.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = contentColor,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-
-                    )
-                } else {
-                    ColorCircleBadge(
-                        hexCode = color.hexCode,
-                        label = color.name,
-                        modifier = Modifier
-                            .size(colorBadgeSize)
-                            .align(Alignment.CenterVertically)
-                    )
-                }
+                ProcessColor(
+                    color = color,
+                    contentColor = contentColor,
+                    colorBadgeSize = colorBadgeSize)
             }
         }
 
@@ -328,7 +372,6 @@ fun LureColorComposition(
                     style = MaterialTheme.typography.bodySmall,
                     color = contentColor,
                     modifier = Modifier.align(Alignment.CenterVertically)
-
                 )
             }
             Text(
@@ -338,22 +381,11 @@ fun LureColorComposition(
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
             glow.forEach { color ->
-                if (color.hexCode.isNullOrBlank()) {
-                    Text(
-                        text = color.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = contentColor
-                    )
-                } else {
-                    ColorCircleBadge(
-                        hexCode = color.hexCode,
-                        label = color.name,
-                        isGlow = true,
-                        modifier = Modifier
-                            .size(colorBadgeSize)
-                            .align(Alignment.CenterVertically)
-                    )
-                }
+                ProcessColor(
+                    color = color,
+                    glows = true,
+                    contentColor = contentColor,
+                    colorBadgeSize = colorBadgeSize)
             }
         }
     }
@@ -403,7 +435,7 @@ fun ColorCircleBadge(
             ) {
                 Text(
                     text = if (label.length > 1) label[0].toString() else label,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = if (isColorDark(color)) Color.White else Color.Black,
                     modifier = Modifier.alpha(0.9f)
@@ -492,6 +524,8 @@ fun LureSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
+    var isGridView by remember { mutableStateOf(true) }
+
     OutlinedTextField(
         value = selectedItem?.lure?.name ?: defaultText,
         onValueChange = {},
@@ -523,15 +557,30 @@ fun LureSelectionField(
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Select Lure",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Select Lure",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 TextButton(
                     onClick = {
@@ -543,7 +592,10 @@ fun LureSelectionField(
                 }
             }
 
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.8f)
+                .padding(start = 16.dp, end = 16.dp)
+            ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -557,84 +609,166 @@ fun LureSelectionField(
                 val filtered = items.filter {
                     it.lure.name.contains(searchQuery, ignoreCase = true)
                 }
+                val filteredSize = filtered.size
 
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = getCardColor(index, filteredSize)
-                        val contentColor = getCardContentColor()
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        gridItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.lure.id }
+                        ) { index, item ->
+                            val isSelected = item == selectedItem
 
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                            leadingContent = {
-                                thumbnailProvider(item)
-                            },
-                            headlineContent = {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = item.lure.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = contentColor
-                                    )
-
-                                    LureColorComposition(
-                                        primary = item.primaryColors,
-                                        secondary = item.secondaryColors,
-                                        glows = item.lure.glows,
-                                        glow = item.glowColors
-                                    )
-                                }
-                            },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = contentColor
-                            )
-                        )
-                    }
-
-                    if (onAdd != null) {
-                        item {
-                            HorizontalDivider()
                             ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
                                 headlineContent = {
-                                    Text(
-                                        "Add lures to tackle box...",
-                                        color = MaterialTheme.colorScheme.primary) },
-                                leadingContent = { Icon(Icons.Default.Add, null) },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onAdd()
-                                }
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp, horizontal = 4.dp)
+                                    ) {
+                                        thumbnailProvider(item)
+
+                                        Text(
+                                            text = item.lure.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        LureColorCompositionMultiLine(
+                                            primary = item.primaryColors,
+                                            secondary = item.secondaryColors,
+                                            glows = item.lure.glows,
+                                            glow = item.glowColors,
+                                            colorBadgeSize = 16.dp
+                                        )
+                                    }
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getGridCardColor(index, filteredSize, isSelected),
+                                    headlineColor = getCardContentColor()
+                                )
                             )
                         }
-                    }
 
-                    if (onClear != null && selectedItem != null) {
-                        item {
-                            HorizontalDivider()
+                        if (onClear != null && selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalResetButton(
+                                    title = "Reset Lure",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalAddButton(
+                                    title = "Add lures to tackle box...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listItemsIndexed(filtered) { index, item ->
+                            val isSelected = item == selectedItem
+
                             ListItem(
-                                headlineContent = {
-                                    Text(
-                                        "Reset Lure",
-                                        color = MaterialTheme.colorScheme.primary
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getCardContentColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
                                     )
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
+                                leadingContent = {
+                                    thumbnailProvider(item)
                                 },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
+                                headlineContent = {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = item.lure.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
+                                            color = getCardContentColor()
+                                        )
+
+                                        LureColorComposition(
+                                            primary = item.primaryColors,
+                                            secondary = item.secondaryColors,
+                                            glows = item.lure.glows,
+                                            glow = item.glowColors
+                                        )
+                                    }
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
+                                    headlineColor = getCardContentColor()
+                                )
                             )
+                        }
+
+                        if (onClear != null && selectedItem != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalResetButton(
+                                    title = "Reset Lure",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalAddButton(
+                                    title = "Add lures to tackle box...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
                         }
                     }
                 }
