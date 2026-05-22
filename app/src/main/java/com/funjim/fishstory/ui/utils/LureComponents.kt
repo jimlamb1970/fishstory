@@ -375,7 +375,7 @@ fun ColorCircleBadge(
             .aspectRatio(1f) // Crucial: forces the shape to stay a perfect circle even if sizes match weirdly
             .clip(CircleShape)
             .border(
-                width = if (isGlow) 1.5.dp else 2.dp,
+                width = if (isGlow) 2.dp else 1.dp,
                 color =
                     if (isGlow) MaterialTheme.colorScheme.tertiary
                     else MaterialTheme.colorScheme.primary,

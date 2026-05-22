@@ -6,5 +6,5 @@ enum class LureSortOrder {
     SECONDARY_COLOR,
     GLOW_COLOR,
     GLOW,
-    HOOK_TYPE
+    HOOKS
 }

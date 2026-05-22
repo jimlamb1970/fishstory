@@ -56,7 +56,7 @@ class LureViewModel(
             LureSortOrder.SECONDARY_COLOR -> sortLures(list, order)
             LureSortOrder.GLOW_COLOR -> sortLures(list, order)
             LureSortOrder.GLOW -> list.sortedBy { it.lure.glows }
-            LureSortOrder.HOOK_TYPE -> list.sortedBy { it.lure.hookCount }
+            LureSortOrder.HOOKS -> list.sortedBy { it.lure.hookCount }
         }
     }
 

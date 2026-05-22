@@ -168,9 +168,9 @@ fun FishermanTackleBoxScreen(
                         currentOrder == LureSortOrder.GLOW) {
                         viewModel.setSortOrder(LureSortOrder.GLOW)
                     }
-                    SortChip("Hook Type",
-                        currentOrder == LureSortOrder.HOOK_TYPE) {
-                        viewModel.setSortOrder(LureSortOrder.HOOK_TYPE)
+                    SortChip("Hooks",
+                        currentOrder == LureSortOrder.HOOKS) {
+                        viewModel.setSortOrder(LureSortOrder.HOOKS)
                     }
                 }
 

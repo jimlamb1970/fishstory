@@ -1,6 +1,5 @@
 package com.funjim.fishstory.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -125,8 +124,8 @@ fun LureListScreen(
                         viewModel.setSortOrder(LureSortOrder.GLOW)
                     }
                     SortChip("Hook Type",
-                        currentOrder == LureSortOrder.HOOK_TYPE) {
-                        viewModel.setSortOrder(LureSortOrder.HOOK_TYPE)
+                        currentOrder == LureSortOrder.HOOKS) {
+                        viewModel.setSortOrder(LureSortOrder.HOOKS)
                     }
                 }
 
