@@ -102,7 +102,7 @@ fun FishItem(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFish,
-                    modifier = Modifier.size(72.dp)
+                    modifier = Modifier.size(64.dp)
                 )
             }
 

@@ -75,7 +75,7 @@ fun LureItem(
             ThumbnailBox(
                 thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Lure,
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(64.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))

@@ -288,7 +288,7 @@ private fun FishDetailContent(
                 ThumbnailBox(
                     thumbnail = fishThumbnail,
                     imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(72.dp)
+                    modifier = Modifier.size(64.dp)
                 )
             }
 
