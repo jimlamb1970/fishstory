@@ -91,7 +91,8 @@ interface FishermanDao {
         f.*, 
         (SELECT COALESCE(SUM(ft.caughtCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalCatches,
         (SELECT COALESCE(SUM(ft.keptCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalKept,
-        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips
+        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
+        (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
     FROM fisherman_table AS f
     GROUP BY f.id
 """)

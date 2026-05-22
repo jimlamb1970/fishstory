@@ -44,16 +44,10 @@ fun FishermanItem(
 
     var expanded by remember { mutableStateOf(false) }
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getCardContentColor()
+    val secondaryContentColor = getCardSecondaryContentColor()
 
     OutlinedCard(
         modifier = Modifier
@@ -65,7 +59,7 @@ fun FishermanItem(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            contentColor = contentColor
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
@@ -77,7 +71,7 @@ fun FishermanItem(
             ThumbnailBox(
                 thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Fisherman,
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(64.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -86,51 +80,43 @@ fun FishermanItem(
                 Text(
                     fisherman.fisherman.fullName,
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold)
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Single Row for both Trip and Catch stats
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Trip Count
-                    if (fisherman.totalTrips != 0) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = AppIcons.Default.Boat,
-                                contentDescription = "Trips",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(36.dp) // Increased size
+                if (fisherman.totalTrips != 0 || fisherman.totalTackleBoxes != 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (fisherman.totalTrips != 0) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Boat,
+                                value = fisherman.totalTrips.toString(),
+                                contentColor = secondaryContentColor
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                "${fisherman.totalTrips}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                        }
+                        if (fisherman.totalTackleBoxes != 0) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.TackleBox,
+                                value = fisherman.totalTackleBoxes.toString(),
+                                contentColor = secondaryContentColor
                             )
                         }
                     }
+                }
 
-                    // Catch Stats
-                    if (caughtCount != 0) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = AppIcons.Default.LeapingFish,
-                                contentDescription = "Fish",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp) // Increased size
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            BoldingNumbersText(
-                                text = "Kept $keptCount of $caughtCount",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
+                if (caughtCount != 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFish,
+                            caughtCount = caughtCount,
+                            keptCount = keptCount,
+                            contentColor = secondaryContentColor
+                        )
                     }
                 }
             }
@@ -371,7 +357,8 @@ fun FishermanItemPreview() {
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
                 totalCatches = 10,
                 totalKept = 2,
-                totalTrips = 5
+                totalTrips = 5,
+                totalTackleBoxes = 3
             ),
             thumbnailFlow = flowOf(null),
             onClick = {},
