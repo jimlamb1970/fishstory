@@ -65,6 +65,10 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,23 +146,19 @@ fun ManageColorsScreen(
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                    } else {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                    }
-
-                    val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                        MaterialTheme.colorScheme.tertiary
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
+                    val backgroundColor = getCardColor(index, filteredSize)
+                    val borderColor = getCardBorderColor(index, filteredSize)
+                    val contentColor = getCardContentColor()
+                    val secondaryContentColor = getCardSecondaryContentColor()
 
                     ListItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
+                            .border(
+                                width = 1.dp,
+                                color = borderColor,
+                                shape = MaterialTheme.shapes.medium)
                             .clip(MaterialTheme.shapes.medium)
                             .combinedClickable(
                                 onClick = { /* do nothing */ },
@@ -259,7 +259,9 @@ fun ManageColorsScreen(
                                             colorToEdit = item
                                             editName = item.name
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = "Edit") }
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                        }
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Select Single Color") },
@@ -268,7 +270,9 @@ fun ManageColorsScreen(
                                             pickMaxHexCodes = 1
                                             colorToPickFor = item
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Palette, contentDescription = "Edit") }
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Palette, contentDescription = "Edit")
+                                        }
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Select Multiple Colors (Up to 4)") },
@@ -277,7 +281,9 @@ fun ManageColorsScreen(
                                             pickMaxHexCodes = 4
                                             colorToPickFor = item
                                         },
-                                        leadingIcon = { Icon(Icons.Default.Palette, contentDescription = "Edit") }
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Palette, contentDescription = "Edit")
+                                        }
                                     )
                                     if (!item.hexCode.isNullOrBlank()) {
                                         DropdownMenuItem(
@@ -292,7 +298,9 @@ fun ManageColorsScreen(
                                                 // Save out a null reference to clear
                                                 viewModel.upsertLureColor(item.copy(hexCode = null))
                                             },
-                                            leadingIcon = { Icon(Icons.Default.Clear, contentDescription = "Edit") }
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Clear, contentDescription = "Edit")
+                                            }
                                         )
                                     }
                                     DropdownMenuItem(
@@ -312,9 +320,7 @@ fun ManageColorsScreen(
                                 }
                             }
                         },
-                        colors = ListItemDefaults.colors(
-                            containerColor = backgroundColor
-                        )
+                        colors = ListItemDefaults.colors(containerColor = backgroundColor)
                     )
                     HorizontalDivider(thickness = 0.5.dp)
                 }

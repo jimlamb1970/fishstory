@@ -31,6 +31,10 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -335,7 +339,11 @@ fun AddLureScreen(
             onDismissRequest = { showAddColorDialog = null; newColorName = "" },
             title = { Text("Add New Color") },
             text = {
-                TextField(value = newColorName, onValueChange = { newColorName = it }, placeholder = { Text("Color Name") })
+                TextField(
+                    value = newColorName,
+                    onValueChange = { newColorName = it },
+                    placeholder = { Text("Color Name") }
+                )
             },
             confirmButton = {
                 Button(onClick = {
@@ -446,17 +454,9 @@ fun LureColorSelectionField(
                 LazyColumn {
                     val filteredSize = filtered.size
                     itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
+                        val backgroundColor = getCardColor(index, filteredSize)
+                        val borderColor = getCardBorderColor(index, filteredSize)
+                        val contentColor = getCardContentColor()
 
                         val isChecked = selectedItems.contains(item)
                         val isClickable = isChecked || !isSelectionLocked
@@ -465,8 +465,6 @@ fun LureColorSelectionField(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable(enabled = isClickable) {
                                     onSelected(item)
@@ -486,14 +484,10 @@ fun LureColorSelectionField(
                                         modifier = Modifier
                                             .size(48.dp)
                                             .clip(CircleShape)
-                                            .border(
-                                                2.dp,
-                                                borderColor,
-                                                CircleShape
+                                            .border(2.dp, borderColor, CircleShape
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        // Dynamic layout grid depending on hex count
                                         MultiColorCirclePreview(hexList = hexList)
                                     }
                                 }
@@ -508,7 +502,7 @@ fun LureColorSelectionField(
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
+                                headlineColor = contentColor
                             )
                         )
                     }
@@ -516,7 +510,12 @@ fun LureColorSelectionField(
                     item {
                         HorizontalDivider()
                         ListItem(
-                            headlineContent = { Text("Add color...", color = MaterialTheme.colorScheme.primary) },
+                            headlineContent = {
+                                Text(
+                                    "Add color...",
+                                    color = getCardContentColor()
+                                )
+                            },
                             leadingContent = { Icon(Icons.Default.Add, null) },
                             modifier = Modifier.clickable {
                                 showSheet = false

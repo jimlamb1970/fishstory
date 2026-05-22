@@ -49,6 +49,10 @@ import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
 
@@ -588,7 +592,6 @@ fun FishermanLoadingView() {
     }
 }
 
-// TODO -- remove viewmodel dependency
 @Composable
 fun TackleBoxCard(
     tackleBoxWithLures: TackleBoxWithLures,
@@ -616,16 +619,10 @@ fun TackleBoxCard(
         }
     }
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getCardContentColor()
+    val secondaryContentColor = getCardSecondaryContentColor()
 
     OutlinedCard(
         modifier = modifier
@@ -637,7 +634,7 @@ fun TackleBoxCard(
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            contentColor = contentColor
         ),
         border = BorderStroke(1.dp, color = borderColor),
         elevation = CardDefaults.cardElevation()
@@ -667,7 +664,7 @@ fun TackleBoxCard(
                         Text(
                             "${tackleBoxWithLures.lures.size} Lures",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = secondaryContentColor
                         )
                     }
                 }
@@ -719,7 +716,7 @@ fun TackleBoxCard(
                                 lure.lure.glows,
                                 lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                contentColor = secondaryContentColor,
                                 modifier = Modifier
                                     .padding(start = 50.dp, bottom = 4.dp),
                                 colorBadgeSize = 20.dp
