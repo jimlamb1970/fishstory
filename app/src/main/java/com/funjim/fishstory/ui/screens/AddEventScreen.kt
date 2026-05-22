@@ -369,7 +369,10 @@ fun AddEventScreen(
                         Spacer(Modifier.height(16.dp))
                         TripViewModelCrewPickerBridge(
                             title = "Event Crew & Tackle Boxes",
-                            subtitle = "Who's fishing \"${eventDraft.name}\"? Tackle boxes default to trip selections.",
+                            subtitle = """Who's fishing "${eventDraft.name}"? Tackle boxes default to trip selections.
+                                |
+                                |If no one is selected, the trip crew and tackle box assignments will be used."""
+                                .trimMargin(),
                             eligibleFishermen = tripFishermen,
                             selectedIds = eventFishermenIds,
                             tackleBoxSelections = eventTackleBoxMap,

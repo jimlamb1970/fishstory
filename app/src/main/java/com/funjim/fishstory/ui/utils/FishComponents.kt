@@ -61,17 +61,6 @@ fun FishItem(
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    val backgroundColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-    }
-    val borderColor = if (index % 2 == 0 || totalItems <= 3) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
-
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,10 +70,10 @@ fun FishItem(
                 onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.primary
+            containerColor = getCardColor(index, totalItems),
+            contentColor = getCardContentColor()
         ),
-        border = BorderStroke(1.dp, color = borderColor)
+        border = BorderStroke(1.dp, color = getCardBorderColor(index, totalItems))
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -134,7 +123,7 @@ fun FishItem(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = getCardContentColor(),
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
@@ -156,7 +145,7 @@ fun FishItem(
                             Text(
                                 text = if (eventLat != null) "(Event)" else "(Trip)",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = getCardContentColor()
                             )
                         }
                     }
@@ -166,32 +155,32 @@ fun FishItem(
                     Text(
                         "Trip: ${fish.trip.name}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = getCardSecondaryContentColor()
                     )
 
                 if (includeEvent)
                     Text(
                         "Event: ${fish.event.name}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = getCardSecondaryContentColor()
                     )
 
                 if (includeFisherman)
                     Text(
                         "Caught by: ${fish.fisherman?.fullName}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = getCardSecondaryContentColor()
                     )
 
                 Text(
                     "Lure: ${fish.fullLureName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = getCardSecondaryContentColor()
                 )
                 Text(
                     "At: ${dateFormatter.format(Date(fish.fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = getCardSecondaryContentColor()
                 )
             }
 

@@ -163,10 +163,6 @@ fun AddLureScreen(
                     }
                 },
                 onAdd = { showAddColorDialog = ColorTarget.PRIMARY },
-                onClear = {
-                    selectedPrimaryColors = selectedSecondaryColors
-                    selectedSecondaryColors = emptyList()
-                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -189,7 +185,6 @@ fun AddLureScreen(
                         }
                     },
                     onAdd = { showAddColorDialog = ColorTarget.SECONDARY },
-                    onClear = { selectedSecondaryColors = emptyList() },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -238,7 +233,6 @@ fun AddLureScreen(
                         }
                     },
                     onAdd = { showAddColorDialog = ColorTarget.GLOW },
-                    onClear = { selectedGlowColors = emptyList() },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -386,171 +380,12 @@ fun AddLureScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LureColorSelectionFieldOriginal(
-    items: List<LureColor>,
-    selectedItems: List<LureColor>,
-    label: String,
-    onSelected: (LureColor) -> Unit,
-    onAdd: () -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    val maxSelections = 4
-
-    // Display for the current selection
-    OutlinedTextField(
-        value = "${selectedItems.size} of $maxSelections colors selected",
-        onValueChange = {},
-        readOnly = true,
-        modifier = modifier.clickable { showSheet = true },
-        enabled = false, // Prevents focus/keyboard on the main text field
-        colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = MaterialTheme.colorScheme.outline,
-            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        label = { Text(label) },
-        trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
-    )
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Colors (${selectedItems.size} of $maxSelections)",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                TextButton(
-                    onClick = {
-                        showSheet = false
-                        searchQuery = ""
-                    }
-                ) {
-                    Text("Done")
-                }
-            }
-
-            Column(modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp)
-                .fillMaxHeight(0.8f)) {
-                // Search bar inside the sheet
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Search Colors...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // List inside the sheet
-                val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
-                val isSelectionLocked = selectedItems.size >= maxSelections
-                val filteredSize = filtered.size
-
-                LazyColumn {
-                    listItemsIndexed(filtered) { index, item ->
-                        val backgroundColor = getCardColor(index, filteredSize)
-                        val borderColor = getCardBorderColor(index, filteredSize)
-                        val contentColor = getCardContentColor()
-
-                        val isChecked = selectedItems.contains(item)
-                        val isClickable = isChecked || !isSelectionLocked
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable(enabled = isClickable) {
-                                    onSelected(item)
-                                },
-                            leadingContent = {
-                                if (item.hexCode.isNullOrBlank()) {
-                                    ThumbnailBox(
-                                        thumbnail = null,
-                                        imageVector = Icons.Default.Palette,
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                } else {
-                                    val hexList = remember(item.hexCode) {
-                                        item.hexCode.split(",").filter { it.isNotBlank() }
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape)
-                                            .border(
-                                                2.dp, borderColor, CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        MultiColorCirclePreview(hexList = hexList)
-                                    }
-                                }
-                            },
-                            headlineContent = { Text(item.name) },
-                            trailingContent = {
-                                Checkbox(
-                                    checked = isChecked,
-                                    onCheckedChange = null,
-                                    enabled = isClickable
-                                )
-                            },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = contentColor
-                            )
-                        )
-                    }
-
-                    item {
-                        HorizontalDivider()
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    "Add color...",
-                                    color = getCardContentColor()
-                                )
-                            },
-                            leadingContent = { Icon(Icons.Default.Add, null) },
-                            modifier = Modifier.clickable {
-                                showSheet = false
-                                onAdd()
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun LureColorSelectionField(
     items: List<LureColor>,
     selectedItems: List<LureColor>,
     label: String,
     onSelected: (LureColor) -> Unit,
     onAdd: () -> Unit,
-    onClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showSheet by remember { mutableStateOf(false) }

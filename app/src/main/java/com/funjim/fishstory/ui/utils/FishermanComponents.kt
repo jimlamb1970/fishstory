@@ -6,10 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -230,6 +236,8 @@ fun FishermanSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
+    var isGridView by remember { mutableStateOf(true) }
+
     OutlinedTextField(
         value = selectedItem?.fullName ?: defaultText,
         onValueChange = {},
@@ -252,15 +260,30 @@ fun FishermanSelectionField(
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Select Fisherman",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Select Fisherman",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 TextButton(
                     onClick = {
@@ -272,7 +295,10 @@ fun FishermanSelectionField(
                 }
             }
 
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.8f)
+                .padding(start = 16.dp, end = 16.dp)
+            ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -286,66 +312,126 @@ fun FishermanSelectionField(
                 val filtered = items.filter {
                     it.fullName.contains(searchQuery, ignoreCase = true)
                 }
+                val filteredSize = filtered.size
 
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = if ((index % 2 == 0) || (filteredSize < 4)) {
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        }
-
-                        val borderColor = if (index % 2 == 0 || filteredSize <= 3) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                //.border(width = 1.dp, color = borderColor, shape = MaterialTheme.shapes.medium)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                            leadingContent = {
-                                thumbnailProvider(item)
-                            },
-                            headlineContent = { Text(item.fullName) },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-
-                    if (onClear != null && selectedItem != null) {
-                        item {
-                            HorizontalDivider()
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        gridItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.id }
+                        ) { index, item ->
                             ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
                                 headlineContent = {
-                                    Text(
-                                        "Reset Fisherman",
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp, horizontal = 4.dp)
+                                    ) {
+                                        thumbnailProvider(item)
+
+                                        Text(
+                                            text = item.fullName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getGridCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
+                                )
                             )
+                        }
+
+                        if (onClear != null && selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ResetFishermanButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn {
+                        listItemsIndexed(filtered) { index, item ->
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
+                                leadingContent = {
+                                    thumbnailProvider(item)
+                                },
+                                headlineContent = { Text(item.fullName) },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
+                                )
+                            )
+                        }
+
+                        if (onClear != null && selectedItem != null) {
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item {
+                                ResetFishermanButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ResetFishermanButton(onClear: () -> Unit) {
+    ListItem(
+        headlineContent = {
+            Text(
+                "Reset Fisherman",
+                color = getCardContentColor(),
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        leadingContent = { Icon(Icons.Default.Clear, null) },
+        modifier = Modifier.clickable {
+            onClear()
+        }
+    )
 }
 
 @Preview(showBackground = true)

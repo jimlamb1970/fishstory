@@ -8,11 +8,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -25,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
@@ -300,6 +307,8 @@ fun EventSelectionField(
     var showSheet by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
+    var isGridView by remember { mutableStateOf(true) }
+
     OutlinedTextField(
         value = selectedItem?.name ?: "Select Event (optional)",
         onValueChange = {},
@@ -322,15 +331,30 @@ fun EventSelectionField(
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Select Event",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Select Event",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 TextButton(
                     onClick = {
@@ -342,7 +366,10 @@ fun EventSelectionField(
                 }
             }
 
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.8f)
+                .padding(start = 16.dp, end = 16.dp)
+            ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -354,54 +381,124 @@ fun EventSelectionField(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 val filtered = items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                val filteredSize = filtered.size
 
-                LazyColumn {
-                    val filteredSize = filtered.size
-                    itemsIndexed(filtered) { index, item ->
-                        val backgroundColor = getCardColor(index, filteredSize)
-                        val contentColor = getCardContentColor()
-
-                        ListItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                // TODO -- hide the border for now
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    onSelected(item)
-                                    showSheet = false
-                                    searchQuery = ""
-                                },
-                            leadingContent = {
-                                thumbnailProvider(item)
-                            },
-                            headlineContent = { Text(item.name) },
-                            colors = ListItemDefaults.colors(
-                                containerColor = backgroundColor,
-                                headlineColor = contentColor
-                            )
-                        )
-                    }
-
-                    if (selectedItem != null) {
-                        item {
-                            HorizontalDivider()
+                if (isGridView) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        gridItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.id }
+                        ) { index, item ->
                             ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
                                 headlineContent = {
-                                    Text(
-                                        "Reset Event",
-                                        color = getCardContentColor()
-                                    )
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp, horizontal = 4.dp)
+                                    ) {
+                                        thumbnailProvider(item)
+
+                                        Text(
+                                            text = item.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 },
-                                modifier = Modifier.clickable {
-                                    showSheet = false
-                                    onClear()
-                                }
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getGridCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
+                                )
                             )
+                        }
+
+                        if (selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ResetEventButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn {
+                        listItemsIndexed(filtered) { index, item ->
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        onSelected(item)
+                                        showSheet = false
+                                        searchQuery = ""
+                                    },
+                                leadingContent = {
+                                    thumbnailProvider(item)
+                                },
+                                headlineContent = { Text(item.name) },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getCardColor(index, filteredSize),
+                                    headlineColor = getCardContentColor()
+                                )
+                            )
+                        }
+
+                        if (selectedItem != null) {
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+
+                            item {
+                                ResetEventButton(onClear = {
+                                    showSheet = false;
+                                    onClear()
+                                } )
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ResetEventButton(onClear: () -> Unit) {
+    ListItem(
+        headlineContent = {
+            Text(
+                "Reset Event",
+                color = getCardContentColor(),
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        leadingContent = { Icon(Icons.Default.Clear, null) },
+        modifier = Modifier.clickable {
+            onClear()
+        }
+    )
 }
