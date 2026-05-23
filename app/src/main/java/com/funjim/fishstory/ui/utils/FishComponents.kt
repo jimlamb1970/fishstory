@@ -55,7 +55,7 @@ fun FishItem(
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(vertical = 4.dp)
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { menuExpanded = true }
@@ -67,7 +67,7 @@ fun FishItem(
         border = BorderStroke(1.dp, color = getCardBorderColor(index, totalItems))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier.padding(8.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

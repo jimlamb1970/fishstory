@@ -25,6 +25,8 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.getChipColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 
@@ -136,14 +138,14 @@ fun LureListScreen(
                     modifier = Modifier
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = getChipColor(),
                             shape = RoundedCornerShape(8.dp)
                         ).size(34.dp)
                 ) {
                     Icon(
                         imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                         contentDescription = "Reverse Sort",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = getOnChipColor(),
                     )
                 }
             }

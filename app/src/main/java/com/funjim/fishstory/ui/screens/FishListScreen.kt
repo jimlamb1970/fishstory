@@ -34,6 +34,9 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.getChipColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
+import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.FishViewModel
@@ -44,38 +47,38 @@ import kotlinx.coroutines.launch
 fun FishListScreen(
     viewModel: FishViewModel,
     tripId: String?,
-    eventId: String?,   // empty string means trip-level (no event selected)
+    eventId: String?,
     fishermanId: String?,
     lureId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = tripId) {
+    LaunchedEffect(key1 = listOf(tripId, eventId, fishermanId, lureId)) {
         viewModel.selectTrip(tripId)
-    }
-    LaunchedEffect(key1 = eventId) {
         viewModel.selectEvent(eventId)
-    }
-    LaunchedEffect(key1 = fishermanId) {
         viewModel.selectFisherman(fishermanId)
-    }
-    LaunchedEffect(key1 = lureId) {
         viewModel.selectLure(lureId)
     }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    /*
-     TODO - need to look into location behavior for when trip and/or event
-      is not specified for location selection.  If they are not specified, those
-      options can not be picked.
-     */
     val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
     val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
-    val screenTitle = "Fish Log"
+    val lure by viewModel.selectedLure.collectAsStateWithLifecycle()
+
+    val isLoading = (tripId != null && trip == null) ||
+            (eventId != null && event == null) ||
+            (fishermanId != null && fisherman == null) ||
+            (lureId != null && lure == null)
+
+    val names = if (isLoading) {
+        emptyList() // Keep it clean while fetching
+    } else {
+        listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.lure?.name)
+    }
 
     // Load fish for the appropriate scope
     val fishForScope by viewModel.fishForScope.collectAsStateWithLifecycle()
@@ -123,7 +126,7 @@ fun FishListScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(screenTitle)
+                        Text("Fish Log")
                         Spacer(Modifier.width(4.dp))
                         val total = fishForScope.size
                         Text(
@@ -180,38 +183,23 @@ fun FishListScreen(
         } else {
             Column(modifier = Modifier.padding(padding).fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
                 ) {
-                    if (!fishermanId.isNullOrEmpty()) {
-                        Text(
-                            text = fisherman?.fullName ?: "All Fishermen",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-
-                        )
-                    } else {
-                        Text(
-                            text = trip?.name ?: "All Trips",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                // TODO - make this a drop down menu for all the events in the trip?
-                if (!eventId.isNullOrEmpty()) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically)
-                    {
-                        Text(
-                            text = event?.name ?: "All Events",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                    names.forEachIndexed { index, string ->
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(0.dp)) {
+                            Text(
+                                text = string,
+                                style =
+                                    if (index == 0) MaterialTheme.typography.titleMedium
+                                    else MaterialTheme.typography.titleSmall,
+                                fontWeight =
+                                    if (index == 0) FontWeight.Bold
+                                    else FontWeight.Normal,
+                                color = getOnMainColor()
+                            )
+                        }
                     }
                 }
 
@@ -219,7 +207,7 @@ fun FishListScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(modifier = Modifier
@@ -280,14 +268,14 @@ fun FishListScreen(
                         modifier = Modifier
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline,
+                                color = getChipColor(),
                                 shape = RoundedCornerShape(8.dp)
                             ).size(34.dp)
                     ) {
                         Icon(
                             imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                             contentDescription = "Reverse Sort",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = getOnChipColor(),
                         )
                     }
                 }
@@ -299,7 +287,7 @@ fun FishListScreen(
                 ) {
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
                     ) {
                         val totalItems = fishForScope.size
                         itemsIndexed(

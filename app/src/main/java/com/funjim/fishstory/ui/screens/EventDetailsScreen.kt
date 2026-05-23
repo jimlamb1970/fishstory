@@ -35,6 +35,10 @@ import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainColor
+import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -268,8 +272,8 @@ fun EventDetailsScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { navigateToAddFish() },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = getMainButtonColor(),
+                contentColor = getOnMainButtonColor(),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("Log Fish") }
             )
@@ -289,7 +293,7 @@ fun EventDetailsScreen(
                                 text = details.event.name,
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = getOnMainColor()
 
                             )
                             val displayLat = details.event.latitude ?: details.trip.latitude
@@ -301,7 +305,7 @@ fun EventDetailsScreen(
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "View on map",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = getOnMainColor(),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
@@ -323,7 +327,7 @@ fun EventDetailsScreen(
                                     Text(
                                         text = "(Trip)",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = getOnMainColor()
                                     )
                                 }
                             }
@@ -332,13 +336,13 @@ fun EventDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.event.startTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnSecondaryColor()
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.event.endTime))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnSecondaryColor()
                         )
 
                         PhotoPickerRow(

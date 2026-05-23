@@ -216,10 +216,9 @@ fun TripListScreen(
     ) { padding ->
         Column(modifier = Modifier
             .padding(padding)
-            .padding(horizontal = 16.dp)
             .fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(modifier = Modifier
@@ -246,7 +245,8 @@ fun TripListScreen(
             val listState = rememberLazyListState()
 
             Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(state = listState) {
+                LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
                     when (filter) {
                         TripListFilter.UPCOMING -> {
                             itemsIndexed(state.upcomingTrips) { index, trip ->
@@ -254,7 +254,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
-                                    modifier = Modifier.padding(4.dp),
+                                    modifier = Modifier.padding(vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -270,7 +270,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.liveTrips.size,
-                                    modifier = Modifier.padding(4.dp),
+                                    modifier = Modifier.padding(vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -286,7 +286,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.completedTrips.size,
-                                    modifier = Modifier.padding(4.dp),
+                                    modifier = Modifier.padding(vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,

@@ -148,7 +148,7 @@ fun PhotoPickerRow(
                 Icon(
                     Icons.Default.AddAPhoto,
                     contentDescription = "Take Photo",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = getMainButtonColor()
                 )
             }
             IconButton(onClick = {
@@ -157,7 +157,7 @@ fun PhotoPickerRow(
                 Icon(
                     Icons.Default.PhotoLibrary,
                     contentDescription = "Select from Gallery",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = getMainButtonColor()
                 )
             }
         }

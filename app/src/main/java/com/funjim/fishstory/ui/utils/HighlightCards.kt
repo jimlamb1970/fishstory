@@ -45,8 +45,8 @@ fun EventHighlightCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            containerColor = getCardColor(),
+            contentColor = getOnCardColor()
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -55,7 +55,7 @@ fun EventHighlightCard(
                 text = "Fish Summary",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                color = getOnCardColor(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             )
@@ -65,13 +65,13 @@ fun EventHighlightCard(
                 StatItem(
                     label = "CAUGHT",
                     value = "${summary.fishCaught}",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
                 StatItem(
                     label = "KEPT",
                     value = "${summary.fishKept}",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
@@ -84,8 +84,8 @@ fun EventHighlightCard(
                     name = summary.mostCaughtName,
                     description = "(${summary.mostCaught} fish)",
                     modifier = Modifier.weight(1f),
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
 
                 AchievementItem(
                     icon = Icons.Default.Star,
@@ -96,8 +96,8 @@ fun EventHighlightCard(
                         useFractions = true
                     )} : ${summary.bigFishSpecies})",
                     modifier = Modifier.weight(1f),
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
             }
         }
     }
@@ -114,8 +114,8 @@ fun FishermanHighlightCard(
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onSurface
+            containerColor = getCardColor(),
+            contentColor = getOnCardColor()
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -141,8 +141,8 @@ fun FishermanHighlightCard(
                             .size(if (isSelected) 8.dp else 6.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                if (isSelected) getOnCardColor()
+                                else getOnCardColor().copy(alpha = 0.3f)
                             ).clickable {
                                 scope.launch {
                                     pagerState.animateScrollToPage(i)
@@ -161,7 +161,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
         Text(
             text = "HIGHLIGHTS",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = getOnCardColor(),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
@@ -177,7 +177,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
                         useFractions = true
                     ),
                     description = stats.largestFishSpecies,
-                    color = MaterialTheme.colorScheme.primary
+                    color = getOnCardColor()
                 )
             }
         }
@@ -220,7 +220,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
         Text(
             text = "LOWLIGHTS",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = getOnCardColor(),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
@@ -236,7 +236,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
                         useFractions = true
                     ),
                     description = stats.smallestFishSpecies,
-                    color = MaterialTheme.colorScheme.primary
+                    color = getOnCardColor()
                 )
             }
         }
@@ -282,8 +282,8 @@ fun TripHighlightCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            containerColor = getCardColor(),
+            contentColor = getOnCardColor()
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -292,7 +292,7 @@ fun TripHighlightCard(
                 text = "Fish Summary",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                color = getOnCardColor(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             )
@@ -302,14 +302,14 @@ fun TripHighlightCard(
                 StatItem(
                     label = "CAUGHT",
                     value = "${tripSummary.fishCaught}",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
 
                 StatItem(
                     label = "KEPT",
                     value = "${tripSummary.fishKept}",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary)
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
@@ -321,8 +321,8 @@ fun TripHighlightCard(
                     label = "Top Rod",
                     name = tripSummary.mostCaughtName,
                     description = "(${tripSummary.mostCaught} fish)",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary,
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor(),
                     modifier = Modifier.weight(1f))
 
                 AchievementItem(
@@ -335,8 +335,8 @@ fun TripHighlightCard(
                             useFractions = true
                         )
                     } : ${tripSummary.bigFishSpecies})",
-                    labelColor = MaterialTheme.colorScheme.onSurface,
-                    color = MaterialTheme.colorScheme.primary,
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor(),
                     modifier = Modifier.weight(1f))
             }
         }

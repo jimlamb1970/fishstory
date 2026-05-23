@@ -33,6 +33,10 @@ interface LureDao {
 
     @Transaction
     @Query("SELECT * FROM lure_table WHERE id = :lureId")
+    fun getLureWithColors(lureId: String): Flow<LureWithColors?>
+
+    @Transaction
+    @Query("SELECT * FROM lure_table WHERE id = :lureId")
     suspend fun getLureWithDetails(lureId: String): LureWithDetails?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
