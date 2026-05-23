@@ -31,8 +31,10 @@ import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.flow.Flow
@@ -185,14 +187,14 @@ fun FishermanTackleBoxScreen(
                     modifier = Modifier
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = getChipColor(),
                             shape = RoundedCornerShape(8.dp)
                         ).size(34.dp)
                 ) {
                     Icon(
                         imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                         contentDescription = "Reverse Sort",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = getOnChipColor(),
                     )
                 }
             }

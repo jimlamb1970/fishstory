@@ -61,26 +61,46 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTrip = _selectedTripId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getTrip(id) }
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                 fishRepo.getTrip(id)
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedEvent = _selectedEventId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getEventById(id) }
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                fishRepo.getEventById(id)
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedFisherman = _selectedFishermanId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getFisherman(id) }
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                fishRepo.getFisherman(id)
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedLure = _selectedLureId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getLure(id) }
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                lureRepo.getLureWithColors(id)
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)

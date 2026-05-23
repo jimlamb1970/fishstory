@@ -36,6 +36,8 @@ class LureRepository(
 
     suspend fun getLureWithPhotos(id: String): LureWithPhotos? = lureDao.getLureWithPhotos(id)
 
+    fun getLureWithColors(id: String): Flow<LureWithColors?> = lureDao.getLureWithColors(id)
+
     suspend fun getLureWithDetails(id: String): LureWithDetails? = lureDao.getLureWithDetails(id)
 
     suspend fun upsertLurePrimaryColorCrossRef(crossRef: LurePrimaryColorCrossRef) {
