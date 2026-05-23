@@ -42,15 +42,15 @@ val DarkMichiganColorScheme = darkColorScheme(
 )
 val LightMichiganColorScheme = lightColorScheme(
     primary = MichBlue,
-    onPrimary = MichMaize,
+    onPrimary = Color.White,
     primaryContainer = MichBlueContainer,
     onPrimaryContainer = MichBlue,
 
-    secondary = MichBlue, // Keeping it consistent
+    secondary = MichBlue,
     onSecondary = Color.White,
 
     tertiary = MichMaize,
-    onTertiary = MichBlue, // Blue text on Maize background looks sharp
+    onTertiary = MichBlue,
     tertiaryContainer = MichMaizeContainer,
     onTertiaryContainer = MichBlue,
 

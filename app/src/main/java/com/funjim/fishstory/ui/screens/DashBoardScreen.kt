@@ -33,7 +33,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -74,6 +73,10 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AchievementItem
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
@@ -240,8 +243,18 @@ fun DashboardScreen(
                     Text("Upcoming Adventures", style = MaterialTheme.typography.titleLarge)
 
                     if (activeTripEvents.upcoming.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Upcoming Events", style = MaterialTheme.typography.titleSmall)
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                        ) {
+                            Text("Upcoming Events", style = MaterialTheme.typography.titleSmall)
+                            if (activeTripEvents.upcoming.size > 1) {
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    "(${activeTripEvents.upcoming.size})",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(activeTripEvents.upcoming) { upcomingEvent ->
                                 UpcomingEventChip(
@@ -254,8 +267,18 @@ fun DashboardScreen(
                     }
 
                     if (state.upcomingTrips.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Upcoming Trips", style = MaterialTheme.typography.titleSmall)
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                        ) {
+                            Text("Upcoming Trips", style = MaterialTheme.typography.titleSmall)
+                            if (state.upcomingTrips.size > 1) {
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    "(${state.upcomingTrips.size})",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(state.upcomingTrips) { trip ->
                                 UpcomingTripChip(
@@ -294,7 +317,16 @@ fun DashboardScreen(
 
             // 4. PREVIOUS TRIPS
             item {
-                Text("Recent History", style = MaterialTheme.typography.titleLarge)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Recent History", style = MaterialTheme.typography.titleLarge)
+                    if (state.recentTrips.size > 1) {
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "(${state.recentTrips.size})",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                }
             }
 
             val totalItems = state.recentTrips.size
@@ -661,20 +693,20 @@ fun UpcomingTripChip(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+        color = getCardColor(),
+        border = BorderStroke(1.dp, getCardBorderColor()),
         modifier = Modifier.width(140.dp).clickable{onTripClick(trip.id)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface
+                color = getOnCardSecondaryColor()
             )
             Text(
                 text = trip.name,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = getOnCardColor(),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -694,20 +726,20 @@ fun UpcomingEventChip(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), // Faint Maize background
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+        color = getCardColor(),
+        border = BorderStroke(1.dp, getCardBorderColor()),
         modifier = Modifier.width(140.dp).clickable{onEventClick(event.id, event.tripId)}
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface
+                color = getOnCardSecondaryColor()
             )
             Text(
                 text = tripName,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = getOnCardColor(),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -715,7 +747,7 @@ fun UpcomingEventChip(
             Text(
                 text = event.name,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = getOnCardColor(),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

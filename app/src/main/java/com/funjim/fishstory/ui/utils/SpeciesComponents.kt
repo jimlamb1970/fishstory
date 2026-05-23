@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -154,7 +153,7 @@ fun SpeciesSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -188,7 +187,7 @@ fun SpeciesSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -215,7 +214,7 @@ fun SpeciesSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -233,12 +232,12 @@ fun SpeciesSelectionField(
                                         fontWeight =
                                             if (isSelected) FontWeight.Bold
                                             else FontWeight.Normal,
-                                        color = getCardContentColor()
+                                        color = getOnCardColor()
                                     )
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }

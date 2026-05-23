@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOff
@@ -125,8 +124,8 @@ fun TripItem(
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
-    val contentColor = getCardContentColor()
-    val secondaryContentColor = getCardSecondaryContentColor()
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = modifier
@@ -376,7 +375,7 @@ fun TripSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -410,7 +409,7 @@ fun TripSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -436,7 +435,7 @@ fun TripSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -456,12 +455,12 @@ fun TripSelectionField(
                                         fontWeight =
                                             if (isSelected) FontWeight.Bold
                                             else FontWeight.Normal,
-                                        color = getCardContentColor()
+                                        color = getOnCardColor()
                                     )
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }

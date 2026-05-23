@@ -40,7 +40,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getGridCardBorderColor
 import com.funjim.fishstory.ui.utils.getGridCardColor
 import com.funjim.fishstory.viewmodels.LureViewModel
@@ -493,7 +493,7 @@ fun LureColorSelectionField(
                                     .border(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
-                                            if (isChecked) getCardContentColor()
+                                            if (isChecked) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -525,7 +525,7 @@ fun LureColorSelectionField(
                                 trailingContent = null,
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isChecked),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -558,7 +558,7 @@ fun LureColorSelectionField(
                                     .border(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
-                                            if (isChecked) getCardContentColor()
+                                            if (isChecked) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -581,7 +581,7 @@ fun LureColorSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isChecked),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -633,7 +633,7 @@ private fun AddColorButton(onAdd: () -> Unit) {
         headlineContent = {
             Text(
                 "Add color...",
-                color = getCardContentColor(),
+                color = getOnCardColor(),
                 fontWeight = FontWeight.SemiBold
             )
         },

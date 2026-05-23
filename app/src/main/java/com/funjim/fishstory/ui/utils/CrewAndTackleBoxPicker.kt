@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -229,12 +228,12 @@ private fun FishermanCrewRow(
         onClick = { if (selectedBox != null) luresExpanded = !luresExpanded },
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(index, totalItems, entry.isSelected),
-            contentColor = getCardContentColor()
+            contentColor = getOnCardColor()
         ),
         border = BorderStroke(
             width = if (entry.isSelected) 2.dp else 0.dp,
             color =
-                if (entry.isSelected) getCardContentColor()
+                if (entry.isSelected) getOnCardColor()
                 else Color.Transparent
         )
     ) {
@@ -258,8 +257,8 @@ private fun FishermanCrewRow(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (entry.isSelected) FontWeight.Bold else FontWeight.Normal,
                     color =
-                        if (entry.isSelected) getCardSecondaryContentColor()
-                        else getCardSecondaryContentColor().copy(alpha = 0.4f)
+                        if (entry.isSelected) getOnCardSecondaryColor()
+                        else getOnCardSecondaryColor().copy(alpha = 0.4f)
                 )
             }
 
@@ -312,7 +311,7 @@ private fun FishermanCrewRow(
                         Text(
                             text = "$lureCount lure${if (lureCount != 1) "s" else ""}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = getCardSecondaryContentColor(),
+                            color = getOnCardSecondaryColor(),
                             modifier = Modifier.weight(1f)
                         )
 
@@ -331,13 +330,13 @@ private fun FishermanCrewRow(
 
             // TODO -- Limit the number of lures visible?
             AnimatedVisibility(visible = luresExpanded) {
-                HorizontalDivider(thickness = 1.dp, color = getCardContentColor())
+                HorizontalDivider(thickness = 1.dp, color = getOnCardColor())
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     if (lures.isEmpty())
                         Text(
                             text = "No lures in this box",
                             style = MaterialTheme.typography.bodySmall,
-                            color = getCardSecondaryContentColor(),
+                            color = getOnCardSecondaryColor(),
                             modifier = Modifier.padding(start = 50.dp, bottom = 4.dp)
                         )
                     else sortedLures.forEach { lure ->
@@ -351,7 +350,7 @@ private fun FishermanCrewRow(
                                 lure.lure.glows,
                                 lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
-                                contentColor = getCardSecondaryContentColor(),
+                                contentColor = getOnCardSecondaryColor(),
                                 modifier = Modifier
                                     .padding(start = 50.dp, bottom = 4.dp),
                                 colorBadgeSize = 20.dp
@@ -628,7 +627,7 @@ fun TackleBoxSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -665,7 +664,7 @@ fun TackleBoxSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -701,7 +700,7 @@ fun TackleBoxSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -725,12 +724,12 @@ fun TackleBoxSelectionField(
                                         fontWeight =
                                             if (isSelected) FontWeight.Bold
                                             else FontWeight.Normal,
-                                        color = getCardContentColor()
+                                        color = getOnCardColor()
                                     )
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }

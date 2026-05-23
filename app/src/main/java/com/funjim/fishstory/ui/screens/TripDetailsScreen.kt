@@ -38,6 +38,10 @@ import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.TripHighlightCard
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainColor
+import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
@@ -276,14 +280,14 @@ fun TripDetailsScreen(
                                 text = details.trip.name,
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = getOnMainColor()
                             )
                             if (details.trip.latitude != null && details.trip.longitude != null) {
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "View on map",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = getOnMainColor(),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
@@ -307,13 +311,13 @@ fun TripDetailsScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnSecondaryColor()
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnSecondaryColor()
                         )
 
                         PhotoPickerRow(
@@ -374,8 +378,8 @@ fun TripDetailsScreen(
                                     navigateToAddEvent(tripId)
                                 },
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                    containerColor = getMainButtonColor(),
+                                    contentColor = getOnMainButtonColor()
                                 ),
                                 modifier = Modifier.size(24.dp)
                             ) {

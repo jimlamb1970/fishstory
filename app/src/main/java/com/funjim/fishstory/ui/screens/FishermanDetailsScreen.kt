@@ -51,8 +51,8 @@ import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
-import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.launch
 
@@ -621,8 +621,8 @@ fun TackleBoxCard(
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
-    val contentColor = getCardContentColor()
-    val secondaryContentColor = getCardSecondaryContentColor()
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = modifier

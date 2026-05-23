@@ -31,8 +31,8 @@ import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
-import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.flow.Flow
@@ -306,8 +306,8 @@ private fun LureTackleBoxItem(
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
-    val contentColor = getCardContentColor()
-    val secondaryContentColor = getCardSecondaryContentColor()
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),

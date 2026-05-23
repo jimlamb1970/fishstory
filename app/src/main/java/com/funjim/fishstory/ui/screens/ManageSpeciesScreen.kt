@@ -57,7 +57,7 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.viewmodels.FishViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -153,7 +153,7 @@ fun ManageSpeciesScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getCardContentColor()
+                    val contentColor = getOnCardColor()
 
                     ListItem(
                         modifier = Modifier

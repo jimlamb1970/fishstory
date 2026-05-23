@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
@@ -23,18 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.funjim.fishstory.MapLibreView
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,7 +62,7 @@ fun FishItem(
             ),
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(index, totalItems),
-            contentColor = getCardContentColor()
+            contentColor = getOnCardColor()
         ),
         border = BorderStroke(1.dp, color = getCardBorderColor(index, totalItems))
     ) {
@@ -123,7 +114,7 @@ fun FishItem(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "View on map",
-                            tint = getCardContentColor(),
+                            tint = getOnCardColor(),
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable {
@@ -145,7 +136,7 @@ fun FishItem(
                             Text(
                                 text = if (eventLat != null) "(Event)" else "(Trip)",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = getCardContentColor()
+                                color = getOnCardColor()
                             )
                         }
                     }
@@ -155,32 +146,32 @@ fun FishItem(
                     Text(
                         "Trip: ${fish.trip.name}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = getCardSecondaryContentColor()
+                        color = getOnCardSecondaryColor()
                     )
 
                 if (includeEvent)
                     Text(
                         "Event: ${fish.event.name}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = getCardSecondaryContentColor()
+                        color = getOnCardSecondaryColor()
                     )
 
                 if (includeFisherman)
                     Text(
                         "Caught by: ${fish.fisherman?.fullName}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = getCardSecondaryContentColor()
+                        color = getOnCardSecondaryColor()
                     )
 
                 Text(
                     "Lure: ${fish.fullLureName}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = getCardSecondaryContentColor()
+                    color = getOnCardSecondaryColor()
                 )
                 Text(
                     "At: ${dateFormatter.format(Date(fish.fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = getCardSecondaryContentColor()
+                    color = getOnCardSecondaryColor()
                 )
             }
 

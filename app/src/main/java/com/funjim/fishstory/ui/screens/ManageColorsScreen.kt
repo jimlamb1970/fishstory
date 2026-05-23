@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -67,8 +66,8 @@ import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
-import com.funjim.fishstory.ui.utils.getCardSecondaryContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,8 +147,8 @@ fun ManageColorsScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getCardContentColor()
-                    val secondaryContentColor = getCardSecondaryContentColor()
+                    val contentColor = getOnCardColor()
+                    val secondaryContentColor = getOnCardSecondaryColor()
 
                     ListItem(
                         modifier = Modifier

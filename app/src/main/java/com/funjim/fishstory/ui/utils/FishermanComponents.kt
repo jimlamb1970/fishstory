@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
@@ -54,8 +53,8 @@ fun FishermanItem(
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
-    val contentColor = getCardContentColor()
-    val secondaryContentColor = getCardSecondaryContentColor()
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = Modifier
@@ -163,10 +162,10 @@ fun FishermanSummary(
     OutlinedCard(
         modifier = modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.primary
+            containerColor = getCardColor(),
+            contentColor = getOnCardColor()
         ),
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, color = getCardBorderColor())
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -192,25 +191,25 @@ fun FishermanSummary(
                 if (fishermanCount == 0 && allowOverride) {
                     Text(
                         "Trip Crew is being used\nTap to override",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                        textAlign = TextAlign.Center,
                     )
                 } else {
                     Text(
                         "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                        textAlign = TextAlign.Center,
                     )
                     Text(
                         "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center, // Centers the text within the middle space
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
@@ -335,7 +334,7 @@ fun FishermanSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -369,7 +368,7 @@ fun FishermanSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -395,7 +394,7 @@ fun FishermanSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -413,12 +412,12 @@ fun FishermanSelectionField(
                                         fontWeight =
                                             if (isSelected) FontWeight.Bold
                                             else FontWeight.Normal,
-                                        color = getCardContentColor()
+                                        color = getOnCardColor()
                                     )
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }

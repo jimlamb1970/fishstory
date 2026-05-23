@@ -3,7 +3,6 @@ package com.funjim.fishstory.ui.utils
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,15 +21,15 @@ fun SortChip(
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = selected,
-            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+            selectedBorderColor = getChipColor(true),
             selectedBorderWidth = 2.dp,
-            borderColor = MaterialTheme.colorScheme.primary,
+            borderColor = getOnChipColor(),
             borderWidth = 1.dp
         ),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            selectedLabelColor = MaterialTheme.colorScheme.onSurface,
-            labelColor = MaterialTheme.colorScheme.primary
+            selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
+            selectedLabelColor = getOnChipSecondaryColor(),
+            labelColor = getOnChipColor()
         ),
         modifier = Modifier.padding(end = 4.dp)
     )

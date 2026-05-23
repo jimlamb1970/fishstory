@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.ui.theme.AppIcons
 
 @Composable
 fun AchievementItem(
@@ -168,7 +167,7 @@ fun ModalResetButton(
         headlineContent = {
             Text(
                 title,
-                color = getCardContentColor(),
+                color = getOnCardColor(),
                 fontWeight = FontWeight.SemiBold
             )
         },
@@ -186,7 +185,7 @@ fun ModalAddButton(
         headlineContent = {
             Text(
                 title,
-                color = getCardContentColor(),
+                color = getOnCardColor(),
                 fontWeight = FontWeight.SemiBold
             )
         },

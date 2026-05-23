@@ -16,8 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
@@ -58,8 +56,8 @@ fun LureItem(
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
-    val contentColor = getCardContentColor()
-    val secondaryContentColor = getCardSecondaryContentColor()
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = Modifier
@@ -630,7 +628,7 @@ fun LureSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -672,7 +670,7 @@ fun LureSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getGridCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -709,7 +707,7 @@ fun LureSelectionField(
                                     .border(
                                         width = if (isSelected) 2.dp else 0.dp,
                                         color =
-                                            if (isSelected) getCardContentColor()
+                                            if (isSelected) getOnCardColor()
                                             else Color.Transparent,
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -733,7 +731,7 @@ fun LureSelectionField(
                                             fontWeight =
                                                 if (isSelected) FontWeight.Bold
                                                 else FontWeight.Normal,
-                                            color = getCardContentColor()
+                                            color = getOnCardColor()
                                         )
 
                                         LureColorComposition(
@@ -746,7 +744,7 @@ fun LureSelectionField(
                                 },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize, isSelected),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }

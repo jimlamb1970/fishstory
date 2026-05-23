@@ -5,9 +5,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Composable
+fun getOnMainColor(): Color {
+    return MaterialTheme.colorScheme.primary
+}
+
+@Composable
+fun getOnSecondaryColor(): Color {
+    return MaterialTheme.colorScheme.onSurface
+}
+
+@Composable
+fun getMainButtonColor(): Color {
+    return MaterialTheme.colorScheme.primary
+}
+
+@Composable
+fun getOnMainButtonColor(): Color {
+    return MaterialTheme.colorScheme.onPrimary
+}
+
+@Composable
 fun getCardColor(
-    index: Int,
-    totalItems: Int,
+    index: Int = 0,
+    totalItems: Int = 0,
     selected: Boolean = false
 ): Color {
     return if (index % 2 == 0 || totalItems <= 3) {
@@ -25,8 +45,8 @@ fun getCardColor(
 
 @Composable
 fun getGridCardColor(
-    index: Int,
-    totalItems: Int,
+    index: Int = 0,
+    totalItems: Int = 0,
     selected: Boolean = false
 ): Color {
     return if (index % 4 == 0 || index % 4 == 3 || totalItems <= 3) {
@@ -43,7 +63,7 @@ fun getGridCardColor(
 }
 
 @Composable
-fun getCardBorderColor(index: Int, totalItems: Int): Color {
+fun getCardBorderColor(index: Int = 0, totalItems: Int = 0): Color {
     return if (index % 2 == 0 || totalItems <= 3) {
         MaterialTheme.colorScheme.secondary
     } else {
@@ -52,7 +72,7 @@ fun getCardBorderColor(index: Int, totalItems: Int): Color {
 }
 
 @Composable
-fun getGridCardBorderColor(index: Int, totalItems: Int): Color {
+fun getGridCardBorderColor(index: Int = 0, totalItems: Int = 0): Color {
     return if (index % 4 == 0 || index % 4 == 3 || totalItems <= 3) {
         MaterialTheme.colorScheme.secondary
     } else {
@@ -61,11 +81,30 @@ fun getGridCardBorderColor(index: Int, totalItems: Int): Color {
 }
 
 @Composable
-fun getCardContentColor(): Color {
+fun getOnCardColor(): Color {
     return MaterialTheme.colorScheme.primary
 }
 
 @Composable
-fun getCardSecondaryContentColor(): Color {
+fun getOnCardSecondaryColor(): Color {
+    return MaterialTheme.colorScheme.onSurface
+}
+
+@Composable
+fun getChipColor(selected: Boolean = false): Color {
+    return if (selected) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.secondary
+    }
+}
+
+@Composable
+fun getOnChipColor(): Color {
+    return MaterialTheme.colorScheme.primary
+}
+
+@Composable
+fun getOnChipSecondaryColor(): Color {
     return MaterialTheme.colorScheme.onSurface
 }

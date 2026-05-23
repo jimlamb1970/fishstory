@@ -30,6 +30,7 @@ import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripListFilter
 import com.funjim.fishstory.viewmodels.TripListViewModel
@@ -170,7 +171,9 @@ fun TripListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Trips")
                         Spacer(Modifier.width(4.dp))
-                        val total = state.liveTrips.size + state.upcomingTrips.size + state.completedTrips.size
+                        val total = state.liveTrips.size +
+                                state.upcomingTrips.size +
+                                state.completedTrips.size
                         Text(
                             text = "($total)",
                             style = MaterialTheme.typography.bodyMedium
@@ -213,11 +216,10 @@ fun TripListScreen(
     ) { padding ->
         Column(modifier = Modifier
             .padding(padding)
+            .padding(horizontal = 16.dp)
             .fillMaxSize()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(modifier = Modifier
@@ -237,7 +239,7 @@ fun TripListScreen(
                 Icon(
                     imageVector = Icons.Default.FilterList,
                     contentDescription = "Filter Trips",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = getOnChipColor()
                 )
             }
 
@@ -252,7 +254,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
-                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    modifier = Modifier.padding(4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -268,7 +270,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.liveTrips.size,
-                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    modifier = Modifier.padding(4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -284,7 +286,7 @@ fun TripListScreen(
                                     tripSummary = trip,
                                     index = index,
                                     totalItems = state.completedTrips.size,
-                                    modifier = Modifier.padding(8.dp, 4.dp),
+                                    modifier = Modifier.padding(4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,

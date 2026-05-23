@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.theme.themeMap
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getCardContentColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -257,7 +256,7 @@ fun ThemeSelectionField(
                                 headlineContent = { Text(item.key) },
                                 colors = ListItemDefaults.colors(
                                     containerColor = getCardColor(index, filteredSize),
-                                    headlineColor = getCardContentColor()
+                                    headlineColor = getOnCardColor()
                                 )
                             )
                         }
@@ -269,7 +268,7 @@ fun ThemeSelectionField(
                             headlineContent = {
                                 Text(
                                     "Reset Theme",
-                                    color = getCardContentColor()
+                                    color = getOnCardColor()
                                 )
                             },
                             modifier = Modifier.clickable {
