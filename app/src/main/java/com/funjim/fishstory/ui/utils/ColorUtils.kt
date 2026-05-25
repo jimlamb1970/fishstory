@@ -5,13 +5,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Composable
+fun getVariantColor(): Color {
+    return MaterialTheme.colorScheme.surfaceVariant
+}
+
+
+@Composable
 fun getOnMainColor(): Color {
-    return MaterialTheme.colorScheme.primary
+    return MaterialTheme.colorScheme.onSurface
+}
+
+@Composable
+fun getOnVariantColor(): Color {
+    return MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 @Composable
 fun getOnSecondaryColor(): Color {
-    return MaterialTheme.colorScheme.onSurface
+    return MaterialTheme.colorScheme.secondary
 }
 
 @Composable

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,11 +24,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
+import com.funjim.fishstory.ui.utils.getOnVariantColor
+import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.EventWizardStep
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch
-import java.util.*
 
 
 // ---------------------------------------------------------------------------
@@ -63,23 +66,30 @@ fun AddEventScreen(
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
 
+    var isDraftInitialized by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(tripSummary) {
-        tripSummary?.let { tripSummary ->
-            tripViewModel.updateEventDraft {
-                it.copy(
-                    name = "",
-                    tripId = tripSummary.trip.id,
-                    startTime = tripSummary.trip.startDate,
-                    endTime = tripSummary.trip.endDate,
-                    latitude = null,
-                    longitude = null
-                )
+        if (tripSummary != null && !isDraftInitialized) {
+            tripSummary?.let { tripSummary ->
+                tripViewModel.updateEventDraft {
+                    it.copy(
+                        name = "",
+                        tripId = tripSummary.trip.id,
+                        startTime = tripSummary.trip.startDate,
+                        endTime = tripSummary.trip.endDate,
+                        latitude = null,
+                        longitude = null
+                    )
+                }
             }
+            isDraftInitialized = true
         }
     }
 
     // ── Wizard step ─────────────────────────────────────────────────────────
     val currentStep by tripViewModel.currentEventWizardStep.collectAsStateWithLifecycle()
+
+    var overrideEventCrew by remember { mutableStateOf(false) }
 
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
@@ -130,7 +140,14 @@ fun AddEventScreen(
     }
 
     // Progress indicator
-    val stepLabels = listOf("Event", "Event Crew & Boxes")
+    val stepLabels = remember(overrideEventCrew) {
+        if (overrideEventCrew) {
+            listOf("Event")
+        } else {
+            listOf("Event", "Event Crew & Boxes")
+        }
+    }
+
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
     Scaffold(
@@ -139,11 +156,12 @@ fun AddEventScreen(
                 title = {
                     Column {
                         Text("New Event")
-                        Text(
-                            text = "Step ${stepIndex + 1} of ${stepLabels.size}: ${stepLabels[stepIndex]}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (stepLabels.size > 1 ) {
+                            Text(
+                                text = "Step ${stepIndex + 1} of ${stepLabels.size}: ${stepLabels[stepIndex]}",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -155,8 +173,10 @@ fun AddEventScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         when (currentStep) {
-                            EventWizardStep.EventInfo    -> cancelAndExit()
-                            EventWizardStep.EventCrew -> tripViewModel.updateEventWizardStep(EventWizardStep.EventInfo)
+                            EventWizardStep.EventInfo ->
+                                cancelAndExit()
+                            EventWizardStep.EventCrew ->
+                                tripViewModel.updateEventWizardStep(EventWizardStep.EventInfo)
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -263,7 +283,7 @@ fun AddEventScreen(
             )
             tripSummary?.let { tripSummary ->
                 when (currentStep) {
-                    // ── Step 3: Event info ─────────────────────────────────────
+                    // ── Step 1: Event info ─────────────────────────────────────
                     EventWizardStep.EventInfo -> {
                         Column(
                             modifier = Modifier
@@ -271,11 +291,15 @@ fun AddEventScreen(
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("Event Details", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Text(
+                                "Event Details",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
                             Text(
                                 "An event is a single fishing session — e.g. morning run, afternoon drift.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = getOnVariantColor()
                             )
 
                             OutlinedTextField(
@@ -289,8 +313,14 @@ fun AddEventScreen(
                             )
 
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Text("Start", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                                DateTimePickerButton(label = "start", millis = eventDraft.startTime, modifier = Modifier.weight(1f)) { new ->
+                                Text(
+                                    "Start",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier.width(48.dp))
+                                DateTimePickerButton(
+                                    label = "start",
+                                    millis = eventDraft.startTime,
+                                    modifier = Modifier.weight(1f)) { new ->
                                     when {
                                         new < tripSummary.trip.startDate ->
                                             Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
@@ -311,8 +341,14 @@ fun AddEventScreen(
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Text("End", style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(48.dp))
-                                DateTimePickerButton(label = "end", millis = eventDraft.endTime, modifier = Modifier.weight(1f)) { new ->
+                                Text(
+                                    "End",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier.width(48.dp))
+                                DateTimePickerButton(
+                                    label = "end",
+                                    millis = eventDraft.endTime,
+                                    modifier = Modifier.weight(1f)) { new ->
                                     when {
                                         new < eventDraft.startTime ->
                                             Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
@@ -330,6 +366,38 @@ fun AddEventScreen(
                                 LocationSetRow()
                             }
 
+                            Surface(
+                                shape = MaterialTheme.shapes.medium,
+                                color = getVariantColor().copy(alpha = 0.4f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { overrideEventCrew = !overrideEventCrew }
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = overrideEventCrew,
+                                        onCheckedChange = { overrideEventCrew = it }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(
+                                            text = "Specify Event Crew",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = "Customize who is fishing this event. If unchecked, the Trip Crew will be used.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = getOnVariantColor()
+                                        )
+                                    }
+                                }
+                            }
+
                             Spacer(Modifier.weight(1f))
 
                             Button(
@@ -338,25 +406,41 @@ fun AddEventScreen(
                                         // Add the new event
                                         tripViewModel.upsertEvent(eventDraft)
 
-                                        if (eventFishermenIds.isEmpty()) {
-                                            tripViewModel.updateEventFishermanIds(tripFishermenIds)
-                                            tripFishermenIds.forEach { fishermanId ->
-                                                tripViewModel.upsertEventFishermanCrossRef(
+                                        if (overrideEventCrew) {
+                                            if (eventFishermenIds.isEmpty()) {
+                                                tripViewModel.updateEventFishermanIds(tripFishermenIds)
+                                                tripFishermenIds.forEach { fishermanId ->
+                                                    tripViewModel.upsertEventFishermanCrossRef(
+                                                        eventId = eventDraft.id,
+                                                        fishermanId = fishermanId,
+                                                        tackleBoxId = tripTackleBoxMap[fishermanId]
+                                                    )
+                                                }
+                                            }
+                                            tripViewModel.updateEventWizardStep(EventWizardStep.EventCrew)
+                                        } else {
+                                            eventFishermenIds.forEach { fishermanId ->
+                                                tripViewModel.deleteEventFishermanCrossRef(
                                                     eventId = eventDraft.id,
-                                                    fishermanId = fishermanId,
-                                                    tackleBoxId = tripTackleBoxMap[fishermanId]
+                                                    fishermanId = fishermanId
                                                 )
                                             }
+
+                                            tripViewModel.clearTrip()
+                                            tripViewModel.clearTripDraft()
+                                            tripViewModel.clearEvent()
+                                            tripViewModel.clearEventDraft()
+                                            navigateBack()
                                         }
                                     }
-
-                                    tripViewModel.updateEventWizardStep(EventWizardStep.EventCrew)
                                 },
-                                // TODO -- add extra check for dates
                                 enabled = eventDraft.name.isNotBlank(),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Next: Select Event Crew")
+                                Text(
+                                    if (overrideEventCrew) "Next: Select Event Crew"
+                                    else "Done"
+                                )
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward,
                                     null,
                                     modifier = Modifier.padding(start = 8.dp))

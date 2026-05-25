@@ -34,6 +34,9 @@ import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.TripMenu
+import com.funjim.fishstory.ui.utils.getOnMainColor
+import com.funjim.fishstory.ui.utils.getOnVariantColor
+import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import com.funjim.fishstory.viewmodels.WizardStep
@@ -393,7 +396,7 @@ fun AddTripScreen(
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "View on map",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = getOnMainColor(),
                                     modifier = Modifier
                                         .size(24.dp)
                                 )
@@ -548,7 +551,7 @@ fun AddTripScreen(
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "View on map",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = getOnMainColor(),
                                     modifier = Modifier
                                         .size(24.dp)
                                 )
@@ -556,7 +559,7 @@ fun AddTripScreen(
                                     Text(
                                         text = "(Trip)",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = getOnMainColor()
                                     )
                                 }
                             }
@@ -565,7 +568,7 @@ fun AddTripScreen(
                         Text(
                             "An event is a single fishing session — e.g. morning run, afternoon drift.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = getOnVariantColor()
                         )
 
                         OutlinedTextField(
@@ -618,10 +621,9 @@ fun AddTripScreen(
 
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                        // NEW: Form element to select whether we want to customize the crew for this session
                         Surface(
                             shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            color = getVariantColor().copy(alpha = 0.4f),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -645,7 +647,7 @@ fun AddTripScreen(
                                     Text(
                                         text = "Customize who is fishing this event. If unchecked, the Trip Crew will be used.",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = getOnVariantColor()
                                     )
                                 }
                             }
@@ -930,7 +932,7 @@ fun AddTripScreen(
                                     Text(
                                         "No events yet.",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = getOnVariantColor(),
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     )
                                 }
