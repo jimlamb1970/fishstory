@@ -19,13 +19,13 @@ val OnLionsSilverContainer = Color(0xFF191C1E) // Dark charcoal text
 val OnLionsBlue = Color(0xFFFFFFFF)            // Pure white text on blue buttons
 
 val DarkDetroitLionsColorScheme = darkColorScheme(
-    primary = OnLionsBlueContainer,
-    onPrimary = LionsBlue,
+    primary = LionsSilver,
+    onPrimary = OnLionsSilverContainer,
     primaryContainer = LionsSilverContainer,
     onPrimaryContainer = LionsBlue,
 
-    secondary = OnLionsBlueContainer,
-    onSecondary = LionsBlue,
+    secondary = LionsSilver,
+    onSecondary = OnLionsSilverContainer,
 
     tertiary = Color.White,
     onTertiary = LionsBlue,
@@ -42,7 +42,7 @@ val DarkDetroitLionsColorScheme = darkColorScheme(
     surfaceContainerLow = LionsBlue,
     surfaceContainerHigh = LionsBlue,
 
-    outlineVariant = OnLionsBlueContainer,
+    outlineVariant = LionsSilver,
     surfaceVariant = LionsSilver,
     onSurfaceVariant = LionsSilver,
 )

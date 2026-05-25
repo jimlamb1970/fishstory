@@ -37,7 +37,7 @@ val DarkMichiganColorScheme = darkColorScheme(
 
     // This is for the "outline" of the menu or cards
     outlineVariant = MichMaize,
-    surfaceVariant = MichBlue,
+    surfaceVariant = MichMaize,
     onSurfaceVariant = MichMaize,
 )
 val LightMichiganColorScheme = lightColorScheme(
