@@ -20,8 +20,35 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_table")
     fun getAllPhotos(): Flow<List<Photo>>
 
+    @Query("SELECT * FROM photo_event_cross_ref")
+    fun getAllPhotoEventCrossRefs(): Flow<List<PhotoEventCrossRef>>
+    @Query("SELECT * FROM photo_fish_cross_ref")
+    fun getAllPhotoFishCrossRefs(): Flow<List<PhotoFishCrossRef>>
+    @Query("SELECT * FROM photo_fisherman_cross_ref")
+    fun getAllPhotoFishermanCrossRefs(): Flow<List<PhotoFishermanCrossRef>>
+    @Query("SELECT * FROM photo_lure_cross_ref")
+    fun getAllPhotoLureCrossRefs(): Flow<List<PhotoLureCrossRef>>
+    @Query("SELECT * FROM photo_species_cross_ref")
+    fun getAllPhotoSpeciesCrossRefs(): Flow<List<PhotoSpeciesCrossRef>>
+    @Query("SELECT * FROM photo_trip_cross_ref")
+    fun getAllPhotoTripCrossRefs(): Flow<List<PhotoTripCrossRef>>
+
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()
+
+    @Query("DELETE FROM photo_event_cross_ref")
+    suspend fun deleteAllPhotoEventCrossRefs()
+    @Query("DELETE FROM photo_fish_cross_ref")
+    suspend fun deleteAllPhotoFishCrossRefs()
+    @Query("DELETE FROM photo_fisherman_cross_ref")
+    suspend fun deleteAllPhotoFishermanCrossRefs()
+    @Query("DELETE FROM photo_lure_cross_ref")
+    suspend fun deleteAllPhotoLureCrossRefs()
+    @Query("DELETE FROM photo_species_cross_ref")
+    suspend fun deleteAllPhotoSpeciesCrossRefs()
+    @Query("DELETE FROM photo_trip_cross_ref")
+    suspend fun deleteAllPhotoTripCrossRefs()
+
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPhoto(photo: Photo): Long

@@ -40,7 +40,13 @@ data class DatabaseExportData(
     val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
     val species: List<Species>,
     val fish: List<Fish>,
-    val photos: List<Photo>
+    val photos: List<Photo>,
+    val photoEventsCrossRef: List<PhotoEventCrossRef>,
+    val photoFishCrossRef: List<PhotoFishCrossRef>,
+    val photoFishermanCrossRef: List<PhotoFishermanCrossRef>,
+    val photoLureCrossRef: List<PhotoLureCrossRef>,
+    val photoSpeciesCrossRef: List<PhotoSpeciesCrossRef>,
+    val photoTripCrossRef: List<PhotoTripCrossRef>
 )
 
 class MainViewModel(
@@ -133,7 +139,13 @@ class MainViewModel(
                     tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
                     species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
-                    photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList()
+                    photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
+                    photoEventsCrossRef = photoDao.getAllPhotoEventCrossRefs().firstOrNull() ?: emptyList(),
+                    photoFishCrossRef = photoDao.getAllPhotoFishCrossRefs().firstOrNull() ?: emptyList(),
+                    photoFishermanCrossRef = photoDao.getAllPhotoFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    photoLureCrossRef = photoDao.getAllPhotoLureCrossRefs().firstOrNull() ?: emptyList(),
+                    photoSpeciesCrossRef = photoDao.getAllPhotoSpeciesCrossRefs().firstOrNull() ?: emptyList(),
+                    photoTripCrossRef = photoDao.getAllPhotoTripCrossRefs().firstOrNull() ?: emptyList()
                 )
 
                 val jsonString = json.encodeToString(allData)
@@ -167,6 +179,12 @@ class MainViewModel(
                     fishDao.deleteAllSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
+                    photoDao.deleteAllPhotoEventCrossRefs()
+                    photoDao.deleteAllPhotoFishCrossRefs()
+                    photoDao.deleteAllPhotoFishermanCrossRefs()
+                    photoDao.deleteAllPhotoLureCrossRefs()
+                    photoDao.deleteAllPhotoSpeciesCrossRefs()
+                    photoDao.deleteAllPhotoTripCrossRefs()
 
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
@@ -183,6 +201,12 @@ class MainViewModel(
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
+                    data.photoEventsCrossRef.forEach { photoDao.addEventPhoto(it) }
+                    data.photoFishCrossRef.forEach { photoDao.addFishPhoto(it) }
+                    data.photoFishermanCrossRef.forEach { photoDao.addFishermanPhoto(it) }
+                    data.photoLureCrossRef.forEach { photoDao.addLurePhoto(it) }
+                    data.photoSpeciesCrossRef.forEach { photoDao.addSpeciesPhoto(it) }
+                    data.photoTripCrossRef.forEach { photoDao.addTripPhoto(it) }
                 }
                 // For simplicity, assume success, but you should check deserialization status
                 true
