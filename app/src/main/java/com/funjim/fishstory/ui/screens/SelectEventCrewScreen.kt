@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
+import com.funjim.fishstory.viewmodels.EventViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.component1
@@ -22,29 +22,26 @@ import kotlin.collections.set
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectEventCrewScreen(
-    tripViewModel: TripViewModel,
+    viewModel: EventViewModel,
     tripId: String,
     eventId: String,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
-    LaunchedEffect(tripId) {
-        tripViewModel.selectTrip(tripId)
-    }
-    LaunchedEffect(eventId) {
-        tripViewModel.selectEvent(eventId)
+    LaunchedEffect(tripId, eventId) {
+        viewModel.selectTrip(tripId)
+        viewModel.selectEvent(eventId)
     }
 
     val scope = rememberCoroutineScope()
 
-    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
-    val eventSummary by tripViewModel.selectedEventSummary.collectAsStateWithLifecycle()
+    val eventSummary by viewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
-    val tripCrew by tripViewModel.getFishermenForTrip(tripId).collectAsState(initial = null)
-    val eventCrew by tripViewModel.getFishermenForEvent(eventId).collectAsState(initial = null)
+    val tripCrew by viewModel.getFishermenForTrip(tripId).collectAsState(initial = null)
+    val eventCrew by viewModel.getFishermenForEvent(eventId).collectAsState(initial = null)
 
-    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState(initial = null)
-    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState(initial = null)
+    val tripTackleBoxMap by viewModel.tripTackleBoxMap.collectAsState(initial = null)
+    val eventTackleBoxMap by viewModel.eventTackleBoxMap.collectAsState(initial = null)
 
     val tripSet = remember(tripCrew) { tripCrew?.map { it.id }?.toSet() ?: emptySet() }
     val eventSet = remember(eventCrew) { eventCrew?.map { it.id }?.toSet() ?: emptySet() }
@@ -88,8 +85,8 @@ fun SelectEventCrewScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = {
-                        tripViewModel.clearTrip()
-                        tripViewModel.clearEvent()
+                        viewModel.clearTrip()
+                        viewModel.clearEvent()
 
                         navigateBack()
                     }) {
@@ -105,7 +102,7 @@ fun SelectEventCrewScreen(
                 .fillMaxSize()
         ) {
             Spacer(Modifier.height(16.dp))
-            TripViewModelCrewPickerBridge(
+            EventViewModelCrewPickerBridge(
                 title = eventSummary?.event?.name ?: "Crew & Tackle Boxes",
                 subtitle = """Select who's fishing and which tackle box each person will use.
                     |
@@ -136,17 +133,17 @@ fun SelectEventCrewScreen(
                     workingTackleBoxMap[fishermanId] = boxId
                 },
                 navigateToEditTackleBox = navigateToEditTackleBox,
-                tripViewModel = tripViewModel,
+                viewModel = viewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        tripViewModel.deleteEventFishermanCrossRef(
+                        viewModel.deleteEventFishermanCrossRef(
                             eventId = eventId,
                             fishermanId = fishermanId
                         )
                     }
                     addSet.forEach { fishermanId ->
-                        tripViewModel.upsertEventFishermanCrossRef(
+                        viewModel.upsertEventFishermanCrossRef(
                             eventId = eventId,
                             fishermanId = fishermanId,
                             tackleBoxId = workingTackleBoxMap[fishermanId]
@@ -154,20 +151,20 @@ fun SelectEventCrewScreen(
                     }
                     workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
-                            tripViewModel.upsertEventFishermanCrossRef(
+                            viewModel.upsertEventFishermanCrossRef(
                                 eventId = eventId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )
                         }
                     }
-                    tripViewModel.updateEventCrewOverride(false)
+                    viewModel.updateEventCrewOverride(false)
                     navigateBack()
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->
                     val boxId = UUID.randomUUID().toString()
                     scope.launch {
-                        tripViewModel.insertTackleBox(
+                        viewModel.insertTackleBox(
                             TackleBox(
                                 id = boxId,
                                 fishermanId = fishermanId,

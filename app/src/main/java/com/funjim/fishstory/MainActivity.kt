@@ -96,6 +96,20 @@ class MainActivity : ComponentActivity() {
             tripRepo = tripRepo)
     }
 
+    private val eventViewModel: EventViewModel by viewModels {
+        val locationProvider = (application as FishstoryApplication).locationProvider
+        val fishermanRepository = (application as FishstoryApplication).fishermanRepository
+        val fishRepository = (application as FishstoryApplication).fishRepository
+        val photoRepository = (application as FishstoryApplication).photoRepository
+        val tripRepository = (application as FishstoryApplication).tripRepository
+        EventViewModelFactory(
+            locationProvider = locationProvider,
+            fishermanRepository,
+            fishRepository,
+            photoRepository,
+            tripRepository)
+    }
+
     private val fishViewModel: FishViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
         val fishRepo = (application as FishstoryApplication).fishRepository
@@ -134,11 +148,13 @@ class MainActivity : ComponentActivity() {
     private val tripViewModel: TripViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
         val fishermanRepository = (application as FishstoryApplication).fishermanRepository
+        val fishRepository = (application as FishstoryApplication).fishRepository
         val photoRepository = (application as FishstoryApplication).photoRepository
         val tripRepository = (application as FishstoryApplication).tripRepository
         TripViewModelFactory(
             locationProvider = locationProvider,
             fishermanRepository,
+            fishRepository,
             photoRepository,
             tripRepository)
     }
@@ -183,6 +199,7 @@ class MainActivity : ComponentActivity() {
                             navController,
                             addFishViewModel = addFishViewModel,
                             dashboardViewModel = dashboardViewModel,
+                            eventViewModel = eventViewModel,
                             fishViewModel = fishViewModel,
                             importViewModel = importViewModel,
                             lureViewModel = lureViewModel,
@@ -223,6 +240,7 @@ fun AppNavigation(
     addFishViewModel: AddFishViewModel,
     viewModel: MainViewModel,
     dashboardViewModel: DashboardViewModel,
+    eventViewModel: EventViewModel,
     importViewModel: ImportViewModel,
     tripViewModel: TripViewModel,
     tripListViewModel: TripListViewModel,
@@ -296,7 +314,7 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             AddEventScreen(
-                tripViewModel = tripViewModel,
+                viewModel = eventViewModel,
                 tripId = tripId,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
                     navController.navigate("select_lures/$fishermanId/$tackleBoxId")
@@ -506,7 +524,7 @@ fun AppNavigation(
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
 
             SelectEventCrewScreen(
-                tripViewModel = tripViewModel,
+                viewModel = eventViewModel,
                 tripId = tripId,
                 eventId = eventId,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
@@ -554,7 +572,7 @@ fun AppNavigation(
             val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
             EventDetailsScreen(
-                viewModel = tripViewModel,
+                viewModel = eventViewModel,
                 tripId = tripId,
                 eventId = eventId,
                 navigateToSelectEventCrew = {  ->

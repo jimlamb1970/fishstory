@@ -7,6 +7,8 @@ import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.TargetSpecies
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
@@ -133,8 +135,6 @@ class TripRepository(
     fun getEventFishermen(eventId: String): Flow<List<Fisherman>> =
         eventDao.getFishermenForEvent(eventId)
 
-    suspend fun deleteTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
-        tripDao.deleteTripFishermanCrossRef(crossRef)
     suspend fun deleteSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
         eventDao.deleteEventFishermanCrossRef(crossRef)
 
@@ -142,4 +142,12 @@ class TripRepository(
         tripDao.removeFishermanCrossRefFromTripAndAllEvents(tripId, fishermanId)
     suspend fun removeFishermenNotInSet(segmentId: String, newSet: Set<String>) =
         eventDao.removeFishermenNotInSet(segmentId, newSet)
+
+    // Target Species
+    fun getTargetSpeciesForEvent(eventId: String): Flow<List<Species>> =
+        eventDao.getTargetSpeciesForEvent(eventId)
+    suspend fun insertEventTargetSpecies(crossRef: TargetSpecies) =
+        eventDao.insertEventTargetSpecies(crossRef)
+    suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String) =
+        eventDao.deleteEventTargetSpecies(eventId, speciesId)
 }

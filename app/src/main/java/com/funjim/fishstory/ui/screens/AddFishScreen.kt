@@ -30,18 +30,11 @@ import java.util.*
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
@@ -50,7 +43,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.SpeciesSelectionField
+import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
 import com.funjim.fishstory.ui.utils.sortLures
@@ -299,7 +292,7 @@ fun AddFishScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SpeciesSelectionField(
+                SpeciesSelection(
                     items = speciesList,
                     selectedItem = selectedSpecies,
                     onSelected = { species -> viewModel.updateSpecies(species) },
@@ -592,7 +585,7 @@ fun AddFishScreen(
                             addSpeciesName = ""
                         }
                     }
-                }) { Text("Log Fish") }
+                }) { Text("Add Species") }
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }

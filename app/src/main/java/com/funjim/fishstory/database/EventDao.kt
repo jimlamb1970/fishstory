@@ -267,4 +267,18 @@ ORDER BY s.startTime DESC"""
         GROUP BY event_table.id
     """)
     fun getEventsWithFish(tripId: String?, fishermanId: String?, lureId: String?): Flow<List<Event>>
+
+    @Query("""
+        SELECT species_table.* FROM species_table
+        INNER JOIN target_species ON species_table.id = target_species.speciesId
+        WHERE target_species.eventId = :eventId
+        GROUP BY species_table.id
+        """)
+    fun getTargetSpeciesForEvent(eventId: String): Flow<List<Species>>
+
+    @Upsert
+    suspend fun insertEventTargetSpecies(crossRef: TargetSpecies)
+
+    @Query("DELETE FROM target_species WHERE eventId = :eventId AND speciesId = :speciesId")
+    suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String)
 }

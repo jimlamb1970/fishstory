@@ -286,9 +286,6 @@ WHERE f.id = :fId
     @Insert
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
 
-    @Delete
-    suspend fun deleteCrossRef(crossRef: com.funjim.fishstory.model.TripFishermanCrossRef)
-
     @Query("""
         SELECT fisherman_table.* FROM fisherman_table 
         INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId 

@@ -23,12 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
-import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
+import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.EventWizardStep
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.viewmodels.EventViewModel
 import kotlinx.coroutines.launch
 
 
@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
-    tripViewModel: TripViewModel,
+    viewModel: EventViewModel,
     tripId: String,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
@@ -46,37 +46,37 @@ fun AddEventScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
+    val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
 
-    val eventDraft by tripViewModel.eventDraft.collectAsStateWithLifecycle()
+    val eventDraft by viewModel.eventDraft.collectAsStateWithLifecycle()
 
     // tripFishermen and eventFishermen are not really used. But they are being collected
     // because when selecting a trip and/or event, those flows have a side effect of updating
     // the tripFishermenIds and eventFishermenIds to reflect the trip and event selections
-    val tripFishermen by tripViewModel.tripFishermen.collectAsStateWithLifecycle()
-    val tripFishermenIds by tripViewModel.tripFishermenIds.collectAsStateWithLifecycle()
-    val eventFishermen by tripViewModel.eventFishermen.collectAsStateWithLifecycle()
-    val eventFishermenIds by tripViewModel.eventFishermenIds.collectAsStateWithLifecycle()
+    val tripFishermen by viewModel.tripFishermen.collectAsStateWithLifecycle()
+    val tripFishermenIds by viewModel.tripFishermenIds.collectAsStateWithLifecycle()
+    val eventFishermen by viewModel.eventFishermen.collectAsStateWithLifecycle()
+    val eventFishermenIds by viewModel.eventFishermenIds.collectAsStateWithLifecycle()
 
     LaunchedEffect(tripId) {
-        tripViewModel.selectTrip(tripId)
-        tripViewModel.selectEvent(eventDraft.id)
+        viewModel.selectTrip(tripId)
+        viewModel.selectEvent(eventDraft.id)
     }
 
-    val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
-    val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
+    val tripTackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
+    val eventTackleBoxMap by viewModel.eventTackleBoxMap.collectAsState()
 
     var isDraftInitialized by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(tripSummary) {
-        if (tripSummary != null && !isDraftInitialized) {
-            tripSummary?.let { tripSummary ->
-                tripViewModel.updateEventDraft {
+    LaunchedEffect(trip) {
+        if (trip != null && !isDraftInitialized) {
+            trip?.let { trip ->
+                viewModel.updateEventDraft {
                     it.copy(
                         name = "",
-                        tripId = tripSummary.trip.id,
-                        startTime = tripSummary.trip.startDate,
-                        endTime = tripSummary.trip.endDate,
+                        tripId = trip.id,
+                        startTime = trip.startDate,
+                        endTime = trip.endDate,
                         latitude = null,
                         longitude = null
                     )
@@ -87,24 +87,24 @@ fun AddEventScreen(
     }
 
     // ── Wizard step ─────────────────────────────────────────────────────────
-    val currentStep by tripViewModel.currentEventWizardStep.collectAsStateWithLifecycle()
+    val currentStep by viewModel.currentEventWizardStep.collectAsStateWithLifecycle()
 
     var overrideEventCrew by remember { mutableStateOf(false) }
 
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
     // Location pickers
-    val deviceLocation by tripViewModel.deviceLocation.collectAsStateWithLifecycle()
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = eventDraft.latitude,
         existingLng = eventDraft.longitude,
         onFetchLocation = {
-            scope.launch { tripViewModel.fetchDeviceLocationOnce() }
+            scope.launch { viewModel.fetchDeviceLocationOnce() }
         },
         onLocationConfirmed = { lat, lng ->
-            tripViewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
+            viewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
     )
 
@@ -113,9 +113,9 @@ fun AddEventScreen(
     ) { permissions ->
         if (permissions.entries.any { it.value }) {
             scope.launch {
-                tripViewModel.fetchLocation()?.let { loc ->
+                viewModel.fetchLocation()?.let { loc ->
                     if (currentStep == EventWizardStep.EventInfo) {
-                        tripViewModel.updateEventDraft {
+                        viewModel.updateEventDraft {
                             it.copy(
                                 latitude = loc.latitude,
                                 longitude = loc.longitude)
@@ -130,12 +130,11 @@ fun AddEventScreen(
     fun cancelAndExit() {
         scope.launch {
             // CASCADE deletes will clean up fisherman cross-refs and event
-            tripViewModel.deleteEventById(eventDraft.id)
+            viewModel.deleteEventById(eventDraft.id)
         }
-        tripViewModel.clearTrip()
-        tripViewModel.clearTripDraft()
-        tripViewModel.clearEvent()
-        tripViewModel.clearEventDraft()
+        viewModel.clearTrip()
+        viewModel.clearEvent()
+        viewModel.clearEventDraft()
         navigateBack()
     }
 
@@ -176,7 +175,7 @@ fun AddEventScreen(
                             EventWizardStep.EventInfo ->
                                 cancelAndExit()
                             EventWizardStep.EventCrew ->
-                                tripViewModel.updateEventWizardStep(EventWizardStep.EventInfo)
+                                viewModel.updateEventWizardStep(EventWizardStep.EventInfo)
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -204,8 +203,8 @@ fun AddEventScreen(
                                         locationMenuExpanded = false
                                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                                             scope.launch {
-                                                tripViewModel.fetchLocation()?.let { loc ->
-                                                    tripViewModel.updateEventDraft {
+                                                viewModel.fetchLocation()?.let { loc ->
+                                                    viewModel.updateEventDraft {
                                                         it.copy(
                                                             latitude = loc.latitude,
                                                             longitude = loc.longitude
@@ -218,7 +217,7 @@ fun AddEventScreen(
                                         }
                                     }
                                 )
-                                if (tripSummary?.trip?.latitude != null) {
+                                if (trip?.latitude != null) {
                                     DropdownMenuItem(
                                         text = { Text("Use Trip Location") },
                                         leadingIcon = {
@@ -226,10 +225,10 @@ fun AddEventScreen(
                                         },
                                         onClick = {
                                             locationMenuExpanded = false
-                                            tripViewModel.updateEventDraft {
+                                            viewModel.updateEventDraft {
                                                 it.copy(
-                                                    latitude = tripSummary?.trip?.latitude,
-                                                    longitude = tripSummary?.trip?.longitude
+                                                    latitude = trip?.latitude,
+                                                    longitude = trip?.longitude
                                                 )
                                             }
                                         }
@@ -257,7 +256,7 @@ fun AddEventScreen(
                                         },
                                         onClick = {
                                             locationMenuExpanded = false
-                                            tripViewModel.updateEventDraft {
+                                            viewModel.updateEventDraft {
                                                 it.copy(
                                                     latitude = null,
                                                     longitude = null
@@ -281,7 +280,7 @@ fun AddEventScreen(
                 progress = { (stepIndex + 1f) / stepLabels.size },
                 modifier = Modifier.fillMaxWidth()
             )
-            tripSummary?.let { tripSummary ->
+            trip?.let { trip ->
                 when (currentStep) {
                     // ── Step 1: Event info ─────────────────────────────────────
                     EventWizardStep.EventInfo -> {
@@ -305,7 +304,7 @@ fun AddEventScreen(
                             OutlinedTextField(
                                 value = eventDraft.name,
                                 onValueChange = { name ->
-                                    tripViewModel.updateEventDraft { eventDraft.copy(name = name) }
+                                    viewModel.updateEventDraft { eventDraft.copy(name = name) }
                                 },
                                 label = { Text("Event Name") },
                                 modifier = Modifier.fillMaxWidth(),
@@ -322,16 +321,16 @@ fun AddEventScreen(
                                     millis = eventDraft.startTime,
                                     modifier = Modifier.weight(1f)) { new ->
                                     when {
-                                        new < tripSummary.trip.startDate ->
+                                        new < trip.startDate ->
                                             Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
-                                        new > tripSummary.trip.endDate ->
+                                        new > trip.endDate ->
                                             Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
                                         else -> {
-                                            tripViewModel.updateEventDraft {
+                                            viewModel.updateEventDraft {
                                                 eventDraft.copy(startTime = new)
                                             }
                                             if (new > eventDraft.endTime) {
-                                                tripViewModel.updateEventDraft {
+                                                viewModel.updateEventDraft {
                                                     eventDraft.copy(endTime = new)
                                                 }
                                             }
@@ -352,10 +351,10 @@ fun AddEventScreen(
                                     when {
                                         new < eventDraft.startTime ->
                                             Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
-                                        new > tripSummary.trip.endDate ->
+                                        new > trip.endDate ->
                                             Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
                                         else ->
-                                            tripViewModel.updateEventDraft {
+                                            viewModel.updateEventDraft {
                                                 eventDraft.copy(endTime = new)
                                             }
                                     }
@@ -404,32 +403,31 @@ fun AddEventScreen(
                                 onClick = {
                                     scope.launch {
                                         // Add the new event
-                                        tripViewModel.upsertEvent(eventDraft)
+                                        viewModel.upsertEvent(eventDraft)
 
                                         if (overrideEventCrew) {
                                             if (eventFishermenIds.isEmpty()) {
-                                                tripViewModel.updateEventFishermanIds(tripFishermenIds)
+                                                viewModel.updateEventFishermanIds(tripFishermenIds)
                                                 tripFishermenIds.forEach { fishermanId ->
-                                                    tripViewModel.upsertEventFishermanCrossRef(
+                                                    viewModel.upsertEventFishermanCrossRef(
                                                         eventId = eventDraft.id,
                                                         fishermanId = fishermanId,
                                                         tackleBoxId = tripTackleBoxMap[fishermanId]
                                                     )
                                                 }
                                             }
-                                            tripViewModel.updateEventWizardStep(EventWizardStep.EventCrew)
+                                            viewModel.updateEventWizardStep(EventWizardStep.EventCrew)
                                         } else {
                                             eventFishermenIds.forEach { fishermanId ->
-                                                tripViewModel.deleteEventFishermanCrossRef(
+                                                viewModel.deleteEventFishermanCrossRef(
                                                     eventId = eventDraft.id,
                                                     fishermanId = fishermanId
                                                 )
                                             }
 
-                                            tripViewModel.clearTrip()
-                                            tripViewModel.clearTripDraft()
-                                            tripViewModel.clearEvent()
-                                            tripViewModel.clearEventDraft()
+                                            viewModel.clearTrip()
+                                            viewModel.clearEvent()
+                                            viewModel.clearEventDraft()
                                             navigateBack()
                                         }
                                     }
@@ -451,7 +449,7 @@ fun AddEventScreen(
                     // ── Step 4: Event crew + tackle boxes ──────────────────────
                     EventWizardStep.EventCrew -> {
                         Spacer(Modifier.height(16.dp))
-                        TripViewModelCrewPickerBridge(
+                        EventViewModelCrewPickerBridge(
                             title = "Event Crew & Tackle Boxes",
                             subtitle = """Who's fishing "${eventDraft.name}"? Tackle boxes default to trip selections.
                                 |
@@ -461,39 +459,38 @@ fun AddEventScreen(
                             selectedIds = eventFishermenIds,
                             tackleBoxSelections = eventTackleBoxMap,
                             onSelectionChanged = { fishermanId, selected ->
-                                tripViewModel.toggleEventFisherman(fishermanId)
+                                viewModel.toggleEventFisherman(fishermanId)
                                 if (selected) {
-                                    tripViewModel.upsertEventFishermanCrossRef(
+                                    viewModel.upsertEventFishermanCrossRef(
                                         eventId = eventDraft.id,
                                         fishermanId = fishermanId,
                                         tackleBoxId = eventTackleBoxMap[fishermanId]
                                     )
                                 } else {
-                                    tripViewModel.deleteEventFishermanCrossRef(
+                                    viewModel.deleteEventFishermanCrossRef(
                                         eventId = eventDraft.id,
                                         fishermanId = fishermanId
                                     )
                                 }
                             },
                             onTackleBoxChanged = { fishermanId, boxId ->
-                                tripViewModel.upsertEventFishermanCrossRef(
+                                viewModel.upsertEventFishermanCrossRef(
                                     eventId = eventDraft.id,
                                     fishermanId = fishermanId,
                                     tackleBoxId = boxId
                                 )
                             },
                             navigateToEditTackleBox = navigateToEditTackleBox,
-                            tripViewModel = tripViewModel,
+                            viewModel = viewModel,
                             confirmLabel = "Done",
                             onConfirm = {
-                                tripViewModel.clearTrip()
-                                tripViewModel.clearTripDraft()
-                                tripViewModel.clearEvent()
-                                tripViewModel.clearEventDraft()
+                                viewModel.clearTrip()
+                                viewModel.clearEvent()
+                                viewModel.clearEventDraft()
                                 navigateBack()
                             },
                             onAddTackleBox = { tackleBoxName, fishermanId ->
-                                scope.launch { tripViewModel.createAndAssignEventTackleBox(
+                                scope.launch { viewModel.createAndAssignEventTackleBox(
                                     fishermanId = fishermanId,
                                     eventId = eventDraft.id,
                                     name = tackleBoxName
@@ -513,6 +510,7 @@ fun AddEventScreen(
 // Small shared composables
 // ---------------------------------------------------------------------------
 
+// TODO - get rid of this
 @Composable
 private fun LocationSetRow() {
     Row(verticalAlignment = Alignment.CenterVertically) {

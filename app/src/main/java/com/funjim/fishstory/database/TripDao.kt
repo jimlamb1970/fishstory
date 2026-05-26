@@ -178,13 +178,6 @@ ORDER BY t.startDate DESC
     @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId NOT IN (:fishermenIds)")
     suspend fun removeFishermenNotInSet(tripId: String, fishermenIds: Set<String>)
 
-    // TODO -- replace deleteCrossRef with deleteTripFishermanCrossRef
-    @Delete
-    suspend fun deleteCrossRef(crossRef: TripFishermanCrossRef)
-
-    @Delete
-    suspend fun deleteTripFishermanCrossRef(crossRef: TripFishermanCrossRef)
-
     @Query("DELETE FROM trip_fisherman_cross_ref")
     suspend fun deleteAllTripFishermanCrossRefs()
 

@@ -10,9 +10,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -31,16 +34,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.viewmodels.EventViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -50,7 +61,7 @@ import kotlin.collections.emptyList
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsScreen(
-    viewModel: TripViewModel,
+    viewModel: EventViewModel,
     tripId: String,
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
@@ -67,7 +78,18 @@ fun EventDetailsScreen(
     val eventSummary by viewModel.selectedEventSummary.collectAsStateWithLifecycle()
 
     val eventPhotos by viewModel.eventPhotos.collectAsState(initial = emptyList())
-    
+
+    val targetSpecies by viewModel.eventTargetSpecies.collectAsStateWithLifecycle()
+
+    // State to show/hide the assignment dialog picker
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+
+    // Assuming you have an all-species stream in the viewmodel to populate the picker options
+    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
+
+    var addNewSpecies by remember { mutableStateOf(false) }
+    var addSpeciesName by remember { mutableStateOf("") }
+
     var showEditEventDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
     
@@ -369,6 +391,118 @@ fun EventDetailsScreen(
 
                         HorizontalDivider()
 
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth().padding(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Target Species",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = getOnMainColor()
+                                )
+                                IconButton(
+                                    onClick = { showSpeciesSelection = true },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = getMainButtonColor(),
+                                        contentColor = getOnMainButtonColor()
+                                    ),
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Add Target Species"
+                                    )
+                                }
+                            }
+
+                            if (targetSpecies.isEmpty()) {
+                                Text(
+                                    text = "No target species set for this event.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = getOnSecondaryColor(),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                )
+                            } else {
+                                // Horizontal scroll container for species badges
+                                FlowRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    // Sizing gaps between chips horizontally and vertically
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    /*LazyRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        items(targetSpecies) { species ->
+                                            */
+                                    targetSpecies.forEach { species ->
+                                        InputChip(
+                                                selected = true,
+                                                onClick = {},
+                                                label = { Text(species.name) },
+                                                avatar = {
+                                                    val thumbnailFlow = remember(species.id) {
+                                                        viewModel.speciesThumbnail(species.id)
+                                                    }
+
+                                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                                    ThumbnailBox(
+                                                        thumbnail = thumbnail,
+                                                        imageVector = AppIcons.Default.LeapingFish,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                },
+                                                colors = InputChipDefaults.inputChipColors(
+                                                    selectedContainerColor = getCardColor().copy(alpha = 0.15f),
+                                                    selectedLabelColor = getOnCardColor(),
+                                                    selectedLeadingIconColor = getOnCardColor(),
+                                                    selectedTrailingIconColor = MaterialTheme.colorScheme.error
+                                                ),
+                                                border = FilterChipDefaults.filterChipBorder(
+                                                    enabled = true,
+                                                    selected = true,
+                                                    selectedBorderColor = getCardBorderColor(),
+                                                    selectedBorderWidth = 1.dp,
+                                                    borderColor = getOnChipColor(),
+                                                    borderWidth = 1.dp
+                                                ),
+                                                trailingIcon = {
+                                                    IconButton(
+                                                        onClick = {
+                                                            viewModel.removeEventTargetSpecies(eventId, species.id)
+                                                        },
+                                                        modifier = Modifier.size(24.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Clear,
+                                                            contentDescription = "Remove",
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+//                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider()
+
                         FishermanSummary(
                             fishermanCount = details.fishermanCount,
                             tackleBoxCount = details.tackleBoxCount,
@@ -477,5 +611,68 @@ fun EventDetailsScreen(
                 Text("Loading...", modifier = Modifier.padding(16.dp))
             }
         }
+    }
+    if (showSpeciesSelection) {
+        SpeciesSelection(
+            items = allSpecies,
+            selectedItems = targetSpecies,
+            onSelected = { selectedSpecies ->
+                if (targetSpecies.contains(selectedSpecies)) {
+                    viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
+                } else {
+                    viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
+                }
+            },
+            onAdd = {
+                addNewSpecies = true
+                // Route fallback if they need to create an entirely new species row on the fly
+                Toast.makeText(context, "Add species profile functionality", Toast.LENGTH_SHORT).show()
+            },
+            onDone = { showSpeciesSelection = false },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { species ->
+                val thumbnailFlow = remember(species.id) {
+                    viewModel.speciesThumbnail(species.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.LeapingFish,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+
+    if (addNewSpecies) {
+        AlertDialog(
+            onDismissRequest = { addNewSpecies = false },
+            title = { Text("Add New Species") },
+            text = {
+                TextField(
+                    value = addSpeciesName,
+                    onValueChange = { addSpeciesName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addSpeciesName.isNotBlank()) {
+                        scope.launch {
+                            val species = Species(name = addSpeciesName)
+                            viewModel.addSpecies(species)
+                            viewModel.addEventTargetSpecies(eventId, species.id)
+                            addNewSpecies = false
+                            addSpeciesName = ""
+                        }
+                    }
+                }) { Text("Add Species") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
     }
 }

@@ -33,6 +33,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.viewmodels.EventViewModel
 import com.funjim.fishstory.viewmodels.TripViewModel
 
 // ---------------------------------------------------------------------------
@@ -508,6 +509,54 @@ fun TripViewModelCrewPickerBridge(
         },
         getLuresInTacklebox = { tackleBoxId ->
             tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+        },
+        confirmLabel = confirmLabel,
+        onConfirm = onConfirm,
+        modifier = modifier,
+        onAddFisherman = onAddFisherman,
+        onAddTackleBox = onAddTackleBox
+    )
+}
+
+@Composable
+fun EventViewModelCrewPickerBridge(
+    title: String,
+    subtitle: String,
+    eligibleFishermen: List<Fisherman>,
+    selectedIds: Set<String>,
+    tackleBoxSelections: Map<String, String?>,
+    onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
+    onTackleBoxChanged: (fishermanId: String, tackleBoxId: String?) -> Unit,
+    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
+    viewModel: EventViewModel,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+    onAddFisherman: ((String, String, String) -> Unit)? = null,
+    onAddTackleBox: ((String, String) -> Unit)
+) {
+    val crewEntries by remember(eligibleFishermen, selectedIds, key3 = tackleBoxSelections) {
+        derivedStateOf { buildCrewEntries(eligibleFishermen, selectedIds, tackleBoxSelections) }
+    }
+
+    CrewAndTackleBoxPicker(
+        title = title,
+        subtitle = subtitle,
+        eligibleFishermen = eligibleFishermen,
+        crewEntries = crewEntries,
+        onSelectionChanged = onSelectionChanged,
+        onTackleBoxChanged = onTackleBoxChanged,
+        navigateToEditTackleBox = navigateToEditTackleBox,
+        getTackleBoxesForFisherman = { fishermanId ->
+            viewModel.getTackleBoxesForFisherman(fishermanId)
+                .collectAsState(initial = emptyList()).value
+        },
+        getLureCount = { tackleBoxId ->
+            viewModel.getLureCountForTackleBox(tackleBoxId)
+                .collectAsState(initial = 0).value
+        },
+        getLuresInTacklebox = { tackleBoxId ->
+            viewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
         },
         confirmLabel = confirmLabel,
         onConfirm = onConfirm,

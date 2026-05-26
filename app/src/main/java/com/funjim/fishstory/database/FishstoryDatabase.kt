@@ -17,11 +17,12 @@ import com.funjim.fishstory.model.*
         Photo::class,                       // Backed up
         Species::class,                     // Backed up
         TackleBox::class,                   // Backed up
+        TargetSpecies::class,
         Trip::class,                        // Backed up
         EventFishermanCrossRef::class,      // Backed up
-        LureGlowColorCrossRef::class,
-        LurePrimaryColorCrossRef::class,
-        LureSecondaryColorCrossRef::class,
+        LureGlowColorCrossRef::class,       // Backed up
+        LurePrimaryColorCrossRef::class,    // Backed up
+        LureSecondaryColorCrossRef::class,  // Backed up
         NoteFishCrossRef::class,
         NoteEventCrossRef::class,
         NoteTripCrossRef::class,
@@ -34,7 +35,7 @@ import com.funjim.fishstory.model.*
         TackleBoxLureCrossRef::class,       // Backed up
         TripFishermanCrossRef::class        // Backed up
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {
