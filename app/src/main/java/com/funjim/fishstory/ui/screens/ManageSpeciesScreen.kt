@@ -254,7 +254,7 @@ fun ManageSpeciesScreen(
                                         },
                                         onClick = {
                                             currentSpeciesForPhoto = species
-                                            thumbnailMenuExpanded = false
+                                            menuExpanded = false
                                             photoPickerLauncher.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
@@ -267,7 +267,7 @@ fun ManageSpeciesScreen(
                                                 Text("Reset Thumbnail")
                                             },
                                             onClick = {
-                                                thumbnailMenuExpanded = false
+                                                menuExpanded = false
                                                 // Save out a null reference to clear
                                                 viewModel.deleteSpeciesThumbnail(species.id)
                                             },
