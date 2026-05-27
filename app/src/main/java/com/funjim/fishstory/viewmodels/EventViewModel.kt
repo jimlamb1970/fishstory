@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -150,48 +151,43 @@ class EventViewModel(
             if (id == null) {
                 flowOf(null)
             } else {
-                fishRepo.getTrip(id)
+                fishRepo.getTripById(id)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                tripRepo.getEventSummaries(id)
-            }
-        }
-        .map { list ->
-            // Sort by whatever property makes sense for your events
-            list.sortedBy { it.event.startTime }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventSummary: StateFlow<EventSummary?> = _selectedEventId
+    val selectedEventWithDetails = _selectedEventId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(null)
             } else {
-                // We watch the master list and filter for the matching ID
-                eventSummaries.map { list ->
-                    list.find { it.event.id == id }
-                }
+                tripRepo.getEventWithDetails(id)
             }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedEventSummary = _selectedEventId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                tripRepo.getEventSummary(id)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedEventDetailedSummary = _selectedEventId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                tripRepo.getEventDetailedSummary(id)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
@@ -219,22 +215,24 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
-    // 1. Expose the selected target species flow
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventTargetSpecies: StateFlow<List<Species>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            if (eventId != null) {
-                // Your repository method that joins event_target_fish with species
-                tripRepo.getTargetSpeciesForEvent(eventId)
-            } else {
-                flowOf(emptyList())
-            }
+    val uiState: StateFlow<EventDetailsUiState> = combine(
+        selectedEventWithDetails,
+        selectedEventDetailedSummary
+    ) { event, summary ->
+        // Guard clause: Ensure the database has returned valid data for everything
+        if (event != null && summary != null) {
+            EventDetailsUiState.Success(
+                details = event,
+                summary = summary
+            )
+        } else {
+            EventDetailsUiState.Loading
         }
-        .map { list ->
-            // Sort by Last Name, then First Name
-            list.sortedWith(compareBy({ it.name }))
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = EventDetailsUiState.Loading
+    )
 
     // 2. Add target cross-reference
     fun addEventTargetSpecies(eventId: String, speciesId: String) {
@@ -376,6 +374,15 @@ class EventViewModel(
             fishermanRepo.insertTackleBox(tackleBox)
         }
     }
+}
+
+sealed interface EventDetailsUiState {
+    object Loading : EventDetailsUiState
+
+    data class Success(
+        val details: EventWithDetails,
+        val summary: EventDetailedSummary,
+    ) : EventDetailsUiState
 }
 
 class EventViewModelFactory(

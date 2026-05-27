@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,14 +32,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.launch
 
 @Composable
 fun EventHighlightCard(
-    summary: EventSummary,
+    summary: EventDetailedSummary,
     onClick: () -> Unit
 ) {
     Card(
@@ -67,9 +69,40 @@ fun EventHighlightCard(
                     value = "${summary.fishCaught}",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
+
+                Icon(
+                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
                 StatItem(
                     label = "KEPT",
                     value = "${summary.fishKept}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${summary.targetFishCaught}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                Icon(
+                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                StatItem(
+                    label = "KEPT",
+                    value = "${summary.targetFishKept}",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
             }
@@ -81,7 +114,7 @@ fun EventHighlightCard(
                 AchievementItem(
                     icon = Icons.Default.Person,
                     label = "Top Rod",
-                    name = summary.mostCaughtName,
+                    name = summary.mostCaughtFisherman,
                     description = "(${summary.mostCaught} fish)",
                     modifier = Modifier.weight(1f),
                     labelColor = getOnCardSecondaryColor(),
@@ -90,11 +123,37 @@ fun EventHighlightCard(
                 AchievementItem(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
-                    name = summary.bigFishName,
+                    name = summary.bigFishFisherman,
                     description = "(${summary.bigFishLength?.toDisplayString(
                         useMetric = false,
                         useFractions = true
                     )} : ${summary.bigFishSpecies})",
+                    modifier = Modifier.weight(1f),
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+
+            // Bottom Row: The Achievements
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                AchievementItem(
+                    icon = Icons.Default.Person,
+                    label = "Top Rod",
+                    name = summary.targetMostCaughtFisherman,
+                    description = "(${summary.targetMostCaught} fish)",
+                    modifier = Modifier.weight(1f),
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                AchievementItem(
+                    icon = Icons.Default.Star,
+                    label = "Big Fish",
+                    name = summary.targetBigFishFisherman,
+                    description = "(${summary.targetBigFishLength?.toDisplayString(
+                        useMetric = false,
+                        useFractions = true
+                    )} : ${summary.targetBigFishSpecies})",
                     modifier = Modifier.weight(1f),
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())

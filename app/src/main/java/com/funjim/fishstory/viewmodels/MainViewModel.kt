@@ -89,7 +89,6 @@ class MainViewModel(
 
     val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
-    val activeSegments: Flow<List<Event>> = eventDao.getActiveEvents()
     val allFish: Flow<List<FishWithDetails>> =
         fishDao.getFishWithDetails(null, null, null, null)
 

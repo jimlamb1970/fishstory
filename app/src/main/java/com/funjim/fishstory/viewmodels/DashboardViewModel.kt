@@ -3,7 +3,7 @@ package com.funjim.fishstory.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
@@ -38,29 +38,20 @@ class DashboardViewModel(
         }
     }
 
-    val uiState: StateFlow<DashboardUiState> = combine(
-        tripRepo.getActiveTripSummaries(),
-        tripRepo.getUpcomingTrips(),
-        tripRepo.getPreviousTripSummaries()
-    ) { active, upcoming, previous ->
-        DashboardUiState(
-            activeTrips = active,
-            upcomingTrips = upcoming,
-            recentTrips = previous.take(5), // Only show the last 5 on the dashboard
-            isLoading = false
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = DashboardUiState(isLoading = true)
-    )
+    private val selectedEventId = MutableStateFlow<String?>(null)
+
+    fun selectEvent(eventId: String) {
+        if (selectedEventId.value != eventId) {
+            selectedEventId.value = eventId
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activeTripEvents: StateFlow<SegmentGroups> = currentTime
+    val activeTripEvents: StateFlow<EventGroups> = currentTime
         .flatMapLatest { now ->
-            tripRepo.getSegmentsForActiveTrips(now).map { allSegments ->
+            tripRepo.getEventsForActiveTrips(now).map { allSegments ->
                 // Split them into the 3 groups here
-                SegmentGroups(
+                EventGroups(
                     previous = allSegments.filter { it.event.endTime < now },
                     active = allSegments.filter { now in it.event.startTime..it.event.endTime },
                     upcoming = allSegments.filter { it.event.startTime > now }
@@ -70,48 +61,67 @@ class DashboardViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SegmentGroups()
+            initialValue = EventGroups()
         )
 
-    private val _activeSegmentIndex = MutableStateFlow(0)
-    val activeSegmentIndex: StateFlow<Int> = _activeSegmentIndex
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<DashboardUiState> = combine(
+        // Stream group A: Your Trip lists
+        tripRepo.getActiveTripSummaries(),
+        tripRepo.getUpcomingTrips(),
+        tripRepo.getPreviousTripSummaries(),
+        // Stream group B: Your dynamic time-sliced event buckets
+        activeTripEvents,
+        selectedEventId
+    ) { activeTrips, upcomingTrips, recentTrips, eventGroups, selectedEventId ->
+
+        // Pass everything downstream as a bundle
+        DashboardStateTuple(activeTrips, upcomingTrips, recentTrips, eventGroups, selectedEventId)
+
+    }.flatMapLatest { tuple ->
+        // Resolve which event card should fetch deep database metrics
+        val targetEventId = tuple.selectedEventId
+            ?: tuple.eventGroups.active.firstOrNull()?.event?.id
+
+        if (targetEventId == null) {
+            // No active events happening right now; emit the data lists immediately
+            flowOf(
+                DashboardUiState(
+                    activeTrips = tuple.activeTrips,
+                    upcomingTrips = tuple.upcomingTrips,
+                    recentTrips = tuple.recentTrips.take(5),
+                    previousEvents = tuple.eventGroups.previous,
+                    activeEvents = tuple.eventGroups.active,
+                    upcomingEvents = tuple.eventGroups.upcoming,
+                    eventSummary = null,
+                    isLoading = false
+                )
+            )
+        } else {
+            // Fetch the fully detailed Database View summary for the active card
+            tripRepo.getEventDetailedSummary(targetEventId).map { detailedSummary ->
+                DashboardUiState(
+                    activeTrips = tuple.activeTrips,
+                    upcomingTrips = tuple.upcomingTrips,
+                    recentTrips = tuple.recentTrips.take(5),
+                    previousEvents = tuple.eventGroups.previous,
+                    activeEvents = tuple.eventGroups.active,
+                    upcomingEvents = tuple.eventGroups.upcoming,
+                    eventSummary = detailedSummary, // Populated stats!
+                    isLoading = false
+                )
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DashboardUiState(isLoading = true)
+    )
 
     private val _activeTripId = MutableStateFlow<String?>(null)
     fun setActiveTripId(id: String) {
         _activeTripId.value = id
     }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val segmentSummaries: StateFlow<List<EventSummary>> = _activeTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                tripRepo.getEventSummaries(id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val activeSegments: StateFlow<List<Event>> = _activeTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                tripRepo.getActiveSegmentsForTrip(id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
 
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)
@@ -130,15 +140,28 @@ class DashboardViewModel(
     }
 }
 
+private data class DashboardStateTuple(
+    val activeTrips: List<TripSummary>,
+    val upcomingTrips: List<Trip>,
+    val recentTrips: List<TripSummary>,
+    val eventGroups: EventGroups,
+    val selectedEventId: String? = null
+)
 data class DashboardUiState(
     val activeTrips: List<TripSummary> = emptyList(),
     val upcomingTrips: List<Trip> = emptyList(),
     val recentTrips: List<TripSummary> = emptyList(),
+
+    val previousEvents: List<EventSummary> = emptyList(),
+    val activeEvents: List<EventSummary> = emptyList(),
+    val upcomingEvents: List<EventSummary> = emptyList(),
+
+    val eventSummary: EventDetailedSummary? = null,
+
     val isLoading: Boolean = false
 )
 
-// Simple data class to hold our 3 buckets
-data class SegmentGroups(
+data class EventGroups(
     val previous: List<EventSummary> = emptyList(),
     val active: List<EventSummary> = emptyList(),
     val upcoming: List<EventSummary> = emptyList()

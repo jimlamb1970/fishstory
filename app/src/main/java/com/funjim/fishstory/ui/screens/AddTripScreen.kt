@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventItem
@@ -895,22 +894,8 @@ fun AddTripScreen(
                             val totalItems = eventSummaries.size
 
                             itemsIndexed(eventSummaries, key = { _, event -> event.event.id }) { index, event ->
-                                val currentSummary = EventSummary(
-                                    event = event.event,
-                                    trip = tripDraft,
-                                    fishCaught = 0,
-                                    fishKept = 0,
-                                    fishermanCount = event.fishermanCount,
-                                    tackleBoxCount = event.tackleBoxCount,
-                                    bigFishName = null,
-                                    bigFishSpecies = "",
-                                    bigFishLength = null,
-                                    mostCaughtName = null,
-                                    mostCaught = 0
-                                )
-
                                 EventItem(
-                                    currentSummary,
+                                    event,
                                     modifier = Modifier.padding(vertical = 4.dp),
                                     index = index,
                                     totalItems = totalItems,

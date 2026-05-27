@@ -26,65 +26,25 @@ interface EventDao {
     @Transaction
     @Query(
         """
-WITH 
--- 1. Find the biggest fish for every event
-BigFishPerEvent AS (
-    SELECT 
-        f.eventId, 
-        f.length, 
-        f.speciesId, 
-        f.fishermanId,
-        ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY f.length DESC, f.id ASC) as row_num
-    FROM fish_table f
-),
--- 2. Find the fisherman with the most catches per event
-MostCaughtPerEvent AS (
-    SELECT 
-        f.eventId, 
-        f.fishermanId, 
-        COUNT(f.id) as catchCount,
-        ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
-    FROM fish_table f
-    GROUP BY f.eventId, f.fishermanId
-)
-
 SELECT 
     s.*,
-    -- Basic Counts
+    -- Basic Counts (Overall)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
+
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-    
-    -- Big Fish Data (joined from CTE)
-    CASE 
-        WHEN bfm.nickname IS NOT NULL AND bfm.nickname != '' 
-        THEN bfm.firstName || ' "' || bfm.nickname || '" ' || bfm.lastName 
-        ELSE bfm.firstName || ' ' || bfm.lastName 
-    END as bigFishName,
-    bsp.name as bigFishSpecies,
-    bf.length as bigFishLength,
-    
-    -- Most Caught Data (joined from CTE)
-    CASE 
-        WHEN mcm.nickname IS NOT NULL AND mcm.nickname != '' 
-        THEN mcm.firstName || ' "' || mcm.nickname || '" ' || mcm.lastName 
-        ELSE mcm.firstName || ' ' || mcm.lastName 
-    END as mostCaughtName,
-    mc.catchCount as mostCaught
 
+    -- Basic Counts (Target Only)
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishCaught,
+     
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
 JOIN trip_table AS t ON s.tripId = t.id
-
--- Join Big Fish logic
-LEFT JOIN BigFishPerEvent bf ON s.id = bf.eventId AND bf.row_num = 1
-LEFT JOIN fisherman_table bfm ON bf.fishermanId = bfm.id
-LEFT JOIN species_table bsp ON bf.speciesId = bsp.id
-
--- Join Most Caught logic
-LEFT JOIN MostCaughtPerEvent mc ON s.id = mc.eventId AND mc.row_num = 1
-LEFT JOIN fisherman_table mcm ON mc.fishermanId = mcm.id
-
 WHERE :currentTime BETWEEN t.startDate AND t.endDate
 ORDER BY s.startTime ASC
 """
@@ -156,70 +116,57 @@ ORDER BY s.startTime ASC
     @Transaction
     @Query(
         """
-WITH 
--- 1. Get the biggest fish per event for this specific trip
-BigFishPerEvent AS (
-    SELECT 
-        f.eventId, 
-        f.length, 
-        f.speciesId, 
-        f.fishermanId,
-        ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY f.length DESC, f.id ASC) as row_num
-    FROM fish_table f
-    WHERE f.tripId = :tripId
-),
--- 2. Get the fisherman with the most catches per event for this specific trip
-MostCaughtPerEvent AS (
-    SELECT 
-        f.eventId, 
-        f.fishermanId, 
-        COUNT(f.id) as catchCount,
-        ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
-    FROM fish_table f
-    WHERE f.tripId = :tripId
-    GROUP BY f.eventId, f.fishermanId
-)
-
 SELECT 
     s.*,
-    -- Basic Counts
+    -- Basic Counts (Overall)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
+
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
     (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-    
-    -- Big Fish Data (joined from CTE)
-    CASE 
-        WHEN bfm.nickname IS NOT NULL AND bfm.nickname != '' 
-        THEN bfm.firstName || ' "' || bfm.nickname || '" ' || bfm.lastName 
-        ELSE bfm.firstName || ' ' || bfm.lastName 
-    END as bigFishName,
-    bsp.name as bigFishSpecies,
-    bf.length as bigFishLength,
-    
-    -- Most Caught Data (joined from CTE)
-    CASE 
-        WHEN mcm.nickname IS NOT NULL AND mcm.nickname != '' 
-        THEN mcm.firstName || ' "' || mcm.nickname || '" ' || mcm.lastName 
-        ELSE mcm.firstName || ' ' || mcm.lastName 
-    END as mostCaughtName,
-    mc.catchCount as mostCaught
 
+    -- Basic Counts (Target Only)
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishCaught,
+     
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
-
--- Left join ensures we don't hide events with no fish yet
-LEFT JOIN BigFishPerEvent bf ON s.id = bf.eventId AND bf.row_num = 1
-LEFT JOIN fisherman_table bfm ON bf.fishermanId = bfm.id
-LEFT JOIN species_table bsp ON bf.speciesId = bsp.id
-
-LEFT JOIN MostCaughtPerEvent mc ON s.id = mc.eventId AND mc.row_num = 1
-LEFT JOIN fisherman_table mcm ON mc.fishermanId = mcm.id
-
 WHERE s.tripId = :tripId
 ORDER BY s.startTime DESC"""
     )
     fun getTripEventSummaries(tripId: String): Flow<List<EventSummary>>
 
+    @Transaction
+    @Query(
+        """
+SELECT 
+    s.*,
+    -- Basic Counts (Overall)
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
+
+    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+
+    -- Basic Counts (Target Only)
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishCaught,
+     
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.eventId = s.id) as targetFishKept
+FROM event_table s
+WHERE s.id = :eventId
+ORDER BY s.startTime DESC"""
+    )
+    fun getEventSummary(eventId: String): Flow<EventSummary>
+
+    @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
+    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary>
 
     // TODO -- convert these to upsert
     @Insert(onConflict = OnConflictStrategy.IGNORE)

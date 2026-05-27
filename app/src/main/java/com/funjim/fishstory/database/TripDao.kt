@@ -58,6 +58,10 @@ interface TripDao {
     fun getTrip(tripId: String): Flow<Trip?>
 
     @Transaction
+    @Query("SELECT * FROM trip_table WHERE id = :tripId")
+    fun getTripById(tripId: String): Flow<Trip?>
+
+    @Transaction
     @Query("SELECT * FROM trip_table WHERE name = :name")
     fun getTripByName(name: String): Trip?
 
@@ -155,9 +159,6 @@ ORDER BY t.startDate DESC
     WHERE xr.tripId = :tripId
 """)
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
-
-    @Query("SELECT fishermanId FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
-    fun getFishermanIdsForTrip(tripId: String): Flow<List<String>>
 
     @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>

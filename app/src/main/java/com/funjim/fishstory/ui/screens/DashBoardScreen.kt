@@ -56,6 +56,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
@@ -221,9 +222,11 @@ fun DashboardScreen(
                     ActiveTripCard(
                         activeTrips = state.activeTrips,
                         activeEvents = activeTripEvents.active,
+                        eventSummary = state.eventSummary,
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
+                        onSwipe = { eventId -> viewModel.selectEvent(eventId) },
                         onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
                     )
                 } else {
@@ -258,9 +261,10 @@ fun DashboardScreen(
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(activeTripEvents.upcoming) { upcomingEvent ->
                                 UpcomingEventChip(
-                                    tripName = state.activeTrips.find { it.trip.id == upcomingEvent.event.tripId }?.trip?.name ?: "Unknown Trip",
-                                    event = upcomingEvent.event,
-                                    onEventClick = { eventId, tripId -> onNavigate("event_details/${eventId}/${tripId}") }
+                                    tripName = upcomingEvent.trip.name,
+                                    eventName = upcomingEvent.event.name,
+                                    eventTime = upcomingEvent.event.startTime,
+                                    onEventClick = { onNavigate("event_details/${upcomingEvent.event.id}/${upcomingEvent.trip.id}") }
                                 )
                             }
                         }
@@ -380,9 +384,11 @@ All events (${item.eventCount}) and fish (${item.fishCaught}) associated with th
 fun ActiveTripCard(
     activeTrips: List<TripSummary>,
     activeEvents: List<EventSummary>,
+    eventSummary: EventDetailedSummary?,
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
+    onSwipe: (String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -399,8 +405,14 @@ fun ActiveTripCard(
                     onDragStart = { dragTotal = 0f },
                     onDragEnd = {
                         when {
-                            dragTotal < -50f && currentIndex < activeEvents.size - 1 -> currentIndex++
-                            dragTotal > 50f && currentIndex > 0 -> currentIndex--
+                            dragTotal < -50f && currentIndex < activeEvents.size - 1 -> {
+                                currentIndex++
+                                onSwipe(activeEvents[currentIndex].event.id)
+                            }
+                            dragTotal > 50f && currentIndex > 0 -> {
+                                currentIndex--
+                                onSwipe(activeEvents[currentIndex].event.id)
+                            }
                         }
                         dragTotal = 0f
                     },
@@ -437,16 +449,17 @@ fun ActiveTripCard(
                 }
             }
 
-            Text(
-                text = trip.trip.name,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable( onClick = { onTripClick(trip.trip.id) })
+            CenteredRowText(
+                trip.trip.name,
+                prefixText = "Trip",
+                onClick = { onTripClick(trip.trip.id) }
             )
+
             if (trip.fishCaught != currentEvent.fishCaught) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     StatItem(
                         label = "CAUGHT",
@@ -454,6 +467,14 @@ fun ActiveTripCard(
                         color = MaterialTheme.colorScheme.onTertiary,
                         labelColor = MaterialTheme.colorScheme.onTertiary
                     )
+
+                    Icon(
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onTertiary
+                    )
+
                     StatItem(
                         label = "KEPT",
                         value = "${trip.fishKept}",
@@ -463,7 +484,7 @@ fun ActiveTripCard(
                 }
 
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     thickness = 0.5.dp,
                     color = MaterialTheme.colorScheme.onTertiary
                 )
@@ -498,20 +519,38 @@ fun ActiveTripCard(
                         labelColor = MaterialTheme.colorScheme.onTertiary
                     )
                 }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onTertiary
+                )
             }
 
-            Text(
-                text = currentEvent.event.name,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable( onClick = { onEventClick(currentEvent.event.tripId, currentEvent.event.id) })
+            CenteredRowText(
+                currentEvent.event.name,
+                prefixText = "Event",
+                onClick = { onEventClick(currentEvent.event.tripId, currentEvent.event.id) }
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 StatItem(
                     label = "CAUGHT",
                     value = "${currentEvent.fishCaught}",
                     color = MaterialTheme.colorScheme.onTertiary,
                     labelColor = MaterialTheme.colorScheme.onTertiary)
+
+                Icon(
+                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onTertiary
+                )
+
                 StatItem(
                     label = "KEPT",
                     value = "${currentEvent.fishKept}",
@@ -519,40 +558,44 @@ fun ActiveTripCard(
                     labelColor = MaterialTheme.colorScheme.onTertiary)
             }
 
-            if (currentEvent.mostCaught != null && currentEvent.mostCaught != 0) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.onTertiary
-                )
+            eventSummary?.let { eventSummary ->
+                if (eventSummary.mostCaught != null && eventSummary.mostCaught != 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.onTertiary
+                    )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    AchievementItem(
-                        icon = Icons.Default.Person,
-                        label = "Most Caught",
-                        name = currentEvent.mostCaughtName,
-                        description = "(${currentEvent.mostCaught} fish)",
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
-                    AchievementItem(
-                        icon = Icons.Default.Person,
-                        label = "Biggest Fish",
-                        name = currentEvent.bigFishName,
-                        description =
-                            if (currentEvent.bigFishLength == null) ""
-                            else "(${currentEvent.bigFishLength.toDisplayString(
-                                useMetric = false,
-                                useFractions = true
-                            )} : ${currentEvent.bigFishSpecies})",
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        AchievementItem(
+                            icon = Icons.Default.Person,
+                            label = "Most Caught",
+                            name = eventSummary.mostCaughtFisherman,
+                            description = "(${eventSummary.mostCaught} fish)",
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            labelColor = MaterialTheme.colorScheme.onTertiary
+                        )
+                        AchievementItem(
+                            icon = Icons.Default.Person,
+                            label = "Biggest Fish",
+                            name = eventSummary.bigFishFisherman,
+                            description =
+                                if (eventSummary.bigFishLength == null) ""
+                                else "(${
+                                    eventSummary.bigFishLength.toDisplayString(
+                                        useMetric = false,
+                                        useFractions = true
+                                    )
+                                } : ${eventSummary.bigFishSpecies})",
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            labelColor = MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
                 }
             }
 
@@ -594,7 +637,6 @@ fun ActiveTripCard(
         }
     }
 }
-
 
 @Composable
 fun DashboardGrid(
@@ -718,17 +760,18 @@ fun UpcomingTripChip(
 @Composable
 fun UpcomingEventChip(
     tripName: String,
-    event: Event,
-    onEventClick: (String, String) -> Unit
+    eventName: String,
+    eventTime: Long,
+    onEventClick: () -> Unit
 ) {
     val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
-        .format(java.util.Date(event.startTime))
+        .format(java.util.Date(eventTime))
 
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = getCardColor(),
         border = BorderStroke(1.dp, getCardBorderColor()),
-        modifier = Modifier.width(140.dp).clickable{onEventClick(event.id, event.tripId)}
+        modifier = Modifier.width(140.dp).clickable{ onEventClick() }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -745,7 +788,7 @@ fun UpcomingEventChip(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = event.name,
+                text = eventName,
                 style = MaterialTheme.typography.bodyLarge,
                 color = getOnCardColor(),
                 fontWeight = FontWeight.Bold,
@@ -792,6 +835,48 @@ fun TripHistoryRow(trip: Trip) {
                 modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+@Composable
+fun CenteredRowText(
+    mainText: String,
+    modifier: Modifier = Modifier,
+    prefixText: String? = null,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (prefixText != null) {
+                Text(
+                    text = prefixText,
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+
+            Text(
+                text = mainText,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable(onClick = { onClick() })
+            )
+
+            if (prefixText != null) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = prefixText,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.alpha(0f)
+                )
+            }
         }
     }
 }

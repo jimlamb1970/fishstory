@@ -42,6 +42,7 @@ class FishRepository(
     }
 
     fun getTrip(id: String) = tripDao.getTrip(id)
+    fun getTripById(id: String) = tripDao.getTripById(id)
     fun getEventById(id: String) = eventDao.getEventById(id)
     fun getFisherman(id: String) = fishermanDao.getFisherman(id)
     fun getLure(id: String) = lureDao.getLure(id)

@@ -227,24 +227,6 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventSummary: StateFlow<EventSummary?> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                // We watch the master list and filter for the matching ID
-                eventSummaries.map { list ->
-                    list.find { it.event.id == id }
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val tripPhotos: StateFlow<List<Photo>> = _selectedTripId
         .filterNotNull()
         .flatMapLatest { photoRepo.getPhotosForTrip(it) }

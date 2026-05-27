@@ -35,6 +35,7 @@ import com.funjim.fishstory.model.*
         TackleBoxLureCrossRef::class,       // Backed up
         TripFishermanCrossRef::class        // Backed up
     ],
+    views = [EventDetailedSummary::class],
     version = 2,
     exportSchema = false
 )

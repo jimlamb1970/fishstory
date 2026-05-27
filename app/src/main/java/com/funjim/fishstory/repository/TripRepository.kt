@@ -3,6 +3,7 @@ package com.funjim.fishstory.repository
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithDetails
@@ -73,39 +74,20 @@ class TripRepository(
         trips.filter { it.trip.endDate < now}.sortedByDescending { it.trip.endDate }
     }
 
-    /**
-     * Get the fisherman IDs for a given trip.
-     */
-    fun getFishermanIdsForTrip(tripId: String): Flow<List<String>> =
-        tripDao.getFishermanIdsForTrip(tripId)
-
-    // Segment Streams
-    fun getSegmentsForTrip(tripId: String): Flow<List<Event>> =
-        eventDao.getEventsForTrip(tripId)
-    fun getSegmentsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> =
+    fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> =
         eventDao.getEventsForActiveTrips(currentTime)
     fun getEventSummaries(tripId: String): Flow<List<EventSummary>> =
         eventDao.getTripEventSummaries(tripId)
 
-    fun getEventWithDetails(segmentId: String): Flow<EventWithDetails?> =
-        eventDao.getEventWithDetails(segmentId)
+    fun getEventSummary(eventId: String): Flow<EventSummary> =
+        eventDao.getEventSummary(eventId)
+    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary> =
+        eventDao.getEventDetailedSummary(eventId)
 
-    fun getActiveSegments(): Flow<List<Event>> =
-        eventDao.getAllEvents().map { segments ->
-            val now = System.currentTimeMillis()
-            segments.filter { now in it.startTime..it.endTime }
-        }
+    fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> =
+        eventDao.getEventWithDetails(eventId)
 
-    fun getActiveSegmentsForTrip(tripId: String): Flow<List<Event>> =
-        eventDao.getEventsForTrip(tripId).map { segments ->
-        val now = System.currentTimeMillis()
-        segments.filter { now in it.startTime..it.endTime }
-    }
 
-    fun getUpcomingSegments(): Flow<List<Event>> = eventDao.getAllEvents().map { segments ->
-        val now = System.currentTimeMillis()
-        segments.filter { it.startTime > now }.sortedBy { it.startTime }
-    }
     // Trip Operations
     suspend fun upsertTrip(trip: Trip) = tripDao.upsertTrip(trip)
     suspend fun deleteTripById(tripId: String) = tripDao.deleteTripById(tripId)
