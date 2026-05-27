@@ -6,6 +6,14 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +40,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoGraph
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.AlertDialog
@@ -41,6 +51,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -72,6 +83,7 @@ import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AchievementItem
+import com.funjim.fishstory.ui.utils.ModalAddButton
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -392,6 +404,7 @@ fun ActiveTripCard(
     onLogFish: (String, String) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
+    var tripExpanded by remember { mutableStateOf(false) }
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
     val trip = activeTrips.find { it.trip.id == currentEvent.event.tripId } ?: return
 
@@ -399,6 +412,12 @@ fun ActiveTripCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(currentEvent.event.tripId, currentEvent.event.id) }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
             .pointerInput(activeEvents.size) {
                 var dragTotal = 0f
                 detectHorizontalDragGestures(
@@ -407,10 +426,12 @@ fun ActiveTripCard(
                         when {
                             dragTotal < -50f && currentIndex < activeEvents.size - 1 -> {
                                 currentIndex++
+                                tripExpanded = false
                                 onSwipe(activeEvents[currentIndex].event.id)
                             }
                             dragTotal > 50f && currentIndex > 0 -> {
                                 currentIndex--
+                                tripExpanded = false
                                 onSwipe(activeEvents[currentIndex].event.id)
                             }
                         }
@@ -452,79 +473,93 @@ fun ActiveTripCard(
             CenteredRowText(
                 trip.trip.name,
                 prefixText = "Trip",
-                onClick = { onTripClick(trip.trip.id) }
+                onClick = { onTripClick(trip.trip.id) },
+                icon = if (trip.fishCaught != currentEvent.fishCaught)
+                    if (tripExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore
+                    else null,
+                onIconClick = { tripExpanded = !tripExpanded }
             )
 
-            if (trip.fishCaught != currentEvent.fishCaught) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    StatItem(
-                        label = "CAUGHT",
-                        value = "${trip.fishCaught}",
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
+            AnimatedVisibility(
+                visible = tripExpanded,
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+            ) {
+                if (trip.fishCaught != currentEvent.fishCaught) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            StatItem(
+                                label = "CAUGHT",
+                                value = "${trip.fishCaught}",
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
 
-                    Icon(
-                        imageVector = AppIcons.Default.LeapingFishWithFins,
-                        contentDescription = "Fish",
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.onTertiary
-                    )
+                            Icon(
+                                imageVector = AppIcons.Default.LeapingFishWithFins,
+                                contentDescription = "Fish",
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.onTertiary
+                            )
 
-                    StatItem(
-                        label = "KEPT",
-                        value = "${trip.fishKept}",
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
+                            StatItem(
+                                label = "KEPT",
+                                value = "${trip.fishKept}",
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            AchievementItem(
+                                icon = Icons.Default.Person,
+                                label = "Most Caught",
+                                name = trip.mostCaughtName,
+                                description =
+                                    if (trip.mostCaught == null) ""
+                                    else "(${trip.mostCaught} fish)",
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
+                            AchievementItem(
+                                icon = Icons.Default.Person,
+                                label = "Biggest Fish",
+                                name = trip.bigFishName,
+                                description =
+                                    if (trip.bigFishLength == null) ""
+                                    else "(${
+                                        trip.bigFishLength.toDisplayString(
+                                            useMetric = false,
+                                            useFractions = true
+                                        )
+                                    } : ${trip.bigFishSpecies})",
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
                 }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.onTertiary
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    AchievementItem(
-                        icon = Icons.Default.Person,
-                        label = "Most Caught",
-                        name = trip.mostCaughtName,
-                        description =
-                            if (trip.mostCaught == null) ""
-                            else "(${trip.mostCaught} fish)",
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
-                    AchievementItem(
-                        icon = Icons.Default.Person,
-                        label = "Biggest Fish",
-                        name = trip.bigFishName,
-                        description =
-                            if (trip.bigFishLength == null) ""
-                            else "(${trip.bigFishLength.toDisplayString(
-                                useMetric = false,
-                                useFractions = true
-                            )} : ${trip.bigFishSpecies})",
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        labelColor = MaterialTheme.colorScheme.onTertiary
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onTertiary
-                )
             }
 
             CenteredRowText(
@@ -558,43 +593,59 @@ fun ActiveTripCard(
                     labelColor = MaterialTheme.colorScheme.onTertiary)
             }
 
-            eventSummary?.let { eventSummary ->
-                if (eventSummary.mostCaught != null && eventSummary.mostCaught != 0) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.onTertiary
-                    )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize()
+            ) {
+                val hasAchievements = eventSummary != null &&
+                        eventSummary.mostCaught != null &&
+                        eventSummary.mostCaught != 0
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        AchievementItem(
-                            icon = Icons.Default.Person,
-                            label = "Most Caught",
-                            name = eventSummary.mostCaughtFisherman,
-                            description = "(${eventSummary.mostCaught} fish)",
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            labelColor = MaterialTheme.colorScheme.onTertiary
-                        )
-                        AchievementItem(
-                            icon = Icons.Default.Person,
-                            label = "Biggest Fish",
-                            name = eventSummary.bigFishFisherman,
-                            description =
-                                if (eventSummary.bigFishLength == null) ""
-                                else "(${
-                                    eventSummary.bigFishLength.toDisplayString(
-                                        useMetric = false,
-                                        useFractions = true
-                                    )
-                                } : ${eventSummary.bigFishSpecies})",
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            labelColor = MaterialTheme.colorScheme.onTertiary
-                        )
+                AnimatedVisibility(
+                    visible = hasAchievements,
+                    enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                    exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                ) {
+                    if (eventSummary != null) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.onTertiary
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                AchievementItem(
+                                    icon = Icons.Default.Person,
+                                    label = "Most Caught",
+                                    name = eventSummary.mostCaughtFisherman,
+                                    description = "(${eventSummary.mostCaught} fish)",
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    labelColor = MaterialTheme.colorScheme.onTertiary
+                                )
+                                AchievementItem(
+                                    icon = Icons.Default.Person,
+                                    label = "Biggest Fish",
+                                    name = eventSummary.bigFishFisherman,
+                                    description =
+                                        if (eventSummary.bigFishLength == null) ""
+                                        else "(${
+                                            eventSummary.bigFishLength.toDisplayString(
+                                                useMetric = false,
+                                                useFractions = true
+                                            )
+                                        } : ${eventSummary.bigFishSpecies})",
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    labelColor = MaterialTheme.colorScheme.onTertiary
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -844,11 +895,12 @@ fun CenteredRowText(
     mainText: String,
     modifier: Modifier = Modifier,
     prefixText: String? = null,
-    onClick: () -> Unit
+    icon: ImageVector? = null,
+    onClick: () -> Unit,
+    onIconClick: (() ->Unit)? = null
 ) {
     Box(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -875,6 +927,20 @@ fun CenteredRowText(
                     text = prefixText,
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.alpha(0f)
+                )
+            }
+        }
+        if (icon != null && onIconClick != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable(
+                        onClick = onIconClick,
+                    )
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "Text Action"
                 )
             }
         }
