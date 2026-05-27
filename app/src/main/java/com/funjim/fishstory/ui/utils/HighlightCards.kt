@@ -59,8 +59,10 @@ fun EventHighlightCard(
                 fontWeight = FontWeight.Bold,
                 color = getOnCardColor(),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth()
             )
+
+            HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp), thickness = 2.dp)
 
             // Top Row: The Numbers
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -84,30 +86,10 @@ fun EventHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatItem(
-                    label = "CAUGHT",
-                    value = "${summary.targetFishCaught}",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
-
-                Icon(
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                StatItem(
-                    label = "KEPT",
-                    value = "${summary.targetFishKept}",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                thickness = 0.5.dp
+            )
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -133,7 +115,33 @@ fun EventHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 2.dp)
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${summary.targetFishCaught}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                Icon(
+                    imageVector = AppIcons.Default.TargetFish,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                StatItem(
+                    label = "KEPT",
+                    value = "${summary.targetFishKept}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                thickness = 0.5.dp
+            )
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

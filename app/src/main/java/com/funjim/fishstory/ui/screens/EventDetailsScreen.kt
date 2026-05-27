@@ -471,7 +471,7 @@ fun EventDetailsScreen(
 
                                                     ThumbnailBox(
                                                         thumbnail = thumbnail,
-                                                        imageVector = AppIcons.Default.LeapingFish,
+                                                        imageVector = AppIcons.Default.TargetFish,
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                 },
@@ -645,7 +645,7 @@ fun EventDetailsScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.LeapingFish,
+                            imageVector = AppIcons.Default.TargetFish,
                             modifier = Modifier.size(48.dp)
                         )
                     }
