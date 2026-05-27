@@ -782,11 +782,8 @@ fun AddTripScreen(
                             fishKept = 0,
                             fishermanCount = tripFishermenIds.size,
                             tackleBoxCount = activeCount,
-                            bigFishName = null,
-                            bigFishSpecies = "",
-                            bigFishLength = null,
-                            mostCaughtName = null,
-                            mostCaught = 0
+                            targetFishCaught = 0,
+                            targetFishKept = 0
                         )
 
                         TripItem(

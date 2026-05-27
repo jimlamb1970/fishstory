@@ -35,8 +35,11 @@ import com.funjim.fishstory.model.*
         TackleBoxLureCrossRef::class,       // Backed up
         TripFishermanCrossRef::class        // Backed up
     ],
-    views = [EventDetailedSummary::class],
-    version = 2,
+    views = [
+        EventDetailedSummary::class,
+        TripDetailedSummary::class
+    ],
+    version = 4,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {

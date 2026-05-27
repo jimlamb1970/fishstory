@@ -99,36 +99,23 @@ data class EventWithDetails(
             entityColumn = "speciesId"
         )
     )
-    val targetSpecies: List<Species>,
+    val targetSpecies: List<Species>
 )
 
-data class EventWithDetails2(
+data class EventWithSpecies(
     @Embedded val event: Event,
+
     @Relation(
+        entity = Species::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventFishermanCrossRef::class,
+            value = TargetSpecies::class,
             parentColumn = "eventId",
-            entityColumn = "fishermanId"
+            entityColumn = "speciesId"
         )
     )
-    val fishermen: List<Fisherman>,
-    @Relation(
-        parentColumn = "id",        // Event ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoEventCrossRef::class,
-            parentColumn = "eventId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "eventId"
-    )
-    val fish: List<Fish>
+    val targetSpecies: List<Species>
 )
 
 @DatabaseView(
@@ -155,7 +142,8 @@ BigTargetFishPerEvent AS (
         ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY f.length DESC, f.id ASC) as row_num
     FROM fish_table f
     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
-),-- Get the fisherman with the most catches per event for this specific trip
+),
+-- Get the fisherman with the most catches per event for this specific trip
 MostCaughtPerEvent AS (
     SELECT 
         f.eventId, 

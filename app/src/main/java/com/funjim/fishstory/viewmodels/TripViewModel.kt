@@ -72,6 +72,70 @@ class TripViewModel(
     private val allTripSummaries = tripRepo.allTripSummaries
     val allTrips = tripRepo.allTrips
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedTripDetailedSummary = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                tripRepo.getTripDetailedSummary(id)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedTripWithDetails = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                tripRepo.getTripWithDetails(id)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList())
+            } else {
+                // This query only runs for the currently selected trip
+                tripRepo.getEventSummaries(id)
+            }
+        }
+        .map { list ->
+            // Sort by whatever property makes sense for your events
+            list.sortedBy { it.event.startTime }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val uiDetailState: StateFlow<TripDetailsUiState> = combine(
+        selectedTripWithDetails,
+        selectedTripDetailedSummary,
+        eventSummaries
+    ) { trip, summary, events ->
+        // Guard clause: Ensure the database has returned valid data for everything
+        if (trip != null && summary != null) {
+            TripDetailsUiState.Success(
+                details = trip,
+                summary = summary,
+                eventSummaries = events
+            )
+        } else {
+            TripDetailsUiState.Loading
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TripDetailsUiState.Loading
+    )
+
+
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -204,26 +268,6 @@ class TripViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                tripRepo.getEventSummaries(id)
-            }
-        }
-        .map { list ->
-            // Sort by whatever property makes sense for your events
-            list.sortedBy { it.event.startTime }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -438,6 +482,16 @@ data class TripUiState(
     val recentTrips: List<TripSummary> = emptyList(),
     val isLoading: Boolean = false
 )
+
+sealed interface TripDetailsUiState {
+    object Loading : TripDetailsUiState
+
+    data class Success(
+        val details: TripWithDetails,
+        val summary: TripDetailedSummary,
+        val eventSummaries: List<EventSummary> = emptyList()
+    ) : TripDetailsUiState
+}
 
 class TripViewModelFactory(
     private val locationProvider: LocationProvider,

@@ -78,6 +78,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
@@ -235,10 +236,11 @@ fun DashboardScreen(
                         activeTrips = state.activeTrips,
                         activeEvents = activeTripEvents.active,
                         eventSummary = state.eventSummary,
+                        tripSummary = state.tripSummary,
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
-                        onSwipe = { eventId -> viewModel.selectEvent(eventId) },
+                        onSwipe = { tripId, eventId -> viewModel.selectEvent(tripId, eventId) },
                         onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
                     )
                 } else {
@@ -397,12 +399,14 @@ fun ActiveTripCard(
     activeTrips: List<TripSummary>,
     activeEvents: List<EventSummary>,
     eventSummary: EventDetailedSummary?,
+    tripSummary: TripDetailedSummary?,
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
-    onSwipe: (String) -> Unit,
+    onSwipe: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {
+    // todo -- can probably get away from activeTrips and activeEvents.
     var currentIndex by remember { mutableIntStateOf(0) }
     var tripExpanded by remember { mutableStateOf(false) }
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
@@ -427,12 +431,16 @@ fun ActiveTripCard(
                             dragTotal < -50f && currentIndex < activeEvents.size - 1 -> {
                                 currentIndex++
                                 tripExpanded = false
-                                onSwipe(activeEvents[currentIndex].event.id)
+                                onSwipe(
+                                    activeEvents[currentIndex].event.tripId,
+                                    activeEvents[currentIndex].event.id)
                             }
                             dragTotal > 50f && currentIndex > 0 -> {
                                 currentIndex--
                                 tripExpanded = false
-                                onSwipe(activeEvents[currentIndex].event.id)
+                                onSwipe(
+                                    activeEvents[currentIndex].event.tripId,
+                                    activeEvents[currentIndex].event.id)
                             }
                         }
                         dragTotal = 0f
@@ -520,44 +528,46 @@ fun ActiveTripCard(
                             color = MaterialTheme.colorScheme.onTertiary
                         )
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            AchievementItem(
-                                icon = Icons.Default.Person,
-                                label = "Most Caught",
-                                name = trip.mostCaughtName,
-                                description =
-                                    if (trip.mostCaught == null) ""
-                                    else "(${trip.mostCaught} fish)",
-                                modifier = Modifier.weight(1f),
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                labelColor = MaterialTheme.colorScheme.onTertiary
-                            )
-                            AchievementItem(
-                                icon = Icons.Default.Person,
-                                label = "Biggest Fish",
-                                name = trip.bigFishName,
-                                description =
-                                    if (trip.bigFishLength == null) ""
-                                    else "(${
-                                        trip.bigFishLength.toDisplayString(
-                                            useMetric = false,
-                                            useFractions = true
-                                        )
-                                    } : ${trip.bigFishSpecies})",
-                                modifier = Modifier.weight(1f),
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                labelColor = MaterialTheme.colorScheme.onTertiary
+                        tripSummary?.let { trip ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                AchievementItem(
+                                    icon = Icons.Default.Person,
+                                    label = "Most Caught",
+                                    name = trip.mostCaughtFisherman,
+                                    description =
+                                        if (trip.mostCaught == null) ""
+                                        else "(${trip.mostCaught} fish)",
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    labelColor = MaterialTheme.colorScheme.onTertiary
+                                )
+                                AchievementItem(
+                                    icon = Icons.Default.Person,
+                                    label = "Biggest Fish",
+                                    name = trip.bigFishFisherman,
+                                    description =
+                                        if (trip.bigFishLength == null) ""
+                                        else "(${
+                                            trip.bigFishLength.toDisplayString(
+                                                useMetric = false,
+                                                useFractions = true
+                                            )
+                                        } : ${trip.bigFishSpecies})",
+                                    modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    labelColor = MaterialTheme.colorScheme.onTertiary
+                                )
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                thickness = 1.dp,
+                                color = MaterialTheme.colorScheme.onTertiary
                             )
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.onTertiary
-                        )
                     }
                 }
             }

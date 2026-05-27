@@ -217,18 +217,16 @@ fun EventDetailsScreen(
                                                 scope.launch {
                                                     val location = viewModel.fetchLocation()
                                                     if (location != null) {
-                                                        selectedEvent?.let { event ->
-                                                            viewModel.upsertEvent(
-                                                                event.copy(
-                                                                    latitude = location.latitude,
-                                                                    longitude = location.longitude
-                                                                )
+                                                        viewModel.upsertEvent(
+                                                            event.copy(
+                                                                latitude = location.latitude,
+                                                                longitude = location.longitude
                                                             )
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Location updated",
-                                                                Toast.LENGTH_SHORT).show()
-                                                        }
+                                                        )
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Location updated",
+                                                            Toast.LENGTH_SHORT).show()
                                                     } else {
                                                         Toast.makeText(
                                                             context,
@@ -278,22 +276,20 @@ fun EventDetailsScreen(
                                             },
                                             onClick = {
                                                 menuExpanded = false
-                                                selectedEvent?.let { event ->
-                                                    scope.launch {
-                                                        viewModel.upsertEvent(
-                                                            event.copy(latitude = null, longitude = null)
-                                                        )
-                                                        if (tripLat == null)
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Location cleared",
-                                                                Toast.LENGTH_SHORT).show()
-                                                        else
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Location reset",
-                                                                Toast.LENGTH_SHORT).show()
-                                                    }
+                                                scope.launch {
+                                                    viewModel.upsertEvent(
+                                                        event.copy(latitude = null, longitude = null)
+                                                    )
+                                                    if (tripLat == null)
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Location cleared",
+                                                            Toast.LENGTH_SHORT).show()
+                                                    else
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Location reset",
+                                                            Toast.LENGTH_SHORT).show()
                                                 }
                                             },
                                             leadingIcon = {
@@ -364,7 +360,7 @@ fun EventDetailsScreen(
                                                 }
                                             }
                                     )
-                                    if (selectedEvent?.latitude == null) {
+                                    if (event.latitude == null) {
                                         Text(
                                             text = "(Trip)",
                                             style = MaterialTheme.typography.bodySmall,

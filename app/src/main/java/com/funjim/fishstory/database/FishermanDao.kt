@@ -197,11 +197,8 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        NULL as bigFishName,
-        "" as bigFishSpecies,
-        0 as bigFishLength,
-        NULL as mostCaughtName,
-        0 as mostCaught
+        SUM(f.caughtCount) AS targetFishCaught,
+        SUM(f.keptCount) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -220,11 +217,8 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        NULL as bigFishName,
-        "" as bigFishSpecies,
-        0 as bigFishLength,
-        NULL as mostCaughtName,
-        0 as mostCaught
+        SUM(f.caughtCount) AS targetFishCaught,
+        SUM(f.keptCount) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -244,11 +238,8 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        NULL as bigFishName,
-        "" as bigFishSpecies,
-        0 as bigFishLength,
-        NULL as mostCaughtName,
-        0 as mostCaught
+        SUM(f.caughtCount) AS targetFishCaught,
+        SUM(f.keptCount) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -268,11 +259,8 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        NULL as bigFishName,
-        "" as bigFishSpecies,
-        0 as bigFishLength,
-        NULL as mostCaughtName,
-        0 as mostCaught
+        SUM(f.caughtCount) AS targetFishCaught,
+        SUM(f.keptCount) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId

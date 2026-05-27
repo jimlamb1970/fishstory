@@ -9,8 +9,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
@@ -75,67 +77,59 @@ interface TripDao {
 
     @Transaction
     @Query("""
-WITH 
--- 1. Identify the single biggest fish for every trip
-BigFishPerTrip AS (
-    SELECT 
-        f.tripId, 
-        f.length, 
-        f.speciesId, 
-        f.fishermanId,
-        ROW_NUMBER() OVER (PARTITION BY f.tripId ORDER BY f.length DESC, f.id ASC) as row_num
-    FROM fish_table f
-),
--- 2. Identify the fisherman with the most catches per trip
-MostCaughtPerTrip AS (
-    SELECT 
-        f.tripId, 
-        f.fishermanId, 
-        COUNT(f.id) as catchCount,
-        ROW_NUMBER() OVER (PARTITION BY f.tripId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
-    FROM fish_table f
-    GROUP BY f.tripId, f.fishermanId
-)
-
 SELECT 
     t.*,
     -- Counts
     (SELECT COUNT(*) FROM event_table et WHERE et.tripId = t.id) as eventCount,
+
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishKept,
+
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
-    
-    -- Big Fish Data (joined via CTE)
-    CASE 
-        WHEN bfm.nickname IS NOT NULL AND bfm.nickname != '' 
-        THEN bfm.firstName || ' "' || bfm.nickname || '" ' || bfm.lastName 
-        ELSE bfm.firstName || ' ' || bfm.lastName 
-    END as bigFishName,
-    bsp.name as bigFishSpecies,
-    bf.length as bigFishLength,
-    
-    -- Most Caught Data (joined via CTE)
-    CASE 
-        WHEN mcm.nickname IS NOT NULL AND mcm.nickname != '' 
-        THEN mcm.firstName || ' "' || mcm.nickname || '" ' || mcm.lastName 
-        ELSE mcm.firstName || ' ' || mcm.lastName 
-    END as mostCaughtName,
-    mc.catchCount as mostCaught
+
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.tripId = t.id) as targetFishCaught,
+     
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.tripId = t.id) as targetFishKept
 
 FROM trip_table t
--- Join Big Fish
-LEFT JOIN BigFishPerTrip bf ON t.id = bf.tripId AND bf.row_num = 1
-LEFT JOIN fisherman_table bfm ON bf.fishermanId = bfm.id
-LEFT JOIN species_table bsp ON bf.speciesId = bsp.id
-
--- Join Most Caught
-LEFT JOIN MostCaughtPerTrip mc ON t.id = mc.tripId AND mc.row_num = 1
-LEFT JOIN fisherman_table mcm ON mc.fishermanId = mcm.id
-
 ORDER BY t.startDate DESC
 """)
     fun getTripSummaries(): Flow<List<TripSummary>>
+
+    @Transaction
+    @Query("""
+SELECT 
+    t.*,
+    -- Counts
+    (SELECT COUNT(*) FROM event_table et WHERE et.tripId = t.id) as eventCount,
+
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishKept,
+
+    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
+    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+
+    (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.tripId = t.id) as targetFishCaught,
+     
+    (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
+     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     WHERE f.tripId = t.id) as targetFishKept
+
+FROM trip_table t
+WHERE t.id = :tripId
+ORDER BY t.startDate DESC
+""")
+    fun getTripSummary(tripId: String): Flow<TripSummary>
+
+    @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startDate DESC")
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

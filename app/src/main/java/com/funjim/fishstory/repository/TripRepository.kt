@@ -11,6 +11,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TargetSpecies
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripWithDetails
@@ -78,6 +79,11 @@ class TripRepository(
         eventDao.getEventsForActiveTrips(currentTime)
     fun getEventSummaries(tripId: String): Flow<List<EventSummary>> =
         eventDao.getTripEventSummaries(tripId)
+
+    fun getTripSummary(tripId: String): Flow<TripSummary> =
+        tripDao.getTripSummary(tripId)
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary> =
+        tripDao.getTripDetailedSummary(tripId)
 
     fun getEventSummary(eventId: String): Flow<EventSummary> =
         eventDao.getEventSummary(eventId)

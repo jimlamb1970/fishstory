@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.FishermanFullStatistics
+import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ fun EventHighlightCard(
             }
 
             HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 thickness = 0.5.dp
             )
 
@@ -139,7 +140,7 @@ fun EventHighlightCard(
             }
 
             HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 thickness = 0.5.dp
             )
 
@@ -249,7 +250,11 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             }
         }
         if (!stats.bestTripName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -264,7 +269,11 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
             }
         }
         if (!stats.bestEventName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -309,7 +318,11 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
         }
 
         if (!stats.worstTripName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -324,7 +337,11 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
             }
         }
         if (!stats.worstEventName.isNullOrEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -342,7 +359,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
 }
 @Composable
 fun TripHighlightCard(
-    tripSummary: TripSummary,
+    summary: TripDetailedSummary,
     onClick: () -> Unit
 ) {
     Card(
@@ -361,33 +378,48 @@ fun TripHighlightCard(
                 fontWeight = FontWeight.Bold,
                 color = getOnCardColor(),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth()
             )
 
+            HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp), thickness = 2.dp)
+
             // Top Row: The Numbers
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 StatItem(
                     label = "CAUGHT",
-                    value = "${tripSummary.fishCaught}",
+                    value = "${summary.fishCaught}",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
 
+                Icon(
+                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
                 StatItem(
                     label = "KEPT",
-                    value = "${tripSummary.fishKept}",
+                    value = "${summary.fishKept}",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
 
             // Bottom Row: The Achievements
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 AchievementItem(
                     icon = Icons.Default.Person,
                     label = "Top Rod",
-                    name = tripSummary.mostCaughtName,
-                    description = "(${tripSummary.mostCaught} fish)",
+                    name = summary.mostCaughtFisherman,
+                    description = "(${summary.mostCaught} fish)",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor(),
                     modifier = Modifier.weight(1f))
@@ -395,17 +427,48 @@ fun TripHighlightCard(
                 AchievementItem(
                     icon = Icons.Default.Star,
                     label = "Big Fish",
-                    name = tripSummary.bigFishName,
+                    name = summary.bigFishFisherman,
                     description = "(${
-                        tripSummary.bigFishLength?.toDisplayString(
+                        summary.bigFishLength?.toDisplayString(
                             useMetric = false,
                             useFractions = true
                         )
-                    } : ${tripSummary.bigFishSpecies})",
+                    } : ${summary.bigFishSpecies})",
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor(),
                     modifier = Modifier.weight(1f))
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 2.dp)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${summary.targetFishCaught}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                Icon(
+                    imageVector = AppIcons.Default.TargetFish,
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                StatItem(
+                    label = "KEPT",
+                    value = "${summary.targetFishKept}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                thickness = 0.5.dp
+            )
         }
     }
 }
