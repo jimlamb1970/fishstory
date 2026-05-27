@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
@@ -38,9 +39,13 @@ class DashboardViewModel(
         }
     }
 
+    private val selectedTripId = MutableStateFlow<String?>(null)
     private val selectedEventId = MutableStateFlow<String?>(null)
 
-    fun selectEvent(eventId: String) {
+    fun selectEvent(tripId: String, eventId: String) {
+        if (selectedTripId.value != tripId) {
+            selectedTripId.value = tripId
+        }
         if (selectedEventId.value != eventId) {
             selectedEventId.value = eventId
         }
@@ -72,18 +77,33 @@ class DashboardViewModel(
         tripRepo.getPreviousTripSummaries(),
         // Stream group B: Your dynamic time-sliced event buckets
         activeTripEvents,
-        selectedEventId
-    ) { activeTrips, upcomingTrips, recentTrips, eventGroups, selectedEventId ->
+        selectedEventId,
+        selectedTripId
+    ) { arrayOfFlowResults ->
+        val activeTrips = (arrayOfFlowResults[0] as? List<*>)
+            ?.filterIsInstance<TripSummary>()
+            ?: emptyList()
+        val upcomingTrips = (arrayOfFlowResults[1] as? List<*>)
+            ?.filterIsInstance<Trip>()
+            ?: emptyList()
+        val recentTrips = (arrayOfFlowResults[2] as? List<*>)
+            ?.filterIsInstance<TripSummary>()
+            ?: emptyList()
+        val eventGroups = arrayOfFlowResults[3] as EventGroups
+        val selectedEventId = arrayOfFlowResults[4] as String?
+        val selectedTripId = arrayOfFlowResults[5] as String?
 
         // Pass everything downstream as a bundle
-        DashboardStateTuple(activeTrips, upcomingTrips, recentTrips, eventGroups, selectedEventId)
+        DashboardStateTuple(activeTrips, upcomingTrips, recentTrips, eventGroups, selectedEventId, selectedTripId)
 
     }.flatMapLatest { tuple ->
         // Resolve which event card should fetch deep database metrics
         val targetEventId = tuple.selectedEventId
             ?: tuple.eventGroups.active.firstOrNull()?.event?.id
+        val targetTripId = tuple.selectedTripId
+            ?: tuple.eventGroups.active.firstOrNull()?.event?.tripId
 
-        if (targetEventId == null) {
+        if (targetEventId == null || targetTripId == null) {
             // No active events happening right now; emit the data lists immediately
             flowOf(
                 DashboardUiState(
@@ -94,12 +114,14 @@ class DashboardViewModel(
                     activeEvents = tuple.eventGroups.active,
                     upcomingEvents = tuple.eventGroups.upcoming,
                     eventSummary = null,
+                    tripSummary = null,
                     isLoading = false
                 )
             )
         } else {
             // Fetch the fully detailed Database View summary for the active card
-            tripRepo.getEventDetailedSummary(targetEventId).map { detailedSummary ->
+            tripRepo.getEventDetailedSummary(targetEventId)
+                .combine(tripRepo.getTripDetailedSummary(targetTripId)) { eventSummary, tripSummary ->
                 DashboardUiState(
                     activeTrips = tuple.activeTrips,
                     upcomingTrips = tuple.upcomingTrips,
@@ -107,7 +129,8 @@ class DashboardViewModel(
                     previousEvents = tuple.eventGroups.previous,
                     activeEvents = tuple.eventGroups.active,
                     upcomingEvents = tuple.eventGroups.upcoming,
-                    eventSummary = detailedSummary, // Populated stats!
+                    eventSummary = eventSummary, // Populated stats!
+                    tripSummary = tripSummary, // Populated stats!
                     isLoading = false
                 )
             }
@@ -145,7 +168,8 @@ private data class DashboardStateTuple(
     val upcomingTrips: List<Trip>,
     val recentTrips: List<TripSummary>,
     val eventGroups: EventGroups,
-    val selectedEventId: String? = null
+    val selectedEventId: String? = null,
+    val selectedTripId: String? = null
 )
 data class DashboardUiState(
     val activeTrips: List<TripSummary> = emptyList(),
@@ -156,6 +180,7 @@ data class DashboardUiState(
     val activeEvents: List<EventSummary> = emptyList(),
     val upcomingEvents: List<EventSummary> = emptyList(),
 
+    val tripSummary: TripDetailedSummary? = null,
     val eventSummary: EventDetailedSummary? = null,
 
     val isLoading: Boolean = false
