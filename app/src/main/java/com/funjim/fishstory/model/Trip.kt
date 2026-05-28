@@ -82,7 +82,13 @@ data class TripWithDetails(
         )
     )
     val photos: List<Photo>,
-)
+) {
+    val targetSpecies: List<Species>
+        get() = events
+            .flatMap { it.targetSpecies } // Gathers all species lists into one massive list
+            .distinctBy { it.id }         // Deduplicates them so each species appears once
+}
+
 @DatabaseView(
     viewName = "v_trip_detailed_summary",
     value = """

@@ -51,6 +51,13 @@ class TripViewModel(
     private val _eventCrewOverride = MutableStateFlow(false)
     val eventCrewOverride = _eventCrewOverride.asStateFlow()
 
+    val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val uiState: StateFlow<TripUiState> = combine(
         tripRepo.getActiveTripSummaries(),
         tripRepo.getUpcomingTripSummaries(),
@@ -285,6 +292,11 @@ class TripViewModel(
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
+        return photoRepo.fetchSpeciesThumbnail(speciesId)
+            .flowOn(Dispatchers.IO)
     }
 
     fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {

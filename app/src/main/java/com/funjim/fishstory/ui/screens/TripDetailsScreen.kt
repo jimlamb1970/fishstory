@@ -10,10 +10,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -35,12 +38,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
@@ -69,6 +78,11 @@ fun TripDetailsScreen(
 
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
+
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
+    var addNewSpecies by remember { mutableStateOf(false) }
+    var addSpeciesName by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -309,274 +323,375 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                        LazyColumn(horizontalAlignment = Alignment.Start) {
-                            item {
-                                Row(
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    ),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = details.trip.name,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = getOnMainColor()
-                                    )
-                                    if (details.trip.latitude != null && details.trip.longitude != null) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Icon(
-                                            imageVector = Icons.Default.LocationOn,
-                                            contentDescription = "View on map",
-                                            tint = getOnMainColor(),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable {
-                                                    val mapUri =
-                                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
-                                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                                    try {
-                                                        context.startActivity(intent)
-                                                    } catch (e: Exception) {
-                                                        Toast.makeText(
-                                                            context,
-                                                            "Could not open map",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                    }
+                    LazyColumn(horizontalAlignment = Alignment.Start) {
+                        item {
+                            Row(
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 8.dp
+                                ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = details.trip.name,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = getOnMainColor()
+                                )
+                                if (details.trip.latitude != null && details.trip.longitude != null) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = "View on map",
+                                        tint = getOnMainColor(),
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clickable {
+                                                val mapUri =
+                                                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
+                                                val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Could not open map",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
-                                        )
-                                    }
-                                }
-                                Text(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = getOnSecondaryColor()
-                                )
-                                Text(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = getOnSecondaryColor()
-                                )
-
-                                PhotoPickerRow(
-                                    photos = details.photos,
-                                    onPhotoSelected = { uri ->
-                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
-                                    },
-                                    onPhotoTaken = { uri ->
-                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
-                                    },
-                                    onPhotoDeleted = { photo ->
-                                        viewModel.deleteTripPhoto(tripId, photo.id)
-                                    }
-                                )
-
-                                if (summary.fishCaught != 0 || now >= trip.startDate) {
-                                    HorizontalDivider()
-
-                                    TripHighlightCard(
-                                        summary = summary,
-                                        onClick = { navigateToFishList(tripId) }
+                                            }
                                     )
                                 }
+                            }
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = getOnSecondaryColor()
+                            )
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = getOnSecondaryColor()
+                            )
 
+                            PhotoPickerRow(
+                                photos = details.photos,
+                                onPhotoSelected = { uri ->
+                                    viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
+                                },
+                                onPhotoTaken = { uri ->
+                                    viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
+                                },
+                                onPhotoDeleted = { photo ->
+                                    viewModel.deleteTripPhoto(tripId, photo.id)
+                                }
+                            )
+
+                            if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 HorizontalDivider()
 
-                                // The Boat Concept
-                                FishermanSummary(
-                                    fishermanCount = summary.fishermanCount,
-                                    tackleBoxCount = summary.tackleBoxCount,
-                                    onClick = { navigateToSelectTripCrew(tripId) }
+                                TripHighlightCard(
+                                    summary = summary,
+                                    onClick = { navigateToFishList(tripId) }
                                 )
+                            }
 
-                                HorizontalDivider()
+                            HorizontalDivider()
 
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth().padding(vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text(
-                                            text = "Events",
-                                            style = MaterialTheme.typography.titleLarge
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            text = "(${eventSummaries.size})",
-                                            style = MaterialTheme.typography.titleSmall
-                                        )
-                                    }
-
+                                    Text(
+                                        text = "Target Species",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = getOnMainColor()
+                                    )
                                     IconButton(
-                                        onClick = {
-                                            navigateToAddEvent(tripId)
-                                        },
+                                        onClick = { showSpeciesSelection = true },
                                         colors = IconButtonDefaults.iconButtonColors(
                                             containerColor = getMainButtonColor(),
                                             contentColor = getOnMainButtonColor()
                                         ),
                                         modifier = Modifier.size(24.dp)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = "Add Event")
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = "Add Target Species"
+                                        )
+                                    }
+                                }
+
+                                if (details.targetSpecies.isEmpty()) {
+                                    Text(
+                                        text = "No target species set for this event.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = getOnSecondaryColor(),
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                    )
+                                } else {
+                                    LazyRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        val species = details.targetSpecies.sortedBy { it.name }
+                                        items(species) { species ->
+                                            InputChip(
+                                                selected = true,
+                                                onClick = {},
+                                                label = { Text(species.name) },
+                                                avatar = {
+                                                    val thumbnailFlow = remember(species.id) {
+                                                        viewModel.speciesThumbnail(species.id)
+                                                    }
+
+                                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                                    ThumbnailBox(
+                                                        thumbnail = thumbnail,
+                                                        imageVector = AppIcons.Default.TargetFish,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                },
+                                                colors = InputChipDefaults.inputChipColors(
+                                                    selectedContainerColor = getCardColor().copy(alpha = 0.15f),
+                                                    selectedLabelColor = getOnCardColor(),
+                                                    selectedLeadingIconColor = getOnCardColor(),
+                                                    selectedTrailingIconColor = MaterialTheme.colorScheme.error
+                                                ),
+                                                border = FilterChipDefaults.filterChipBorder(
+                                                    enabled = true,
+                                                    selected = true,
+                                                    selectedBorderColor = getCardBorderColor(),
+                                                    selectedBorderWidth = 1.dp,
+                                                    borderColor = getOnChipColor(),
+                                                    borderWidth = 1.dp
+                                                ),
+                                                trailingIcon = {
+                                                    IconButton(
+                                                        onClick = {
+//                                                                viewModel.removeEventTargetSpecies(eventId, species.id)
+                                                        },
+                                                        modifier = Modifier.size(24.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Clear,
+                                                            contentDescription = "Remove",
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
 
-                            val totalItems = eventSummaries.size
-                            itemsIndexed(eventSummaries) { index, eventSummary ->
-                                EventItem(
-                                    item = eventSummary,
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 4.dp
+                            HorizontalDivider()
+
+                            // The Boat Concept
+                            FishermanSummary(
+                                fishermanCount = summary.fishermanCount,
+                                tackleBoxCount = summary.tackleBoxCount,
+                                onClick = { navigateToSelectTripCrew(tripId) }
+                            )
+
+                            HorizontalDivider()
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = "Events",
+                                        style = MaterialTheme.typography.titleLarge
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "(${eventSummaries.size})",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        navigateToAddEvent(tripId)
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = getMainButtonColor(),
+                                        contentColor = getOnMainButtonColor()
                                     ),
-                                    index = index,
-                                    totalItems = totalItems,
-                                    thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
-                                    onClick = { navigateToEventDetails(eventSummary.event.id) },
-                                    onDelete = { eventToDelete = eventSummary },
-                                    onSetLocation = {
-                                        if (ContextCompat.checkSelfPermission(
-                                                context,
-                                                Manifest.permission.ACCESS_FINE_LOCATION
-                                            ) == PackageManager.PERMISSION_GRANTED
-                                        ) {
-                                            scope.launch {
-                                                val location = viewModel.fetchLocation()
-                                                if (location != null) {
-                                                    viewModel.upsertEvent(
-                                                        eventSummary.event.copy(
-                                                            latitude = location.latitude,
-                                                            longitude = location.longitude
-                                                        )
-                                                    )
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Location updated",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            }
-                                        } else {
-                                            eventToUpdateLocation = eventSummary
-                                            permissionLauncher.launch(
-                                                arrayOf(
-                                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                                )
-                                            )
-                                        }
-                                    },
-                                    onSelectLocation = {
-                                        eventToUpdateLocation = eventSummary
-                                        locationPickerEvent.openPicker()
-                                    },
-                                    onUseTripLocation = if (details.trip.latitude != null) {
-                                        {
-                                            scope.launch {
-                                                viewModel.upsertEvent(
-                                                    eventSummary.event.copy(
-                                                        latitude = details.trip.latitude,
-                                                        longitude = details.trip.longitude
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    } else null,
-                                    onClearLocation = {
-                                        scope.launch {
-                                            viewModel.upsertEvent(
-                                                eventSummary.event.copy(
-                                                    latitude = null,
-                                                    longitude = null
-                                                )
-                                            )
-                                        }
-                                    }
-                                )
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = "Add Event")
+                                }
                             }
                         }
 
-                        if (showEditTripDialog) {
-                            var tripName by remember { mutableStateOf(details.trip.name) }
-                            var startDateMillis by remember { mutableLongStateOf(details.trip.startDate) }
-                            var endDateMillis by remember { mutableLongStateOf(details.trip.endDate) }
-
-                            AlertDialog(
-                                onDismissRequest = { showEditTripDialog = false },
-                                title = { Text("Edit Trip Details") },
-                                text = {
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        // TODO - put limit on number of characters
-                                        OutlinedTextField(
-                                            value = tripName,
-                                            onValueChange = { tripName = it },
-                                            label = { Text("Trip Name") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            singleLine = true
-                                        )
-
-                                        Text("Start", style = MaterialTheme.typography.labelLarge)
-                                        DateTimePickerButton(
-                                            label = "start",
-                                            millis = startDateMillis,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) { newMillis ->
-                                            startDateMillis = newMillis
-                                            if (startDateMillis > endDateMillis) endDateMillis =
-                                                startDateMillis
-                                        }
-
-                                        Text("End", style = MaterialTheme.typography.labelLarge)
-                                        DateTimePickerButton(
-                                            label = "end",
-                                            millis = endDateMillis,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) { newMillis ->
-                                            if (newMillis < startDateMillis) {
+                        val totalItems = eventSummaries.size
+                        itemsIndexed(eventSummaries) { index, eventSummary ->
+                            EventItem(
+                                item = eventSummary,
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 4.dp
+                                ),
+                                index = index,
+                                totalItems = totalItems,
+                                thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
+                                onClick = { navigateToEventDetails(eventSummary.event.id) },
+                                onDelete = { eventToDelete = eventSummary },
+                                onSetLocation = {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        scope.launch {
+                                            val location = viewModel.fetchLocation()
+                                            if (location != null) {
+                                                viewModel.upsertEvent(
+                                                    eventSummary.event.copy(
+                                                        latitude = location.latitude,
+                                                        longitude = location.longitude
+                                                    )
+                                                )
                                                 Toast.makeText(
                                                     context,
-                                                    "End must be after start",
+                                                    "Location updated",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
-                                            } else {
-                                                endDateMillis = newMillis
                                             }
                                         }
+                                    } else {
+                                        eventToUpdateLocation = eventSummary
+                                        permissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
                                     }
                                 },
-                                confirmButton = {
-                                    Button(onClick = {
+                                onSelectLocation = {
+                                    eventToUpdateLocation = eventSummary
+                                    locationPickerEvent.openPicker()
+                                },
+                                onUseTripLocation = if (details.trip.latitude != null) {
+                                    {
                                         scope.launch {
-                                            viewModel.saveTrip(
-                                                details.trip.copy(
-                                                    name = tripName,
-                                                    startDate = startDateMillis,
-                                                    endDate = endDateMillis
+                                            viewModel.upsertEvent(
+                                                eventSummary.event.copy(
+                                                    latitude = details.trip.latitude,
+                                                    longitude = details.trip.longitude
                                                 )
                                             )
-                                            showEditTripDialog = false
                                         }
-                                    }) {
-                                        Text("Save")
                                     }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showEditTripDialog = false }) {
-                                        Text("Cancel")
+                                } else null,
+                                onClearLocation = {
+                                    scope.launch {
+                                        viewModel.upsertEvent(
+                                            eventSummary.event.copy(
+                                                latitude = null,
+                                                longitude = null
+                                            )
+                                        )
                                     }
                                 }
                             )
                         }
+                    }
+
+                    if (showEditTripDialog) {
+                        var tripName by remember { mutableStateOf(details.trip.name) }
+                        var startDateMillis by remember { mutableLongStateOf(details.trip.startDate) }
+                        var endDateMillis by remember { mutableLongStateOf(details.trip.endDate) }
+
+                        AlertDialog(
+                            onDismissRequest = { showEditTripDialog = false },
+                            title = { Text("Edit Trip Details") },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    // TODO - put limit on number of characters
+                                    OutlinedTextField(
+                                        value = tripName,
+                                        onValueChange = { tripName = it },
+                                        label = { Text("Trip Name") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true
+                                    )
+
+                                    Text("Start", style = MaterialTheme.typography.labelLarge)
+                                    DateTimePickerButton(
+                                        label = "start",
+                                        millis = startDateMillis,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { newMillis ->
+                                        startDateMillis = newMillis
+                                        if (startDateMillis > endDateMillis) endDateMillis =
+                                            startDateMillis
+                                    }
+
+                                    Text("End", style = MaterialTheme.typography.labelLarge)
+                                    DateTimePickerButton(
+                                        label = "end",
+                                        millis = endDateMillis,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { newMillis ->
+                                        if (newMillis < startDateMillis) {
+                                            Toast.makeText(
+                                                context,
+                                                "End must be after start",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            endDateMillis = newMillis
+                                        }
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    scope.launch {
+                                        viewModel.saveTrip(
+                                            details.trip.copy(
+                                                name = tripName,
+                                                startDate = startDateMillis,
+                                                endDate = endDateMillis
+                                            )
+                                        )
+                                        showEditTripDialog = false
+                                    }
+                                }) {
+                                    Text("Save")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showEditTripDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                 }
             }
 

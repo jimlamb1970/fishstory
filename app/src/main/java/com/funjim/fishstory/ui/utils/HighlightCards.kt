@@ -469,6 +469,30 @@ fun TripHighlightCard(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 thickness = 0.5.dp
             )
+
+            // Bottom Row: The Achievements
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                AchievementItem(
+                    icon = Icons.Default.Person,
+                    label = "Top Rod",
+                    name = summary.targetMostCaughtFisherman,
+                    description = "(${summary.targetMostCaught} fish)",
+                    modifier = Modifier.weight(1f),
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                AchievementItem(
+                    icon = Icons.Default.Star,
+                    label = "Big Fish",
+                    name = summary.targetBigFishFisherman,
+                    description = "(${summary.targetBigFishLength?.toDisplayString(
+                        useMetric = false,
+                        useFractions = true
+                    )} : ${summary.targetBigFishSpecies})",
+                    modifier = Modifier.weight(1f),
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+            }
         }
     }
 }

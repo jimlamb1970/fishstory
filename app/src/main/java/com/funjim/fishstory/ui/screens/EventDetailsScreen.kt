@@ -76,12 +76,8 @@ fun EventDetailsScreen(
         viewModel.selectEvent(eventId)
     }
 
-    // State to show/hide the assignment dialog picker
     var showSpeciesSelection by remember { mutableStateOf(false) }
-
-    // Assuming you have an all-species stream in the viewmodel to populate the picker options
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
-
     var addNewSpecies by remember { mutableStateOf(false) }
     var addSpeciesName by remember { mutableStateOf("") }
 

@@ -37,6 +37,7 @@ fun SelectTripCrewScreen(
         tripViewModel.selectTrip(tripId)
     }
 
+    // TODO -- change this to get the selected trip summary directly
     val tripSummary by tripViewModel.selectedTripSummary.collectAsStateWithLifecycle()
 
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
