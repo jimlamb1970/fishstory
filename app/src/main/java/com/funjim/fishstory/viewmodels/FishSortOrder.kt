@@ -8,6 +8,6 @@ enum class FishSortOrder {
     SPECIES_AZ,
     LENGTH_LONGEST_FIRST,
     HOLE_NUMBER_ASC,
-    RELEASED,
+    KEPT,
     LURE
 }

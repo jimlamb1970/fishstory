@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -257,12 +256,14 @@ class FishViewModel(
     private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {
         val sorted = when (order) {
             FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.fish.timestamp }
+            FishSortOrder.TRIP_AZ -> list.sortedByDescending { it.trip.startDate }
+            FishSortOrder.EVENT_AZ -> list.sortedByDescending { it.event.startTime }
             FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.fish.length }
             FishSortOrder.LURE -> list.sortedBy { it.fullLureName }
             FishSortOrder.SPECIES_AZ -> list.sortedBy { it.species.name ?: "" }
             FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fisherman.fullName ?: "" }
             FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.fish.holeNumber ?: 999 }
-            else -> list
+            FishSortOrder.KEPT -> list.sortedByDescending { it.fish.keptCount }
         }
         return if (reversed) sorted.reversed() else sorted
     }

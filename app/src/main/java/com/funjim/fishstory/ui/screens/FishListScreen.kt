@@ -250,9 +250,9 @@ fun FishListScreen(
                             viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
                         }
                         SortChip(
-                            "Released",
-                            currentOrder == FishSortOrder.RELEASED) {
-                            viewModel.updateSortOrder(FishSortOrder.RELEASED)
+                            "Kept",
+                            currentOrder == FishSortOrder.KEPT) {
+                            viewModel.updateSortOrder(FishSortOrder.KEPT)
                         }
                         SortChip(
                             "Lure",
