@@ -158,16 +158,24 @@ fun FishItem(
 
                 if (includeFisherman)
                     Text(
-                        "Caught by: ${fish.fisherman?.fullName}",
+                        "Caught by: ${fish.fisherman.fullName}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = getOnCardSecondaryColor()
                     )
 
-                Text(
-                    "Lure: ${fish.fullLureName}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = getOnCardSecondaryColor()
-                )
+                fish.lure?.let { lure ->
+                    LureCompositionWithColors(
+                        name = lure.lure.name,
+                        lure.primaryColors,
+                        lure.secondaryColors,
+                        lure.lure.glows,
+                        lure.glowColors,
+                        style = MaterialTheme.typography.bodySmall,
+                        contentColor = getOnCardSecondaryColor(),
+                        colorBadgeSize = 20.dp
+                    )
+                }
+
                 Text(
                     "At: ${dateFormatter.format(Date(fish.fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,

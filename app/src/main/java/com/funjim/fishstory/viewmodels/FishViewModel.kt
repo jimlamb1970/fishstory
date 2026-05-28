@@ -254,16 +254,27 @@ class FishViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {
+        val getColorsSortingString = { colors: List<LureColor> ->
+            colors.map { it.name }
+                .sorted()
+                .joinToString(separator = ",")
+        }
         val sorted = when (order) {
             FishSortOrder.TIMESTAMP_NEWEST_FIRST -> list.sortedByDescending { it.fish.timestamp }
             FishSortOrder.TRIP_AZ -> list.sortedByDescending { it.trip.startDate }
             FishSortOrder.EVENT_AZ -> list.sortedByDescending { it.event.startTime }
             FishSortOrder.LENGTH_LONGEST_FIRST -> list.sortedByDescending { it.fish.length }
-            FishSortOrder.LURE -> list.sortedBy { it.fullLureName }
             FishSortOrder.SPECIES_AZ -> list.sortedBy { it.species.name ?: "" }
             FishSortOrder.FISHERMAN_AZ -> list.sortedBy { it.fisherman.fullName ?: "" }
             FishSortOrder.HOLE_NUMBER_ASC -> list.sortedBy { it.fish.holeNumber ?: 999 }
             FishSortOrder.KEPT -> list.sortedByDescending { it.fish.keptCount }
+
+            FishSortOrder.LURE -> list.sortedWith(
+                compareBy<FishWithDetails> { it.lure?.lure?.name }
+                    .thenBy { getColorsSortingString(it.lure?.primaryColors ?: emptyList()) }
+                    .thenBy { getColorsSortingString(it.lure?.secondaryColors ?: emptyList()) }
+                    .thenBy { getColorsSortingString(it.lure?.glowColors ?: emptyList()) }
+            )
         }
         return if (reversed) sorted.reversed() else sorted
     }
