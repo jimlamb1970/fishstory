@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -263,9 +265,12 @@ fun SpeciesSelection(
     items: List<Species>,
     selectedItems: List<Species>,
     onSelected: (Species) -> Unit,
+    onUnselected: (Species) -> Unit,
     onAdd: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    usageMap: Map<String, Int>? = null,
+    maxUsage: Int? = null,
     thumbnailProvider: @Composable (Species) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(true) }
@@ -347,6 +352,14 @@ fun SpeciesSelection(
                         ) { index, item ->
                             val isChecked = selectedItems.contains(item)
 
+                            val state =
+                                if (isChecked) {
+                                    if (maxUsage != null && usageMap != null && usageMap[item.id]!! < maxUsage) {
+                                        ToggleableState.Indeterminate
+                                    }
+                                    else ToggleableState.On
+                                } else ToggleableState.Off
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -354,16 +367,21 @@ fun SpeciesSelection(
                                     .border(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
-                                            if (isChecked) getOnCardColor()
-                                            else Color.Transparent,
+                                            when (state) {
+                                                ToggleableState.On -> getOnCardColor()
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                else -> Color.Transparent
+                                            },
                                         shape = MaterialTheme.shapes.medium
                                     )
-                                    .clickable(enabled = true) { onSelected(item) },
+                                    .clickable(enabled = true) {
+                                        if (state == ToggleableState.On) onUnselected(item)
+                                        else onSelected(item)
+                                    },
                                 leadingContent = null,
                                 headlineContent = {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(6.dp),
                                         modifier = Modifier
                                             .fillMaxWidth() // Forces the column to span the whole grid cell width
                                             .padding(vertical = 8.dp, horizontal = 4.dp)
@@ -378,6 +396,17 @@ fun SpeciesSelection(
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
                                         )
+                                        if (maxUsage != null && usageMap != null) {
+                                            if (usageMap[item.id] != null && usageMap[item.id]!! < maxUsage) {
+                                                Text(
+                                                    "(${usageMap[item.id]} / $maxUsage)",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
+                                                    textAlign = TextAlign.Center,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                        }
                                     }
                                 },
                                 trailingContent = null,
@@ -411,6 +440,14 @@ fun SpeciesSelection(
                         ) { index, item ->
                             val isChecked = selectedItems.contains(item)
 
+                            val state =
+                                if (isChecked) {
+                                    if (maxUsage != null && usageMap != null && usageMap[item.id]!! < maxUsage) {
+                                        ToggleableState.Indeterminate
+                                    }
+                                    else ToggleableState.On
+                                } else ToggleableState.Off
+
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -418,11 +455,17 @@ fun SpeciesSelection(
                                     .border(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
-                                            if (isChecked) getOnCardColor()
-                                            else Color.Transparent,
+                                            when (state) {
+                                                ToggleableState.On -> getOnCardColor()
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                else -> Color.Transparent
+                                            },
                                         shape = MaterialTheme.shapes.medium
                                     )
-                                    .clickable(enabled = true) { onSelected(item) },
+                                    .clickable(enabled = true) {
+                                        if (state == ToggleableState.On) onUnselected(item)
+                                        else onSelected(item)
+                                    },
                                 leadingContent = {
                                     thumbnailProvider(item)
                                 },
@@ -431,11 +474,20 @@ fun SpeciesSelection(
                                         item.name,
                                         fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal
                                     )
+                                    if (maxUsage != null && usageMap != null) {
+                                        if (usageMap[item.id] != null && usageMap[item.id]!! < maxUsage) {
+                                            Text(
+                                                "(${usageMap[item.id]} / $maxUsage)",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
+                                            )
+                                        }
+                                    }
                                 },
                                 trailingContent = {
-                                    Checkbox(
-                                        checked = isChecked,
-                                        onCheckedChange = null,
+                                    TriStateCheckbox(
+                                        state = state,
+                                        onClick = null,
                                         enabled = true
                                     )
                                 },

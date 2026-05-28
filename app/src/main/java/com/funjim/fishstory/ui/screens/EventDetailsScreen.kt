@@ -615,11 +615,10 @@ fun EventDetailsScreen(
                     items = allSpecies,
                     selectedItems = eventDetails.targetSpecies,
                     onSelected = { selectedSpecies ->
-                        if (eventDetails.targetSpecies.contains(selectedSpecies)) {
-                            viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
-                        } else {
-                            viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
-                        }
+                        viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
+                    },
+                    onUnselected = { selectedSpecies ->
+                        viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
                     },
                     onAdd = {
                         addNewSpecies = true

@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.EventWithSpecies
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -188,6 +189,14 @@ fun TripDetailsScreen(
             val details = state.details
             val summary = state.summary
             val eventSummaries = state.eventSummaries
+
+            val tripMasterTargets: List<Species> = details.targetSpecies
+            val activeEvents: List<EventWithSpecies> = details.events
+
+            val speciesUsageMap: Map<String, Int> = activeEvents
+                .flatMap { it.targetSpecies }
+                .groupingBy { it.id }
+                .eachCount() // Returns a Map<String, Int> where Key = speciesId, Value = count
 
             Scaffold(
                 topBar = {
@@ -735,19 +744,18 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     items = allSpecies,
                     selectedItems = details.targetSpecies,
                     onSelected = { selectedSpecies ->
-                        if (details.targetSpecies.contains(selectedSpecies)) {
-                            viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
-                        } else {
-                            viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
-                        }
+                        viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
+                    },
+                    onUnselected = { selectedSpecies ->
+                        viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
                     },
                     onAdd = {
                         addNewSpecies = true
-                        // Route fallback if they need to create an entirely new species row on the fly
-                        Toast.makeText(context, "Add species profile functionality", Toast.LENGTH_SHORT).show()
                     },
                     onDone = { showSpeciesSelection = false },
                     modifier = Modifier.fillMaxWidth(),
+                    usageMap = speciesUsageMap,
+                    maxUsage = details.events.size,
                     thumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
                             viewModel.speciesThumbnail(species.id)
