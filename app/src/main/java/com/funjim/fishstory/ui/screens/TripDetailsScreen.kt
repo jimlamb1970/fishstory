@@ -37,12 +37,14 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -482,7 +484,7 @@ fun TripDetailsScreen(
                                                 trailingIcon = {
                                                     IconButton(
                                                         onClick = {
-//                                                                viewModel.removeEventTargetSpecies(eventId, species.id)
+                                                            viewModel.removeTripTargetSpecies(tripId, species.id)
                                                         },
                                                         modifier = Modifier.size(24.dp)
                                                     ) {
@@ -727,7 +729,70 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     }
                 )
             }
+
+            if (showSpeciesSelection) {
+                SpeciesSelection(
+                    items = allSpecies,
+                    selectedItems = details.targetSpecies,
+                    onSelected = { selectedSpecies ->
+                        if (details.targetSpecies.contains(selectedSpecies)) {
+                            viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
+                        } else {
+                            viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
+                        }
+                    },
+                    onAdd = {
+                        addNewSpecies = true
+                        // Route fallback if they need to create an entirely new species row on the fly
+                        Toast.makeText(context, "Add species profile functionality", Toast.LENGTH_SHORT).show()
+                    },
+                    onDone = { showSpeciesSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    thumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.speciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.TargetFish,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
         }
     }
-}
 
+    if (addNewSpecies) {
+        AlertDialog(
+            onDismissRequest = { addNewSpecies = false },
+            title = { Text("Add New Species") },
+            text = {
+                TextField(
+                    value = addSpeciesName,
+                    onValueChange = { addSpeciesName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addSpeciesName.isNotBlank()) {
+                        scope.launch {
+                            val species = Species(name = addSpeciesName)
+                            viewModel.addSpecies(species)
+                            viewModel.addTripTargetSpecies(tripId, species.id)
+                            addNewSpecies = false
+                            addSpeciesName = ""
+                        }
+                    }
+                }) { Text("Add Species") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
+    }
+}

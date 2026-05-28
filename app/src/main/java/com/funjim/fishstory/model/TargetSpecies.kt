@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity(
-    tableName = "target_species",
+    tableName = "event_target_species",
     primaryKeys = ["eventId", "speciesId"], // Prevents duplicate target rows
     indices = [
         Index(value = ["eventId"]),
@@ -28,7 +28,35 @@ import kotlinx.serialization.Serializable
         )
     ]
 )
-data class TargetSpecies(
+data class EventTargetSpecies(
     val eventId: String,
+    val speciesId: String
+)
+
+@Serializable
+@Entity(
+    tableName = "trip_target_species",
+    primaryKeys = ["tripId", "speciesId"], // Prevents duplicate target rows
+    indices = [
+        Index(value = ["tripId"]),
+        Index(value = ["speciesId"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Trip::class,
+            parentColumns = ["id"],
+            childColumns = ["tripId"],
+            onDelete = ForeignKey.CASCADE // If event is deleted, targets wipe out cleanly
+        ),
+        ForeignKey(
+            entity = Species::class,
+            parentColumns = ["id"],
+            childColumns = ["speciesId"],
+            onDelete = ForeignKey.RESTRICT // Can't delete a species if it's an active target
+        )
+    ]
+)
+data class TripTargetSpecies(
+    val tripId: String,
     val speciesId: String
 )

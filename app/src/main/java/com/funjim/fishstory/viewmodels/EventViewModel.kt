@@ -234,14 +234,12 @@ class EventViewModel(
         initialValue = EventDetailsUiState.Loading
     )
 
-    // 2. Add target cross-reference
     fun addEventTargetSpecies(eventId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.insertEventTargetSpecies(TargetSpecies(eventId = eventId, speciesId = speciesId))
+            tripRepo.insertEventTargetSpecies(EventTargetSpecies(eventId = eventId, speciesId = speciesId))
         }
     }
 
-    // 3. Remove target cross-reference
     fun removeEventTargetSpecies(eventId: String, speciesId: String) {
         viewModelScope.launch {
             tripRepo.deleteEventTargetSpecies(eventId = eventId, speciesId = speciesId)

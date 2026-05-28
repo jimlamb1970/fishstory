@@ -74,6 +74,7 @@ class FishstoryApplication : Application() {
 
     val tripRepository by lazy {
         TripRepository(
+            database = database,
             eventDao = database.eventDao(),
             tripDao = database.tripDao()
         )

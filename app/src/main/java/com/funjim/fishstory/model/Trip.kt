@@ -82,8 +82,19 @@ data class TripWithDetails(
         )
     )
     val photos: List<Photo>,
-) {
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TripTargetSpecies::class,
+            parentColumn = "tripId",
+            entityColumn = "speciesId"
+        )
+    )
     val targetSpecies: List<Species>
+) {
+    val eventTargetSpecies: List<Species>
         get() = events
             .flatMap { it.targetSpecies } // Gathers all species lists into one massive list
             .distinctBy { it.id }         // Deduplicates them so each species appears once
@@ -112,7 +123,7 @@ BigTargetFishPerTrip AS (
         f.fishermanId,
         ROW_NUMBER() OVER (PARTITION BY f.tripId ORDER BY f.length DESC, f.id ASC) as row_num
     FROM fish_table f
-    INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+    INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
 ),
 -- Identify the fisherman with the most for the trip
 MostCaughtPerTrip AS (
@@ -132,7 +143,7 @@ MostTargetCaughtPerTrip AS (
         COUNT(f.id) as catchCount,
         ROW_NUMBER() OVER (PARTITION BY f.eventId ORDER BY COUNT(f.id) DESC, f.fishermanId ASC) as row_num
     FROM fish_table f
-    INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+    INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
     GROUP BY f.tripId, f.fishermanId
 )
 
@@ -149,11 +160,11 @@ SELECT
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishKept,
 
     -- Big Fish Data (joined via CTE)

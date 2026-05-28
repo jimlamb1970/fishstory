@@ -417,6 +417,24 @@ class TripViewModel(
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
 
+    fun addSpecies(species: Species) {
+        viewModelScope.launch {
+            fishRepo.addSpecies(species)
+        }
+    }
+
+    fun addTripTargetSpecies(tripId: String, speciesId: String) {
+        viewModelScope.launch {
+            tripRepo.insertTripTargetSpecies(TripTargetSpecies(tripId = tripId, speciesId = speciesId))
+        }
+    }
+
+    fun removeTripTargetSpecies(tripId: String, speciesId: String) {
+        viewModelScope.launch {
+            tripRepo.deleteTripTargetSpecies(tripId = tripId, speciesId = speciesId)
+        }
+    }
+
     fun clearTrip() {
         _selectedTripId.value = null
     }

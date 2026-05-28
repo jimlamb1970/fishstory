@@ -9,6 +9,7 @@ import com.funjim.fishstory.model.*
 @Database(
     entities = [
         Event::class,                       // Backed up
+        EventTargetSpecies::class,
         Fish::class,                        // Backed up
         Fisherman::class,                   // Backed up
         Lure::class,                        // Backed up
@@ -17,8 +18,8 @@ import com.funjim.fishstory.model.*
         Photo::class,                       // Backed up
         Species::class,                     // Backed up
         TackleBox::class,                   // Backed up
-        TargetSpecies::class,
         Trip::class,                        // Backed up
+        TripTargetSpecies::class,
         EventFishermanCrossRef::class,      // Backed up
         LureGlowColorCrossRef::class,       // Backed up
         LurePrimaryColorCrossRef::class,    // Backed up

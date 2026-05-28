@@ -10,13 +10,16 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.model.EventDetailedSummary
+import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.model.TripTargetSpecies
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -89,11 +92,11 @@ SELECT
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishKept
 
 FROM trip_table t
@@ -115,11 +118,11 @@ SELECT
     (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.tripId = t.id) as targetFishKept
 
 FROM trip_table t
@@ -204,4 +207,18 @@ ORDER BY t.startDate DESC
         GROUP BY trip_table.id
     """)
         fun getTripsWithFish(fishermanId: String?, lureId: String?): Flow<List<Trip>>
+
+    @Query("""
+        SELECT species_table.* FROM species_table
+        INNER JOIN trip_target_species ON species_table.id = trip_target_species.speciesId
+        WHERE trip_target_species.tripId = :tripId
+        GROUP BY species_table.id
+        """)
+    fun getTripTargetSpecies(tripId: String): Flow<List<Species>>
+
+    @Upsert
+    suspend fun insertTripTargetSpecies(crossRef: TripTargetSpecies)
+
+    @Query("DELETE FROM trip_target_species WHERE tripId = :tripId AND speciesId = :speciesId")
+    suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String)
 }

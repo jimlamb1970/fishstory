@@ -19,6 +19,12 @@ interface EventDao {
     @Query("SELECT * FROM event_table WHERE tripId = :tripId")
     fun getEventsForTrip(tripId: String): Flow<List<Event>>
 
+    @Query("SELECT id FROM event_table WHERE tripId = :tripId")
+    suspend fun getEventIdsForTrip(tripId: String): List<String>
+
+    @Query(" SELECT tripId FROM event_table WHERE id = :eventId")
+    suspend fun getTripIdForEvent(eventId: String): String
+
     @Query("""
     SELECT s.* FROM event_table AS s
     JOIN trip_table AS t ON s.tripId = t.id
@@ -41,11 +47,11 @@ SELECT
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
 JOIN trip_table AS t ON s.tripId = t.id
@@ -131,11 +137,11 @@ SELECT
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
 WHERE s.tripId = :tripId
@@ -157,11 +163,11 @@ SELECT
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishCaught,
      
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f 
-     INNER JOIN target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
+     INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
      WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
 WHERE s.id = :eventId
@@ -221,15 +227,21 @@ ORDER BY s.startTime DESC"""
 
     @Query("""
         SELECT species_table.* FROM species_table
-        INNER JOIN target_species ON species_table.id = target_species.speciesId
-        WHERE target_species.eventId = :eventId
+        INNER JOIN event_target_species ON species_table.id = event_target_species.speciesId
+        WHERE event_target_species.eventId = :eventId
         GROUP BY species_table.id
         """)
-    fun getTargetSpeciesForEvent(eventId: String): Flow<List<Species>>
+    fun getEventTargetSpecies(eventId: String): Flow<List<Species>>
 
     @Upsert
-    suspend fun insertEventTargetSpecies(crossRef: TargetSpecies)
+    suspend fun insertEventTargetSpecies(crossRef: EventTargetSpecies)
 
-    @Query("DELETE FROM target_species WHERE eventId = :eventId AND speciesId = :speciesId")
+    @Upsert
+    suspend fun insertTargetSpeciesForEvents(targets: List<EventTargetSpecies>)
+
+    @Query("DELETE FROM event_target_species WHERE eventId = :eventId AND speciesId = :speciesId")
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String)
+
+    @Query("DELETE FROM event_target_species WHERE eventId IN (:eventIds) AND speciesId = :speciesId")
+    suspend fun deleteTargetSpeciesForEvents(eventIds: List<String>, speciesId: String)
 }
