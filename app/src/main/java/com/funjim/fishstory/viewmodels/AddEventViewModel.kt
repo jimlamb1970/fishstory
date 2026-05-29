@@ -1,6 +1,5 @@
 package com.funjim.fishstory.viewmodels
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -81,31 +79,6 @@ class AddEventViewModel(
 
     // --- Data Streams ---
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tripFishermen: StateFlow<List<Fisherman>> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                fishermanRepo.getFishermenForTrip(id)
-            }
-        }
-        .map { list ->
-            // Sort by Last Name, then First Name
-            list.sortedWith(compareBy({ it.fullName }))
-        }
-        .onEach { list ->
-            // SIDE EFFECT: Update the draft IDs whenever the list changes
-            // This ensures the wizard state is "set" automatically
-            val ids = list.map { it.id }.toSet()
-            _tripFishermanIds.value = ids
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
         .flatMapLatest { id ->
             if (id == null) {
@@ -122,7 +95,7 @@ class AddEventViewModel(
             // SIDE EFFECT: Update the draft IDs whenever the list changes
             // This ensures the wizard state is "set" automatically
             val ids = list.map { it.id }.toSet()
-            _draftEventFishermanIds.value = ids
+            _eventFishermanIds.value = ids
         }
         .stateIn(
             scope = viewModelScope,
@@ -289,27 +262,33 @@ class AddEventViewModel(
     }
 
     // --- Wizard Navigation State ---
-
     private val _currentEventWizardStep = MutableStateFlow(EventWizardStep.EventInfo)
     val currentEventWizardStep = _currentEventWizardStep.asStateFlow()
 
+    private val _overrideTripCrew = MutableStateFlow(false)
+    val overrideTripCrew = _overrideTripCrew.asStateFlow()
+
     fun updateEventWizardStep(step: EventWizardStep) {
         _currentEventWizardStep.value = step
+    }
+
+    fun updateOverrideTripCrew(override: Boolean) {
+        _overrideTripCrew.value = override
     }
 
     // --- Crew Draft State ---
     private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
     val tripFishermenIds = _tripFishermanIds.asStateFlow()
 
-    private val _draftEventFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val eventFishermenIds = _draftEventFishermanIds.asStateFlow()
+    private val _eventFishermanIds = MutableStateFlow<Set<String>>(emptySet())
+    val eventFishermenIds = _eventFishermanIds.asStateFlow()
 
     fun toggleEventFisherman(id: String) {
-        _draftEventFishermanIds.update { if (it.contains(id)) it - id else it + id }
+        _eventFishermanIds.update { if (it.contains(id)) it - id else it + id }
     }
 
     fun updateEventFishermanIds(ids: Set<String>) {
-        _draftEventFishermanIds.value = ids
+        _eventFishermanIds.value = ids
     }
 
     fun insertTackleBox(tackleBox: TackleBox) {
@@ -327,6 +306,7 @@ sealed interface AddEventUiState {
         val event: Event
     ) : AddEventUiState
 }
+
 class AddEventViewModelFactory(
     private val locationProvider: LocationProvider,
     private val fishermanRepository: FishermanRepository,

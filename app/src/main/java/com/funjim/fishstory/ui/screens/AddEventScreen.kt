@@ -80,8 +80,7 @@ fun AddEventScreen(
 
     // ── Wizard step ─────────────────────────────────────────────────────────
     val currentStep by viewModel.currentEventWizardStep.collectAsStateWithLifecycle()
-
-    var overrideTripCrew by remember { mutableStateOf(false) }
+    val overrideTripCrew by viewModel.overrideTripCrew.collectAsStateWithLifecycle()
 
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
@@ -121,12 +120,14 @@ fun AddEventScreen(
     // Helper: delete the event if user cancels mid-wizard
     fun cancelAndExit() {
         scope.launch {
-            // CASCADE deletes will clean up fisherman cross-refs and event
+            // CASCADE deletes will clean up fisherman and species references
             viewModel.deleteEventById(eventDraft.id)
         }
+
         viewModel.clearTrip()
         viewModel.clearEvent()
         viewModel.clearEventDraft()
+
         navigateBack()
     }
 
@@ -471,14 +472,14 @@ fun AddEventScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                overrideTripCrew = !overrideTripCrew
+                                                viewModel.updateOverrideTripCrew(!overrideTripCrew)
                                             }
                                             .padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Checkbox(
                                             checked = overrideTripCrew,
-                                            onCheckedChange = { overrideTripCrew = it }
+                                            onCheckedChange = { viewModel.updateOverrideTripCrew(it) }
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Column {
