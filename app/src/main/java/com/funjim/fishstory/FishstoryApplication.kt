@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
+import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
 import com.funjim.fishstory.viewmodels.EventViewModelFactory
 import kotlin.getValue
 
@@ -91,10 +92,18 @@ class FishstoryApplication : Application() {
         tripRepository
     )
 
-    fun getEventViewModel() = EventViewModelFactory(
+    fun getEventViewModelFactor() = EventViewModelFactory(
             locationProvider = locationProvider,
             fishermanRepository,
             fishRepository,
             photoRepository,
             tripRepository)
+
+    fun getAddTripViewModelFactory() = AddTripViewModelFactory(
+        locationProvider = locationProvider,
+        fishermanRepository,
+        fishRepository,
+        photoRepository,
+        tripRepository
+    )
 }

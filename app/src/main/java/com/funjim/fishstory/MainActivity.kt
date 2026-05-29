@@ -317,6 +317,7 @@ fun AppNavigation(
             val viewModel: AddEventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = app.getAddEventViewModelFactory()
             )
+
             AddEventScreen(
                 viewModel = viewModel,
                 tripId = tripId,
@@ -330,8 +331,13 @@ fun AppNavigation(
         }
 
         composable("add_trip") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: AddTripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getAddTripViewModelFactory()
+            )
+
             AddTripScreen(
-                tripViewModel = tripViewModel,
+                tripViewModel = viewModel,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
                     navController.navigate("select_lures/$fishermanId/$tackleBoxId")
                 },

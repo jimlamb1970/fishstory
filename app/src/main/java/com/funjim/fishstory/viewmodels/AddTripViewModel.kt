@@ -29,7 +29,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.map
-class TripViewModel(
+
+enum class WizardStep {
+    TripInfo,           // Step 1 – name, dates, location
+    TripCrew,           // Step 2 – fishermen + tackle boxes for trip
+    EventInfo,          // Step 3 – event name, dates, location
+    EventCrew,          // Step 4 – fishermen + tackle boxes for event
+    Review              // Step 5 – list events, add another or finish
+}
+class AddTripViewModel(
     private val locationProvider: LocationProvider,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
@@ -269,23 +277,6 @@ class TripViewModel(
             initialValue = null
         )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tripPhotos: StateFlow<List<Photo>> = _selectedTripId
-        .filterNotNull()
-        .flatMapLatest { photoRepo.getPhotosForTrip(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventPhotos: StateFlow<List<Photo>> = _selectedEventId
-        .filterNotNull()
-        .flatMapLatest { photoRepo.getPhotosForEvent(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    fun eventThumbnail(eventId: String): Flow<ByteArray?> {
-        return photoRepo.fetchEventThumbnail(eventId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
-    }
-
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
@@ -398,17 +389,6 @@ class TripViewModel(
         }
     }
 
-    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
-        viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri, selected)
-                .onSuccess {  }
-                .onFailure {  }
-        }
-    }
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
-    }
-
     fun addSpecies(species: Species) {
         viewModelScope.launch {
             fishRepo.addSpecies(species)
@@ -498,24 +478,7 @@ class TripViewModel(
     }
 }
 
-data class TripUiState(
-    val liveTrips: List<TripSummary> = emptyList(),
-    val upcomingTrips: List<TripSummary> = emptyList(),
-    val recentTrips: List<TripSummary> = emptyList(),
-    val isLoading: Boolean = false
-)
-
-sealed interface TripDetailsUiState {
-    object Loading : TripDetailsUiState
-
-    data class Success(
-        val details: TripWithDetails,
-        val summary: TripDetailedSummary,
-        val eventSummaries: List<EventSummary> = emptyList()
-    ) : TripDetailsUiState
-}
-
-class TripViewModelFactory(
+class AddTripViewModelFactory(
     private val locationProvider: LocationProvider,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -523,9 +486,9 @@ class TripViewModelFactory(
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TripViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(AddTripViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TripViewModel(
+            return AddTripViewModel(
                 locationProvider,
                 fishermanRepository,
                 fishRepository,

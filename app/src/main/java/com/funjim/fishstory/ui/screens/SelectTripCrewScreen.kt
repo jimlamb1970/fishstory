@@ -88,6 +88,17 @@ fun SelectTripCrewScreen(
                 eligibleFishermen = sortedFishermen,
                 selectedIds = initialSet + addSet - removeSet,
                 tackleBoxSelections = workingTackleBoxMap,
+                getTackleBoxesForFisherman = { fishermanId ->
+                    tripViewModel.getTackleBoxesForFisherman(fishermanId)
+                        .collectAsState(initial = emptyList()).value
+                },
+                getLureCount = { tackleBoxId ->
+                    tripViewModel.getLureCountForTackleBox(tackleBoxId)
+                        .collectAsState(initial = 0).value
+                },
+                getLuresInTacklebox = { tackleBoxId ->
+                    tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+                },
                 onSelectionChanged = { fishermanId, selected ->
                     if (selected) {
                         if (initialSet.contains(fishermanId)) {
@@ -110,7 +121,6 @@ fun SelectTripCrewScreen(
                     workingTackleBoxMap[fishermanId] = boxId
                 },
                 navigateToEditTackleBox = navigateToEditTackleBox,
-                tripViewModel = tripViewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->

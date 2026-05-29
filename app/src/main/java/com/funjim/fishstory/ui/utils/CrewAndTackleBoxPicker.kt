@@ -477,10 +477,12 @@ fun TripViewModelCrewPickerBridge(
     eligibleFishermen: List<Fisherman>,
     selectedIds: Set<String>,
     tackleBoxSelections: Map<String, String?>,
+    getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
+    getLureCount: @Composable (tackleBoxId: String?) -> Int,
+    getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
     onTackleBoxChanged: (fishermanId: String, tackleBoxId: String?) -> Unit,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
-    tripViewModel: TripViewModel,
     confirmLabel: String,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
@@ -499,17 +501,9 @@ fun TripViewModelCrewPickerBridge(
         onSelectionChanged = onSelectionChanged,
         onTackleBoxChanged = onTackleBoxChanged,
         navigateToEditTackleBox = navigateToEditTackleBox,
-        getTackleBoxesForFisherman = { fishermanId ->
-            tripViewModel.getTackleBoxesForFisherman(fishermanId)
-                .collectAsState(initial = emptyList()).value
-        },
-        getLureCount = { tackleBoxId ->
-            tripViewModel.getLureCountForTackleBox(tackleBoxId)
-                .collectAsState(initial = 0).value
-        },
-        getLuresInTacklebox = { tackleBoxId ->
-            tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
-        },
+        getTackleBoxesForFisherman = getTackleBoxesForFisherman,
+        getLureCount = getLureCount,
+        getLuresInTacklebox = getLuresInTacklebox,
         confirmLabel = confirmLabel,
         onConfirm = onConfirm,
         modifier = modifier,

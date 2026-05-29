@@ -37,6 +37,7 @@ import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.viewmodels.AddTripViewModel
 import com.funjim.fishstory.viewmodels.TripViewModel
 import com.funjim.fishstory.viewmodels.WizardStep
 import kotlinx.coroutines.flow.flowOf
@@ -50,7 +51,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTripScreen(
-    tripViewModel: TripViewModel,
+    tripViewModel: AddTripViewModel,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
@@ -470,6 +471,17 @@ fun AddTripScreen(
                         eligibleFishermen = sortedFishermen,
                         selectedIds = tripFishermenIds,
                         tackleBoxSelections = tripTackleBoxMap,
+                        getTackleBoxesForFisherman = { fishermanId ->
+                            tripViewModel.getTackleBoxesForFisherman(fishermanId)
+                                .collectAsState(initial = emptyList()).value
+                        },
+                        getLureCount = { tackleBoxId ->
+                            tripViewModel.getLureCountForTackleBox(tackleBoxId)
+                                .collectAsState(initial = 0).value
+                        },
+                        getLuresInTacklebox = { tackleBoxId ->
+                            tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+                        },
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleTripFisherman(fishermanId)
                             if (selected) {
@@ -493,7 +505,6 @@ fun AddTripScreen(
                             )
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
-                        tripViewModel = tripViewModel,
                         confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Event",
                         onConfirm = {
                             if (!fromReview) {
@@ -718,6 +729,17 @@ fun AddTripScreen(
                         eligibleFishermen = eligibleFishermen,
                         selectedIds = eventFishermenIds,
                         tackleBoxSelections = eventTackleBoxMap,
+                        getTackleBoxesForFisherman = { fishermanId ->
+                            tripViewModel.getTackleBoxesForFisherman(fishermanId)
+                                .collectAsState(initial = emptyList()).value
+                        },
+                        getLureCount = { tackleBoxId ->
+                            tripViewModel.getLureCountForTackleBox(tackleBoxId)
+                                .collectAsState(initial = 0).value
+                        },
+                        getLuresInTacklebox = { tackleBoxId ->
+                            tripViewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+                        },
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleEventFisherman(fishermanId)
                             if (selected) {
@@ -741,7 +763,6 @@ fun AddTripScreen(
                             )
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
-                        tripViewModel = tripViewModel,
                         confirmLabel = "Review",
                         onConfirm = {
                             tripViewModel.updateWizardStep(WizardStep.Review)
