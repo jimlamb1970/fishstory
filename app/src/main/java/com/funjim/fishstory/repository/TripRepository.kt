@@ -18,6 +18,7 @@ import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
+import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +38,9 @@ class TripRepository(
 
     fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?> =
         tripDao.getTripWithFishermenAndSpecies(tripId)
+
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> =
+        tripDao.getTripWithFishermen(tripId)
 
     /**
      * An active trip is one where the current time is between start and end.

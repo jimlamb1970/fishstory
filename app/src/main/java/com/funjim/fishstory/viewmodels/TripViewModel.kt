@@ -128,9 +128,11 @@ class TripViewModel(
         initialValue = TripDetailsUiState.Loading
     )
 
-
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
+        return tripRepo.getTripWithFishermen(tripId)
+    }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)

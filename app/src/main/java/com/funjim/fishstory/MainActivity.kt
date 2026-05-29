@@ -95,20 +95,6 @@ class MainActivity : ComponentActivity() {
             tripRepo = tripRepo)
     }
 
-    private val eventViewModel: EventViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val fishermanRepository = (application as FishstoryApplication).fishermanRepository
-        val fishRepository = (application as FishstoryApplication).fishRepository
-        val photoRepository = (application as FishstoryApplication).photoRepository
-        val tripRepository = (application as FishstoryApplication).tripRepository
-        EventViewModelFactory(
-            locationProvider = locationProvider,
-            fishermanRepository,
-            fishRepository,
-            photoRepository,
-            tripRepository)
-    }
-
     private val fishViewModel: FishViewModel by viewModels {
         val locationProvider = (application as FishstoryApplication).locationProvider
         val fishRepo = (application as FishstoryApplication).fishRepository
@@ -143,19 +129,6 @@ class MainActivity : ComponentActivity() {
             locationProvider = locationProvider,
             photoRepo = photoRepo,
             tripRepo = tripRepo)
-    }
-    private val tripViewModel: TripViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val fishermanRepository = (application as FishstoryApplication).fishermanRepository
-        val fishRepository = (application as FishstoryApplication).fishRepository
-        val photoRepository = (application as FishstoryApplication).photoRepository
-        val tripRepository = (application as FishstoryApplication).tripRepository
-        TripViewModelFactory(
-            locationProvider = locationProvider,
-            fishermanRepository,
-            fishRepository,
-            photoRepository,
-            tripRepository)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -198,11 +171,9 @@ class MainActivity : ComponentActivity() {
                             navController,
                             addFishViewModel = addFishViewModel,
                             dashboardViewModel = dashboardViewModel,
-                            eventViewModel = eventViewModel,
                             fishViewModel = fishViewModel,
                             importViewModel = importViewModel,
                             lureViewModel = lureViewModel,
-                            tripViewModel = tripViewModel,
                             tripListViewModel = tripListViewModel,
                             viewModel = viewModel,
                             onThemeChange = { selectedTheme ->
@@ -239,9 +210,7 @@ fun AppNavigation(
     addFishViewModel: AddFishViewModel,
     viewModel: MainViewModel,
     dashboardViewModel: DashboardViewModel,
-    eventViewModel: EventViewModel,
     importViewModel: ImportViewModel,
-    tripViewModel: TripViewModel,
     tripListViewModel: TripListViewModel,
     fishViewModel: FishViewModel,
     lureViewModel: LureViewModel,
@@ -533,8 +502,13 @@ fun AppNavigation(
             val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
 
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: EventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getEventViewModelFactory()
+            )
+
             SelectEventCrewScreen(
-                viewModel = eventViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
@@ -551,15 +525,20 @@ fun AppNavigation(
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            val scope = rememberCoroutineScope()
-            val allFishermen by tripViewModel.fishermen.collectAsState(initial = emptyList())
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: TripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getTripViewModelFactory()
+            )
+
+            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
             val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
             val initialCrew = remember(tripWithFishermen) {
                 tripWithFishermen?.fishermen ?: emptyList()
             }
 
             SelectTripCrewScreen(
-                tripViewModel = tripViewModel,
+                tripViewModel = viewModel,
                 tripId = tripId,
                 eligibleFishermen = allFishermen,
                 initialCrew = initialCrew,
@@ -581,8 +560,14 @@ fun AppNavigation(
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: EventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getEventViewModelFactory()
+            )
+
             EventDetailsScreen(
-                viewModel = eventViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
                 navigateToSelectEventCrew = {  ->
@@ -628,8 +613,14 @@ fun AppNavigation(
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: TripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getTripViewModelFactory()
+            )
+
             TripDetailsScreen(
-                viewModel = tripViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
