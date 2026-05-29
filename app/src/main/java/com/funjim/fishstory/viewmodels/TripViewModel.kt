@@ -18,17 +18,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
-import kotlin.collections.map
+
 class TripViewModel(
     private val locationProvider: LocationProvider,
     private val fishermanRepo: FishermanRepository,
@@ -40,8 +36,6 @@ class TripViewModel(
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedEventId = MutableStateFlow<String?>(null)
-    private val _eventCrewOverride = MutableStateFlow(false)
-    val eventCrewOverride = _eventCrewOverride.asStateFlow()
 
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
@@ -137,63 +131,6 @@ class TripViewModel(
 
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tripFishermen: StateFlow<List<Fisherman>> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                fishermanRepo.getFishermenForTrip(id)
-            }
-        }
-        .map { list ->
-            // Sort by Last Name, then First Name
-            list.sortedWith(compareBy({ it.fullName }))
-        }
-        .onEach { list ->
-            // SIDE EFFECT: Update the draft IDs whenever the list changes
-            // This ensures the wizard state is "set" automatically
-            val ids = list.map { it.id }.toSet()
-            _tripFishermanIds.value = ids
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForTrip(tripId)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                fishermanRepo.getFishermenForEvent(id)
-            }
-        }
-        .map { list ->
-            // Sort by Last Name, then First Name
-            list.sortedWith(compareBy({ it.fullName }))
-        }
-        .onEach { list ->
-            // SIDE EFFECT: Update the draft IDs whenever the list changes
-            // This ensures the wizard state is "set" automatically
-            val ids = list.map { it.id }.toSet()
-            _draftEventFishermanIds.value = ids
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForEvent(eventId)
-    }
 
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
@@ -211,22 +148,6 @@ class TripViewModel(
                 flowOf(emptyMap()) // This clears the map when you set id to null
             } else {
                 getTackleBoxMapForTrip(tripId = id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
-
-    // TODO -- check flows where filterNotNul is and see if they need to be changed
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyMap()) // This clears the map when you set id to null
-            } else {
-                getTackleBoxMapForEvent(eventId = id)
             }
         }
         .stateIn(
@@ -269,18 +190,6 @@ class TripViewModel(
             initialValue = null
         )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tripPhotos: StateFlow<List<Photo>> = _selectedTripId
-        .filterNotNull()
-        .flatMapLatest { photoRepo.getPhotosForTrip(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventPhotos: StateFlow<List<Photo>> = _selectedEventId
-        .filterNotNull()
-        .flatMapLatest { photoRepo.getPhotosForEvent(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -302,12 +211,6 @@ class TripViewModel(
         }
     }
 
-    fun deleteTripById(tripId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteTripById(tripId)
-        }
-    }
-
     fun upsertEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.upsertEvent(event)
@@ -317,12 +220,6 @@ class TripViewModel(
     fun deleteEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.deleteEvent(event)
-        }
-    }
-
-    fun deleteEventById(eventId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteEventById(eventId)
         }
     }
 
@@ -337,20 +234,6 @@ class TripViewModel(
     fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) {
         viewModelScope.launch {
             tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
-        }
-    }
-
-    fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
-        viewModelScope.launch {
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
-            )
-        }
-    }
-
-    fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
         }
     }
 
@@ -378,19 +261,6 @@ class TripViewModel(
             tripRepo.upsertTripFishermanCrossRef(
                 TripFishermanCrossRef(
                     tripId,
-                    fishermanId,
-                    tackleBox.id
-                )
-            )
-        }
-    }
-    fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
-        viewModelScope.launch {
-            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-            fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(
-                    eventId,
                     fishermanId,
                     tackleBox.id
                 )
@@ -430,9 +300,6 @@ class TripViewModel(
     fun clearTrip() {
         _selectedTripId.value = null
     }
-    fun clearEvent() {
-        _selectedEventId.value = null
-    }
 
     fun selectTrip(id: String) {
         _selectedTripId.value = id
@@ -440,61 +307,6 @@ class TripViewModel(
 
     fun selectEvent(id: String) {
         _selectedEventId.value = id
-    }
-
-    // --- Wizard Navigation State ---
-    private val _currentWizardStep = MutableStateFlow(WizardStep.TripInfo)
-    val currentWizardStep = _currentWizardStep.asStateFlow()
-
-    fun updateWizardStep(step: WizardStep) {
-        _currentWizardStep.value = step
-    }
-
-    // --- Trip Draft State ---
-    private val _tripDraft = MutableStateFlow(Trip(id = UUID.randomUUID().toString(), name = ""))
-    val tripDraft = _tripDraft.asStateFlow()
-
-    fun clearTripDraft() {
-        _tripDraft.value = Trip(id = UUID.randomUUID().toString(), name = "")
-        _currentWizardStep.value = WizardStep.TripInfo
-    }
-
-    fun updateTripDraft(update: (Trip) -> Trip) {
-        _tripDraft.update(update)
-        // Synchronize the selected ID for your other flows
-        _selectedTripId.value = _tripDraft.value.id
-    }
-
-    // --- Event Draft State ---
-    private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
-    val eventDraft = _eventDraft.asStateFlow()
-
-    fun clearEventDraft() {
-        _eventDraft.value = Event(id = UUID.randomUUID().toString(), name = "", tripId = "")
-    }
-
-    fun updateEventDraft(update: (Event) -> Event) {
-        _eventDraft.update(update)
-        _selectedEventId.value = _eventDraft.value.id
-    }
-
-    // --- Crew Draft State ---
-    private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val tripFishermenIds = _tripFishermanIds.asStateFlow()
-
-    fun toggleTripFisherman(id: String) {
-        _tripFishermanIds.update { if (it.contains(id)) it - id else it + id }
-    }
-
-    private val _draftEventFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val eventFishermenIds = _draftEventFishermanIds.asStateFlow()
-
-    fun toggleEventFisherman(id: String) {
-        _draftEventFishermanIds.update { if (it.contains(id)) it - id else it + id }
-    }
-
-    fun updateEventFishermanIds(ids: Set<String>) {
-        _draftEventFishermanIds.value = ids
     }
 }
 
