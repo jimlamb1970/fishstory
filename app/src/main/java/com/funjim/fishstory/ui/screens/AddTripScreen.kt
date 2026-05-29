@@ -26,9 +26,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.TargetSpeciesRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
@@ -83,9 +88,16 @@ fun AddTripScreen(
     val tripTackleBoxMap by tripViewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by tripViewModel.eventTackleBoxMap.collectAsState()
 
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+    val allSpecies by tripViewModel.allSpecies.collectAsStateWithLifecycle()
+    var addNewSpecies by remember { mutableStateOf(false) }
+
+    val tripTargetSpecies by tripViewModel.tripTargetSpecies.collectAsStateWithLifecycle()
+    val eventTargetSpeciesMap by tripViewModel.eventTargetSpeciesMap.collectAsStateWithLifecycle()
+    val eventTargetSpeciesUsageMap by tripViewModel.eventTargetSpeciesUsageMap.collectAsStateWithLifecycle()
+
     // ── Wizard step ─────────────────────────────────────────────────────────
     val currentStep by tripViewModel.currentWizardStep.collectAsStateWithLifecycle()
-    var isFirstEvent by remember { mutableStateOf(true) }
     var fromReview by remember { mutableStateOf(false) }
 
     var overrideEventCrew by remember { mutableStateOf(false) }
@@ -143,12 +155,14 @@ fun AddTripScreen(
     // Helper: delete the trip row if user cancels mid-wizard
     fun cancelAndExit() {
         // CASCADE deletes will clean up fisherman cross-refs and events
-        tripViewModel.deleteTripById(tripDraft.id)
-        tripViewModel.clearTrip()
-        tripViewModel.clearTripDraft()
-        tripViewModel.clearEvent()
-        tripViewModel.clearEventDraft()
-        navigateBack()
+        scope.launch {
+            tripViewModel.deleteTripById(tripDraft.id)
+            tripViewModel.clearTrip()
+            tripViewModel.clearTripDraft()
+            tripViewModel.clearEvent()
+            tripViewModel.clearEventDraft()
+            navigateBack()
+        }
     }
 
     // Progress indicator
@@ -178,7 +192,7 @@ fun AddTripScreen(
                             tripViewModel.updateTripDraft {
                                 it.copy(latitude = location.latitude, longitude = location.longitude)
                             }
-                            tripViewModel.saveTrip(tripDraft)
+                            tripViewModel.saveTrip()
                             Toast.makeText(
                                 context,
                                 "Location updated",
@@ -204,14 +218,14 @@ fun AddTripScreen(
             is TripAction.SelectLocation -> {
                 showTripMenu = false
                 tripLocationPicker.openPicker()
-                scope.launch { tripViewModel.saveTrip(tripDraft) }
+                scope.launch { tripViewModel.saveTrip() }
             }
             is TripAction.ClearLocation -> {
                 showTripMenu = false
                 tripViewModel.updateTripDraft { it.copy(latitude = null, longitude = null) }
 
                 scope.launch {
-                    tripViewModel.saveTrip(tripDraft)
+                    tripViewModel.saveTrip()
                     Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
                         .show()
                 }
@@ -246,7 +260,7 @@ fun AddTripScreen(
                             WizardStep.TripCrew    -> tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             WizardStep.EventInfo -> {
                                 // Logic depends on whether this is the start of the trip or a later addition
-                                val nextStep = if (isFirstEvent) {
+                                val nextStep = if (!fromReview) {
                                     WizardStep.TripCrew
                                 } else {
                                     WizardStep.Review
@@ -433,6 +447,30 @@ fun AddTripScreen(
                             }
                         }
 
+                        HorizontalDivider()
+
+                        TargetSpeciesRow(
+                            items = tripTargetSpecies,
+                            onAdd = { showSpeciesSelection = true },
+                            onDelete = { species ->
+                                tripViewModel.removeTripTargetSpecies(species)
+                            },
+                            thumbnailProvider = { species ->
+                                val thumbnailFlow = remember(species.id) {
+                                    tripViewModel.speciesThumbnail(species.id)
+                                }
+
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.TargetFish,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(0.dp)
+                        )
+
                         // TODO -- add duration
                         Spacer(Modifier.weight(1f))
 
@@ -440,12 +478,7 @@ fun AddTripScreen(
                             onClick = {
                                 // Commit trip to DB now
                                 scope.launch {
-                                    tripViewModel.saveTrip(tripDraft)
-
-                                    // Seed event defaults
-                                    tripViewModel.updateEventDraft{
-                                        eventDraft.copy(startTime = tripDraft.startDate, endTime = tripDraft.endDate)
-                                    }
+                                    tripViewModel.saveTrip()
                                     tripViewModel.updateWizardStep(WizardStep.TripCrew)
                                 }
                             },
@@ -485,39 +518,36 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleTripFisherman(fishermanId)
                             if (selected) {
-                                tripViewModel.upsertTripFishermanCrossRef(
-                                    tripId = tripDraft.id,
-                                    fishermanId = fishermanId,
-                                    tackleBoxId = tripTackleBoxMap[fishermanId]
-                                )
+                                scope.launch {
+                                    tripViewModel.upsertTripFishermanCrossRef(
+                                        tripId = tripDraft.id,
+                                        fishermanId = fishermanId,
+                                        tackleBoxId = tripTackleBoxMap[fishermanId]
+                                    )
+                                }
                             } else {
-                                tripViewModel.removeFishermanFromTripAndAllEvents(
-                                    tripId = tripDraft.id,
-                                    fishermanId = fishermanId
-                                )
+                                scope.launch {
+                                    tripViewModel.removeFishermanFromTripAndAllEvents(
+                                        tripId = tripDraft.id,
+                                        fishermanId = fishermanId
+                                    )
+                                }
                             }
                         },
                         onTackleBoxChanged = { fishermanId, boxId ->
-                            tripViewModel.upsertTripFishermanCrossRef(
-                                tripId = tripDraft.id,
-                                fishermanId = fishermanId,
-                                tackleBoxId = boxId
-                            )
+                            scope.launch {
+                                tripViewModel.upsertTripFishermanCrossRef(
+                                    tripId = tripDraft.id,
+                                    fishermanId = fishermanId,
+                                    tackleBoxId = boxId
+                                )
+                            }
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
                         confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Event",
                         onConfirm = {
                             if (!fromReview) {
-                                tripViewModel.updateEventDraft {
-                                    it.copy(
-                                        name = "",
-                                        tripId = tripDraft.id,
-                                        startTime = tripDraft.startDate,
-                                        endTime = tripDraft.endDate,
-                                        latitude = null,
-                                        longitude = null
-                                    )
-                                }
+                                tripViewModel.prepEventDraft(tripDraft)
                             }
 
                             tripViewModel.updateWizardStep(
@@ -629,7 +659,31 @@ fun AddTripScreen(
                             }
                         }
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider()
+
+                        TargetSpeciesRow(
+                            items = eventTargetSpeciesMap[eventDraft.id] ?: emptyList(),
+                            onAdd = { showSpeciesSelection = true },
+                            onDelete = { species ->
+                                tripViewModel.removeEventTargetSpecies(eventDraft.id, species)
+                            },
+                            thumbnailProvider = { species ->
+                                val thumbnailFlow = remember(species.id) {
+                                    tripViewModel.speciesThumbnail(species.id)
+                                }
+
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.TargetFish,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(0.dp)
+                        )
+
+                        HorizontalDivider()
 
                         Surface(
                             shape = MaterialTheme.shapes.medium,
@@ -668,7 +722,7 @@ fun AddTripScreen(
                         Button(
                             onClick = {
                                 scope.launch {
-                                    // Add the new event
+                                    // Add/update the event
                                     tripViewModel.upsertEvent(eventDraft)
 
                                     if (overrideEventCrew) {
@@ -743,24 +797,30 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleEventFisherman(fishermanId)
                             if (selected) {
-                                tripViewModel.upsertEventFishermanCrossRef(
-                                    eventId = eventDraft.id,
-                                    fishermanId = fishermanId,
-                                    tackleBoxId = eventTackleBoxMap[fishermanId]
-                                )
+                                scope.launch {
+                                    tripViewModel.upsertEventFishermanCrossRef(
+                                        eventId = eventDraft.id,
+                                        fishermanId = fishermanId,
+                                        tackleBoxId = eventTackleBoxMap[fishermanId]
+                                    )
+                                }
                             } else {
-                                tripViewModel.deleteEventFishermanCrossRef(
-                                    eventId = eventDraft.id,
-                                    fishermanId = fishermanId
-                                )
+                                scope.launch {
+                                    tripViewModel.deleteEventFishermanCrossRef(
+                                        eventId = eventDraft.id,
+                                        fishermanId = fishermanId
+                                    )
+                                }
                             }
                         },
                         onTackleBoxChanged = { fishermanId, boxId ->
-                            tripViewModel.upsertEventFishermanCrossRef(
-                                eventId = eventDraft.id,
-                                fishermanId = fishermanId,
-                                tackleBoxId = boxId
-                            )
+                            scope.launch {
+                                tripViewModel.upsertEventFishermanCrossRef(
+                                    eventId = eventDraft.id,
+                                    fishermanId = fishermanId,
+                                    tackleBoxId = boxId
+                                )
+                            }
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
                         confirmLabel = "Review",
@@ -887,19 +947,7 @@ fun AddTripScreen(
                             Text("Events (${eventSummaries.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
                                 overrideEventCrew = false
-
-                                tripViewModel.updateEventDraft {
-                                    it.copy(
-                                        id = UUID.randomUUID().toString(),
-                                        name = "",
-                                        startTime = tripDraft.startDate,
-                                        endTime = tripDraft.endDate,
-                                        latitude = null,
-                                        longitude = null
-                                    )
-                                }
-                                tripViewModel.selectEvent(eventDraft.id)
-
+                                tripViewModel.prepEventDraft(tripDraft)
                                 tripViewModel.updateWizardStep(WizardStep.EventInfo)
                             }) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
@@ -947,11 +995,15 @@ fun AddTripScreen(
                         // Just navigate back; nothing left to save.
                         Button(
                             onClick = {
-                                tripViewModel.clearTrip()
-                                tripViewModel.clearTripDraft()
-                                tripViewModel.clearEvent()
-                                tripViewModel.clearEventDraft()
-                                navigateBack()
+                                scope.launch {
+                                    tripViewModel.persistTargetSpecies()
+
+                                    tripViewModel.clearTrip()
+                                    tripViewModel.clearTripDraft()
+                                    tripViewModel.clearEvent()
+                                    tripViewModel.clearEventDraft()
+                                    navigateBack()
+                                }
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = eventSummaries.isNotEmpty()
@@ -968,27 +1020,88 @@ fun AddTripScreen(
                         }
                     }
                 }
+
             }
         }
+
+        if (showSpeciesSelection) {
+            SpeciesSelection(
+                items = allSpecies,
+                selectedItems =
+                    if (currentStep == WizardStep.TripInfo) tripTargetSpecies
+                    else eventTargetSpeciesMap[eventDraft.id] ?: emptyList(),
+                onSelected = { species ->
+                    if (currentStep == WizardStep.TripInfo)
+                        tripViewModel.addTripTargetSpecies(species)
+                    else
+                        tripViewModel.addEventTargetSpecies(eventDraft.id, species)
+                },
+                onUnselected = { species ->
+                    if (currentStep == WizardStep.TripInfo)
+                        tripViewModel.removeTripTargetSpecies(species)
+                    else
+                        tripViewModel.removeEventTargetSpecies(eventDraft.id, species)
+                },
+                onAdd = {
+                    addNewSpecies = true
+                },
+                onDone = { showSpeciesSelection = false },
+                modifier = Modifier.fillMaxWidth(),
+                thumbnailProvider = { species ->
+                    val thumbnailFlow = remember(species.id) {
+                        tripViewModel.speciesThumbnail(species.id)
+                    }
+
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.TargetFish,
+                        modifier = Modifier.size(48.dp)
+                    )
+                },
+                usageMap =
+                    if (currentStep == WizardStep.TripInfo) eventTargetSpeciesUsageMap
+                    else null,
+                maxUsage =
+                    if (currentStep == WizardStep.TripInfo) eventSummaries.size
+                    else null
+            )
+        }
     }
-}
 
-// ---------------------------------------------------------------------------
-// Small shared composables
-// ---------------------------------------------------------------------------
+    if (addNewSpecies) {
+        var addSpeciesName by remember { mutableStateOf("") }
 
-@Composable
-private fun LocationSetRow() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            Icons.Default.LocationOn,
-            null,
-            tint = Color(0xFF4CAF50),
-            modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(
-            "Location set",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF4CAF50))
+        AlertDialog(
+            onDismissRequest = { addNewSpecies = false },
+            title = { Text("Add New Species") },
+            text = {
+                TextField(
+                    value = addSpeciesName,
+                    onValueChange = { addSpeciesName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addSpeciesName.isNotBlank()) {
+                        scope.launch {
+                            val species = Species(name = addSpeciesName)
+                            tripViewModel.addSpecies(species)
+                            if (currentStep == WizardStep.TripInfo)
+                                tripViewModel.addTripTargetSpecies(species)
+                            else
+                                tripViewModel.addEventTargetSpecies(eventDraft.id, species)
+                            addNewSpecies = false
+                            addSpeciesName = ""
+                        }
+                    }
+                }) { Text("Add Species") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
     }
 }

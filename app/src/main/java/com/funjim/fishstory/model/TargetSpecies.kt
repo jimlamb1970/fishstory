@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
             entity = Species::class,
             parentColumns = ["id"],
             childColumns = ["speciesId"],
-            onDelete = ForeignKey.RESTRICT // Can't delete a species if it's an active target
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
@@ -46,13 +46,13 @@ data class EventTargetSpecies(
             entity = Trip::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE // If event is deleted, targets wipe out cleanly
+            onDelete = ForeignKey.CASCADE // If trip is deleted, targets wipe out cleanly
         ),
         ForeignKey(
             entity = Species::class,
             parentColumns = ["id"],
             childColumns = ["speciesId"],
-            onDelete = ForeignKey.RESTRICT // Can't delete a species if it's an active target
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )

@@ -19,6 +19,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermenAndSpecies
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -142,18 +143,21 @@ class TripRepository(
     // Target Species
     fun getEventTargetSpecies(eventId: String): Flow<List<Species>> =
         eventDao.getEventTargetSpecies(eventId)
-    suspend fun insertEventTargetSpecies(crossRef: EventTargetSpecies) {
+    suspend fun insertEventTargetSpecies(
+        crossRef: EventTargetSpecies,
+        cascade: Boolean = true) {
         database.withTransaction {
             eventDao.insertEventTargetSpecies(crossRef)
 
-            val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
-
-            tripDao.insertTripTargetSpecies(
-                TripTargetSpecies(
-                    tripId = tripId,
-                    speciesId = crossRef.speciesId
+            if (cascade) {
+                val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
+                tripDao.insertTripTargetSpecies(
+                    TripTargetSpecies(
+                        tripId = tripId,
+                        speciesId = crossRef.speciesId
+                    )
                 )
-            )
+            }
         }
     }
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String) =
@@ -162,16 +166,22 @@ class TripRepository(
     fun getTripTargetSpecies(tripId: String): Flow<List<Species>> =
         tripDao.getTripTargetSpecies(tripId)
 
-    suspend fun insertTripTargetSpecies(crossRef: TripTargetSpecies) {
+    suspend fun insertTripTargetSpecies(
+        crossRef: TripTargetSpecies,
+        cascade: Boolean = true) {
         database.withTransaction {
             tripDao.insertTripTargetSpecies(crossRef)
 
-            val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
+            if (cascade) {
+                val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
 
-            val eventTargets = eventIds.map { eventId ->
-                EventTargetSpecies(eventId = eventId, speciesId = crossRef.speciesId)
+                if (eventIds.isNotEmpty()) {
+                    val eventTargets = eventIds.map { eventId ->
+                        EventTargetSpecies(eventId = eventId, speciesId = crossRef.speciesId)
+                    }
+                    eventDao.insertTargetSpeciesForEvents(eventTargets)
+                }
             }
-            eventDao.insertTargetSpeciesForEvents(eventTargets)
         }
     }
     suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String) {

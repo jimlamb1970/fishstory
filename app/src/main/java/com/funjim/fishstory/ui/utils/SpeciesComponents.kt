@@ -290,7 +290,10 @@ fun SpeciesSelection(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = {
+                showSheet = false
+                onDone()
+            },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -364,7 +367,8 @@ fun SpeciesSelection(
 
                             val state =
                                 if (isChecked) {
-                                    if (maxUsage != null && usageMap != null && usageMap[item.id]!! < maxUsage) {
+                                    val usage = usageMap?.get(item.id) ?: 0
+                                    if (maxUsage != null && usage < maxUsage) {
                                         ToggleableState.Indeterminate
                                     }
                                     else ToggleableState.On
@@ -406,16 +410,15 @@ fun SpeciesSelection(
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier.fillMaxWidth()
                                         )
-                                        if (maxUsage != null && usageMap != null) {
-                                            if (usageMap[item.id] != null && usageMap[item.id]!! < maxUsage) {
-                                                Text(
-                                                    "(${usageMap[item.id]} / $maxUsage)",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
-                                                    textAlign = TextAlign.Center,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
+                                        if (isChecked && maxUsage != null && maxUsage > 0) {
+                                            val usage = usageMap?.get(item.id) ?: 0
+                                            Text(
+                                                "($usage / $maxUsage)",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
                                         }
                                     }
                                 },
@@ -452,7 +455,8 @@ fun SpeciesSelection(
 
                             val state =
                                 if (isChecked) {
-                                    if (maxUsage != null && usageMap != null && usageMap[item.id]!! < maxUsage) {
+                                    val usage = usageMap?.get(item.id) ?: 0
+                                    if (maxUsage != null && usage < maxUsage) {
                                         ToggleableState.Indeterminate
                                     }
                                     else ToggleableState.On
@@ -480,16 +484,18 @@ fun SpeciesSelection(
                                     thumbnailProvider(item)
                                 },
                                 headlineContent = {
-                                    Text(
-                                        item.name,
-                                        fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                    if (maxUsage != null && usageMap != null) {
-                                        if (usageMap[item.id] != null && usageMap[item.id]!! < maxUsage) {
+                                    Column() {
+                                        Text(
+                                            item.name,
+                                            fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                        if (isChecked && maxUsage != null && maxUsage > 0) {
+                                            val usage = usageMap?.get(item.id) ?: 0
                                             Text(
-                                                "(${usageMap[item.id]} / $maxUsage)",
+                                                "($usage / $maxUsage)",
                                                 style = MaterialTheme.typography.bodySmall,
-                                                fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.fillMaxWidth()
                                             )
                                         }
                                     }
