@@ -51,6 +51,32 @@ data class TripWithFishermen(
     val fishermen: List<Fisherman>
 )
 
+data class TripWithFishermenAndSpecies(
+    @Embedded val trip: Trip,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TripFishermanCrossRef::class,
+            parentColumn = "tripId",
+            entityColumn = "fishermanId"
+        )
+    )
+    val fishermen: List<Fisherman>,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TripTargetSpecies::class,
+            parentColumn = "tripId",
+            entityColumn = "speciesId"
+        )
+    )
+    val targetSpecies: List<Species>
+)
+
 data class TripWithDetails(
     @Embedded val trip: Trip,
 

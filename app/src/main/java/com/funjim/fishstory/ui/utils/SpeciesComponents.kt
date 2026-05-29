@@ -4,26 +4,36 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -424,7 +434,7 @@ fun SpeciesSelection(
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
                                 title = "Add new species...",
-                                onAdd = { showSheet = false; onAdd() }
+                                onAdd = { onAdd() }
                             )
                         }
                     }
@@ -505,10 +515,102 @@ fun SpeciesSelection(
                         item {
                             ModalAddButton(
                                 title = "Add new species...",
-                                onAdd = { showSheet = false; onAdd() }
+                                onAdd = { onAdd() }
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TargetSpeciesRow(
+    items: List<Species>,
+    onAdd: () -> Unit,
+    onDelete: (Species) -> Unit,
+    thumbnailProvider: @Composable (Species) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Target Species",
+                style = MaterialTheme.typography.titleMedium,
+                color = getOnMainColor()
+            )
+            IconButton(
+                onClick = { onAdd() },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = getMainButtonColor(),
+                    contentColor = getOnMainButtonColor()
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Target Species"
+                )
+            }
+        }
+
+        if (items.isEmpty()) {
+            Text(
+                text = "No target species are set.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = getOnSecondaryColor(),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        } else {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = contentPadding,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val species = items.sortedBy { it.name }
+                items(species) { species ->
+                    InputChip(
+                        selected = true,
+                        onClick = {},
+                        label = { Text(species.name) },
+                        avatar = { thumbnailProvider(species) },
+                        colors = InputChipDefaults.inputChipColors(
+                            selectedContainerColor = getCardColor().copy(alpha = 0.15f),
+                            selectedLabelColor = getOnCardColor(),
+                            selectedLeadingIconColor = getOnCardColor(),
+                            selectedTrailingIconColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = true,
+                            selectedBorderColor = getCardBorderColor(),
+                            selectedBorderWidth = 1.dp,
+                            borderColor = getOnChipColor(),
+                            borderWidth = 1.dp
+                        ),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { onDelete(species) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Remove",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    )
                 }
             }
         }

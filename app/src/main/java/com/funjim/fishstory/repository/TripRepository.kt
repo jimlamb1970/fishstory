@@ -18,6 +18,7 @@ import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
+import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -32,6 +33,9 @@ class TripRepository(
     
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> =
         tripDao.getTripWithDetails(tripId)
+
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?> =
+        tripDao.getTripWithFishermenAndSpecies(tripId)
 
     /**
      * An active trip is one where the current time is between start and end.
@@ -84,14 +88,14 @@ class TripRepository(
     fun getEventSummaries(tripId: String): Flow<List<EventSummary>> =
         eventDao.getTripEventSummaries(tripId)
 
-    fun getTripSummary(tripId: String): Flow<TripSummary> =
+    fun getTripSummary(tripId: String): Flow<TripSummary?> =
         tripDao.getTripSummary(tripId)
-    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary> =
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?> =
         tripDao.getTripDetailedSummary(tripId)
 
-    fun getEventSummary(eventId: String): Flow<EventSummary> =
+    fun getEventSummary(eventId: String): Flow<EventSummary?> =
         eventDao.getEventSummary(eventId)
-    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary> =
+    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?> =
         eventDao.getEventDetailedSummary(eventId)
 
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> =
@@ -110,7 +114,7 @@ class TripRepository(
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
         tripDao.upsertTripFishermanCrossRef(crossRef)
-    suspend fun upsertSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
+    suspend fun upsertEventFishermanCrossRef(crossRef: EventFishermanCrossRef) =
         eventDao.upsertEventFishermanCrossRef(crossRef)
     fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> =
         tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
@@ -127,7 +131,7 @@ class TripRepository(
     fun getEventFishermen(eventId: String): Flow<List<Fisherman>> =
         eventDao.getFishermenForEvent(eventId)
 
-    suspend fun deleteSegmentFishermanCrossRef(crossRef: EventFishermanCrossRef) =
+    suspend fun deleteEventFishermanCrossRef(crossRef: EventFishermanCrossRef) =
         eventDao.deleteEventFishermanCrossRef(crossRef)
 
     suspend fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) =

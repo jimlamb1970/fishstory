@@ -20,6 +20,7 @@ import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
+import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -76,6 +77,10 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?>
+
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE id = :tripId")
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?>
 
     @Transaction
@@ -129,10 +134,10 @@ FROM trip_table t
 WHERE t.id = :tripId
 ORDER BY t.startDate DESC
 """)
-    fun getTripSummary(tripId: String): Flow<TripSummary>
+    fun getTripSummary(tripId: String): Flow<TripSummary?>
 
     @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startDate DESC")
-    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary>
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)

@@ -22,13 +22,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
+import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.TargetSpeciesRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.viewmodels.AddEventUiState
 import com.funjim.fishstory.viewmodels.EventWizardStep
-import com.funjim.fishstory.viewmodels.EventViewModel
+import com.funjim.fishstory.viewmodels.AddEventViewModel
 import kotlinx.coroutines.launch
 
 
@@ -38,7 +44,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
-    viewModel: EventViewModel,
+    viewModel: AddEventViewModel,
     tripId: String,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
@@ -46,14 +52,18 @@ fun AddEventScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiAddEventState.collectAsStateWithLifecycle()
 
     val eventDraft by viewModel.eventDraft.collectAsStateWithLifecycle()
+
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
+    val targetSpecies by viewModel.eventTargetSpecies.collectAsStateWithLifecycle()
+    var addNewSpecies by remember { mutableStateOf(false) }
 
     // tripFishermen and eventFishermen are not really used. But they are being collected
     // because when selecting a trip and/or event, those flows have a side effect of updating
     // the tripFishermenIds and eventFishermenIds to reflect the trip and event selections
-    val tripFishermen by viewModel.tripFishermen.collectAsStateWithLifecycle()
     val tripFishermenIds by viewModel.tripFishermenIds.collectAsStateWithLifecycle()
     val eventFishermen by viewModel.eventFishermen.collectAsStateWithLifecycle()
     val eventFishermenIds by viewModel.eventFishermenIds.collectAsStateWithLifecycle()
@@ -68,28 +78,10 @@ fun AddEventScreen(
 
     var isDraftInitialized by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(trip) {
-        if (trip != null && !isDraftInitialized) {
-            trip?.let { trip ->
-                viewModel.updateEventDraft {
-                    it.copy(
-                        name = "",
-                        tripId = trip.id,
-                        startTime = trip.startDate,
-                        endTime = trip.endDate,
-                        latitude = null,
-                        longitude = null
-                    )
-                }
-            }
-            isDraftInitialized = true
-        }
-    }
-
     // ── Wizard step ─────────────────────────────────────────────────────────
     val currentStep by viewModel.currentEventWizardStep.collectAsStateWithLifecycle()
 
-    var overrideEventCrew by remember { mutableStateOf(false) }
+    var overrideTripCrew by remember { mutableStateOf(false) }
 
     var locationMenuExpanded by remember { mutableStateOf(false) }
 
@@ -126,7 +118,7 @@ fun AddEventScreen(
         }
     }
 
-    // Helper: delete the evert if user cancels mid-wizard
+    // Helper: delete the event if user cancels mid-wizard
     fun cancelAndExit() {
         scope.launch {
             // CASCADE deletes will clean up fisherman cross-refs and event
@@ -139,370 +131,555 @@ fun AddEventScreen(
     }
 
     // Progress indicator
-    val stepLabels = remember(overrideEventCrew) {
-        if (overrideEventCrew) {
-            listOf("Event")
-        } else {
+    val stepLabels = remember(overrideTripCrew) {
+        if (overrideTripCrew) {
             listOf("Event", "Event Crew & Boxes")
+        } else {
+            listOf("Event")
         }
     }
 
     val stepIndex = currentStep.ordinal.coerceAtMost(stepLabels.lastIndex)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("New Event")
-                        if (stepLabels.size > 1 ) {
-                            Text(
-                                text = "Step ${stepIndex + 1} of ${stepLabels.size}: ${stepLabels[stepIndex]}",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                navigationIcon = {
-                    IconButton(onClick = {
-                        when (currentStep) {
-                            EventWizardStep.EventInfo ->
-                                cancelAndExit()
-                            EventWizardStep.EventCrew ->
-                                viewModel.updateEventWizardStep(EventWizardStep.EventInfo)
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    if (currentStep == EventWizardStep.EventInfo) {
-                        val hasLocation = eventDraft.latitude != null
-                        Box {
-                            IconButton(onClick = { locationMenuExpanded = true }) {
-                                Icon(
-                                    Icons.Default.LocationOn,
-                                    contentDescription = "Location",
-                                    tint = if (hasLocation) Color(0xFF4CAF50) else LocalContentColor.current
-                                )
-                            }
-                            DropdownMenu(expanded = locationMenuExpanded, onDismissRequest = { locationMenuExpanded = false }) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Current Location") },
-                                    leadingIcon = { Icon(
-                                        Icons.Default.MyLocation,
-                                        null)
-                                    },
-                                    onClick = {
-                                        locationMenuExpanded = false
-                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                                            scope.launch {
-                                                viewModel.fetchLocation()?.let { loc ->
-                                                    viewModel.updateEventDraft {
-                                                        it.copy(
-                                                            latitude = loc.latitude,
-                                                            longitude = loc.longitude
-                                                        )
-                                                    }
-                                                } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
-                                            }
-                                        } else {
-                                            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                                        }
-                                    }
-                                )
-                                if (trip?.latitude != null) {
-                                    DropdownMenuItem(
-                                        text = { Text("Use Trip Location") },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.LocationOn, null)
-                                        },
-                                        onClick = {
-                                            locationMenuExpanded = false
-                                            viewModel.updateEventDraft {
-                                                it.copy(
-                                                    latitude = trip?.latitude,
-                                                    longitude = trip?.longitude
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                                DropdownMenuItem(
-                                    text = { Text("Select on Map") },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Map, null)
-                                    },
-                                    onClick = {
-                                        locationMenuExpanded = false
-                                        locationPicker.openPicker()
-                                    }
-                                )
-                                if (hasLocation) {
-                                    DropdownMenuItem(
-                                        text = { Text("Clear Location") },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.LocationOff,
-                                                null,
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        },
-                                        onClick = {
-                                            locationMenuExpanded = false
-                                            viewModel.updateEventDraft {
-                                                it.copy(
-                                                    latitude = null,
-                                                    longitude = null
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            )
+    when (val state = uiState) {
+        is AddEventUiState.Loading -> {
+            // Keeps the screen entirely blank or showing a spinner
+            // until all 3 database points arrive
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
-    ) { padding ->
-        Column(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()) {
 
-            LinearProgressIndicator(
-                progress = { (stepIndex + 1f) / stepLabels.size },
-                modifier = Modifier.fillMaxWidth()
-            )
-            trip?.let { trip ->
-                when (currentStep) {
-                    // ── Step 1: Event info ─────────────────────────────────────
-                    EventWizardStep.EventInfo -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                "Event Details",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                "An event is a single fishing session — e.g. morning run, afternoon drift.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = getOnVariantColor()
-                            )
+        is AddEventUiState.Success -> {
+            val trip = state.trip
 
-                            OutlinedTextField(
-                                value = eventDraft.name,
-                                onValueChange = { name ->
-                                    viewModel.updateEventDraft { eventDraft.copy(name = name) }
-                                },
-                                label = { Text("Event Name") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
-                            )
+            if (!isDraftInitialized) {
+                viewModel.updateEventDraft {
+                    it.copy(
+                        name = "",
+                        tripId = trip.trip.id,
+                        startTime = trip.trip.startDate,
+                        endTime = trip.trip.endDate,
+                        latitude = null,
+                        longitude = null
+                    )
+                }
+                viewModel.updateEventTargetSpecies(trip.targetSpecies)
+                isDraftInitialized = true
+            }
 
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    "Start",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier.width(48.dp))
-                                DateTimePickerButton(
-                                    label = "start",
-                                    millis = eventDraft.startTime,
-                                    modifier = Modifier.weight(1f)) { new ->
-                                    when {
-                                        new < trip.startDate ->
-                                            Toast.makeText(context, "Cannot be before trip start", Toast.LENGTH_SHORT).show()
-                                        new > trip.endDate ->
-                                            Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
-                                        else -> {
-                                            viewModel.updateEventDraft {
-                                                eventDraft.copy(startTime = new)
-                                            }
-                                            if (new > eventDraft.endTime) {
-                                                viewModel.updateEventDraft {
-                                                    eventDraft.copy(endTime = new)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    "End",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier.width(48.dp))
-                                DateTimePickerButton(
-                                    label = "end",
-                                    millis = eventDraft.endTime,
-                                    modifier = Modifier.weight(1f)) { new ->
-                                    when {
-                                        new < eventDraft.startTime ->
-                                            Toast.makeText(context, "End must be after start", Toast.LENGTH_SHORT).show()
-                                        new > trip.endDate ->
-                                            Toast.makeText(context, "Cannot be after trip end", Toast.LENGTH_SHORT).show()
-                                        else ->
-                                            viewModel.updateEventDraft {
-                                                eventDraft.copy(endTime = new)
-                                            }
-                                    }
-                                }
-                            }
-
-                            if (eventDraft.latitude != null) {
-                                LocationSetRow()
-                            }
-
-                            Surface(
-                                shape = MaterialTheme.shapes.medium,
-                                color = getVariantColor().copy(alpha = 0.4f),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { overrideEventCrew = !overrideEventCrew }
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Checkbox(
-                                        checked = overrideEventCrew,
-                                        onCheckedChange = { overrideEventCrew = it }
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Text("New Event")
+                                if (stepLabels.size > 1) {
+                                    Text(
+                                        text = "Step ${stepIndex + 1} of ${stepLabels.size}: ${stepLabels[stepIndex]}",
+                                        style = MaterialTheme.typography.bodySmall,
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(
-                                            text = "Specify Event Crew",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            text = "Customize who is fishing this event. If unchecked, the Trip Crew will be used.",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = getOnVariantColor()
-                                        )
-                                    }
                                 }
                             }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                when (currentStep) {
+                                    EventWizardStep.EventInfo ->
+                                        cancelAndExit()
 
-                            Spacer(Modifier.weight(1f))
-
-                            Button(
-                                onClick = {
-                                    scope.launch {
-                                        // Add the new event
-                                        viewModel.upsertEvent(eventDraft)
-
-                                        if (overrideEventCrew) {
-                                            if (eventFishermenIds.isEmpty()) {
-                                                viewModel.updateEventFishermanIds(tripFishermenIds)
-                                                tripFishermenIds.forEach { fishermanId ->
-                                                    viewModel.upsertEventFishermanCrossRef(
-                                                        eventId = eventDraft.id,
-                                                        fishermanId = fishermanId,
-                                                        tackleBoxId = tripTackleBoxMap[fishermanId]
+                                    EventWizardStep.EventCrew ->
+                                        viewModel.updateEventWizardStep(EventWizardStep.EventInfo)
+                                }
+                            }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        },
+                        actions = {
+                            if (currentStep == EventWizardStep.EventInfo) {
+                                val hasLocation = eventDraft.latitude != null
+                                Box {
+                                    IconButton(onClick = { locationMenuExpanded = true }) {
+                                        Icon(
+                                            Icons.Default.LocationOn,
+                                            contentDescription = "Location",
+                                            tint = if (hasLocation) Color(0xFF4CAF50) else LocalContentColor.current
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = locationMenuExpanded,
+                                        onDismissRequest = { locationMenuExpanded = false }) {
+                                        DropdownMenuItem(
+                                            text = { Text("Use Current Location") },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.MyLocation,
+                                                    null
+                                                )
+                                            },
+                                            onClick = {
+                                                locationMenuExpanded = false
+                                                if (ContextCompat.checkSelfPermission(
+                                                        context,
+                                                        Manifest.permission.ACCESS_FINE_LOCATION
+                                                    ) == PackageManager.PERMISSION_GRANTED
+                                                ) {
+                                                    scope.launch {
+                                                        viewModel.fetchLocation()?.let { loc ->
+                                                            viewModel.updateEventDraft {
+                                                                it.copy(
+                                                                    latitude = loc.latitude,
+                                                                    longitude = loc.longitude
+                                                                )
+                                                            }
+                                                        } ?: Toast.makeText(
+                                                            context,
+                                                            "Could not get location",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                } else {
+                                                    permissionLauncher.launch(
+                                                        arrayOf(
+                                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                                        )
                                                     )
                                                 }
                                             }
-                                            viewModel.updateEventWizardStep(EventWizardStep.EventCrew)
-                                        } else {
-                                            eventFishermenIds.forEach { fishermanId ->
-                                                viewModel.deleteEventFishermanCrossRef(
-                                                    eventId = eventDraft.id,
-                                                    fishermanId = fishermanId
-                                                )
+                                        )
+                                        if (trip.trip.latitude != null) {
+                                            DropdownMenuItem(
+                                                text = { Text("Use Trip Location") },
+                                                leadingIcon = {
+                                                    Icon(Icons.Default.LocationOn, null)
+                                                },
+                                                onClick = {
+                                                    locationMenuExpanded = false
+                                                    viewModel.updateEventDraft {
+                                                        it.copy(
+                                                            latitude = trip.trip.latitude,
+                                                            longitude = trip.trip.longitude
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                        }
+                                        DropdownMenuItem(
+                                            text = { Text("Select on Map") },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Map, null)
+                                            },
+                                            onClick = {
+                                                locationMenuExpanded = false
+                                                locationPicker.openPicker()
                                             }
-
-                                            viewModel.clearTrip()
-                                            viewModel.clearEvent()
-                                            viewModel.clearEventDraft()
-                                            navigateBack()
+                                        )
+                                        if (hasLocation) {
+                                            DropdownMenuItem(
+                                                text = { Text("Clear Location") },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.LocationOff,
+                                                        null,
+                                                        tint = MaterialTheme.colorScheme.error
+                                                    )
+                                                },
+                                                onClick = {
+                                                    locationMenuExpanded = false
+                                                    viewModel.updateEventDraft {
+                                                        it.copy(
+                                                            latitude = null,
+                                                            longitude = null
+                                                        )
+                                                    }
+                                                }
+                                            )
                                         }
                                     }
-                                },
-                                enabled = eventDraft.name.isNotBlank(),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    if (overrideEventCrew) "Next: Select Event Crew"
-                                    else "Done"
-                                )
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward,
-                                    null,
-                                    modifier = Modifier.padding(start = 8.dp))
+                                }
                             }
                         }
-                    }
+                    )
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier.padding(padding).fillMaxSize()
+                ) {
+                    LinearProgressIndicator(
+                        progress = { (stepIndex + 1f) / stepLabels.size },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    when (currentStep) {
+                        // ── Step 1: Event info ─────────────────────────────────────
+                        EventWizardStep.EventInfo -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    "Event Details",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "An event is a single fishing session — e.g. morning run, afternoon drift.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = getOnVariantColor()
+                                )
 
-                    // ── Step 4: Event crew + tackle boxes ──────────────────────
-                    EventWizardStep.EventCrew -> {
-                        Spacer(Modifier.height(16.dp))
-                        EventViewModelCrewPickerBridge(
-                            title = "Event Crew & Tackle Boxes",
-                            subtitle = """Who's fishing "${eventDraft.name}"? Tackle boxes default to trip selections.
-                                |
-                                |If no one is selected, the trip crew and tackle box assignments will be used."""
-                                .trimMargin(),
-                            eligibleFishermen = tripFishermen,
-                            selectedIds = eventFishermenIds,
-                            tackleBoxSelections = eventTackleBoxMap,
-                            onSelectionChanged = { fishermanId, selected ->
-                                viewModel.toggleEventFisherman(fishermanId)
-                                if (selected) {
+                                OutlinedTextField(
+                                    value = eventDraft.name,
+                                    onValueChange = { name ->
+                                        viewModel.updateEventDraft { eventDraft.copy(name = name) }
+                                    },
+                                    label = { Text("Event Name") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true
+                                )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Start",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.width(48.dp)
+                                    )
+                                    DateTimePickerButton(
+                                        label = "start",
+                                        millis = eventDraft.startTime,
+                                        modifier = Modifier.weight(1f)
+                                    ) { new ->
+                                        when {
+                                            new < trip.trip.startDate ->
+                                                Toast.makeText(
+                                                    context,
+                                                    "Cannot be before trip start",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            new > trip.trip.endDate ->
+                                                Toast.makeText(
+                                                    context,
+                                                    "Cannot be after trip end",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            else -> {
+                                                viewModel.updateEventDraft {
+                                                    eventDraft.copy(startTime = new)
+                                                }
+                                                if (new > eventDraft.endTime) {
+                                                    viewModel.updateEventDraft {
+                                                        eventDraft.copy(endTime = new)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "End",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.width(48.dp)
+                                    )
+                                    DateTimePickerButton(
+                                        label = "end",
+                                        millis = eventDraft.endTime,
+                                        modifier = Modifier.weight(1f)
+                                    ) { new ->
+                                        when {
+                                            new < eventDraft.startTime ->
+                                                Toast.makeText(
+                                                    context,
+                                                    "End must be after start",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            new > trip.trip.endDate ->
+                                                Toast.makeText(
+                                                    context,
+                                                    "Cannot be after trip end",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            else ->
+                                                viewModel.updateEventDraft {
+                                                    eventDraft.copy(endTime = new)
+                                                }
+                                        }
+                                    }
+                                }
+
+                                if (eventDraft.latitude != null) {
+                                    LocationSetRow()
+                                }
+
+                                HorizontalDivider()
+
+                                TargetSpeciesRow(
+                                    items = targetSpecies,
+                                    onAdd = { showSpeciesSelection = true },
+                                    onDelete = { species ->
+                                        viewModel.updateEventTargetSpecies(targetSpecies - species)
+                                    },
+                                    thumbnailProvider = { species ->
+                                        val thumbnailFlow = remember(species.id) {
+                                            viewModel.speciesThumbnail(species.id)
+                                        }
+
+                                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                        ThumbnailBox(
+                                            thumbnail = thumbnail,
+                                            imageVector = AppIcons.Default.TargetFish,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                HorizontalDivider()
+
+                                Surface(
+                                    shape = MaterialTheme.shapes.medium,
+                                    color = getVariantColor().copy(alpha = 0.4f),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                overrideTripCrew = !overrideTripCrew
+                                            }
+                                            .padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = overrideTripCrew,
+                                            onCheckedChange = { overrideTripCrew = it }
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "Specify Event Crew",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Text(
+                                                text = "Customize who is fishing this event. If unchecked, the Trip Crew will be used.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = getOnVariantColor()
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.weight(1f))
+
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            // Add the new event
+                                            viewModel.upsertEvent(eventDraft)
+                                            viewModel.persistTargetSpecies()
+
+                                            if (overrideTripCrew) {
+                                                if (eventFishermenIds.isEmpty()) {
+                                                    viewModel.updateEventFishermanIds(
+                                                        tripFishermenIds
+                                                    )
+                                                    tripFishermenIds.forEach { fishermanId ->
+                                                        viewModel.upsertEventFishermanCrossRef(
+                                                            eventId = eventDraft.id,
+                                                            fishermanId = fishermanId,
+                                                            tackleBoxId = tripTackleBoxMap[fishermanId]
+                                                        )
+                                                    }
+                                                }
+                                                viewModel.updateEventWizardStep(EventWizardStep.EventCrew)
+                                            } else {
+                                                eventFishermenIds.forEach { fishermanId ->
+                                                    viewModel.deleteEventFishermanCrossRef(
+                                                        eventId = eventDraft.id,
+                                                        fishermanId = fishermanId
+                                                    )
+                                                }
+
+                                                viewModel.clearTrip()
+                                                viewModel.clearEvent()
+                                                viewModel.clearEventDraft()
+                                                navigateBack()
+                                            }
+                                        }
+                                    },
+                                    enabled = eventDraft.name.isNotBlank(),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        if (overrideTripCrew) "Next: Select Event Crew"
+                                        else "Done"
+                                    )
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowForward,
+                                        null,
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── Step 2: Event crew + tackle boxes ──────────────────────
+                        EventWizardStep.EventCrew -> {
+                            Spacer(Modifier.height(16.dp))
+                            EventViewModelCrewPickerBridge(
+                                title = "Event Crew & Tackle Boxes",
+                                subtitle = """Who's fishing "${eventDraft.name}"? Tackle boxes default to trip selections.
+                            |
+                            |If no one is selected, the trip crew and tackle box assignments will be used."""
+                                    .trimMargin(),
+                                eligibleFishermen = trip.fishermen,
+                                selectedIds = eventFishermenIds,
+                                tackleBoxSelections = eventTackleBoxMap,
+                                getTackleBoxesForFisherman = { fishermanId ->
+                                    viewModel.getTackleBoxesForFisherman(fishermanId)
+                                        .collectAsState(initial = emptyList()).value
+                                },
+                                getLureCount = { tackleBoxId ->
+                                    viewModel.getLureCountForTackleBox(tackleBoxId)
+                                        .collectAsState(initial = 0).value
+                                },
+                                getLuresInTacklebox = { tackleBoxId ->
+                                    viewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+                                },
+                                onSelectionChanged = { fishermanId, selected ->
+                                    viewModel.toggleEventFisherman(fishermanId)
+                                    if (selected) {
+                                        viewModel.upsertEventFishermanCrossRef(
+                                            eventId = eventDraft.id,
+                                            fishermanId = fishermanId,
+                                            tackleBoxId = eventTackleBoxMap[fishermanId]
+                                        )
+                                    } else {
+                                        viewModel.deleteEventFishermanCrossRef(
+                                            eventId = eventDraft.id,
+                                            fishermanId = fishermanId
+                                        )
+                                    }
+                                },
+                                onTackleBoxChanged = { fishermanId, boxId ->
                                     viewModel.upsertEventFishermanCrossRef(
                                         eventId = eventDraft.id,
                                         fishermanId = fishermanId,
-                                        tackleBoxId = eventTackleBoxMap[fishermanId]
+                                        tackleBoxId = boxId
                                     )
-                                } else {
-                                    viewModel.deleteEventFishermanCrossRef(
-                                        eventId = eventDraft.id,
-                                        fishermanId = fishermanId
-                                    )
+                                },
+                                navigateToEditTackleBox = navigateToEditTackleBox,
+                                confirmLabel = "Done",
+                                onConfirm = {
+                                    viewModel.clearTrip()
+                                    viewModel.clearEvent()
+                                    viewModel.clearEventDraft()
+                                    navigateBack()
+                                },
+                                onAddTackleBox = { tackleBoxName, fishermanId ->
+                                    scope.launch {
+                                        viewModel.createAndAssignEventTackleBox(
+                                            fishermanId = fishermanId,
+                                            eventId = eventDraft.id,
+                                            name = tackleBoxName
+                                        )
+                                    }
                                 }
-                            },
-                            onTackleBoxChanged = { fishermanId, boxId ->
-                                viewModel.upsertEventFishermanCrossRef(
-                                    eventId = eventDraft.id,
-                                    fishermanId = fishermanId,
-                                    tackleBoxId = boxId
-                                )
-                            },
-                            navigateToEditTackleBox = navigateToEditTackleBox,
-                            viewModel = viewModel,
-                            confirmLabel = "Done",
-                            onConfirm = {
-                                viewModel.clearTrip()
-                                viewModel.clearEvent()
-                                viewModel.clearEventDraft()
-                                navigateBack()
-                            },
-                            onAddTackleBox = { tackleBoxName, fishermanId ->
-                                scope.launch { viewModel.createAndAssignEventTackleBox(
-                                    fishermanId = fishermanId,
-                                    eventId = eventDraft.id,
-                                    name = tackleBoxName
-                                ) }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-            } ?: run {
-                Text("Loading...", modifier = Modifier.padding(16.dp))
+                if (showSpeciesSelection) {
+                    SpeciesSelection(
+                        items = allSpecies,
+                        selectedItems = targetSpecies,
+                        onSelected = { selectedSpecies ->
+                            viewModel.updateEventTargetSpecies(targetSpecies + selectedSpecies)
+                        },
+                        onUnselected = { selectedSpecies ->
+                            viewModel.updateEventTargetSpecies(targetSpecies - selectedSpecies)
+                        },
+                        onAdd = {
+                            addNewSpecies = true
+                        },
+                        onDone = { showSpeciesSelection = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        thumbnailProvider = { species ->
+                            val thumbnailFlow = remember(species.id) {
+                                viewModel.speciesThumbnail(species.id)
+                            }
+
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.TargetFish,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    )
+                }
             }
         }
+    }
+
+    if (addNewSpecies) {
+        var addSpeciesName by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { addNewSpecies = false },
+            title = { Text("Add New Species") },
+            text = {
+                TextField(
+                    value = addSpeciesName,
+                    onValueChange = { addSpeciesName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addSpeciesName.isNotBlank()) {
+                        scope.launch {
+                            val species = Species(name = addSpeciesName)
+                            viewModel.addSpecies(species)
+                            viewModel.updateEventTargetSpecies(targetSpecies + species)
+                            addNewSpecies = false
+                            addSpeciesName = ""
+                        }
+                    }
+                }) { Text("Add Species") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 

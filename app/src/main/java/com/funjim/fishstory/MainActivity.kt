@@ -58,7 +58,6 @@ import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel: MainViewModel by viewModels {
         val database = (application as FishstoryApplication).database
         MainViewModelFactory(
@@ -313,8 +312,24 @@ fun AppNavigation(
             arguments = listOf(navArgument("tripId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+
+            val locationProvider = (navController.context.applicationContext as FishstoryApplication).locationProvider
+            val fishermanRepository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
+            val fishRepository = (navController.context.applicationContext as FishstoryApplication).fishRepository
+            val photoRepository = (navController.context.applicationContext as FishstoryApplication).photoRepository
+            val tripRepository = (navController.context.applicationContext as FishstoryApplication).tripRepository
+
+            val viewModel: AddEventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = AddEventViewModelFactory(
+                locationProvider = locationProvider,
+                fishermanRepository,
+                fishRepository,
+                photoRepository,
+                tripRepository)
+            )
+
             AddEventScreen(
-                viewModel = eventViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
                     navController.navigate("select_lures/$fishermanId/$tackleBoxId")

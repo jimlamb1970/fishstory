@@ -129,11 +129,21 @@ fun SelectEventCrewScreen(
                         removeSet = removeSet + fishermanId
                     }
                 },
+                getTackleBoxesForFisherman = { fishermanId ->
+                    viewModel.getTackleBoxesForFisherman(fishermanId)
+                        .collectAsState(initial = emptyList()).value
+                },
+                getLureCount = { tackleBoxId ->
+                    viewModel.getLureCountForTackleBox(tackleBoxId)
+                        .collectAsState(initial = 0).value
+                },
+                getLuresInTacklebox = { tackleBoxId ->
+                    viewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
+                },
                 onTackleBoxChanged = { fishermanId, boxId ->
                     workingTackleBoxMap[fishermanId] = boxId
                 },
                 navigateToEditTackleBox = navigateToEditTackleBox,
-                viewModel = viewModel,
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->

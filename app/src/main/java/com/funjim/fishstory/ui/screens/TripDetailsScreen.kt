@@ -46,6 +46,7 @@ import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -411,104 +412,27 @@ fun TripDetailsScreen(
 
                             HorizontalDivider()
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth().padding(vertical = 8.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Target Species",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = getOnMainColor()
-                                    )
-                                    IconButton(
-                                        onClick = { showSpeciesSelection = true },
-                                        colors = IconButtonDefaults.iconButtonColors(
-                                            containerColor = getMainButtonColor(),
-                                            contentColor = getOnMainButtonColor()
-                                        ),
-                                        modifier = Modifier.size(24.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Add,
-                                            contentDescription = "Add Target Species"
-                                        )
+                            TargetSpeciesRow(
+                                items = details.targetSpecies,
+                                onAdd = { showSpeciesSelection = true },
+                                onDelete = { species ->
+                                    viewModel.removeTripTargetSpecies(tripId, species.id)
+                                },
+                                thumbnailProvider = { species ->
+                                    val thumbnailFlow = remember(species.id) {
+                                        viewModel.speciesThumbnail(species.id)
                                     }
-                                }
 
-                                if (details.targetSpecies.isEmpty()) {
-                                    Text(
-                                        text = "No target species set for this event.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = getOnSecondaryColor(),
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                    ThumbnailBox(
+                                        thumbnail = thumbnail,
+                                        imageVector = AppIcons.Default.TargetFish,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                } else {
-                                    LazyRow(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        val species = details.targetSpecies.sortedBy { it.name }
-                                        items(species) { species ->
-                                            InputChip(
-                                                selected = true,
-                                                onClick = {},
-                                                label = { Text(species.name) },
-                                                avatar = {
-                                                    val thumbnailFlow = remember(species.id) {
-                                                        viewModel.speciesThumbnail(species.id)
-                                                    }
-
-                                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                                    ThumbnailBox(
-                                                        thumbnail = thumbnail,
-                                                        imageVector = AppIcons.Default.TargetFish,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                },
-                                                colors = InputChipDefaults.inputChipColors(
-                                                    selectedContainerColor = getCardColor().copy(alpha = 0.15f),
-                                                    selectedLabelColor = getOnCardColor(),
-                                                    selectedLeadingIconColor = getOnCardColor(),
-                                                    selectedTrailingIconColor = MaterialTheme.colorScheme.error
-                                                ),
-                                                border = FilterChipDefaults.filterChipBorder(
-                                                    enabled = true,
-                                                    selected = true,
-                                                    selectedBorderColor = getCardBorderColor(),
-                                                    selectedBorderWidth = 1.dp,
-                                                    borderColor = getOnChipColor(),
-                                                    borderWidth = 1.dp
-                                                ),
-                                                trailingIcon = {
-                                                    IconButton(
-                                                        onClick = {
-                                                            viewModel.removeTripTargetSpecies(tripId, species.id)
-                                                        },
-                                                        modifier = Modifier.size(24.dp)
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Clear,
-                                                            contentDescription = "Remove",
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                                },
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                            )
 
                             HorizontalDivider()
 

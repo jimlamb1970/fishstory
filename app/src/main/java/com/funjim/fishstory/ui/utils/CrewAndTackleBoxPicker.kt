@@ -525,10 +525,12 @@ fun EventViewModelCrewPickerBridge(
     eligibleFishermen: List<Fisherman>,
     selectedIds: Set<String>,
     tackleBoxSelections: Map<String, String?>,
+    getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
+    getLureCount: @Composable (tackleBoxId: String?) -> Int,
+    getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onSelectionChanged: (fishermanId: String, selected: Boolean) -> Unit,
     onTackleBoxChanged: (fishermanId: String, tackleBoxId: String?) -> Unit,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
-    viewModel: EventViewModel,
     confirmLabel: String,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
@@ -544,20 +546,12 @@ fun EventViewModelCrewPickerBridge(
         subtitle = subtitle,
         eligibleFishermen = eligibleFishermen,
         crewEntries = crewEntries,
+        getTackleBoxesForFisherman = getTackleBoxesForFisherman,
+        getLureCount = getLureCount,
+        getLuresInTacklebox = getLuresInTacklebox,
         onSelectionChanged = onSelectionChanged,
         onTackleBoxChanged = onTackleBoxChanged,
         navigateToEditTackleBox = navigateToEditTackleBox,
-        getTackleBoxesForFisherman = { fishermanId ->
-            viewModel.getTackleBoxesForFisherman(fishermanId)
-                .collectAsState(initial = emptyList()).value
-        },
-        getLureCount = { tackleBoxId ->
-            viewModel.getLureCountForTackleBox(tackleBoxId)
-                .collectAsState(initial = 0).value
-        },
-        getLuresInTacklebox = { tackleBoxId ->
-            viewModel.getLuresInTackleBox(tackleBoxId).collectAsState(initial = emptyList()).value
-        },
         confirmLabel = confirmLabel,
         onConfirm = onConfirm,
         modifier = modifier,

@@ -350,7 +350,7 @@ class TripViewModel(
 
     fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepo.upsertSegmentFishermanCrossRef(
+            tripRepo.upsertEventFishermanCrossRef(
                 EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
             )
         }
@@ -358,7 +358,7 @@ class TripViewModel(
 
     fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.deleteSegmentFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
         }
     }
 
@@ -396,7 +396,7 @@ class TripViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertSegmentFishermanCrossRef(
+            tripRepo.upsertEventFishermanCrossRef(
                 EventFishermanCrossRef(
                     eventId,
                     fishermanId,

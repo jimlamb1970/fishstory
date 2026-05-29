@@ -173,10 +173,10 @@ FROM event_table s
 WHERE s.id = :eventId
 ORDER BY s.startTime DESC"""
     )
-    fun getEventSummary(eventId: String): Flow<EventSummary>
+    fun getEventSummary(eventId: String): Flow<EventSummary?>
 
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
-    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary>
+    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?>
 
     // TODO -- convert these to upsert
     @Insert(onConflict = OnConflictStrategy.IGNORE)

@@ -30,7 +30,11 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.map
 
-class EventViewModel(
+enum class EventWizardStep {
+    EventInfo,          // Step 1 – event name, dates, location
+    EventCrew           // Step 2 – fishermen + tackle boxes for event
+}
+class AddEventViewModel(
     private val locationProvider: LocationProvider,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
@@ -40,7 +44,6 @@ class EventViewModel(
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
-    private val _eventCrewOverride = MutableStateFlow(false)
 
     // --- Event Draft State ---
     private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
@@ -61,6 +64,19 @@ class EventViewModel(
     }
     fun updateEventTargetSpecies(ids: List<Species>) {
         _eventTargetSpecies.value = ids
+    }
+
+    fun persistTargetSpecies() {
+        _eventTargetSpecies.value.forEach { species ->
+            viewModelScope.launch {
+                tripRepo.insertEventTargetSpecies(
+                    EventTargetSpecies(
+                        eventId = eventDraft.value.id,
+                        speciesId = species.id
+                    )
+                )
+            }
+        }
     }
 
     // --- Data Streams ---
@@ -173,53 +189,6 @@ class EventViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventWithDetails = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventWithDetails(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventSummary = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventSummary(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventDetailedSummary = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventDetailedSummary(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForTrip(tripId)
-    }
-
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForEvent(eventId)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventPhotos: StateFlow<List<Photo>> = _selectedEventId
-        .filterNotNull()
-        .flatMapLatest { photoRepo.getPhotosForEvent(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
@@ -230,25 +199,6 @@ class EventViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-    val uiState: StateFlow<EventDetailsUiState> = combine(
-        selectedEventWithDetails,
-        selectedEventDetailedSummary
-    ) { event, summary ->
-        // Guard clause: Ensure the database has returned valid data for everything
-        if (event != null && summary != null) {
-            EventDetailsUiState.Success(
-                details = event,
-                summary = summary
-            )
-        } else {
-            EventDetailsUiState.Loading
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = EventDetailsUiState.Loading
-    )
 
     val uiAddEventState: StateFlow<AddEventUiState> = combine(
         selectedTrip,
@@ -270,18 +220,6 @@ class EventViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AddEventUiState.Loading
     )
-
-    fun addEventTargetSpecies(eventId: String, speciesId: String) {
-        viewModelScope.launch {
-            tripRepo.insertEventTargetSpecies(EventTargetSpecies(eventId = eventId, speciesId = speciesId))
-        }
-    }
-
-    fun removeEventTargetSpecies(eventId: String, speciesId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteEventTargetSpecies(eventId = eventId, speciesId = speciesId)
-        }
-    }
 
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
@@ -335,18 +273,6 @@ class EventViewModel(
         }
     }
 
-    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
-        viewModelScope.launch {
-            photoRepo.addEventPhoto(eventId, uri, selected)
-                .onSuccess {  }
-                .onFailure {  }
-        }
-    }
-
-    fun deleteEventPhoto(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
-    }
-
     fun clearTrip() {
         _selectedTripId.value = null
     }
@@ -360,10 +286,6 @@ class EventViewModel(
 
     fun selectEvent(id: String) {
         _selectedEventId.value = id
-    }
-
-    fun updateEventCrewOverride(override: Boolean) {
-        _eventCrewOverride.value = override
     }
 
     // --- Wizard Navigation State ---
@@ -397,16 +319,15 @@ class EventViewModel(
     }
 }
 
-sealed interface EventDetailsUiState {
-    object Loading : EventDetailsUiState
+sealed interface AddEventUiState {
+    object Loading : AddEventUiState
 
     data class Success(
-        val details: EventWithDetails,
-        val summary: EventDetailedSummary,
-    ) : EventDetailsUiState
+        val trip: TripWithFishermenAndSpecies,
+        val event: Event
+    ) : AddEventUiState
 }
-
-class EventViewModelFactory(
+class AddEventViewModelFactory(
     private val locationProvider: LocationProvider,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -414,9 +335,9 @@ class EventViewModelFactory(
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(EventViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(AddEventViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return EventViewModel(
+            return AddEventViewModel(
                 locationProvider,
                 fishermanRepository,
                 fishRepository,
