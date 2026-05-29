@@ -313,21 +313,10 @@ fun AppNavigation(
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
 
-            val locationProvider = (navController.context.applicationContext as FishstoryApplication).locationProvider
-            val fishermanRepository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
-            val fishRepository = (navController.context.applicationContext as FishstoryApplication).fishRepository
-            val photoRepository = (navController.context.applicationContext as FishstoryApplication).photoRepository
-            val tripRepository = (navController.context.applicationContext as FishstoryApplication).tripRepository
-
+            val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: AddEventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = AddEventViewModelFactory(
-                locationProvider = locationProvider,
-                fishermanRepository,
-                fishRepository,
-                photoRepository,
-                tripRepository)
+                factory = app.getAddEventViewModelFactory()
             )
-
             AddEventScreen(
                 viewModel = viewModel,
                 tripId = tripId,

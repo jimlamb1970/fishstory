@@ -10,6 +10,9 @@ import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProviderImpl
+import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
+import com.funjim.fishstory.viewmodels.EventViewModelFactory
+import kotlin.getValue
 
 class FishstoryApplication : Application() {
     val database: FishstoryDatabase by lazy { FishstoryDatabase.getDatabase(this) }
@@ -79,4 +82,19 @@ class FishstoryApplication : Application() {
             tripDao = database.tripDao()
         )
     }
+
+    fun getAddEventViewModelFactory() = AddEventViewModelFactory(
+        locationProvider = locationProvider,
+        fishermanRepository,
+        fishRepository,
+        photoRepository,
+        tripRepository
+    )
+
+    fun getEventViewModel() = EventViewModelFactory(
+            locationProvider = locationProvider,
+            fishermanRepository,
+            fishRepository,
+            photoRepository,
+            tripRepository)
 }
