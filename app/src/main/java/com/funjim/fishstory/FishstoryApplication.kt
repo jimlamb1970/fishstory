@@ -1,6 +1,7 @@
 package com.funjim.fishstory
 
 import android.app.Application
+import androidx.activity.viewModels
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
@@ -11,8 +12,16 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
+import com.funjim.fishstory.viewmodels.AddFishViewModel
+import com.funjim.fishstory.viewmodels.AddFishViewModelFactory
 import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
+import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
 import com.funjim.fishstory.viewmodels.EventViewModelFactory
+import com.funjim.fishstory.viewmodels.FishViewModelFactory
+import com.funjim.fishstory.viewmodels.ImportViewModelFactory
+import com.funjim.fishstory.viewmodels.LureViewModelFactory
+import com.funjim.fishstory.viewmodels.MainViewModelFactory
+import com.funjim.fishstory.viewmodels.TripListViewModelFactory
 import com.funjim.fishstory.viewmodels.TripViewModelFactory
 import kotlin.getValue
 
@@ -93,12 +102,26 @@ class FishstoryApplication : Application() {
         tripRepository
     )
 
+    fun getAddFishViewModelFactory() = AddFishViewModelFactory(
+        locationProvider = locationProvider,
+        fishRepo = fishRepository,
+        lureRepo = lureRepository,
+        photoRepo = photoRepository,
+        tripRepo = tripRepository
+    )
+
     fun getAddTripViewModelFactory() = AddTripViewModelFactory(
         locationProvider = locationProvider,
         fishermanRepository,
         fishRepository,
         photoRepository,
         tripRepository
+    )
+
+    fun getDashboardViewModelFactory() = DashboardViewModelFactory(
+        locationProvider = locationProvider,
+        photoRepo = photoRepository,
+        tripRepo = tripRepository
     )
 
     fun getEventViewModelFactory() = EventViewModelFactory(
@@ -108,11 +131,44 @@ class FishstoryApplication : Application() {
             photoRepository,
             tripRepository)
 
+    fun getFishViewModelFactory() = FishViewModelFactory(
+        locationProvider = locationProvider,
+        fishRepo = fishRepository,
+        lureRepo = lureRepository,
+        photoRepo = photoRepository,
+        tripRepo = tripRepository
+    )
+
+    fun getImportViewModelFactory() = ImportViewModelFactory(
+        fishStoryRepository
+    )
+
+    fun getLureViewModelFactory() = LureViewModelFactory(
+        lureRepository,
+        photoRepository
+    )
+
+    fun getMainViewModelFactory() = MainViewModelFactory(
+        tripDao = database.tripDao(),
+        fishermanDao = database.fishermanDao(),
+        eventDao = database.eventDao(),
+        lureDao = database.lureDao(),
+        fishDao = database.fishDao(),
+        photoDao = database.photoDao(),
+        tackleBoxDao = database.tackleBoxDao()
+    )
+
     fun getTripViewModelFactory() = TripViewModelFactory(
         locationProvider = locationProvider,
         fishermanRepository,
         fishRepository,
         photoRepository,
         tripRepository
+    )
+
+    fun getTripListViewModelFactory() = TripListViewModelFactory(
+        locationProvider = locationProvider,
+        photoRepo = photoRepository,
+        tripRepo = tripRepository
     )
 }

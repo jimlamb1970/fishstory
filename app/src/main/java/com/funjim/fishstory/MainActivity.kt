@@ -1,11 +1,9 @@
 package com.funjim.fishstory
 
 import android.os.Bundle
-import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,93 +56,6 @@ import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: MainViewModel by viewModels {
-        val database = (application as FishstoryApplication).database
-        MainViewModelFactory(
-            tripDao = database.tripDao(),
-            fishermanDao = database.fishermanDao(),
-            eventDao = database.eventDao(),
-            lureDao = database.lureDao(),
-            fishDao = database.fishDao(),
-            photoDao =  database.photoDao(),
-            tackleBoxDao = database.tackleBoxDao()
-        )
-    }
-
-    private val dashboardViewModel: DashboardViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val photoRepo = (application as FishstoryApplication).photoRepository
-        val tripRepo = (application as FishstoryApplication).tripRepository
-        DashboardViewModelFactory(
-            locationProvider = locationProvider,
-            photoRepo = photoRepo,
-            tripRepo = tripRepo)
-    }
-    private val addFishViewModel: AddFishViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val fishRepo = (application as FishstoryApplication).fishRepository
-        val lureRepo = (application as FishstoryApplication).lureRepository
-        val photoRepo = (application as FishstoryApplication).photoRepository
-        val tripRepo = (application as FishstoryApplication).tripRepository
-
-        AddFishViewModelFactory(
-            locationProvider = locationProvider,
-            fishRepo = fishRepo,
-            lureRepo = lureRepo,
-            photoRepo = photoRepo,
-            tripRepo = tripRepo)
-    }
-
-    private val fishViewModel: FishViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val fishRepo = (application as FishstoryApplication).fishRepository
-        val lureRepo = (application as FishstoryApplication).lureRepository
-        val photoRepo = (application as FishstoryApplication).photoRepository
-        val tripRepo = (application as FishstoryApplication).tripRepository
-
-        FishViewModelFactory(
-            locationProvider = locationProvider,
-            fishRepo = fishRepo,
-            lureRepo = lureRepo,
-            photoRepo = photoRepo,
-            tripRepo = tripRepo)
-    }
-
-    private val importViewModel: ImportViewModel by viewModels {
-        val repository = (application as FishstoryApplication).fishStoryRepository
-        ImportViewModelFactory(repository)
-    }
-
-    private val lureViewModel: LureViewModel by viewModels {
-        val repository = (application as FishstoryApplication).lureRepository
-        val photoRepo = (application as FishstoryApplication).photoRepository
-        LureViewModelFactory(repository, photoRepo)
-    }
-
-    private val tripListViewModel: TripListViewModel by viewModels {
-        val locationProvider = (application as FishstoryApplication).locationProvider
-        val photoRepo = (application as FishstoryApplication).photoRepository
-        val tripRepo = (application as FishstoryApplication).tripRepository
-        TripListViewModelFactory(
-            locationProvider = locationProvider,
-            photoRepo = photoRepo,
-            tripRepo = tripRepo)
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                viewModel.triggerSelect() // Open Dropdown or Select Item
-                true
-            }
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                viewModel.onVolumeKeyPressed(direction = 1) // Move Focus
-                true
-            }
-            else -> super.onKeyDown(keyCode, event)
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -169,13 +80,6 @@ class MainActivity : ComponentActivity() {
                         val navController = rememberNavController()
                         AppNavigation(
                             navController,
-                            addFishViewModel = addFishViewModel,
-                            dashboardViewModel = dashboardViewModel,
-                            fishViewModel = fishViewModel,
-                            importViewModel = importViewModel,
-                            lureViewModel = lureViewModel,
-                            tripListViewModel = tripListViewModel,
-                            viewModel = viewModel,
                             onThemeChange = { selectedTheme ->
                                 userThemeSelection = selectedTheme
                             }
@@ -207,13 +111,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    addFishViewModel: AddFishViewModel,
-    viewModel: MainViewModel,
-    dashboardViewModel: DashboardViewModel,
-    importViewModel: ImportViewModel,
-    tripListViewModel: TripListViewModel,
-    fishViewModel: FishViewModel,
-    lureViewModel: LureViewModel,
     onThemeChange: (String) -> Unit
 ) {
     NavHost(navController = navController, startDestination = "dashboard") {
@@ -222,9 +119,14 @@ fun AppNavigation(
         }
 
         composable("dashboard") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: DashboardViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getDashboardViewModelFactory()
+            )
+
             DashboardScreen(
                 onNavigate = { route -> navController.navigate(route) },
-                viewModel = dashboardViewModel
+                viewModel = viewModel
             )
         }
 
@@ -244,8 +146,13 @@ fun AppNavigation(
             val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
             val fishId = backStackEntry.arguments?.getString("fishId")
 
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: AddFishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getAddFishViewModelFactory()
+            )
+
             AddFishScreen(
-                viewModel = addFishViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
                 fishId = fishId,
@@ -267,8 +174,14 @@ fun AppNavigation(
             )
         ) { backStackEntry ->
             val lureIdStr = backStackEntry.arguments?.getString("lureId")
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getLureViewModelFactory()
+            )
+
             AddLureScreen(
-                viewModel = lureViewModel,
+                viewModel = viewModel,
                 lureId = lureIdStr,
                 onNavigateBack = {
                     navController.popBackStack()
@@ -315,8 +228,13 @@ fun AppNavigation(
         }
 
         composable("fish") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
             FishSummaryScreen(
-                viewModel = fishViewModel,
+                viewModel = viewModel,
                 onAddFish = { tripId, eventId, fishId ->
                     val route =
                         if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
@@ -365,8 +283,13 @@ fun AppNavigation(
             val fishermanId = backStackEntry.arguments?.getString("fishermanId")?.takeIf { it != "null" }
             val lureId = backStackEntry.arguments?.getString("lureId")?.takeIf { it != "null" }
 
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
             FishListScreen(
-                viewModel = fishViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
                 fishermanId = fishermanId,
@@ -395,12 +318,12 @@ fun AppNavigation(
             val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
 
-            val detailsViewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+            val viewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanDetailsViewModelFactory(repository, photoRepo)
             )
 
             FishermanDetailsScreen(
-                viewModel = detailsViewModel,
+                viewModel = viewModel,
                 fishermanId = fishermanId,
                 navigateToTripDetails = { id ->
                     navController.navigate("trip_details/$id")
@@ -421,12 +344,12 @@ fun AppNavigation(
             val fishermanRepo = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
 
-            val listViewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+            val viewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanListViewModelFactory(fishermanRepo, photoRepo)
             )
 
             FishermanListScreen(
-                viewModel = listViewModel,
+                viewModel = viewModel,
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fisherman_details/$fishermanId")
                 },
@@ -437,8 +360,13 @@ fun AppNavigation(
         }
 
         composable(route = "lures") { backStackEntry ->
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getLureViewModelFactory()
+            )
+
             LureListScreen(
-                viewModel = lureViewModel,
+                viewModel = viewModel,
                 onAdd = { navController.navigate("add_lure") },
                 onEdit = { lureId ->
                     navController.navigate("add_lure?lureId=$lureId")
@@ -450,20 +378,35 @@ fun AppNavigation(
         }
 
         composable("manage_colors") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getLureViewModelFactory()
+            )
+
             ManageColorsScreen(
-                viewModel = lureViewModel,
+                viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )
         }
 
         composable("manage_species") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
             ManageSpeciesScreen(
-                viewModel = fishViewModel,
+                viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )
         }
 
         composable("reports") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getMainViewModelFactory()
+            )
+
             ReportsScreen(
                 viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
@@ -481,8 +424,13 @@ fun AppNavigation(
             val tackleBoxId = backStackEntry.arguments?.getString("tackleBoxId")
             val fishermanId = backStackEntry.arguments?.getString("fishermanId")
 
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getLureViewModelFactory()
+            )
+
             FishermanTackleBoxScreen(
-                viewModel = lureViewModel,
+                viewModel = viewModel,
                 fishermanId = fishermanId ?: "",
                 tackleBoxId = tackleBoxId ?: "",
                 onAdd = { navController.navigate("add_lure") },
@@ -592,6 +540,15 @@ fun AppNavigation(
         }
 
         composable("settings") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getMainViewModelFactory()
+            )
+
+            val importViewModel: ImportViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getImportViewModelFactory()
+            )
+
             SettingsScreen(
                 viewModel = viewModel,
                 importViewModel = importViewModel,
@@ -646,8 +603,13 @@ fun AppNavigation(
         }
 
         composable("trips") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: TripListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getTripListViewModelFactory()
+            )
+
             TripListScreen(
-                viewModel = tripListViewModel,
+                viewModel = viewModel,
                 navigateToTripDetails = { tripId ->
                     navController.navigate("trip_details/$tripId")
                 },
@@ -680,8 +642,13 @@ fun AppNavigation(
             val tripId = backStackEntry.arguments?.getString("tripId")
             val eventId = backStackEntry.arguments?.getString("eventId")
 
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
             FishListScreen(
-                viewModel = fishViewModel,
+                viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
                 fishermanId = fishermanId,
@@ -705,8 +672,14 @@ fun AppNavigation(
             arguments = listOf(navArgument("fishId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishId = backStackEntry.arguments?.getString("fishId") ?: return@composable
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
             FishDetailScreen(
-                viewModel = fishViewModel,
+                viewModel = viewModel,
                 initialFishId = fishId,
                 navigateBack = { navController.popBackStack() }
             )
