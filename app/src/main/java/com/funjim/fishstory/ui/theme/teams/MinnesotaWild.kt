@@ -27,7 +27,7 @@ val LightWildColorScheme = lightColorScheme(
     onSecondary = Color.White,
 
     tertiary = WildRed,
-    onTertiary = WildGreen,
+    onTertiary = Color.White,
     tertiaryContainer = WildWheatContainer,
     onTertiaryContainer = WildGreen,
 

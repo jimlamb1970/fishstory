@@ -41,6 +41,7 @@ private val LightColorScheme = lightColorScheme(
 var themeMap = mapOf(
     "Dark" to DarkColorScheme,
     "Light" to LightColorScheme,
+    "App Default" to LightAppDefaultColorScheme,
     "Detroit Lions Dark" to DarkDetroitLionsColorScheme,
     "Detroit Lions Light" to LightDetroitLionsColorScheme,
     "Detroit Tigers Dark" to DarkDetroitTigersColorScheme,

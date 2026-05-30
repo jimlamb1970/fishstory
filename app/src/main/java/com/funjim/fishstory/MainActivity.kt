@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var userThemeSelection by rememberSaveable { mutableStateOf<String?>(null) }
+            var userThemeSelection by rememberSaveable { mutableStateOf<String?>("App Default") }
 
             FishstoryTheme(selectedTheme = userThemeSelection) {
                 Surface(
