@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -39,6 +40,7 @@ class AddFishViewModel(
     // UI State flows
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
+    private val _selectedFishId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
     private val _selectedLureId = MutableStateFlow<String?>(null)
@@ -61,8 +63,15 @@ class AddFishViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedEvent = _selectedEventId
         .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getEventById(id) }
+        .flatMapLatest { id -> tripRepo.getEventWithSpecies(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedFish = _selectedFishId
+        .filterNotNull()
+        .flatMapLatest { id -> fishRepo.getFishWithPhotos(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedFisherman = _selectedFishermanId
@@ -141,6 +150,53 @@ class AddFishViewModel(
             initialValue = emptyList()
         )
 
+    private data class CoreParams(
+        val trip: Trip?,
+        val event: EventWithSpecies?,
+        val species: List<Species>,
+        val fishermen: List<Fisherman>,
+        val tackleBoxMap: Map<String, String?>
+    )
+
+    private data class FishParams(
+        val fish: FishWithPhotos?,
+        val fishId: String?
+    )
+
+    val uiState: StateFlow<AddFishUiState> = combine(
+        selectedTrip,
+        selectedEvent,
+        species,
+        eventFishermen,
+        fishermanTackleBoxMap
+    ) { trip, event, species, fishermen, tackleBoxMap ->
+        // Helper to pass params
+        CoreParams(trip, event, species, fishermen, tackleBoxMap)
+    }.combine(combine(selectedFish, _selectedFishId) { fish, fishId ->
+        FishParams(fish, fishId)
+    }) { core, fish ->
+        val isCoreDataLoaded = core.trip != null && core.event != null
+
+        val isFishLoaded = fish.fishId == null || fish.fish != null
+
+        if (isCoreDataLoaded && isFishLoaded) {
+            updateOriginalFish(fish.fish)
+            AddFishUiState.Success(
+                    trip = core.trip,
+                    event = core.event,
+                    species = core.species,
+                    fishermen = core.fishermen,
+                    tackleBoxMap = core.tackleBoxMap,
+                    fish = fish.fish)
+        } else {
+            AddFishUiState.Loading
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AddFishUiState.Loading
+    )
+
     // UI Events
     fun selectTrip(id: String?) {
         _selectedTripId.value = id
@@ -148,6 +204,9 @@ class AddFishViewModel(
     }
     fun selectEvent(id: String?) {
         _selectedEventId.value = id
+    }
+    fun selectFish(id: String?) {
+        _selectedFishId.value = id
     }
     fun selectFisherman(id: String?) {
         _selectedFishermanId.value = id
@@ -157,22 +216,6 @@ class AddFishViewModel(
     }
     fun selectLure(id: String?) {
         _selectedLureId.value = id
-    }
-
-    private data class FilterParams(
-        val tripId: String?,
-        val eventId: String?,
-        val fishermanId: String?,
-        val sortOrder: FishSortOrder,
-        val isReversed: Boolean
-    )
-
-    suspend fun getFishById(id: String): Fish? {
-        return fishRepo.getFish(id)
-    }
-
-    suspend fun getFishWithPhotos(id: String): FishWithPhotos? {
-        return fishRepo.getFishWithPhotos(id)
     }
 
     suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
@@ -203,10 +246,25 @@ class AddFishViewModel(
     }
 
     // In your FishViewModel
+    private val _originalFish = MutableStateFlow<FishWithPhotos?>(null)
+    val originalFish = _originalFish.asStateFlow()
+    fun updateOriginalFish(fish: FishWithPhotos?) {
+        _originalFish.value = fish
+    }
     private val _draftFish = MutableStateFlow<Fish?>(null)
     val draftFish = _draftFish.asStateFlow()
     private val _fishPhotos = MutableStateFlow<List<Photo>>(emptyList())
     val fishPhotos = _fishPhotos.asStateFlow()
+
+    val hasChanges: Flow<Boolean> = combine(
+        originalFish, draftFish, fishPhotos
+    ) { original, draft, photos ->
+        if (original == null) {
+            !draft?.speciesId.isNullOrBlank() && !draft.fishermanId.isBlank()
+        } else {
+            draft != original.fish || photos != original.photos
+        }
+    }
 
     fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
         return photoRepo.fetchFishermanThumbnail(fishermanId)
@@ -309,6 +367,19 @@ class AddFishViewModel(
             _draftFish.value = transform(current)
         }
     }
+}
+
+sealed interface AddFishUiState {
+    object Loading : AddFishUiState
+
+    data class Success(
+        val trip: Trip,
+        val event: EventWithSpecies,
+        val species: List<Species> = emptyList(),
+        val fishermen: List<Fisherman> = emptyList(),
+        val tackleBoxMap: Map<String, String?> = emptyMap(),
+        val fish: FishWithPhotos? = null
+    ) : AddFishUiState
 }
 
 class AddFishViewModelFactory(

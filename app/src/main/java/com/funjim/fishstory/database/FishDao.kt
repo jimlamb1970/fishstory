@@ -90,7 +90,7 @@ interface FishDao {
 
     @Transaction
     @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFishWithPhotos(id: String): FishWithPhotos?
+    fun getFishWithPhotos(id: String): Flow<FishWithPhotos>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFish(fish: Fish)

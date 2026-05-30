@@ -12,6 +12,7 @@ import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.EventTargetSpecies
+import com.funjim.fishstory.model.EventWithSpecies
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
@@ -105,6 +106,9 @@ class TripRepository(
 
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> =
         eventDao.getEventWithDetails(eventId)
+
+    fun getEventWithSpecies(eventId: String): Flow<EventWithSpecies?> =
+        eventDao.getEventWithSpecies(eventId)
 
 
     // Trip Operations

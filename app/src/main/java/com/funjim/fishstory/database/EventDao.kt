@@ -91,6 +91,10 @@ ORDER BY s.startTime ASC
     @Query("SELECT * FROM event_table WHERE id = :eventId")
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?>
 
+    @Transaction
+    @Query("SELECT * FROM event_table WHERE id = :eventId")
+    fun getEventWithSpecies(eventId: String): Flow<EventWithSpecies?>
+
     // TODO - convert these upsert
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvent(event: Event)

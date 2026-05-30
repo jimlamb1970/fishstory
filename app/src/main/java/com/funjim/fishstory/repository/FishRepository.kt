@@ -85,7 +85,7 @@ class FishRepository(
     ) = fishDao.getTopLure(tripId, eventId, fishermanId, lureId)
 
     suspend fun getFish(id: String) = fishDao.getFish(id)
-    suspend fun getFishWithPhotos(id: String) = fishDao.getFishWithPhotos(id)
+    fun getFishWithPhotos(id: String) = fishDao.getFishWithPhotos(id)
 
     // The Core Filtering Logic (Migrated from ViewModel)
     fun getFilteredFish(
