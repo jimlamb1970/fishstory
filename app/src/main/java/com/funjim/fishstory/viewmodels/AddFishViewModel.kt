@@ -180,11 +180,16 @@ class AddFishViewModel(
         val isFishLoaded = fish.fishId == null || fish.fish != null
 
         if (isCoreDataLoaded && isFishLoaded) {
+            val eventSpeciesIds = core.event.targetSpecies.map { it.id }.toSet()
+            val sortedSpecies = core.species.sortedByDescending { species ->
+                eventSpeciesIds.contains(species.id)
+            }
+
             updateOriginalFish(fish.fish)
             AddFishUiState.Success(
                     trip = core.trip,
                     event = core.event,
-                    species = core.species,
+                    species = sortedSpecies,
                     fishermen = core.fishermen,
                     tackleBoxMap = core.tackleBoxMap,
                     fish = fish.fish)

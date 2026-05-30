@@ -111,6 +111,7 @@ fun AddFishScreen(
                 viewModel.selectFisherman(null)
                 viewModel.selectTackleBox(null)
 
+                // TODO -- move this time clamping within the viewmodel entirely when initDraftFish is called
                 val initialTime = System.currentTimeMillis()
                 viewModel.updateTimestamp(initialTime, startTime, endTime)
             }
