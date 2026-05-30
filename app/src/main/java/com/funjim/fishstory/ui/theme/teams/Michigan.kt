@@ -48,6 +48,8 @@ val LightMichiganColorScheme = lightColorScheme(
 
     secondary = MichBlue,
     onSecondary = Color.White,
+    secondaryContainer = MichMaizeContainer,
+    onSecondaryContainer = MichBlue,
 
     tertiary = MichMaize,
     onTertiary = MichBlue,

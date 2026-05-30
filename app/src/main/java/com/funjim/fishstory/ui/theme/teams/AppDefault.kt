@@ -26,13 +26,13 @@ val LightAppDefaultColorScheme = lightColorScheme(
 
     secondary = ForestGreen, // Keeping it consistent
     onSecondary = OnForestGreen,
-    secondaryContainer = ForestGreenContainer,
-    onSecondaryContainer =  ForestGreen,
+    secondaryContainer = AmberBrownContainer,
+    onSecondaryContainer =  OnAmberBrownContainer,
 
     tertiary = AmberBrown,
     onTertiary = ForestGreen,
     tertiaryContainer = AmberBrownContainer,
-    onTertiaryContainer = ForestGreen,
+    onTertiaryContainer = OnAmberBrownContainer,
 
     background = Color.White,
     onBackground = ForestGreen,

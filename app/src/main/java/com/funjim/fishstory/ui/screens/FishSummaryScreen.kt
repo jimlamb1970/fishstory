@@ -31,6 +31,9 @@ import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripSelectionField
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -279,8 +282,8 @@ private fun FishVisual(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            contentColor = MaterialTheme.colorScheme.onTertiary
+            containerColor = getCardColor().copy(alpha = 0.15f),
+            contentColor = getOnCardColor()
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -297,7 +300,7 @@ private fun FishVisual(
                     text = "Fish Summary",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = getOnCardColor(),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 )
@@ -306,21 +309,21 @@ private fun FishVisual(
                     StatItem(
                         label = "CAUGHT",
                         value = "${summary.counts.totalCaught}",
-                        labelColor = MaterialTheme.colorScheme.onSurface,
-                        color = MaterialTheme.colorScheme.primary)
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor())
 
                     Icon(
                         imageVector = AppIcons.Default.LeapingFishWithFins,
                         contentDescription = "Fish",
                         modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = getOnCardColor()
                     )
 
                     StatItem(
                         label = "KEPT",
                         value = "${summary.counts.totalKept}",
-                        labelColor = MaterialTheme.colorScheme.onSurface,
-                        color = MaterialTheme.colorScheme.primary)
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor())
                 }
 
                 names.forEachIndexed { index, string ->
@@ -331,7 +334,7 @@ private fun FishVisual(
                                 text = string,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = getOnCardColor()
                             )
 
                             if (hasLocation) {
@@ -339,7 +342,7 @@ private fun FishVisual(
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "View on map",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = getOnCardColor(),
                                     modifier = Modifier
                                         .size(16.dp)
                                         .clickable {
@@ -363,7 +366,7 @@ private fun FishVisual(
                         Text(
                             text = string,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = getOnCardColor(),
                             modifier = Modifier.padding(0.dp)
                         )
                     }
@@ -377,31 +380,31 @@ private fun FishVisual(
                         Text(
                             "${dateFormatter.format(Date(startDate))}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnCardSecondaryColor()
                         )
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Arrow",
-                            tint = MaterialTheme.colorScheme.onSurface,
+                            tint = getOnCardSecondaryColor(),
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             "${dateFormatter.format(Date(endDate))}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = getOnCardSecondaryColor()
                         )
                     }
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                    color = getOnCardColor().copy(alpha = 0.75f)
                 )
 
                 Text(
                     text = "Tap to view fish",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                    color = getOnCardColor().copy(alpha = 0.75f)
                 )
             }
         }

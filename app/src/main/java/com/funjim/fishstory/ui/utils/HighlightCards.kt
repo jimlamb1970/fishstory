@@ -87,33 +87,44 @@ fun EventHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                thickness = 0.5.dp
-            )
-
             // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = summary.mostCaughtFisherman,
-                    description = "(${summary.mostCaught} fish)",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+            if (summary.fishCaught > 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    thickness = 0.5.dp
+                )
 
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = summary.bigFishFisherman,
-                    description = "(${summary.bigFishLength?.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    )} : ${summary.bigFishSpecies})",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Top Rod",
+                        name = summary.mostCaughtFisherman,
+                        description = "(${summary.mostCaught} fish)",
+                        modifier = Modifier.weight(1f),
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor()
+                    )
+
+                    if (summary.bigFishLength != null) {
+                        AchievementItem(
+                            icon = Icons.Default.Star,
+                            label = "Big Fish",
+                            name = summary.bigFishFisherman,
+                            description = "(${
+                                summary.bigFishLength.toDisplayString(
+                                    useMetric = false,
+                                    useFractions = true
+                                )
+                            } : ${summary.bigFishSpecies})",
+                            modifier = Modifier.weight(1f),
+                            labelColor = getOnCardSecondaryColor(),
+                            color = getOnCardColor()
+                        )
+                    }
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 2.dp)
@@ -139,33 +150,44 @@ fun EventHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                thickness = 0.5.dp
-            )
-
             // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = summary.targetMostCaughtFisherman,
-                    description = "(${summary.targetMostCaught} fish)",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+            if (summary.targetFishCaught > 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    thickness = 0.5.dp
+                )
 
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = summary.targetBigFishFisherman,
-                    description = "(${summary.targetBigFishLength?.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    )} : ${summary.targetBigFishSpecies})",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Top Rod",
+                        name = summary.targetMostCaughtFisherman,
+                        description = "(${summary.targetMostCaught} fish)",
+                        modifier = Modifier.weight(1f),
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor()
+                    )
+
+                    if (summary.targetBigFishLength != null) {
+                        AchievementItem(
+                            icon = Icons.Default.Star,
+                            label = "Big Fish",
+                            name = summary.targetBigFishFisherman,
+                            description = "(${
+                                summary.targetBigFishLength.toDisplayString(
+                                    useMetric = false,
+                                    useFractions = true
+                                )
+                            } : ${summary.targetBigFishSpecies})",
+                            modifier = Modifier.weight(1f),
+                            labelColor = getOnCardSecondaryColor(),
+                            color = getOnCardColor()
+                        )
+                    }
+                }
             }
         }
     }
@@ -408,35 +430,43 @@ fun TripHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                thickness = 0.5.dp
-            )
-
             // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = summary.mostCaughtFisherman,
-                    description = "(${summary.mostCaught} fish)",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor(),
-                    modifier = Modifier.weight(1f))
+            if (summary.fishCaught > 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    thickness = 0.5.dp
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Top Rod",
+                        name = summary.mostCaughtFisherman,
+                        description = "(${summary.mostCaught} fish)",
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor(),
+                        modifier = Modifier.weight(1f)
+                    )
 
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = summary.bigFishFisherman,
-                    description = "(${
-                        summary.bigFishLength?.toDisplayString(
-                            useMetric = false,
-                            useFractions = true
+                    if (summary.bigFishLength != null) {
+                        AchievementItem(
+                            icon = Icons.Default.Star,
+                            label = "Big Fish",
+                            name = summary.bigFishFisherman,
+                            description = "(${
+                                summary.bigFishLength.toDisplayString(
+                                    useMetric = false,
+                                    useFractions = true
+                                )
+                            } : ${summary.bigFishSpecies})",
+                            labelColor = getOnCardSecondaryColor(),
+                            color = getOnCardColor(),
+                            modifier = Modifier.weight(1f)
                         )
-                    } : ${summary.bigFishSpecies})",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor(),
-                    modifier = Modifier.weight(1f))
+                    }
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 2.dp)
@@ -465,33 +495,44 @@ fun TripHighlightCard(
                     color = getOnCardColor())
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                thickness = 0.5.dp
-            )
-
             // Bottom Row: The Achievements
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AchievementItem(
-                    icon = Icons.Default.Person,
-                    label = "Top Rod",
-                    name = summary.targetMostCaughtFisherman,
-                    description = "(${summary.targetMostCaught} fish)",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+            if (summary.targetFishCaught > 0) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    thickness = 0.5.dp
+                )
 
-                AchievementItem(
-                    icon = Icons.Default.Star,
-                    label = "Big Fish",
-                    name = summary.targetBigFishFisherman,
-                    description = "(${summary.targetBigFishLength?.toDisplayString(
-                        useMetric = false,
-                        useFractions = true
-                    )} : ${summary.targetBigFishSpecies})",
-                    modifier = Modifier.weight(1f),
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AchievementItem(
+                        icon = Icons.Default.Person,
+                        label = "Top Rod",
+                        name = summary.targetMostCaughtFisherman,
+                        description = "(${summary.targetMostCaught} fish)",
+                        modifier = Modifier.weight(1f),
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor()
+                    )
+
+                    if (summary.targetBigFishLength != null) {
+                        AchievementItem(
+                            icon = Icons.Default.Star,
+                            label = "Big Fish",
+                            name = summary.targetBigFishFisherman,
+                            description = "(${
+                                summary.targetBigFishLength.toDisplayString(
+                                    useMetric = false,
+                                    useFractions = true
+                                )
+                            } : ${summary.targetBigFishSpecies})",
+                            modifier = Modifier.weight(1f),
+                            labelColor = getOnCardSecondaryColor(),
+                            color = getOnCardColor()
+                        )
+                    }
+                }
             }
         }
     }
