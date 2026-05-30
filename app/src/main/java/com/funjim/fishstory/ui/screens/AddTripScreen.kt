@@ -43,7 +43,6 @@ import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.getVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.AddTripViewModel
-import com.funjim.fishstory.viewmodels.TripViewModel
 import com.funjim.fishstory.viewmodels.WizardStep
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -100,7 +99,7 @@ fun AddTripScreen(
     val currentStep by tripViewModel.currentWizardStep.collectAsStateWithLifecycle()
     var fromReview by remember { mutableStateOf(false) }
 
-    var overrideEventCrew by remember { mutableStateOf(false) }
+    var overrideTripCrew by remember { mutableStateOf(false) }
 
     var showTripMenu by remember { mutableStateOf(false) }
     var locationMenuExpanded by remember { mutableStateOf(false) }
@@ -152,22 +151,15 @@ fun AddTripScreen(
         }
     }
 
-    // Helper: delete the trip row if user cancels mid-wizard
+    // Helper: perform any viewmodel cleanup before navigating back
     fun cancelAndExit() {
-        // CASCADE deletes will clean up fisherman cross-refs and events
-        scope.launch {
-            tripViewModel.deleteTripById(tripDraft.id)
-            tripViewModel.clearTrip()
-            tripViewModel.clearTripDraft()
-            tripViewModel.clearEvent()
-            tripViewModel.clearEventDraft()
-            navigateBack()
-        }
+        tripViewModel.cleanup()
+        navigateBack()
     }
 
     // Progress indicator
-    val stepLabels = remember(overrideEventCrew) {
-        if (overrideEventCrew) {
+    val stepLabels = remember(overrideTripCrew) {
+        if (overrideTripCrew) {
             listOf("Trip Details", "Trip Crew", "Event Details", "Event Crew Override", "Review & Done")
         } else {
             listOf("Trip Details", "Trip Crew", "Event Details", "Review & Done")
@@ -215,22 +207,20 @@ fun AddTripScreen(
                     )
                 }
             }
+
             is TripAction.SelectLocation -> {
                 showTripMenu = false
                 tripLocationPicker.openPicker()
-                scope.launch { tripViewModel.saveTrip() }
+                tripViewModel.saveTrip()
             }
+
             is TripAction.ClearLocation -> {
                 showTripMenu = false
                 tripViewModel.updateTripDraft { it.copy(latitude = null, longitude = null) }
-
-                scope.launch {
-                    tripViewModel.saveTrip()
-                    Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
-                        .show()
-                }
-
+                tripViewModel.saveTrip()
+                Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
             }
+
             is TripAction.Delete -> {}
         }
     }
@@ -270,7 +260,7 @@ fun AddTripScreen(
                             WizardStep.EventCrew -> tripViewModel.updateWizardStep(WizardStep.EventInfo)
                             WizardStep.Review -> {
                                 val backStep =
-                                    if (overrideEventCrew) WizardStep.EventCrew
+                                    if (overrideTripCrew) WizardStep.EventCrew
                                     else WizardStep.EventInfo
                                 tripViewModel.updateWizardStep(backStep)
                             }
@@ -477,10 +467,8 @@ fun AddTripScreen(
                         Button(
                             onClick = {
                                 // Commit trip to DB now
-                                scope.launch {
-                                    tripViewModel.saveTrip()
-                                    tripViewModel.updateWizardStep(WizardStep.TripCrew)
-                                }
+                                tripViewModel.saveTrip()
+                                tripViewModel.updateWizardStep(WizardStep.TripCrew)
                             },
                             enabled = tripDraft.name.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
@@ -518,30 +506,24 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleTripFisherman(fishermanId)
                             if (selected) {
-                                scope.launch {
-                                    tripViewModel.upsertTripFishermanCrossRef(
-                                        tripId = tripDraft.id,
-                                        fishermanId = fishermanId,
-                                        tackleBoxId = tripTackleBoxMap[fishermanId]
-                                    )
-                                }
-                            } else {
-                                scope.launch {
-                                    tripViewModel.removeFishermanFromTripAndAllEvents(
-                                        tripId = tripDraft.id,
-                                        fishermanId = fishermanId
-                                    )
-                                }
-                            }
-                        },
-                        onTackleBoxChanged = { fishermanId, boxId ->
-                            scope.launch {
                                 tripViewModel.upsertTripFishermanCrossRef(
                                     tripId = tripDraft.id,
                                     fishermanId = fishermanId,
-                                    tackleBoxId = boxId
+                                    tackleBoxId = tripTackleBoxMap[fishermanId]
+                                )
+                            } else {
+                                tripViewModel.removeFishermanFromTripAndAllEvents(
+                                    tripId = tripDraft.id,
+                                    fishermanId = fishermanId
                                 )
                             }
+                        },
+                        onTackleBoxChanged = { fishermanId, boxId ->
+                            tripViewModel.upsertTripFishermanCrossRef(
+                                tripId = tripDraft.id,
+                                fishermanId = fishermanId,
+                                tackleBoxId = boxId
+                            )
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
                         confirmLabel = if (fromReview) "Next: Review" else "Next: Add First Event",
@@ -555,16 +537,14 @@ fun AddTripScreen(
                                 else WizardStep.EventInfo)
                         },
                         onAddFisherman = { first, last, nick ->
-                            scope.launch { tripViewModel.addFisherman(first, last, nick) }
+                             tripViewModel.addFisherman(first, last, nick)
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
-                            scope.launch {
-                                tripViewModel.createAndAssignTackleBox(
-                                    fishermanId = fishermanId,
-                                    tripId = tripDraft.id,
-                                    name = tackleBoxName
-                                )
-                            }
+                            tripViewModel.createAndAssignTackleBox(
+                                fishermanId = fishermanId,
+                                tripId = tripDraft.id,
+                                name = tackleBoxName
+                            )
                         }
                     )
                 }
@@ -693,13 +673,13 @@ fun AddTripScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { overrideEventCrew = !overrideEventCrew }
+                                    .clickable { overrideTripCrew = !overrideTripCrew }
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Checkbox(
-                                    checked = overrideEventCrew,
-                                    onCheckedChange = { overrideEventCrew = it }
+                                    checked = overrideTripCrew,
+                                    onCheckedChange = { overrideTripCrew = it }
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
@@ -721,43 +701,20 @@ fun AddTripScreen(
 
                         Button(
                             onClick = {
-                                scope.launch {
-                                    // Add/update the event
-                                    tripViewModel.upsertEvent(eventDraft)
+                                // Add/update the event
+                                tripViewModel.saveEvent(overrideTripCrew)
 
-                                    if (overrideEventCrew) {
-                                        if (eventFishermenIds.isEmpty()) {
-                                            tripViewModel.updateEventFishermanIds(tripFishermenIds)
-                                            tripFishermenIds.forEach { fishermanId ->
-                                                tripViewModel.upsertEventFishermanCrossRef(
-                                                    eventId = eventDraft.id,
-                                                    fishermanId = fishermanId,
-                                                    tackleBoxId = tripTackleBoxMap[fishermanId]
-                                                )
-                                            }
-                                        }
-                                        tripViewModel.updateWizardStep(WizardStep.EventCrew)
-                                    } else {
-                                        eventFishermenIds.forEach { fishermanId ->
-                                            tripViewModel.deleteEventFishermanCrossRef(
-                                                eventId = eventDraft.id,
-                                                fishermanId = fishermanId
-                                            )
-                                        }
-                                        tripViewModel.updateEventFishermanIds(emptySet())
-
-                                        // Directly jump to summary validation stage
-                                        tripViewModel.updateWizardStep(WizardStep.Review)
-                                    }
+                                if (overrideTripCrew) {
+                                    tripViewModel.updateWizardStep(WizardStep.EventCrew)
+                                } else {
+                                    tripViewModel.updateWizardStep(WizardStep.Review)
                                 }
-
-                                tripViewModel.updateWizardStep(WizardStep.EventCrew)
                             },
                             enabled = eventDraft.name.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                if (overrideEventCrew) "Next: Select Event Crew"
+                                if (overrideTripCrew) "Next: Select Event Crew"
                                 else "Next: Review Trip")
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowForward,
@@ -797,30 +754,24 @@ fun AddTripScreen(
                         onSelectionChanged = { fishermanId, selected ->
                             tripViewModel.toggleEventFisherman(fishermanId)
                             if (selected) {
-                                scope.launch {
-                                    tripViewModel.upsertEventFishermanCrossRef(
-                                        eventId = eventDraft.id,
-                                        fishermanId = fishermanId,
-                                        tackleBoxId = eventTackleBoxMap[fishermanId]
-                                    )
-                                }
-                            } else {
-                                scope.launch {
-                                    tripViewModel.deleteEventFishermanCrossRef(
-                                        eventId = eventDraft.id,
-                                        fishermanId = fishermanId
-                                    )
-                                }
-                            }
-                        },
-                        onTackleBoxChanged = { fishermanId, boxId ->
-                            scope.launch {
                                 tripViewModel.upsertEventFishermanCrossRef(
                                     eventId = eventDraft.id,
                                     fishermanId = fishermanId,
-                                    tackleBoxId = boxId
+                                    tackleBoxId = eventTackleBoxMap[fishermanId]
+                                )
+                            } else {
+                                tripViewModel.deleteEventFishermanCrossRef(
+                                    eventId = eventDraft.id,
+                                    fishermanId = fishermanId
                                 )
                             }
+                        },
+                        onTackleBoxChanged = { fishermanId, boxId ->
+                            tripViewModel.upsertEventFishermanCrossRef(
+                                eventId = eventDraft.id,
+                                fishermanId = fishermanId,
+                                tackleBoxId = boxId
+                            )
                         },
                         navigateToEditTackleBox = navigateToEditTackleBox,
                         confirmLabel = "Review",
@@ -828,13 +779,12 @@ fun AddTripScreen(
                             tripViewModel.updateWizardStep(WizardStep.Review)
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
-                            scope.launch { tripViewModel.createAndAssignEventTackleBox(
+                            tripViewModel.createAndAssignEventTackleBox(
                                 fishermanId = fishermanId,
                                 eventId = eventDraft.id,
                                 name = tackleBoxName
-                            ) }
+                            )
                         }
-
                     )
                 }
 
@@ -946,7 +896,7 @@ fun AddTripScreen(
                             verticalAlignment = Alignment.CenterVertically) {
                             Text("Events (${eventSummaries.size})", style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = {
-                                overrideEventCrew = false
+                                overrideTripCrew = false
                                 tripViewModel.prepEventDraft(tripDraft)
                                 tripViewModel.updateWizardStep(WizardStep.EventInfo)
                             }) {
@@ -972,7 +922,7 @@ fun AddTripScreen(
                                         tripViewModel.selectEvent(event.event.id)
                                         tripViewModel.updateEventDraft { event.event }
 
-                                        overrideEventCrew = event.fishermanCount > 0
+                                        overrideTripCrew = event.fishermanCount > 0
                                         tripViewModel.updateWizardStep(WizardStep.EventInfo)
                                     },
                                 )
@@ -995,15 +945,8 @@ fun AddTripScreen(
                         // Just navigate back; nothing left to save.
                         Button(
                             onClick = {
-                                scope.launch {
-                                    tripViewModel.persistTargetSpecies()
-
-                                    tripViewModel.clearTrip()
-                                    tripViewModel.clearTripDraft()
-                                    tripViewModel.clearEvent()
-                                    tripViewModel.clearEventDraft()
-                                    navigateBack()
-                                }
+                                tripViewModel.finalizeTrip()
+                                navigateBack()
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = eventSummaries.isNotEmpty()
@@ -1086,16 +1029,14 @@ fun AddTripScreen(
             confirmButton = {
                 Button(onClick = {
                     if (addSpeciesName.isNotBlank()) {
-                        scope.launch {
-                            val species = Species(name = addSpeciesName)
-                            tripViewModel.addSpecies(species)
-                            if (currentStep == WizardStep.TripInfo)
-                                tripViewModel.addTripTargetSpecies(species)
-                            else
-                                tripViewModel.addEventTargetSpecies(eventDraft.id, species)
-                            addNewSpecies = false
-                            addSpeciesName = ""
-                        }
+                        val species = Species(name = addSpeciesName)
+                        tripViewModel.addSpecies(species)
+                        if (currentStep == WizardStep.TripInfo)
+                            tripViewModel.addTripTargetSpecies(species)
+                        else
+                            tripViewModel.addEventTargetSpecies(eventDraft.id, species)
+                        addNewSpecies = false
+                        addSpeciesName = ""
                     }
                 }) { Text("Add Species") }
             },

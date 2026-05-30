@@ -1,6 +1,5 @@
 package com.funjim.fishstory.viewmodels
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -28,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.collections.forEach
 import kotlin.collections.map
 
 enum class WizardStep {
@@ -51,9 +50,6 @@ class AddTripViewModel(
 
     private val _addedEventIds = MutableStateFlow<Set<String>>(emptySet())
     val addedEventIds = _addedEventIds.asStateFlow()
-
-    private val _eventCrewOverride = MutableStateFlow(false)
-    val eventCrewOverride = _eventCrewOverride.asStateFlow()
 
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
@@ -247,87 +243,135 @@ class AddTripViewModel(
     }
 
     // --- Actions ---
-    suspend fun saveTrip() {
-        tripRepo.upsertTrip(tripDraft.value)
-    }
-
-    suspend fun deleteTripById(tripId: String) {
-        tripRepo.deleteTripById(tripId)
-    }
-
-    suspend fun upsertEvent(event: Event) {
-        tripRepo.upsertEvent(event)
-        _addedEventIds.update { it + event.id }
-    }
-
-    suspend fun upsertTripFishermanCrossRef(
-        tripId: String,
-        fishermanId: String, tackleBoxId: String?
-    ) {
-        tripRepo.upsertTripFishermanCrossRef(
-            TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
-        )
-    }
-
-    suspend fun removeFishermanFromTripAndAllEvents(
-        tripId: String,
-        fishermanId: String
-    ) {
-        tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
-    }
-
-    suspend fun upsertEventFishermanCrossRef(
-        eventId: String,
-        fishermanId: String, tackleBoxId: String?
-    ) {
-        tripRepo.upsertEventFishermanCrossRef(
-            EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
-        )
-    }
-
-    suspend fun deleteEventFishermanCrossRef(
-        eventId: String,
-        fishermanId: String
-    ) {
-        tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
-    }
-
-    suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
-        // Check if the fisherman already exists
-        val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
-
-        // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
-        if (fisherman == null) {
-            val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-            fishermanRepo.addFisherman(fisherman)
+    fun saveTrip() {
+        viewModelScope.launch {
+            tripRepo.upsertTrip(tripDraft.value)
         }
     }
 
-    suspend fun insertTackleBox(tackleBox: TackleBox) {
-        fishermanRepo.insertTackleBox(tackleBox)
+    fun deleteTripById(tripId: String) {
+        viewModelScope.launch {
+            tripRepo.deleteTripById(tripId)
+        }
     }
 
-    suspend fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
-        val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-        fishermanRepo.insertTackleBox(tackleBox)
-        tripRepo.upsertTripFishermanCrossRef(
-            TripFishermanCrossRef(
-                tripId,
-                fishermanId,
-                tackleBox.id
-            )
-        )
+    fun saveEvent(overrideTripCrew: Boolean) {
+        viewModelScope.launch {
+            val event = eventDraft.value
+            val eventFishermenIds = _draftEventFishermanIds.value
+            val tripFishermenIds = _tripFishermanIds.value
+            val tripTackleBoxMap = tripTackleBoxMap.value
+
+            upsertEvent(event)
+            if (overrideTripCrew) {
+                if (eventFishermenIds.isEmpty()) {
+                    updateEventFishermanIds(tripFishermenIds)
+                }
+                tripFishermenIds.forEach { fishermanId ->
+                    upsertEventFishermanCrossRef(
+                        eventId = event.id,
+                        fishermanId = fishermanId,
+                        tackleBoxId = tripTackleBoxMap[fishermanId]
+                    )
+                }
+            } else {
+                eventFishermenIds.forEach { fishermanId ->
+                    deleteEventFishermanCrossRef(
+                        eventId = event.id,
+                        fishermanId = fishermanId
+                    )
+                }
+                updateEventFishermanIds(emptySet())
+            }
+        }
     }
-    suspend fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
-        val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-        fishermanRepo.insertTackleBox(tackleBox)
-        tripRepo.upsertEventFishermanCrossRef(
-            EventFishermanCrossRef(
-                eventId,
-                fishermanId,
-                tackleBox.id
+
+    fun upsertEvent(event: Event) {
+        viewModelScope.launch {
+            tripRepo.upsertEvent(event)
+            _addedEventIds.update { it + event.id }
+        }
+    }
+
+    fun upsertTripFishermanCrossRef(
+        tripId: String,
+        fishermanId: String, tackleBoxId: String?
+    ) {
+        viewModelScope.launch {
+            tripRepo.upsertTripFishermanCrossRef(
+                TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
             )
-        )
+        }
+    }
+
+    fun removeFishermanFromTripAndAllEvents(
+        tripId: String,
+        fishermanId: String
+    ) {
+        viewModelScope.launch {
+            tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
+        }
+    }
+
+    fun upsertEventFishermanCrossRef(
+        eventId: String,
+        fishermanId: String, tackleBoxId: String?
+    ) {
+        viewModelScope.launch {
+            tripRepo.upsertEventFishermanCrossRef(
+                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
+            )
+        }
+    }
+
+    fun deleteEventFishermanCrossRef(
+        eventId: String,
+        fishermanId: String
+    ) {
+        viewModelScope.launch {
+            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+        }
+    }
+
+    fun addFisherman(firstName: String, lastName: String, nickname: String) {
+        viewModelScope.launch {
+            // Check if the fisherman already exists
+            val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
+
+            // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
+            if (fisherman == null) {
+                val fisherman =
+                    Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+                fishermanRepo.addFisherman(fisherman)
+            }
+        }
+    }
+
+    fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.upsertTripFishermanCrossRef(
+                TripFishermanCrossRef(
+                    tripId,
+                    fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
+    }
+    fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
+        viewModelScope.launch {
+            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.upsertEventFishermanCrossRef(
+                EventFishermanCrossRef(
+                    eventId,
+                    fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
     }
 
     private val _tripTargetSpecies = MutableStateFlow<List<Species>>(emptyList())
@@ -399,35 +443,46 @@ class AddTripViewModel(
         _tripTargetSpecies.update { it + species }
     }
 
-    suspend fun addSpecies(species: Species) {
-        fishRepo.addSpecies(species)
+    fun addSpecies(species: Species) {
+        viewModelScope.launch {
+            fishRepo.addSpecies(species)
+        }
     }
 
-    suspend fun persistTargetSpecies() {
-        val tripId = tripDraft.value.id
-        val addedEventIds = addedEventIds.value
-        val tripSpecies = tripTargetSpecies.value
-        val eventSpeciesMap = eventTargetSpeciesMap.value
+    fun finalizeTrip() {
+        viewModelScope.launch {
+            val tripId = tripDraft.value.id
+            val addedEventIds = addedEventIds.value
+            val tripSpecies = tripTargetSpecies.value
+            val eventSpeciesMap = eventTargetSpeciesMap.value
 
-        tripSpecies.forEach { species ->
-            tripRepo.insertTripTargetSpecies(
-                TripTargetSpecies(
-                    tripId = tripId,
-                    speciesId = species.id),
-                cascade = false)
-        }
-        eventSpeciesMap.forEach { (eventId, speciesList) ->
-            if (eventId in addedEventIds) {
-                speciesList.forEach { species ->
-                    tripRepo.insertEventTargetSpecies(
-                        EventTargetSpecies(
-                            eventId = eventId,
-                            speciesId = species.id
-                        ),
-                        cascade = false
-                    )
+            tripSpecies.forEach { species ->
+                tripRepo.insertTripTargetSpecies(
+                    TripTargetSpecies(
+                        tripId = tripId,
+                        speciesId = species.id
+                    ),
+                    cascade = false
+                )
+            }
+            eventSpeciesMap.forEach { (eventId, speciesList) ->
+                if (eventId in addedEventIds) {
+                    speciesList.forEach { species ->
+                        tripRepo.insertEventTargetSpecies(
+                            EventTargetSpecies(
+                                eventId = eventId,
+                                speciesId = species.id
+                            ),
+                            cascade = false
+                        )
+                    }
                 }
             }
+
+            clearTrip()
+            clearTripDraft()
+            clearEvent()
+            clearEventDraft()
         }
     }
 
@@ -513,6 +568,18 @@ class AddTripViewModel(
 
     fun updateEventFishermanIds(ids: Set<String>) {
         _draftEventFishermanIds.value = ids
+    }
+
+    fun cleanup() {
+        viewModelScope.launch {
+            val trip = tripDraft.value
+
+            deleteTripById(trip.id)
+            clearTrip()
+            clearTripDraft()
+            clearEvent()
+            clearEventDraft()
+        }
     }
 }
 
