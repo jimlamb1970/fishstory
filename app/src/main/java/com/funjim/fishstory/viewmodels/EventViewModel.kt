@@ -335,6 +335,19 @@ class EventViewModel(
         }
     }
 
+    fun createAndAssignEventTackleBox(tackleBox: TackleBox, eventId: String) {
+        viewModelScope.launch {
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.upsertEventFishermanCrossRef(
+                EventFishermanCrossRef(
+                    eventId,
+                    tackleBox.fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
+    }
+
     fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addEventPhoto(eventId, uri, selected)

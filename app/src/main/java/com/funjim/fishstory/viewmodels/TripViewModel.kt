@@ -239,14 +239,17 @@ class TripViewModel(
         }
     }
 
-    suspend fun addFisherman(firstName: String, lastName: String, nickname: String) {
-        // Check if the fisherman already exists
-        val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
+    fun addFisherman(firstName: String, lastName: String, nickname: String) {
+        viewModelScope.launch {
+            // Check if the fisherman already exists
+            val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
 
-        // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
-        if (fisherman == null) {
-            val fisherman = Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-            fishermanRepo.addFisherman(fisherman)
+            // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
+            if (fisherman == null) {
+                val fisherman =
+                    Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
+                fishermanRepo.addFisherman(fisherman)
+            }
         }
     }
 

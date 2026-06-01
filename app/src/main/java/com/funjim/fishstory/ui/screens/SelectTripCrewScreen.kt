@@ -149,24 +149,18 @@ fun SelectTripCrewScreen(
                     navigateBack()
                 },
                 onAddFisherman = { first, last, nick ->
-                    scope.launch {
-                        tripViewModel.addFisherman(first, last, nick)
-                    }
+                    tripViewModel.addFisherman(first, last, nick)
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->
                     val boxId = UUID.randomUUID().toString()
-                    scope.launch {
-                        tripViewModel.insertTackleBox(
-                            TackleBox(
-                                id = boxId,
-                                fishermanId = fishermanId,
-                                name = tackleBoxName
-                            )
+                    tripViewModel.insertTackleBox(
+                        TackleBox(
+                            id = boxId,
+                            fishermanId = fishermanId,
+                            name = tackleBoxName
                         )
-                    }
-                    workingTackleBoxMap.toMutableMap().apply {
-                        this[fishermanId] = boxId
-                    }
+                    )
+                    workingTackleBoxMap[fishermanId] = boxId
                 }
             )
         }

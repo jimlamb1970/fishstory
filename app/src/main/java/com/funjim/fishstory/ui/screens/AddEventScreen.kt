@@ -605,13 +605,11 @@ fun AddEventScreen(
                                     navigateBack()
                                 },
                                 onAddTackleBox = { tackleBoxName, fishermanId ->
-                                    scope.launch {
-                                        viewModel.createAndAssignEventTackleBox(
-                                            fishermanId = fishermanId,
-                                            eventId = eventDraft.id,
-                                            name = tackleBoxName
-                                        )
-                                    }
+                                    viewModel.createAndAssignEventTackleBox(
+                                        fishermanId = fishermanId,
+                                        eventId = eventDraft.id,
+                                        name = tackleBoxName
+                                    )
                                 }
                             )
                         }

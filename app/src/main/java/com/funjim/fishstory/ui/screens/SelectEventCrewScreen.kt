@@ -173,18 +173,14 @@ fun SelectEventCrewScreen(
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->
                     val boxId = UUID.randomUUID().toString()
-                    scope.launch {
-                        viewModel.insertTackleBox(
-                            TackleBox(
-                                id = boxId,
-                                fishermanId = fishermanId,
-                                name = tackleBoxName
-                            )
+                    viewModel.insertTackleBox(
+                        TackleBox(
+                            id = boxId,
+                            fishermanId = fishermanId,
+                            name = tackleBoxName
                         )
-                    }
-                    workingTackleBoxMap.toMutableMap().apply {
-                        this[fishermanId] = boxId
-                    }
+                    )
+                    workingTackleBoxMap[fishermanId] = boxId
                 }
             )
         }
