@@ -102,9 +102,7 @@ fun FishermanListScreen(
             .fillMaxSize()) {
             // Sort Buttons
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(modifier = Modifier
@@ -147,7 +145,7 @@ fun FishermanListScreen(
             ) {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
                 ) {
                     val totalItems = fishermanSummaries.size
                     itemsIndexed(fishermanSummaries) { index, fisherman ->

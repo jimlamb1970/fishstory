@@ -95,9 +95,7 @@ fun LureListScreen(
             .padding(padding)
             .fillMaxSize()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -162,7 +160,7 @@ fun LureListScreen(
                 ) {
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
                     ) {
                         val totalItems = allLures.size
                         itemsIndexed(

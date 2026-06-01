@@ -59,7 +59,7 @@ fun FishermanItem(
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(vertical = 4.dp)
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { expanded = true }
