@@ -30,6 +30,10 @@ import java.util.*
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.runtime.getValue
@@ -52,8 +56,8 @@ import com.funjim.fishstory.ui.utils.sortLures
 import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.AddFishUiState
 import com.funjim.fishstory.viewmodels.AddFishViewModel
-import com.funjim.fishstory.viewmodels.TripDetailsUiState
 import java.time.ZoneOffset
+import kotlin.math.floor
 
 fun Long.toUtcMidnight(): Long =
     Instant.ofEpochMilli(this)
@@ -355,21 +359,18 @@ fun AddFishScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            StepperField(
+                            val currentTotalInches = fish.length?.toInches() ?: 0.0
+                            val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                            val remainingFraction = currentTotalInches - wholeInches
+
+                            FractionalLengthField(
                                 label = "Length (in)",
-                                value = fish.length?.toInches()?.toString() ?: "",
-                                onValueChange = { length ->
-                                    val newLength =
-                                        (length.toDoubleOrNull() ?: 0.0).inchesToStorage()
-                                    viewModel.updateLength(newLength)
-                                },
-                                onIncrement = {
-                                    val newLength = fish.length?.plus((0.25).inchesToStorage())
-                                    viewModel.updateLength(newLength ?: 0)
-                                },
-                                onDecrement = {
-                                    val newLength = fish.length?.minus((0.25).inchesToStorage())
-                                    viewModel.updateLength(newLength ?: 0)
+                                wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                                fractionValue = remainingFraction,
+                                onLengthChanged = { newWhole, newFraction ->
+                                    val checkedWhole = newWhole.coerceAtLeast(0)
+                                    val computedDouble = checkedWhole.toDouble() + newFraction
+                                    viewModel.updateLength(computedDouble.inchesToStorage())
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -588,6 +589,138 @@ fun AddFishScreen(
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FractionalLengthField(
+    label: String,
+    wholeValue: String,
+    fractionValue: Double,
+    onLengthChanged: (whole: Int, fraction: Double) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val fractions = remember {
+        listOf(
+            "0" to 0.0,
+            "⅛" to 0.125, // Unicode for 1/8
+            "¼" to 0.25,  // Unicode for 1/4
+            "⅜" to 0.375, // Unicode for 3/8
+            "½" to 0.5,   // Unicode for 1/2
+            "⅝" to 0.625, // Unicode for 5/8
+            "¾" to 0.75,  // Unicode for 3/4
+            "⅞" to 0.875  // Unicode for 7/8
+        )
+    }
+
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    // Identify current active selected fraction label match
+    val currentFractionLabel = remember(fractionValue) {
+        fractions.minByOrNull { kotlin.math.abs(it.second - fractionValue) }?.first ?: "0"
+    }
+
+    Column(modifier = modifier) {
+        Text(text = label, style = MaterialTheme.typography.labelMedium)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Whole Inches Input Box (Blocks negative inputs)
+            OutlinedTextField(
+                value = wholeValue,
+                onValueChange = { input ->
+                    val cleanInput = input.filter { it.isDigit() }
+                    val wholeInt = cleanInput.toIntOrNull() ?: 0
+                    onLengthChanged(wholeInt.coerceAtLeast(0), fractionValue)
+                },
+                modifier = Modifier.weight(0.5f),
+                textStyle = TextStyle(textAlign = TextAlign.Center),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                placeholder = { Text("0", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) }
+            )
+
+            // Fraction Item Selection Dropdown Trigger Box
+            Box(modifier = Modifier.weight(0.5f)) {
+                OutlinedTextField(
+                    value = currentFractionLabel,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(textAlign = TextAlign.Right),
+                    singleLine = true,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select Fraction",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .offset(x = (-2).dp)
+                        )
+                    },
+                    // Wrapping the entire text area as a button click target
+                    interactionSource = remember { MutableInteractionSource() }
+                        .also { interactionSource ->
+                            LaunchedEffect(interactionSource) {
+                                interactionSource.interactions.collect { interaction ->
+                                    if (interaction is PressInteraction.Release) {
+                                        dropdownExpanded = true
+                                    }
+                                }
+                            }
+                        }
+                )
+
+                DropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false },
+                    modifier = Modifier
+                        .requiredWidth(64.dp)
+                        .fillMaxHeight(0.4f)
+                ) {
+                    fractions.forEach { (label, value) ->
+                        // Check if this specific item is the one currently selected
+                        // We use a small delta check (0.001) to safely compare Double values
+                        val isSelected = kotlin.math.abs(value - fractionValue) < 0.001
+
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = label,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        // Optional: Make the text bold if it's selected
+                                        fontWeight =
+                                            if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold
+                                            else androidx.compose.ui.text.font.FontWeight.Normal
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
+                            modifier = Modifier.background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else Color.Transparent
+                            ),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+                            // Highlight the background and text color of the selected item
+                            colors = MenuDefaults.itemColors(
+                                textColor =
+                                    if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface
+                            ),
+                            onClick = {
+                                val currentWhole = wholeValue.toIntOrNull() ?: 0
+                                onLengthChanged(currentWhole.coerceAtLeast(0), value)
+                                dropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
