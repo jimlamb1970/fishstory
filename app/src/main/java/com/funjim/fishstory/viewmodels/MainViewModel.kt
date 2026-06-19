@@ -1,24 +1,20 @@
 package com.funjim.fishstory.viewmodels
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.model.Trip
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.collections.List
@@ -50,6 +46,7 @@ data class DatabaseExportData(
 )
 
 class MainViewModel(
+    private val locationProvider: LocationProvider,
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
     private val eventDao: EventDao,
@@ -58,43 +55,25 @@ class MainViewModel(
     private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao
 ) : ViewModel() {
-    // A simple flow to broadcast volume key directions: 1 for Down, Select for Up
-    private val _volumeKeyEvent = MutableStateFlow(0)
-    val volumeKeyEvent = _volumeKeyEvent.asStateFlow()
+    private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    // Call this whenever the app starts up or right after the permission dialog closes
+    fun refreshPermissionStatus() {
+        _hasLocationPermission.value = locationProvider.hasLocationPermission()
+    }
 
     private val json = Json { prettyPrint = true }
     private val json_import = Json { ignoreUnknownKeys = true }
 
-    fun onVolumeKeyPressed(direction: Int) {
-        viewModelScope.launch {
-            // We update the value to trigger the Collector in the UI.
-            // Even if the direction is the same, we want a "new" event.
-            _volumeKeyEvent.value = direction
-            kotlinx.coroutines.delay(50)
-            // Reset it immediately so the next press (even if same direction) is caught
-            _volumeKeyEvent.value = 0
-        }
-    }
-
     private val _selectEvent = MutableStateFlow(0)
     val selectEvent = _selectEvent.asStateFlow()
 
-    fun triggerSelect() {
-        viewModelScope.launch {
-            _selectEvent.value += 1
-        }
-    }
-
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
 
-    val lureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
     val allFish: Flow<List<FishWithDetails>> =
         fishDao.getFishWithDetails(null, null, null, null)
-
-    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
-        return tripDao.getTripWithFishermen(tripId)
-    }
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Event>> {
         return eventDao.getEventsForTrip(tripId)
@@ -107,18 +86,6 @@ class MainViewModel(
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForEvent(segmentId)
     }
-
-    @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context): android.location.Location? {
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-        return try {
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // --- NEW METHODS FOR SETTINGS SCREEN ---
 
     suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {
         return withContext(Dispatchers.IO) {
@@ -218,6 +185,7 @@ class MainViewModel(
 }
 
 class MainViewModelFactory(
+    private val locationProvider: LocationProvider,
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
     private val eventDao: EventDao,
@@ -229,7 +197,15 @@ class MainViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MainViewModel(tripDao, fishermanDao, eventDao, lureDao, fishDao, photoDao, tackleBoxDao) as T
+            return MainViewModel(
+                locationProvider,
+                tripDao,
+                fishermanDao,
+                eventDao,
+                lureDao,
+                fishDao,
+                photoDao,
+                tackleBoxDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

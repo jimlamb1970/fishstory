@@ -17,13 +17,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TripListViewModel(
     private val locationProvider: LocationProvider,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
+    private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
     private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
     val tripFilter = _tripFilter.asStateFlow()
     fun updateTripFilter(filter: TripListFilter) { _tripFilter.value = filter }

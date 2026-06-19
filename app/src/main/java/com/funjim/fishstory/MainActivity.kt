@@ -1,9 +1,17 @@
 package com.funjim.fishstory
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,11 +27,16 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -67,10 +80,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // Show the splash screen for 2 seconds
                     var showSplashScreen by rememberSaveable { mutableStateOf(true) }
-
                     LaunchedEffect(key1 = true) {
-                        delay(2000L) // Show splash for 2 seconds
+                        delay(2000L)
                         showSplashScreen = false
                     }
 
@@ -78,6 +91,94 @@ class MainActivity : ComponentActivity() {
                         FishstorySplashScreen()
                     } else {
                         val navController = rememberNavController()
+
+                        val context = LocalContext.current
+                        val activity = context as? Activity
+                        val app = navController.context.applicationContext as FishstoryApplication
+                        val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                            factory = app.getMainViewModelFactory()
+                        )
+
+                        val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
+                        var showSettingsDialog by remember { mutableStateOf(false) }
+                        var hasAttemptedPrompt by remember { mutableStateOf(false) }
+
+                        // Launch the dialog to ask for permissions
+                        val permissionLauncher = rememberLauncherForActivityResult(
+                            ActivityResultContracts.RequestMultiplePermissions()
+                        ) { permissions ->
+                            viewModel.refreshPermissionStatus()
+
+                            // Check if user allowed fine or coarse location
+                            val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+                            val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+                            if (!fineGranted && !coarseGranted) {
+                                // This may need some tuning.  Try to decide if the dialog should be shown
+                                // that tells the user that location permission really needs to be allowed
+                                // for the app to work correctly
+                                val showFineRationale = activity?.let {
+                                    ActivityCompat.shouldShowRequestPermissionRationale(
+                                        it,
+                                        Manifest.permission.ACCESS_FINE_LOCATION)
+                                } ?: false
+
+                                // If rationale is FALSE, it means Android permanently blocked the native
+                                // prompt. Show the custom "Go to Settings" dialog box.
+                                if (!showFineRationale) {
+                                    showSettingsDialog = true
+                                }
+                            }
+                        }
+
+                        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                            // Every single time the app comes back to the screen, instantly check the true OS status
+                            viewModel.refreshPermissionStatus()
+                        }
+
+                        LaunchedEffect(hasLocationPermission) {
+                            // If the app was not given permission location and the prompt was not
+                            // shown yet, show the prompt
+                            if (!hasLocationPermission && !hasAttemptedPrompt) {
+                                hasAttemptedPrompt = true
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            }
+                        }
+
+                        if (showSettingsDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showSettingsDialog = false },
+                                title = { Text("Location Permission Required") },
+                                text = { Text(
+                                    """This app needs location access to record where your fish were caught.
+                                        |  
+                                        |Please enable it in the app system settings.""".trimMargin()) },
+                                confirmButton = {
+                                    Button(onClick = {
+                                        showSettingsDialog = false
+                                        // Intent that opens your specific app's system settings menu profile cleanly
+                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data = Uri.fromParts("package", context.packageName, null)
+                                        }
+                                        context.startActivity(intent)
+                                    }) {
+                                        Text("Go to Settings")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showSettingsDialog = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
+
                         AppNavigation(
                             navController,
                             onThemeChange = { selectedTheme ->
@@ -123,6 +224,10 @@ fun AppNavigation(
             val viewModel: DashboardViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = app.getDashboardViewModelFactory()
             )
+
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshPermissionStatus()
+            }
 
             DashboardScreen(
                 onNavigate = { route -> navController.navigate(route) },

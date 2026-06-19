@@ -134,17 +134,6 @@ fun AddFishScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    var permissionGranted by remember { mutableStateOf(false) }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (isGranted) {
-            permissionGranted = true
-        }
-    }
-
     when (val state = uiState) {
         is AddFishUiState.Loading -> {
             Box(
@@ -460,14 +449,12 @@ fun AddFishScreen(
                             OutlinedButton(
                                 enabled = hasLocationPermission,
                                 onClick = {
-                                    if (hasLocationPermission) {
-                                        scope.launch {
-                                            val location = viewModel.fetchLocation()
-                                            viewModel.updateLocation(
-                                                location?.latitude ?: 0.0,
-                                                location?.longitude ?: 0.0
-                                            )
-                                        }
+                                    scope.launch {
+                                        val location = viewModel.fetchLocation()
+                                        viewModel.updateLocation(
+                                            location?.latitude ?: 0.0,
+                                            location?.longitude ?: 0.0
+                                        )
                                     }
                                 },
                                 modifier = Modifier.weight(1f)

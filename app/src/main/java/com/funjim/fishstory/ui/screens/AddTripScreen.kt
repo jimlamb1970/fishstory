@@ -59,6 +59,8 @@ fun AddTripScreen(
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
+    val hasLocationPermission by tripViewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -127,30 +129,6 @@ fun AddTripScreen(
         }
     )
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions.entries.any { it.value }) {
-            scope.launch {
-                tripViewModel.fetchLocation()?.let { loc ->
-                    if (currentStep == WizardStep.TripInfo) {
-                        tripViewModel.updateTripDraft {
-                            it.copy(
-                                latitude = loc.latitude,
-                                longitude = loc.longitude)
-                        }
-                    } else if (currentStep == WizardStep.EventInfo) {
-                        tripViewModel.updateEventDraft {
-                            it.copy(
-                                latitude = loc.latitude,
-                                longitude = loc.longitude)
-                        }
-                    }
-                } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     // Helper: perform any viewmodel cleanup before navigating back
     fun cancelAndExit() {
         tripViewModel.cleanup()
@@ -176,35 +154,25 @@ fun AddTripScreen(
             is TripAction.OpenMap -> {}
             is TripAction.UseCurrentLocation -> {
                 showTripMenu = false
-                if (tripViewModel.hasLocationPermission()) {
-                    scope.launch {
-                        @SuppressLint("MissingPermission")
-                        val location = tripViewModel.fetchLocation()
-                        if (location != null) {
-                            tripViewModel.updateTripDraft {
-                                it.copy(latitude = location.latitude, longitude = location.longitude)
-                            }
-                            tripViewModel.saveTrip()
-                            Toast.makeText(
-                                context,
-                                "Location updated",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Could not get location",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                scope.launch {
+                    val location = tripViewModel.fetchLocation()
+                    if (location != null) {
+                        tripViewModel.updateTripDraft {
+                            it.copy(latitude = location.latitude, longitude = location.longitude)
                         }
+                        tripViewModel.saveTrip()
+                        Toast.makeText(
+                            context,
+                            "Location updated",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Could not get location",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                } else {
-                    permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-                    )
                 }
             }
 
@@ -294,12 +262,12 @@ fun AddTripScreen(
                                 expanded = locationMenuExpanded,
                                 onDismissRequest = { locationMenuExpanded = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Current Location") },
-                                    leadingIcon = { Icon(Icons.Default.MyLocation, null) },
-                                    onClick = {
-                                        locationMenuExpanded = false
-                                        if (tripViewModel.hasLocationPermission()) {
+                                if (hasLocationPermission) {
+                                    DropdownMenuItem(
+                                        text = { Text("Use Current Location") },
+                                        leadingIcon = { Icon(Icons.Default.MyLocation, null) },
+                                        onClick = {
+                                            locationMenuExpanded = false
                                             scope.launch {
                                                 tripViewModel.fetchLocation()?.let { loc ->
                                                     if (onTripStep) {
@@ -317,13 +285,15 @@ fun AddTripScreen(
                                                             )
                                                         }
                                                     }
-                                                } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                                                } ?: Toast.makeText(
+                                                    context,
+                                                    "Could not get location",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
-                                        } else {
-                                            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                                         }
-                                    }
-                                )
+                                    )
+                                }
 
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
@@ -846,19 +816,23 @@ fun AddTripScreen(
                                 expanded = showTripMenu,
                                 onDismiss = { showTripMenu = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Current Location") },
-                                    onClick = {
-                                        onTripAction(TripAction.UseCurrentLocation(tripSummary = currentTrip))
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.MyLocation,
-                                            contentDescription = null,
-                                            tint = if (tripDraft.latitude != null) Color(0xFF4CAF50) else LocalContentColor.current
-                                        )
-                                    }
-                                )
+                                if (hasLocationPermission) {
+                                    DropdownMenuItem(
+                                        text = { Text("Use Current Location") },
+                                        onClick = {
+                                            onTripAction(TripAction.UseCurrentLocation(tripSummary = currentTrip))
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.MyLocation,
+                                                contentDescription = null,
+                                                tint = if (tripDraft.latitude != null) Color(
+                                                    0xFF4CAF50
+                                                ) else LocalContentColor.current
+                                            )
+                                        }
+                                    )
+                                }
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
                                     onClick = {

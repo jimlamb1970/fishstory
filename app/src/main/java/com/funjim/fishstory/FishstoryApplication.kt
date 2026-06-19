@@ -149,6 +149,7 @@ class FishstoryApplication : Application() {
     )
 
     fun getMainViewModelFactory() = MainViewModelFactory(
+        locationProvider = locationProvider,
         tripDao = database.tripDao(),
         fishermanDao = database.fishermanDao(),
         eventDao = database.eventDao(),

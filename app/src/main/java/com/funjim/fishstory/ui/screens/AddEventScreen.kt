@@ -1,10 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -20,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -49,6 +44,8 @@ fun AddEventScreen(
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -98,24 +95,6 @@ fun AddEventScreen(
             viewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
     )
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions.entries.any { it.value }) {
-            scope.launch {
-                viewModel.fetchLocation()?.let { loc ->
-                    if (currentStep == EventWizardStep.EventInfo) {
-                        viewModel.updateEventDraft {
-                            it.copy(
-                                latitude = loc.latitude,
-                                longitude = loc.longitude)
-                        }
-                    }
-                } ?: Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
     // Helper: delete the event if user cancels mid-wizard
     fun cancelAndExit() {
@@ -222,21 +201,17 @@ fun AddEventScreen(
                                     DropdownMenu(
                                         expanded = locationMenuExpanded,
                                         onDismissRequest = { locationMenuExpanded = false }) {
-                                        DropdownMenuItem(
-                                            text = { Text("Use Current Location") },
-                                            leadingIcon = {
-                                                Icon(
-                                                    Icons.Default.MyLocation,
-                                                    null
-                                                )
-                                            },
-                                            onClick = {
-                                                locationMenuExpanded = false
-                                                if (ContextCompat.checkSelfPermission(
-                                                        context,
-                                                        Manifest.permission.ACCESS_FINE_LOCATION
-                                                    ) == PackageManager.PERMISSION_GRANTED
-                                                ) {
+                                        if (hasLocationPermission) {
+                                            DropdownMenuItem(
+                                                text = { Text("Use Current Location") },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.MyLocation,
+                                                        null
+                                                    )
+                                                },
+                                                onClick = {
+                                                    locationMenuExpanded = false
                                                     scope.launch {
                                                         viewModel.fetchLocation()?.let { loc ->
                                                             viewModel.updateEventDraft {
@@ -251,16 +226,9 @@ fun AddEventScreen(
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                     }
-                                                } else {
-                                                    permissionLauncher.launch(
-                                                        arrayOf(
-                                                            Manifest.permission.ACCESS_FINE_LOCATION,
-                                                            Manifest.permission.ACCESS_COARSE_LOCATION
-                                                        )
-                                                    )
                                                 }
-                                            }
-                                        )
+                                            )
+                                        }
                                         if (trip.trip.latitude != null) {
                                             DropdownMenuItem(
                                                 text = { Text("Use Trip Location") },

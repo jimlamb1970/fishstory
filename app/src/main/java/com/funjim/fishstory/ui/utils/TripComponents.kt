@@ -53,6 +53,7 @@ fun TripItemWithMenu(
     index: Int,
     totalItems: Int,
     modifier: Modifier = Modifier,
+    hasLocationPermission: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
     onNavigateToDetails: (String) -> Unit,
     onAction: (TripAction) -> Unit,
@@ -75,11 +76,19 @@ fun TripItemWithMenu(
         ) {
             // Centralized Menu Actions
             val lat = tripSummary.trip.latitude
-            DropdownMenuItem(
-                text = { Text("Use Current Location") },
-                onClick = { onAction(TripAction.UseCurrentLocation(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.MyLocation, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
-            )
+            if (hasLocationPermission) {
+                DropdownMenuItem(
+                    text = { Text("Use Current Location") },
+                    onClick = { onAction(TripAction.UseCurrentLocation(tripSummary)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.MyLocation,
+                            null,
+                            tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current
+                        )
+                    }
+                )
+            }
             DropdownMenuItem(
                 text = { Text("Select on Map") },
                 onClick = { onAction(TripAction.SelectLocation(tripSummary)) },

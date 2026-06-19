@@ -5,18 +5,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -49,11 +44,7 @@ import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
-import com.funjim.fishstory.ui.utils.getCardBorderColor
-import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getMainButtonColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
-import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
@@ -76,6 +67,8 @@ fun TripDetailsScreen(
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
     }
@@ -103,44 +96,6 @@ fun TripDetailsScreen(
     var updateTripLocation by remember { mutableStateOf(false) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions.entries.all { it.value }
-        if (granted) {
-            scope.launch {
-                val location = viewModel.fetchLocation()
-                if (location != null) {
-                    if (updateTripLocation) {
-                        selectedTrip?.let { trip ->
-                            viewModel.saveTrip(
-                                trip.copy(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                )
-                            )
-                        }
-                    } else {
-                        eventToUpdateLocation?.event?.let { event ->
-                            viewModel.upsertEvent(
-                                event.copy(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                )
-                            )
-                        }
-                    }
-                    Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
-                }
-            }
-        } else {
-            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
-        }
-    }
-
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
@@ -229,15 +184,11 @@ fun TripDetailsScreen(
                                     expanded = menuExpanded,
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Use Current Location") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            if (ContextCompat.checkSelfPermission(
-                                                    context,
-                                                    Manifest.permission.ACCESS_FINE_LOCATION
-                                                ) == PackageManager.PERMISSION_GRANTED
-                                            ) {
+                                    if (hasLocationPermission) {
+                                        DropdownMenuItem(
+                                            text = { Text("Use Current Location") },
+                                            onClick = {
+                                                menuExpanded = false
                                                 scope.launch {
                                                     val location = viewModel.fetchLocation()
                                                     if (location != null) {
@@ -260,25 +211,18 @@ fun TripDetailsScreen(
                                                         ).show()
                                                     }
                                                 }
-                                            } else {
-                                                permissionLauncher.launch(
-                                                    arrayOf(
-                                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                                        Manifest.permission.ACCESS_COARSE_LOCATION
-                                                    )
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.MyLocation,
+                                                    contentDescription = null,
+                                                    tint =
+                                                        if (trip.latitude != null) Color(0xFF4CAF50)
+                                                        else LocalContentColor.current
                                                 )
                                             }
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.MyLocation,
-                                                contentDescription = null,
-                                                tint =
-                                                    if (trip.latitude != null) Color(0xFF4CAF50)
-                                                    else LocalContentColor.current
-                                            )
-                                        }
-                                    )
+                                        )
+                                    }
 
                                     DropdownMenuItem(
                                         text = { Text("Select on Map") },
@@ -494,12 +438,8 @@ fun TripDetailsScreen(
                                 thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
                                 onClick = { navigateToEventDetails(eventSummary.event.id) },
                                 onDelete = { eventToDelete = eventSummary },
-                                onSetLocation = {
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
+                                onSetLocation = if (hasLocationPermission) {
+                                    {
                                         scope.launch {
                                             val location = viewModel.fetchLocation()
                                             if (location != null) {
@@ -516,16 +456,8 @@ fun TripDetailsScreen(
                                                 ).show()
                                             }
                                         }
-                                    } else {
-                                        eventToUpdateLocation = eventSummary
-                                        permissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
                                     }
-                                },
+                                } else null,
                                 onSelectLocation = {
                                     eventToUpdateLocation = eventSummary
                                     locationPickerEvent.openPicker()

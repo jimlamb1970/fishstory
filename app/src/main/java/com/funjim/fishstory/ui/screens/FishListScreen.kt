@@ -61,6 +61,8 @@ fun FishListScreen(
         viewModel.selectLure(lureId)
     }
 
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -86,19 +88,6 @@ fun FishListScreen(
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
     var fishToDelete by remember { mutableStateOf<Fish?>(null) }
-
-    var permissionGranted by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (isGranted) {
-            permissionGranted = true
-            // TODO -- add actions
-        }
-    }
 
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
 
@@ -321,16 +310,13 @@ fun FishListScreen(
                                         fishToDelete = viewModel.getFishById(fishDetails.fish.id)
                                     }
                                 },
-                                onSetLocation = {
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
+                                onSetLocation = if (hasLocationPermission) {
+                                    {
                                         scope.launch {
                                             val location = viewModel.fetchLocation()
                                             if (location != null) {
-                                                val fish = viewModel.getFishById(fishDetails.fish.id)
+                                                val fish =
+                                                    viewModel.getFishById(fishDetails.fish.id)
                                                 if (fish != null) {
                                                     viewModel.upsertFish(
                                                         fish.copy(
@@ -346,15 +332,8 @@ fun FishListScreen(
                                                 ).show()
                                             }
                                         }
-                                    } else {
-                                        permissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
                                     }
-                                },
+                                } else null,
                                 onSelectLocation = {
                                     fishToUpdateLocation = fishDetails
                                     locationPickerFish.openPicker()

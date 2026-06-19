@@ -42,7 +42,7 @@ fun FishItem(
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onSetLocation: () -> Unit,
+    onSetLocation: (() -> Unit)? = null,
     onSelectLocation: () -> Unit,
     onClearLocation: () -> Unit
 ) {
@@ -202,22 +202,25 @@ fun FishItem(
                                 )
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text("Use Current Location") },
-                            onClick = {
-                                menuExpanded = false
-                                onSetLocation()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.MyLocation,
-                                    contentDescription = null,
-                                    tint =
-                                        if (fish.fish.latitude != null) Color(0xFF4CAF50)
-                                        else LocalContentColor.current
-                                )
-                            }
-                        )
+
+                        if (onSetLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Use Current Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSetLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.MyLocation,
+                                        contentDescription = null,
+                                        tint =
+                                            if (fish.fish.latitude != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
 
                         DropdownMenuItem(
                             text = { Text("Select on Map") },
@@ -236,11 +239,15 @@ fun FishItem(
                             }
                         )
 
-                        if (activeLat != null) {
+                        // If there has been a location specified for the fish, give the option
+                        // to reset it (revert to event or trip location) or clear it (remove entirely)
+                        if (fishLat != null) {
                             DropdownMenuItem(
                                 text = {
-                                    if (fishLat == null) Text("Reset Location")
-                                    else Text("Clear Location")
+                                    if (event.latitude != null || trip.latitude != null)
+                                        Text("Reset Location")
+                                    else
+                                        Text("Clear Location")
                                 },
                                 onClick = {
                                     menuExpanded = false
@@ -255,6 +262,7 @@ fun FishItem(
                                 }
                             )
                         }
+
                         DropdownMenuItem(
                             text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                             onClick = {

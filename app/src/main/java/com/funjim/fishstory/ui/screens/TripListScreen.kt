@@ -1,11 +1,8 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
@@ -44,6 +41,8 @@ fun TripListScreen(
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
 ) {
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
@@ -56,24 +55,6 @@ fun TripListScreen(
     // State to keep track of which trip we are currently modifying
     var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
     var showMenu by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions.entries.all { it.value }
-        if (granted) {
-            selectedTrip?.let { summary ->
-                scope.launch {
-                    val location = viewModel.fetchLocation()
-                    location?.let {
-                        viewModel.saveTrip(
-                            summary.trip.copy(latitude = it.latitude, longitude = it.longitude)
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
@@ -111,36 +92,27 @@ fun TripListScreen(
             }
             is TripAction.UseCurrentLocation -> {
                 showMenu = false
-                if (viewModel.hasLocationPermission()) {
-                    scope.launch {
-                        val location = viewModel.fetchLocation()
-                        if (location != null) {
-                            viewModel.saveTrip(
-                                action.tripSummary.trip.copy(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                )
+                scope.launch {
+                    val location = viewModel.fetchLocation()
+                    if (location != null) {
+                        viewModel.saveTrip(
+                            action.tripSummary.trip.copy(
+                                latitude = location.latitude,
+                                longitude = location.longitude
                             )
-                            Toast.makeText(
-                                context,
-                                "Location updated",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Could not get location",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } else {
-                    permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
                         )
-                    )
+                        Toast.makeText(
+                            context,
+                            "Location updated",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Could not get location",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
             is TripAction.SelectLocation -> {
@@ -255,6 +227,7 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
+                                    hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -271,6 +244,7 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
+                                    hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,
@@ -287,6 +261,7 @@ fun TripListScreen(
                                     index = index,
                                     totalItems = state.completedTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
+                                    hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onAction = onAction,

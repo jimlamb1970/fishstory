@@ -72,6 +72,8 @@ fun EventDetailsScreen(
     navigateToFishList: (String?, String?) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
     LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
         viewModel.selectEvent(eventId)
@@ -94,35 +96,6 @@ fun EventDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        ) {
-            val granted = permissions.entries.all { it.value }
-            if (granted) {
-                scope.launch {
-                    val location = viewModel.fetchLocation()
-                    if (location != null) {
-                        selectedEvent?.let { event ->
-                            viewModel.upsertEvent(
-                                event.copy(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude
-                                )
-                            )
-                            Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
-                        }
-                    } else {
-                        Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
@@ -203,14 +176,11 @@ fun EventDetailsScreen(
                                     expanded = menuExpanded,
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Use Current Location") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            if (ContextCompat.checkSelfPermission(
-                                                    context,
-                                                    Manifest.permission.ACCESS_FINE_LOCATION
-                                                ) == PackageManager.PERMISSION_GRANTED) {
+                                    if (hasLocationPermission) {
+                                        DropdownMenuItem(
+                                            text = { Text("Use Current Location") },
+                                            onClick = {
+                                                menuExpanded = false
                                                 scope.launch {
                                                     val location = viewModel.fetchLocation()
                                                     if (location != null) {
@@ -223,31 +193,29 @@ fun EventDetailsScreen(
                                                         Toast.makeText(
                                                             context,
                                                             "Location updated",
-                                                            Toast.LENGTH_SHORT).show()
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     } else {
                                                         Toast.makeText(
                                                             context,
                                                             "Could not get location",
-                                                            Toast.LENGTH_SHORT).show()
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     }
                                                 }
-                                            } else {
-                                                permissionLauncher.launch(
-                                                    arrayOf(
-                                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                                        Manifest.permission.ACCESS_COARSE_LOCATION)
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.MyLocation,
+                                                    contentDescription = null,
+                                                    tint = if (activeLat != null)
+                                                        Color(0xFF4CAF50)
+                                                    else
+                                                        LocalContentColor.current
                                                 )
                                             }
-                                        },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.MyLocation,
-                                                contentDescription = null,
-                                                tint = if (activeLat != null)
-                                                    Color(0xFF4CAF50)
-                                                else
-                                                    LocalContentColor.current)
-                                        }
-                                    )
+                                        )
+                                    }
 
                                     DropdownMenuItem(
                                         text = { Text("Select on Map") },

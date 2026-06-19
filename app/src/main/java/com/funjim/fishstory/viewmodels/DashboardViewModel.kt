@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -37,6 +38,12 @@ class DashboardViewModel(
             emit(System.currentTimeMillis())
             delay(60_000)
         }
+    }
+
+    private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+    fun refreshPermissionStatus() {
+        _hasLocationPermission.value = locationProvider.hasLocationPermission()
     }
 
     private val selectedTripId = MutableStateFlow<String?>(null)

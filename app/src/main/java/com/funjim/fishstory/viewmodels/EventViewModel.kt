@@ -37,6 +37,9 @@ class EventViewModel(
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
+    private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
