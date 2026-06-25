@@ -85,7 +85,7 @@ fun ManageColorsScreen(
     var pickMaxHexCodes by remember { mutableStateOf(1) } // Supports 1 or 4 hex values
 
     var editName by remember { mutableStateOf("") }
-    var currentColorForPhoto by remember { mutableStateOf<LureColor?>(null) }
+    var pendingNewColorName by remember { mutableStateOf<String?>(null) }
 
     val filteredColors = remember(searchQuery, colorsList) {
         colorsList.filter {
@@ -126,8 +126,7 @@ fun ManageColorsScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addLureColor(LureColor(name = searchQuery.trim()))
-                            searchQuery = ""
+                            pendingNewColorName = searchQuery.trim()
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
@@ -147,8 +146,6 @@ fun ManageColorsScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getOnCardColor()
-                    val secondaryContentColor = getOnCardSecondaryColor()
 
                     ListItem(
                         modifier = Modifier
@@ -168,7 +165,6 @@ fun ManageColorsScreen(
                                 modifier = Modifier.combinedClickable(
                                     onClick = { /* do nothing */ },
                                     onLongClick = {
-                                        currentColorForPhoto = item
                                         thumbnailMenuExpanded = true
                                     }
                                 )
@@ -219,6 +215,8 @@ fun ManageColorsScreen(
                                             colorToPickFor = item
                                         }
                                     )
+                                    // Disable the clearing of the HEXCODE for the color
+/*
                                     if (!item.hexCode.isNullOrBlank()) {
                                         DropdownMenuItem(
                                             text = {
@@ -234,6 +232,7 @@ fun ManageColorsScreen(
                                             }
                                         )
                                     }
+*/
                                 }
                             }
                         },
@@ -284,6 +283,8 @@ fun ManageColorsScreen(
                                             Icon(Icons.Default.Palette, contentDescription = "Edit")
                                         }
                                     )
+// Disable the clearing of the HEXCODE for the color
+/*
                                     if (!item.hexCode.isNullOrBlank()) {
                                         DropdownMenuItem(
                                             text = {
@@ -302,6 +303,7 @@ fun ManageColorsScreen(
                                             }
                                         )
                                     }
+*/
                                     DropdownMenuItem(
                                         text = { Text("Delete") },
                                         onClick = {
@@ -327,7 +329,6 @@ fun ManageColorsScreen(
         }
     }
 
-    // TODO - see if there are lures using the color to be deleted?
     // DELETE CONFIRMATION
     colorToDelete?.let { item ->
         AlertDialog(
@@ -392,6 +393,19 @@ Lures that were using this color may not have a color assigned to them.
             onSave = { finalizedCommaSeparatedString ->
                 viewModel.upsertLureColor(item.copy(hexCode = finalizedCommaSeparatedString))
                 colorToPickFor = null
+            }
+        )
+    }
+
+    pendingNewColorName?.let { name ->
+        AdvancedColorPickerDialog(
+            initialColor = null,
+            maxAllowedColors = 1,
+            onDismiss = { pendingNewColorName = null },
+            onSave = { hexCode ->
+                viewModel.addLureColor(LureColor(name = name, hexCode = hexCode))
+                pendingNewColorName = null
+                searchQuery = ""
             }
         )
     }
