@@ -389,7 +389,9 @@ Lures that were using this color may not have a color assigned to them.
         AdvancedColorPickerDialog(
             initialColor = item.hexCode,
             maxAllowedColors = pickMaxHexCodes, // Tell picker if it allows multi-select
-            onDismiss = { colorToPickFor = null },
+            onDismiss = {
+                colorToPickFor = null
+            },
             onSave = { finalizedCommaSeparatedString ->
                 viewModel.upsertLureColor(item.copy(hexCode = finalizedCommaSeparatedString))
                 colorToPickFor = null
@@ -401,7 +403,9 @@ Lures that were using this color may not have a color assigned to them.
         AdvancedColorPickerDialog(
             initialColor = null,
             maxAllowedColors = 1,
-            onDismiss = { pendingNewColorName = null },
+            onDismiss = {
+                pendingNewColorName = null
+            },
             onSave = { hexCode ->
                 viewModel.addLureColor(LureColor(name = name, hexCode = hexCode))
                 pendingNewColorName = null
@@ -519,7 +523,9 @@ fun AdvancedColorPickerDialog(
     var activeFieldInput by remember { mutableStateOf(selectedHexList.firstOrNull() ?: "FFFFFF") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            onDismiss()
+        },
         title = {
             Text(
                 text = if (maxAllowedColors > 1) "Select Colors (Up to 4)" else "Select Lure Color",
@@ -661,7 +667,6 @@ fun AdvancedColorPickerDialog(
                         "#${hex.uppercase().padEnd(6, '0')}"
                     }
                     onSave(databaseOutputString)
-                    onDismiss()
                 },
                 enabled = selectedHexList.all { it.length == 6 }
             ) {
@@ -829,7 +834,6 @@ fun AdvancedColorPickerDialog(
                     // Format back into a clean standard hex string before saving to database
                     val finalHex = "#${hexInput.uppercase().padEnd(6, '0')}"
                     onSave(finalHex)
-                    onDismiss()
                 },
                 enabled = hexInput.length == 6 // Only allow saving if it's a complete color
             ) {

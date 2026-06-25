@@ -111,6 +111,8 @@ fun AddLureScreen(
     // Dropdown/Dialog States
     var showAddColorDialog by remember { mutableStateOf<ColorTarget?>(null) }
     var newColorName by remember { mutableStateOf("") }
+    var newColorHex by remember { mutableStateOf<String?>(null) }
+    var showColorPickerForNew by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -335,10 +337,13 @@ fun AddLureScreen(
         }
     }
 
-    // Add Color Dialog
-    if (showAddColorDialog != null) {
+    // Step 1: Name dialog — collect the color name, then advance to hex picker
+    if (showAddColorDialog != null && !showColorPickerForNew) {
         AlertDialog(
-            onDismissRequest = { showAddColorDialog = null; newColorName = "" },
+            onDismissRequest = {
+                showAddColorDialog = null
+                newColorName = ""
+            },
             title = { Text("Add New Color") },
             text = {
                 TextField(
@@ -348,23 +353,10 @@ fun AddLureScreen(
                 )
             },
             confirmButton = {
-                Button(onClick = {
-                    if (newColorName.isNotBlank()) {
-                        scope.launch {
-                            val newColor = LureColor(name = newColorName)
-                            viewModel.addLureColor(newColor)
-                            val id = newColor.id
-                            when (showAddColorDialog) {
-                                ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + newColor
-                                ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + newColor
-                                ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + newColor
-                                null -> {}
-                            }
-                            showAddColorDialog = null
-                            newColorName = ""
-                        }
-                    }
-                }) { Text("New") }
+                Button(
+                    onClick = { showColorPickerForNew = true },
+                    enabled = newColorName.isNotBlank()
+                ) { Text("Next") }
             },
             dismissButton = {
                 TextButton(onClick = {
@@ -372,6 +364,35 @@ fun AddLureScreen(
                     newColorName = ""
                 }) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Step 2: Hex picker — reuse AdvancedColorPickerDialog from ManageColorsScreen
+    if (showColorPickerForNew) {
+        AdvancedColorPickerDialog(
+            initialColor = null,
+            onDismiss = {
+                showColorPickerForNew = false
+                showAddColorDialog = null
+                newColorName = ""
+                newColorHex = null
+            },
+            onSave = { hexCode ->
+                scope.launch {
+                    val newColor = LureColor(name = newColorName, hexCode = hexCode)
+                    viewModel.addLureColor(newColor)
+                    when (showAddColorDialog) {
+                        ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + newColor
+                        ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + newColor
+                        ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + newColor
+                        null -> {}
+                    }
+                    showColorPickerForNew = false
+                    showAddColorDialog = null
+                    newColorName = ""
+                    newColorHex = null
                 }
             }
         )
