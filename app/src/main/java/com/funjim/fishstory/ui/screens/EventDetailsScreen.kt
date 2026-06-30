@@ -38,6 +38,7 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
+import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventHighlightCard
@@ -557,6 +558,38 @@ fun EventDetailsScreen(
                     }
                 )
             }
+
+            if (showBodiesOfWaterSelection) {
+                BodyOfWaterSelection(
+                    items = allBodiesOfWater,
+                    selectedItems = eventDetails.bodiesOfWater,
+                    onSelected = { selectedBodyOfWater ->
+                        viewModel.addEventBodyOfWater(eventId, selectedBodyOfWater.id)
+                    },
+                    onUnselected = { selectedBodyOfWater ->
+                        viewModel.removeEventBodyOfWater(eventId, selectedBodyOfWater.id)
+                    },
+                    onAdd = {
+                        addNewBodyOfWater = true
+                    },
+                    onDone = { showBodiesOfWaterSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    thumbnailProvider = { bodyOfWater ->
+                        val thumbnailFlow = remember(bodyOfWater.id) {
+                            viewModel.speciesThumbnail(bodyOfWater.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.BodyOfWater,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
+
         }
     }
 
