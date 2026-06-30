@@ -228,7 +228,7 @@ fun ThemeSelectionField(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Themes...") },
+                    label = { Text("Search Themes ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
