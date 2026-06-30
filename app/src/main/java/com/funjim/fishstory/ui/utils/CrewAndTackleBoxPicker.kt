@@ -633,7 +633,7 @@ fun TackleBoxSelectionField(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Tackle Boxes...") },
+                    label = { Text("Search Tackle Boxes ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
