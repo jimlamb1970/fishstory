@@ -6,7 +6,6 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TripDao
-import com.funjim.fishstory.model.EventWithFishermen
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.LureWithColors
@@ -16,8 +15,6 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.Trip
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlin.collections.map
 
 class FishRepository(
     private val fishDao: FishDao,
