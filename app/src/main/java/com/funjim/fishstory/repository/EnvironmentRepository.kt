@@ -46,7 +46,28 @@ class EnvironmentRepository(
 
             val eventIds = eventDao.getEventIdsForTrip(tripId)
 
-            eventDao.deleteBodyOfWaterForEvents(eventIds, bodyOfWaterId)
+            bodyOfWaterDao.deleteBodyOfWaterForEvents(eventIds, bodyOfWaterId)
         }
     }
+
+    suspend fun insertEventBodyOfWater(
+        crossRef: EventBodyOfWater,
+        cascade: Boolean = true) {
+        database.withTransaction {
+            bodyOfWaterDao.insertEventBodyOfWater(crossRef)
+
+            if (cascade) {
+                val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
+                bodyOfWaterDao.insertTripBodyOfWater(
+                    TripBodyOfWater(
+                        tripId = tripId,
+                        bodyOfWaterId = crossRef.bodyOfWaterId
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String) =
+        bodyOfWaterDao.deleteEventBodyOfWater(eventId, bodyOfWaterId)
 }

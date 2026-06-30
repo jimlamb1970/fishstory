@@ -254,7 +254,4 @@ ORDER BY s.startTime DESC"""
 
     @Query("DELETE FROM event_target_species")
     suspend fun deleteAllEventTargetSpecies()
-
-    @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
 }

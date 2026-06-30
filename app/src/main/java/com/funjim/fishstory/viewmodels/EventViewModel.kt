@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -32,6 +33,7 @@ import kotlin.collections.map
 
 class EventViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
@@ -227,6 +229,13 @@ class EventViewModel(
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
 
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -274,9 +283,31 @@ class EventViewModel(
         initialValue = AddEventUiState.Loading
     )
 
+    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+        viewModelScope.launch {
+            envRepo.addBodyOfWater(bodyOfWater)
+        }
+    }
+
+    fun addEventBodyOfWater(eventId: String, bodyOfWaterId: String) {
+        viewModelScope.launch {
+            envRepo.insertEventBodyOfWater(
+                EventBodyOfWater(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
+            )
+        }
+    }
+
     fun addEventTargetSpecies(eventId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.insertEventTargetSpecies(EventTargetSpecies(eventId = eventId, speciesId = speciesId))
+            tripRepo.insertEventTargetSpecies(
+                EventTargetSpecies(eventId = eventId, speciesId = speciesId)
+            )
+        }
+    }
+
+    fun removeEventBodyOfWater(eventId: String, bodyOfWaterId: String) {
+        viewModelScope.launch {
+            envRepo.deleteEventBodyOfWater(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
         }
     }
 
@@ -284,6 +315,11 @@ class EventViewModel(
         viewModelScope.launch {
             tripRepo.deleteEventTargetSpecies(eventId = eventId, speciesId = speciesId)
         }
+    }
+
+    fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
+            .flowOn(Dispatchers.IO)
     }
 
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
@@ -424,6 +460,7 @@ sealed interface EventDetailsUiState {
 
 class EventViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val photoRepository: PhotoRepository,
@@ -434,6 +471,7 @@ class EventViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return EventViewModel(
                 locationProvider,
+                environmentRepository,
                 fishermanRepository,
                 fishRepository,
                 photoRepository,

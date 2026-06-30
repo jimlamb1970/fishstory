@@ -67,6 +67,9 @@ interface BodyOfWaterDao {
     @Query("DELETE FROM event_body_of_water WHERE eventId = :eventId AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String)
 
+    @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
+    suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
+
     @Query("DELETE FROM event_body_of_water")
     suspend fun deleteAllEventBodiesOfWater()
 }

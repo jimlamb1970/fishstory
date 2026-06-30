@@ -130,6 +130,7 @@ class FishstoryApplication : Application() {
 
     fun getEventViewModelFactory() = EventViewModelFactory(
             locationProvider = locationProvider,
+            environmentRepository,
             fishermanRepository,
             fishRepository,
             photoRepository,

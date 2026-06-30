@@ -32,11 +32,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventHighlightCard
@@ -44,11 +45,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.getCardBorderColor
-import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getMainButtonColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
-import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
@@ -59,7 +56,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +79,11 @@ fun EventDetailsScreen(
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     var addNewSpecies by remember { mutableStateOf(false) }
     var addSpeciesName by remember { mutableStateOf("") }
+
+    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    var addNewBodyOfWater by remember { mutableStateOf(false) }
+    var addBodyOfWaterName by remember { mutableStateOf("") }
 
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
@@ -371,6 +372,30 @@ fun EventDetailsScreen(
 
                             HorizontalDivider()
 
+                            BodiesOfWaterRow(
+                                items = eventDetails.bodiesOfWater,
+                                onAdd = { showBodiesOfWaterSelection = true },
+                                onDelete = { bodyOfWater ->
+                                    viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
+                                },
+                                thumbnailProvider = { bodyOfWater ->
+                                    val thumbnailFlow = remember(bodyOfWater.id) {
+                                        viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                    }
+
+                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                    ThumbnailBox(
+                                        thumbnail = thumbnail,
+                                        imageVector = AppIcons.Default.BodyOfWater,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                            )
+
+                            HorizontalDivider()
+
                             TargetSpeciesRow(
                                 items = eventDetails.targetSpecies,
                                 onAdd = { showSpeciesSelection = true },
@@ -561,6 +586,36 @@ fun EventDetailsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (addNewBodyOfWater) {
+        AlertDialog(
+            onDismissRequest = { addNewBodyOfWater = false },
+            title = { Text("Add New Body of Water") },
+            text = {
+                TextField(
+                    value = addBodyOfWaterName,
+                    onValueChange = { addBodyOfWaterName = it },
+                    placeholder = { Text("Species Name (e.g. Walleye)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addBodyOfWaterName.isNotBlank()) {
+                        scope.launch {
+                            val bodyOfWater = BodyOfWater(name = addBodyOfWaterName)
+                            viewModel.addBodyOfWater(bodyOfWater)
+                            viewModel.addEventBodyOfWater(eventId, bodyOfWater.id)
+                            addNewBodyOfWater = false
+                            addBodyOfWaterName = ""
+                        }
+                    }
+                }) { Text("Add Body of Water") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
             }
         )
     }
