@@ -122,7 +122,7 @@ fun ManageSpeciesScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                placeholder = { Text("Search or add new species...") },
+                placeholder = { Text("Search or add new species ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (showAddButton) {
