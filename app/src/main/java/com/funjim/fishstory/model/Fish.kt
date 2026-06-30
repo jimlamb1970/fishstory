@@ -140,6 +140,13 @@ data class FishWithDetails(
     )
     val lure: LureWithColors?,
 
+    @Relation(
+        entity = BodyOfWater::class,
+        parentColumn = "bodyOfWaterId",
+        entityColumn = "id"
+    )
+    val bodyOfWater: BodyOfWater?,
+
     val photoCount: Int = 0
 ) {
     val fullLureName: String

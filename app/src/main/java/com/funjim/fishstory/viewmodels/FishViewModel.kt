@@ -374,6 +374,11 @@ class FishViewModel(
         viewModelScope.launch { photoRepo.deleteFishPhoto(fishId, photoId) }
     }
 
+    fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(id)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread

@@ -112,23 +112,26 @@ fun FishDetailScreen(
         val fishPhotos = remember(fish.fish.id) {
             viewModel.fishPhotos(fish.fish.id)
         }
-        val fishThumbnailFlow = remember(fish.fish.id) {
-            viewModel.fishThumbnail(fish.fish.id)
-        }
-        val speciesThumbnailFlow = remember(fish.species.id) {
-            viewModel.speciesThumbnail(fish.species.id)
-        }
-        val tripThumbnailFlow = remember(fish.fish.tripId) {
-            viewModel.tripThumbnail(fish.fish.tripId)
+        val bodyOfWaterThumbnailFlow = remember(fish.fish.bodyOfWaterId) {
+            viewModel.bodyOfWaterThumbnail(fish.fish.bodyOfWaterId ?: "")
         }
         val eventThumbnailFlow = remember(fish.fish.eventId) {
             viewModel.eventThumbnail(fish.fish.eventId)
+        }
+        val fishThumbnailFlow = remember(fish.fish.id) {
+            viewModel.fishThumbnail(fish.fish.id)
         }
         val fishermanThumbnailFlow = remember(fish.fish.fishermanId) {
             viewModel.fishermanThumbnail(fish.fish.fishermanId)
         }
         val lureThumbnailFlow = remember(fish.fish.lureId) {
             viewModel.lureThumbnail(fish.fish.lureId ?: "")
+        }
+        val speciesThumbnailFlow = remember(fish.species.id) {
+            viewModel.speciesThumbnail(fish.species.id)
+        }
+        val tripThumbnailFlow = remember(fish.fish.tripId) {
+            viewModel.tripThumbnail(fish.fish.tripId)
         }
 
         Column(
@@ -179,10 +182,11 @@ fun FishDetailScreen(
                         if (fish.photoCount == 0) speciesThumbnailFlow
                         else fishThumbnailFlow,
                     fishPhotoFlow = fishPhotos,
-                    tripThumbnailFlow = tripThumbnailFlow,
+                    bodyOfWaterThumbnailFlow = bodyOfWaterThumbnailFlow,
                     eventThumbnailFlow = eventThumbnailFlow,
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
                     lureThumbnailFlow = lureThumbnailFlow,
+                    tripThumbnailFlow = tripThumbnailFlow,
                     onPhotoSelected = { uri ->
                         viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri, true)
                     },
@@ -234,10 +238,11 @@ private fun FishDetailContent(
     fish: FishWithDetails,
     fishThumbnailFlow: Flow<ByteArray?>,
     fishPhotoFlow: Flow<List<Photo>>,
-    tripThumbnailFlow: Flow<ByteArray?>,
+    bodyOfWaterThumbnailFlow: Flow<ByteArray?>,
     eventThumbnailFlow: Flow<ByteArray?>,
     fishermanThumbnailFlow: Flow<ByteArray?>,
     lureThumbnailFlow: Flow<ByteArray?>,
+    tripThumbnailFlow: Flow<ByteArray?>,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onPhotoDeleted: (Photo) -> Unit
@@ -246,6 +251,7 @@ private fun FishDetailContent(
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val fishPhotos by fishPhotoFlow.collectAsState(initial = null)
+    val bodyOfWaterThumbnail by bodyOfWaterThumbnailFlow.collectAsState(initial = null)
     val fishThumbnail by fishThumbnailFlow.collectAsState(initial = null)
     val tripThumbnail by tripThumbnailFlow.collectAsState(initial = null)
     val eventThumbnail by eventThumbnailFlow.collectAsState(initial = null)
@@ -382,6 +388,40 @@ private fun FishDetailContent(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
+                }
+            }
+        }
+
+        if (fish.fish.bodyOfWaterId != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(.25f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ThumbnailBox(
+                        thumbnail = bodyOfWaterThumbnail,
+                        imageVector = AppIcons.Default.BodyOfWater,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.weight(.75f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = fish.bodyOfWater?.name ?: "Unknown",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
