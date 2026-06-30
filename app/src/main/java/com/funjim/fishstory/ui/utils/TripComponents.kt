@@ -355,7 +355,7 @@ fun TripSelectionField(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Trips...") },
+                    label = { Text("Search Trips ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
