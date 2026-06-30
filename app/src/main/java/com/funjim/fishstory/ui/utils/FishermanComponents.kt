@@ -303,7 +303,7 @@ fun FishermanSelectionField(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Fishermen...") },
+                    label = { Text("Search Fishermen ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
