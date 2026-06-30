@@ -42,10 +42,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -128,6 +130,10 @@ fun AddFishScreen(
         context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    var addNewBodyOfWater by remember { mutableStateOf(false) }
+    var addBodyOfWaterName by remember { mutableStateOf("") }
+
     var addNewSpecies by remember { mutableStateOf(false) }
     var addSpeciesName by remember { mutableStateOf("") }
 
@@ -168,6 +174,14 @@ fun AddFishScreen(
             val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
             val selectedLure = remember(draftFish, lures) {
                 lures.find { it.lure.id == draftFish?.lureId }
+            }
+
+            val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
+            val sortedBodiesOfWater = allBodiesOfWater.sortedByDescending { item ->
+                bodiesOfWater.contains(item.id)
+            }
+            val selectedBodyOfWater = remember(draftFish, sortedBodiesOfWater) {
+                sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
             }
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)
@@ -270,6 +284,27 @@ fun AddFishScreen(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        BodyOfWaterSelection(
+                            items = sortedBodiesOfWater,
+                            selectedItem = selectedBodyOfWater,
+                            onSelected = { bodyOfWater -> viewModel.updateBodyOfWater(bodyOfWater) },
+                            onAdd = { addNewBodyOfWater = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { bodyOfWater ->
+                                val thumbnailFlow = remember(bodyOfWater.id) {
+                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                }
+
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            }
+                        )
+
                         SpeciesSelection(
                             items = speciesList,
                             selectedItem = selectedSpecies,
@@ -574,6 +609,37 @@ fun AddFishScreen(
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // New Body of Water Dialog
+    if (addNewBodyOfWater) {
+        AlertDialog(
+            onDismissRequest = { addNewBodyOfWater = false },
+            title = { Text("Add New Body of Water") },
+            text = {
+                TextField(
+                    value = addBodyOfWaterName,
+                    onValueChange = { addBodyOfWaterName = it },
+                    placeholder = { Text("Body of Water Name (e.g. Lake of the Woods)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addBodyOfWaterName.isNotBlank()) {
+                        scope.launch {
+                            val bodyOfWater = BodyOfWater(name = addBodyOfWaterName)
+                            viewModel.addBodyOfWater(bodyOfWater)
+                            viewModel.updateBodyOfWater(bodyOfWater)
+                            addNewBodyOfWater = false
+                            addBodyOfWaterName = ""
+                        }
+                    }
+                }) { Text("Add Body of Water") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
             }
         )
     }

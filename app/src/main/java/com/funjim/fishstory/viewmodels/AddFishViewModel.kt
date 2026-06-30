@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
@@ -32,6 +33,7 @@ import java.util.UUID
 
 class AddFishViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
@@ -53,6 +55,13 @@ class AddFishViewModel(
     val selectedFishermanId = _selectedFishermanId.asStateFlow()
     val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
     val selectedLureId = _selectedLureId.asStateFlow()
+
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTrip = _selectedTripId
@@ -244,6 +253,12 @@ class AddFishViewModel(
         }
     }
 
+    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+        viewModelScope.launch {
+            envRepo.addBodyOfWater(bodyOfWater)
+        }
+    }
+
     fun addSpecies(species: Species) {
         viewModelScope.launch {
             fishRepo.addSpecies(species)
@@ -269,6 +284,11 @@ class AddFishViewModel(
         } else {
             draft != original.fish || photos != original.photos
         }
+    }
+
+    fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
@@ -310,6 +330,12 @@ class AddFishViewModel(
             holeNumber = 1
         )
         _fishPhotos.value = photos
+    }
+
+    fun updateBodyOfWater(bodyOfWater: BodyOfWater) {
+        _draftFish.update { current ->
+            current?.copy(bodyOfWaterId = bodyOfWater.id)
+        }
     }
 
     fun updateFisherman(fisherman: Fisherman) {
@@ -389,6 +415,7 @@ sealed interface AddFishUiState {
 
 class AddFishViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
@@ -399,6 +426,7 @@ class AddFishViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return AddFishViewModel(
                 locationProvider,
+                envRepo,
                 fishRepo,
                 lureRepo,
                 photoRepo,

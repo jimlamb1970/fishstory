@@ -108,6 +108,7 @@ class FishstoryApplication : Application() {
 
     fun getAddFishViewModelFactory() = AddFishViewModelFactory(
         locationProvider = locationProvider,
+        envRepo = environmentRepository,
         fishRepo = fishRepository,
         lureRepo = lureRepository,
         photoRepo = photoRepository,
