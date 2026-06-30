@@ -481,7 +481,7 @@ fun LureColorSelectionField(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Colors...") },
+                    label = { Text("Search Lures ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
