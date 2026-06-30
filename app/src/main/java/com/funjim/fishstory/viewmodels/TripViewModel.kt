@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 
 class TripViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
@@ -41,6 +43,13 @@ class TripViewModel(
     private val _selectedEventId = MutableStateFlow<String?>(null)
 
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -195,6 +204,11 @@ class TripViewModel(
             initialValue = null
         )
 
+    fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
+            .flowOn(Dispatchers.IO)
+    }
+
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -305,6 +319,25 @@ class TripViewModel(
         }
     }
 
+    // Functions for Body of Water manipulation
+    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+        viewModelScope.launch {
+            envRepo.addBodyOfWater(bodyOfWater)
+        }
+    }
+
+    fun addTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
+        viewModelScope.launch {
+            envRepo.insertTripBodyOfWater(TripBodyOfWater(tripId = tripId, bodyOfWaterId = bodyOfWaterId))
+        }
+    }
+
+    fun removeTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
+        viewModelScope.launch {
+            envRepo.deleteTripBodyOfWater(tripId = tripId, bodyOfWaterId = bodyOfWaterId)
+        }
+    }
+
     fun clearTrip() {
         _selectedTripId.value = null
     }
@@ -337,6 +370,7 @@ sealed interface TripDetailsUiState {
 
 class TripViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val photoRepository: PhotoRepository,
@@ -347,6 +381,7 @@ class TripViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return TripViewModel(
                 locationProvider,
+                environmentRepository,
                 fishermanRepository,
                 fishRepository,
                 photoRepository,

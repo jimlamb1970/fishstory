@@ -1,8 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -28,14 +26,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
-import com.funjim.fishstory.model.EventWithSpecies
+import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
+import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -80,6 +80,11 @@ fun TripDetailsScreen(
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     var addNewSpecies by remember { mutableStateOf(false) }
     var addSpeciesName by remember { mutableStateOf("") }
+
+    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    var addNewBodyOfWater by remember { mutableStateOf(false) }
+    var addBodyOfWaterName by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -146,13 +151,17 @@ fun TripDetailsScreen(
             val summary = state.summary
             val eventSummaries = state.eventSummaries
 
-            val tripMasterTargets: List<Species> = details.targetSpecies
-            val activeEvents: List<EventWithSpecies> = details.events
+            val activeEvents: List<EventWithInfo> = details.events
 
             val speciesUsageMap: Map<String, Int> = activeEvents
                 .flatMap { it.targetSpecies }
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = speciesId, Value = count
+
+            val bodyOfWaterUsageMap: Map<String, Int> = activeEvents
+                .flatMap { it.bodiesOfWater }
+                .groupingBy { it.id }
+                .eachCount() // Returns a Map<String, Int> where Key = bodyOfWaterId, Value = count
 
             Scaffold(
                 topBar = {
@@ -353,6 +362,30 @@ fun TripDetailsScreen(
                                     onClick = { navigateToFishList(tripId) }
                                 )
                             }
+
+                            HorizontalDivider()
+
+                            BodiesOfWaterRow(
+                                items = details.bodiesOfWater,
+                                onAdd = { showBodiesOfWaterSelection = true },
+                                onDelete = { bodyOfWater ->
+                                    viewModel.removeTripBodyOfWater(tripId, bodyOfWater.id)
+                                },
+                                thumbnailProvider = { bodyOfWater ->
+                                    val thumbnailFlow = remember(bodyOfWater.id) {
+                                        viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                    }
+
+                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                    ThumbnailBox(
+                                        thumbnail = thumbnail,
+                                        imageVector = AppIcons.Default.BodyOfWater,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                            )
 
                             HorizontalDivider()
 
@@ -627,6 +660,39 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     }
                 )
             }
+
+            if (showBodiesOfWaterSelection) {
+                BodyOfWaterSelection(
+                    items = allBodiesOfWater,
+                    selectedItems = details.bodiesOfWater,
+                    onSelected = { selectedBodyOfWater ->
+                        viewModel.addTripBodyOfWater(tripId, selectedBodyOfWater.id)
+                    },
+                    onUnselected = { selectedBodyOfWater ->
+                        viewModel.removeTripBodyOfWater(tripId, selectedBodyOfWater.id)
+                    },
+                    onAdd = {
+                        addNewBodyOfWater = true
+                    },
+                    onDone = { showBodiesOfWaterSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    usageMap = bodyOfWaterUsageMap,
+                    maxUsage = details.events.size,
+                    thumbnailProvider = { bodyOfWater ->
+                        val thumbnailFlow = remember(bodyOfWater.id) {
+                            viewModel.speciesThumbnail(bodyOfWater.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.BodyOfWater,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
         }
     }
 
@@ -644,18 +710,44 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             confirmButton = {
                 Button(onClick = {
                     if (addSpeciesName.isNotBlank()) {
-                        scope.launch {
-                            val species = Species(name = addSpeciesName)
-                            viewModel.addSpecies(species)
-                            viewModel.addTripTargetSpecies(tripId, species.id)
-                            addNewSpecies = false
-                            addSpeciesName = ""
-                        }
+                        val species = Species(name = addSpeciesName)
+                        viewModel.addSpecies(species)
+                        viewModel.addTripTargetSpecies(tripId, species.id)
+                        addNewSpecies = false
+                        addSpeciesName = ""
                     }
                 }) { Text("Add Species") }
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (addNewBodyOfWater) {
+        AlertDialog(
+            onDismissRequest = { addNewBodyOfWater = false },
+            title = { Text("Add New Body of Water") },
+            text = {
+                TextField(
+                    value = addBodyOfWaterName,
+                    onValueChange = { addBodyOfWaterName = it },
+                    placeholder = { Text("Body of Water Name (e.g. Lake of the Woods)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addBodyOfWaterName.isNotBlank()) {
+                        val bodyOfWater = BodyOfWater(name = addBodyOfWaterName)
+                        viewModel.addBodyOfWater(bodyOfWater)
+                        viewModel.addTripBodyOfWater(tripId, bodyOfWater.id)
+                        addNewBodyOfWater = false
+                        addBodyOfWaterName = ""
+                    }
+                }) { Text("Add Body of Water") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
             }
         )
     }

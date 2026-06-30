@@ -213,6 +213,9 @@ ORDER BY t.startDate DESC
     """)
         fun getTripsWithFish(fishermanId: String?, lureId: String?): Flow<List<Trip>>
 
+    @Query("SELECT * FROM trip_target_species")
+    fun getAllTripTargetSpecies(): Flow<List<TripTargetSpecies>>
+
     @Query("""
         SELECT species_table.* FROM species_table
         INNER JOIN trip_target_species ON species_table.id = trip_target_species.speciesId
@@ -226,4 +229,7 @@ ORDER BY t.startDate DESC
 
     @Query("DELETE FROM trip_target_species WHERE tripId = :tripId AND speciesId = :speciesId")
     suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String)
+
+    @Query("DELETE FROM trip_target_species")
+    suspend fun deleteAllTripTargetSpecies()
 }

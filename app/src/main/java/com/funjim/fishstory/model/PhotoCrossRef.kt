@@ -33,6 +33,32 @@ data class PhotoTripCrossRef(
 
 @Serializable
 @Entity(
+    primaryKeys = ["photoId", "bodyOfWaterId"],
+    tableName = "photo_body_of_water_cross_ref",
+    indices = [Index(value = ["bodyOfWaterId"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = Photo::class,
+            parentColumns = ["id"],
+            childColumns = ["photoId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = BodyOfWater::class,
+            parentColumns = ["id"],
+            childColumns = ["bodyOfWaterId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class PhotoBodyOfWaterCrossRef(
+    val photoId: String,
+    val bodyOfWaterId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+@Entity(
     primaryKeys = ["photoId", "eventId"],
     tableName = "photo_event_cross_ref",
     indices = [Index(value = ["eventId"])],

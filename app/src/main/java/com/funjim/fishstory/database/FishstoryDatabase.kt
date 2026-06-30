@@ -8,7 +8,9 @@ import com.funjim.fishstory.model.*
 
 @Database(
     entities = [
+        BodyOfWater::class,                 // Backed up
         Event::class,                       // Backed up
+        EventBodyOfWater::class,
         EventTargetSpecies::class,
         Fish::class,                        // Backed up
         Fisherman::class,                   // Backed up
@@ -19,6 +21,7 @@ import com.funjim.fishstory.model.*
         Species::class,                     // Backed up
         TackleBox::class,                   // Backed up
         Trip::class,                        // Backed up
+        TripBodyOfWater::class,
         TripTargetSpecies::class,
         EventFishermanCrossRef::class,      // Backed up
         LureGlowColorCrossRef::class,       // Backed up
@@ -27,6 +30,7 @@ import com.funjim.fishstory.model.*
         NoteFishCrossRef::class,
         NoteEventCrossRef::class,
         NoteTripCrossRef::class,
+        PhotoBodyOfWaterCrossRef::class,
         PhotoEventCrossRef::class,
         PhotoFishCrossRef::class,
         PhotoFishermanCrossRef::class,
@@ -40,18 +44,19 @@ import com.funjim.fishstory.model.*
         EventDetailedSummary::class,
         TripDetailedSummary::class
     ],
-    version = 4,
+    version = 8,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {
-    abstract fun tripDao(): TripDao
-    abstract fun fishermanDao(): FishermanDao
+    abstract fun bodyOfWaterDao(): BodyOfWaterDao
     abstract fun eventDao(): EventDao
+    abstract fun fishDao(): FishDao
+    abstract fun fishermanDao(): FishermanDao
     abstract fun lureDao(): LureDao
     abstract fun noteDao(): NoteDao
-    abstract fun fishDao(): FishDao
     abstract fun photoDao(): PhotoDao
     abstract fun tackleBoxDao(): TackleBoxDao
+    abstract fun tripDao(): TripDao
 
     companion object {
         @Volatile

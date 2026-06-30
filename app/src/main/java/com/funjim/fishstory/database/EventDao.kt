@@ -11,7 +11,7 @@ interface EventDao {
 
     @Transaction
     @Query("SELECT * FROM event_table")
-    fun getAllEventsWithSpecies(): Flow<List<EventWithSpecies>>
+    fun getAllEventsWithInfo(): Flow<List<EventWithInfo>>
 
     @Query("DELETE FROM event_table")
     suspend fun deleteAllEvents()
@@ -93,7 +93,7 @@ ORDER BY s.startTime ASC
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :eventId")
-    fun getEventWithSpecies(eventId: String): Flow<EventWithSpecies?>
+    fun getEventWithInfo(eventId: String): Flow<EventWithInfo?>
 
     // TODO - convert these upsert
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -229,6 +229,9 @@ ORDER BY s.startTime DESC"""
     """)
     fun getEventsWithFish(tripId: String?, fishermanId: String?, lureId: String?): Flow<List<Event>>
 
+    @Query("SELECT * FROM event_target_species")
+    fun getAllEventTargetSpecies(): Flow<List<EventTargetSpecies>>
+
     @Query("""
         SELECT species_table.* FROM species_table
         INNER JOIN event_target_species ON species_table.id = event_target_species.speciesId
@@ -248,4 +251,10 @@ ORDER BY s.startTime DESC"""
 
     @Query("DELETE FROM event_target_species WHERE eventId IN (:eventIds) AND speciesId = :speciesId")
     suspend fun deleteTargetSpeciesForEvents(eventIds: List<String>, speciesId: String)
+
+    @Query("DELETE FROM event_target_species")
+    suspend fun deleteAllEventTargetSpecies()
+
+    @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
+    suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
 }

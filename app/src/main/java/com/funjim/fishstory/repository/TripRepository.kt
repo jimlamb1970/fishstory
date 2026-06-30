@@ -12,7 +12,7 @@ import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.EventTargetSpecies
-import com.funjim.fishstory.model.EventWithSpecies
+import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
@@ -21,7 +21,6 @@ import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripWithFishermenAndSpecies
-import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -107,8 +106,8 @@ class TripRepository(
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> =
         eventDao.getEventWithDetails(eventId)
 
-    fun getEventWithSpecies(eventId: String): Flow<EventWithSpecies?> =
-        eventDao.getEventWithSpecies(eventId)
+    fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> =
+        eventDao.getEventWithInfo(eventId)
 
 
     // Trip Operations

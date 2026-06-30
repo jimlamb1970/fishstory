@@ -63,7 +63,7 @@ class AddFishViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedEvent = _selectedEventId
         .filterNotNull()
-        .flatMapLatest { id -> tripRepo.getEventWithSpecies(id) }
+        .flatMapLatest { id -> tripRepo.getEventWithInfo(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -152,7 +152,7 @@ class AddFishViewModel(
 
     private data class CoreParams(
         val trip: Trip?,
-        val event: EventWithSpecies?,
+        val event: EventWithInfo?,
         val species: List<Species>,
         val fishermen: List<Fisherman>,
         val tackleBoxMap: Map<String, String?>
@@ -379,7 +379,7 @@ sealed interface AddFishUiState {
 
     data class Success(
         val trip: Trip,
-        val event: EventWithSpecies,
+        val event: EventWithInfo,
         val species: List<Species> = emptyList(),
         val fishermen: List<Fisherman> = emptyList(),
         val tackleBoxMap: Map<String, String?> = emptyMap(),

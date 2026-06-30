@@ -1,10 +1,7 @@
 package com.funjim.fishstory.repository
 
 import com.funjim.fishstory.database.FishermanDao
-import com.funjim.fishstory.database.LureDao
-import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
-import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -17,19 +14,13 @@ import kotlinx.coroutines.flow.map
 
 class FishermanRepository(
     private val fishermanDao: FishermanDao,
-    private val lureDao: LureDao,
-    private val photoDao: PhotoDao,
-    private val tackleBoxDao: TackleBoxDao,
-    private val tripDao: TripDao,
+    private val tackleBoxDao: TackleBoxDao
 ) {
     val allFishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> =
         fishermanDao.getFishermenForTrip(tripId)
     fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> =
         fishermanDao.getFishermenForEvent(eventId)
-
-    // TODO - this really should be from Lure Repo
-    val allLureColors = lureDao.getAllLureColors()
 
     /**
      * Provides a sorted list of fishermen summaries.

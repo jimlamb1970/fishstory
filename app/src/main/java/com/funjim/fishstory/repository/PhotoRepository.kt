@@ -342,6 +342,9 @@ class PhotoRepository(
     fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForTrip(id)
     }
+    fun fetchBodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForBodyOfWater(id)
+    }
     fun fetchEventThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForEvent(id)
     }

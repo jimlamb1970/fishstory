@@ -22,6 +22,7 @@ import kotlin.collections.List
 // Placeholder data structure for serialization example. Replace with actual DB entities.
 @Serializable
 data class DatabaseExportData(
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),
     val trips: List<Trip>,
     val events: List<Event>,
     val fishermen: List<Fisherman>,
@@ -35,6 +36,8 @@ data class DatabaseExportData(
     val tackleboxes: List<TackleBox>,
     val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
     val species: List<Species>,
+    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
+    val tripTargetSpecies: List<TripTargetSpecies> = emptyList(),
     val fish: List<Fish>,
     val photos: List<Photo>,
     val photoEventsCrossRef: List<PhotoEventCrossRef>,
@@ -47,6 +50,7 @@ data class DatabaseExportData(
 
 class MainViewModel(
     private val locationProvider: LocationProvider,
+    private val bodyOfWaterDao: BodyOfWaterDao,
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
     private val eventDao: EventDao,
@@ -91,6 +95,7 @@ class MainViewModel(
         return withContext(Dispatchers.IO) {
             try {
                 val allData = DatabaseExportData(
+                    bodiesOfWater = bodyOfWaterDao.getAllBodiesOfWater().firstOrNull() ?: emptyList(),
                     trips = tripDao.getAllTrips().firstOrNull() ?: emptyList(),
                     events = eventDao.getAllEvents().firstOrNull() ?: emptyList(),
                     fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
@@ -104,6 +109,8 @@ class MainViewModel(
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
                     tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
                     species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
+                    eventTargetSpecies = eventDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
+                    tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
                     photoEventsCrossRef = photoDao.getAllPhotoEventCrossRefs().firstOrNull() ?: emptyList(),
@@ -130,6 +137,7 @@ class MainViewModel(
                     val jsonString = inputStream.bufferedReader().use { it.readText() }
                     val data = json_import.decodeFromString<DatabaseExportData>(jsonString)
 
+                    bodyOfWaterDao.deleteAllBodiesOfWater()
                     tripDao.deleteAllTrips()
                     eventDao.deleteAllEvents()
                     fishermanDao.deleteAllFishermen()
@@ -143,6 +151,8 @@ class MainViewModel(
                     tackleBoxDao.deleteAllTackleBoxes()
                     tackleBoxDao.deleteAllTackleBoxLureCrossRefs()
                     fishDao.deleteAllSpecies()
+                    tripDao.deleteAllTripTargetSpecies()
+                    eventDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
                     photoDao.deleteAllPhotoEventCrossRefs()
@@ -152,6 +162,7 @@ class MainViewModel(
                     photoDao.deleteAllPhotoSpeciesCrossRefs()
                     photoDao.deleteAllPhotoTripCrossRefs()
 
+                    data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
@@ -165,6 +176,8 @@ class MainViewModel(
                     data.lureGlowColorCrossRef.forEach { lureDao.upsertLureGlowColorCrossRef(it) }
                     data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
+                    data.eventTargetSpecies.forEach { eventDao.insertEventTargetSpecies(it) }
+                    data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
                     data.photoEventsCrossRef.forEach { photoDao.addEventPhoto(it) }
@@ -186,26 +199,28 @@ class MainViewModel(
 
 class MainViewModelFactory(
     private val locationProvider: LocationProvider,
-    private val tripDao: TripDao,
-    private val fishermanDao: FishermanDao,
+    private val bodyOfWaterDao: BodyOfWaterDao,
     private val eventDao: EventDao,
-    private val lureDao: LureDao,
     private val fishDao: FishDao,
+    private val fishermanDao: FishermanDao,
+    private val lureDao: LureDao,
     private val photoDao: PhotoDao,
-    private val tackleBoxDao: TackleBoxDao
+    private val tackleBoxDao: TackleBoxDao,
+    private val tripDao: TripDao
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return MainViewModel(
                 locationProvider,
-                tripDao,
-                fishermanDao,
-                eventDao,
-                lureDao,
-                fishDao,
-                photoDao,
-                tackleBoxDao) as T
+                bodyOfWaterDao = bodyOfWaterDao,
+                eventDao = eventDao,
+                fishDao = fishDao,
+                fishermanDao = fishermanDao,
+                lureDao = lureDao,
+                photoDao = photoDao,
+                tackleBoxDao = tackleBoxDao,
+                tripDao = tripDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -154,6 +154,15 @@ interface PhotoDao {
 
     @Query("""
     SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_body_of_water_cross_ref ON photo_table.id = photo_body_of_water_cross_ref.photoId
+    WHERE bodyOfWaterId = :bodyOfWaterId 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForBodyOfWater(bodyOfWaterId: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
     INNER JOIN photo_event_cross_ref ON photo_table.id = photo_event_cross_ref.photoId
     WHERE eventId = :eventId 
     ORDER BY isPrimary DESC, timestamp ASC 

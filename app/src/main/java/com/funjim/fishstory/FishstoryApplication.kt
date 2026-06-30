@@ -1,8 +1,8 @@
 package com.funjim.fishstory
 
 import android.app.Application
-import androidx.activity.viewModels
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
 import com.funjim.fishstory.repository.FishermanRepository
@@ -12,7 +12,6 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
-import com.funjim.fishstory.viewmodels.AddFishViewModel
 import com.funjim.fishstory.viewmodels.AddFishViewModelFactory
 import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
 import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
@@ -36,23 +35,28 @@ class FishstoryApplication : Application() {
         LocationProviderImpl(locationRepository)
     }
 
-    val fishermanRepository by lazy {
+    val environmentRepository by lazy {
+        EnvironmentRepository(
+            database = database,
+            bodyOfWaterDao = database.bodyOfWaterDao(),
+            eventDao = database.eventDao(),
+        )
+    }
+
+     val fishermanRepository by lazy {
         FishermanRepository(
             fishermanDao = database.fishermanDao(),
-            lureDao = database.lureDao(),
-            photoDao = database.photoDao(),
-            tackleBoxDao = database.tackleBoxDao(),
-            tripDao = database.tripDao()
+            tackleBoxDao = database.tackleBoxDao()
         )
     }
 
     val fishRepository by lazy {
         FishRepository(
+            eventDao = database.eventDao(),
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
             photoDao = database.photoDao(),
-            eventDao = database.eventDao(),
             tripDao = database.tripDao()
         )
     }
@@ -150,17 +154,19 @@ class FishstoryApplication : Application() {
 
     fun getMainViewModelFactory() = MainViewModelFactory(
         locationProvider = locationProvider,
-        tripDao = database.tripDao(),
-        fishermanDao = database.fishermanDao(),
+        bodyOfWaterDao = database.bodyOfWaterDao(),
         eventDao = database.eventDao(),
-        lureDao = database.lureDao(),
         fishDao = database.fishDao(),
+        fishermanDao = database.fishermanDao(),
+        lureDao = database.lureDao(),
         photoDao = database.photoDao(),
-        tackleBoxDao = database.tackleBoxDao()
+        tackleBoxDao = database.tackleBoxDao(),
+        tripDao = database.tripDao()
     )
 
     fun getTripViewModelFactory() = TripViewModelFactory(
         locationProvider = locationProvider,
+        environmentRepository,
         fishermanRepository,
         fishRepository,
         photoRepository,

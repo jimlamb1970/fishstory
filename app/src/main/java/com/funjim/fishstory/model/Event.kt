@@ -15,7 +15,9 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["tripId"])]
+    indices = [
+        Index(value = ["tripId"])
+    ]
 )
 data class Event(
     @PrimaryKey
@@ -26,6 +28,7 @@ data class Event(
     val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val bodyOfWaterId: String? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 )
@@ -102,7 +105,7 @@ data class EventWithDetails(
     val targetSpecies: List<Species>
 )
 
-data class EventWithSpecies(
+data class EventWithInfo(
     @Embedded val event: Event,
 
     @Relation(
@@ -115,7 +118,19 @@ data class EventWithSpecies(
             entityColumn = "speciesId"
         )
     )
-    val targetSpecies: List<Species>
+    val targetSpecies: List<Species>,
+
+    @Relation(
+        entity = BodyOfWater::class,
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = EventBodyOfWater::class,
+            parentColumn = "eventId",
+            entityColumn = "bodyOfWaterId"
+        )
+    )
+    val bodiesOfWater: List<BodyOfWater>
 )
 
 @DatabaseView(

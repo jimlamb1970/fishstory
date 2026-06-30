@@ -85,7 +85,7 @@ data class TripWithDetails(
         parentColumn = "id",
         entityColumn = "tripId"
     )
-    val events: List<EventWithSpecies>,
+    val events: List<EventWithInfo>,
 
     @Relation(
         parentColumn = "id",
@@ -118,13 +118,19 @@ data class TripWithDetails(
             entityColumn = "speciesId"
         )
     )
-    val targetSpecies: List<Species>
-) {
-    val eventTargetSpecies: List<Species>
-        get() = events
-            .flatMap { it.targetSpecies } // Gathers all species lists into one massive list
-            .distinctBy { it.id }         // Deduplicates them so each species appears once
-}
+    val targetSpecies: List<Species>,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TripBodyOfWater::class,
+            parentColumn = "tripId",
+            entityColumn = "bodyOfWaterId"
+        )
+    )
+    val bodiesOfWater: List<BodyOfWater>
+)
 
 @DatabaseView(
     viewName = "v_trip_detailed_summary",

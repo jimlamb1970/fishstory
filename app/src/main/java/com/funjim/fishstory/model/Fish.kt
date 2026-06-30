@@ -55,6 +55,12 @@ data class Species(
             parentColumns = ["id"],
             childColumns = ["lureId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = BodyOfWater::class,
+            parentColumns = ["id"],
+            childColumns = ["bodyOfWaterId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
@@ -62,7 +68,8 @@ data class Species(
         Index(value = ["fishermanId"]),
         Index(value = ["tripId"]),
         Index(value = ["eventId"]),
-        Index(value = ["lureId"])
+        Index(value = ["lureId"]),
+        Index(value = ["bodyOfWaterId"])
     ]
 )
 data class Fish(
@@ -79,6 +86,7 @@ data class Fish(
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val bodyOfWaterId: String? = null,
     val holeNumber: Int? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
