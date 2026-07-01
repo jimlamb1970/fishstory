@@ -780,22 +780,39 @@ fun AppNavigation(
             )
         }
 
+
         composable(
             route = "fishDetails/{fishId}",
             arguments = listOf(navArgument("fishId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fishId = backStackEntry.arguments?.getString("fishId") ?: return@composable
 
-            val app = navController.context.applicationContext as FishstoryApplication
-            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = app.getFishViewModelFactory()
-            )
+            val previousEntry = remember(backStackEntry) {
+                navController.previousBackStackEntry
+            }
 
-            FishDetailScreen(
-                viewModel = viewModel,
-                initialFishId = fishId,
-                navigateBack = { navController.popBackStack() }
-            )
+            if (previousEntry != null) {
+                val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    viewModelStoreOwner = previousEntry
+                )
+
+                FishDetailScreen(
+                    viewModel = viewModel,
+                    initialFishId = fishId,
+                    navigateBack = { navController.popBackStack() }
+                )
+            } else {
+                val app = navController.context.applicationContext as FishstoryApplication
+                val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = app.getFishViewModelFactory()
+                )
+
+                FishDetailScreen(
+                    viewModel = viewModel,
+                    initialFishId = fishId,
+                    navigateBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
