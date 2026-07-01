@@ -168,10 +168,11 @@ data class SpeciesSummary(
 data class FishCounts(
     val totalCaught: Int = 0,
     val totalKept: Int = 0,
-    val tripCount: Int = 0,
+    val bodyOfWaterCount: Int = 0,
     val eventCount: Int = 0,
     val fishermanCount: Int = 0,
     val lureCount: Int = 0,
+    val tripCount: Int = 0,
 )
 
 data class TripWithCounts(

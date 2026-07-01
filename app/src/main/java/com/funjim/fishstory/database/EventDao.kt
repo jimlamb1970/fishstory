@@ -223,11 +223,16 @@ ORDER BY s.startTime DESC"""
         SELECT event_table.* FROM event_table 
         INNER JOIN fish_table ON event_table.id = fish_table.eventId
         WHERE event_table.tripId = :tripId
+          AND (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
         GROUP BY event_table.id
     """)
-    fun getEventsWithFish(tripId: String?, fishermanId: String?, lureId: String?): Flow<List<Event>>
+    fun getEventsWithFish(
+        bodyOfWaterId: String?,
+        fishermanId: String?,
+        lureId: String?,
+        tripId: String?): Flow<List<Event>>
 
     @Query("SELECT * FROM event_target_species")
     fun getAllEventTargetSpecies(): Flow<List<EventTargetSpecies>>

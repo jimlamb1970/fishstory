@@ -28,8 +28,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.*
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -47,7 +45,7 @@ import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.BodyOfWaterSelectionField
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -284,7 +282,7 @@ fun AddFishScreen(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        BodyOfWaterSelection(
+                        BodyOfWaterSelectionField(
                             items = sortedBodiesOfWater,
                             selectedItem = selectedBodyOfWater,
                             onSelected = { bodyOfWater -> viewModel.updateBodyOfWater(bodyOfWater) },

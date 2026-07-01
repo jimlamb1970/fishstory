@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -30,6 +31,7 @@ import kotlinx.coroutines.launch
 
 class FishViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
@@ -39,11 +41,12 @@ class FishViewModel(
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
     // UI State flows
-    private val _selectedTripId = MutableStateFlow<String?>(null)
+    private val _selectedBodyOfWaterId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
     private val _selectedLureId = MutableStateFlow<String?>(null)
+    private val _selectedTripId = MutableStateFlow<String?>(null)
 
     private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
     private val _isReversed = MutableStateFlow(false)
@@ -52,14 +55,33 @@ class FishViewModel(
     val species = fishRepo.allSpecies
     val speciesSummaries = fishRepo.speciesSummaries
 
-    val selectedTripId = _selectedTripId.asStateFlow()
+    val selectedBodyOfWaterId = _selectedBodyOfWaterId.asStateFlow()
     val selectedEventId = _selectedEventId.asStateFlow()
     val selectedFishermanId = _selectedFishermanId.asStateFlow()
     val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
     val selectedLureId = _selectedLureId.asStateFlow()
+    val selectedTripId = _selectedTripId.asStateFlow()
 
     val sortOrder = _sortOrder.asStateFlow()
     val isReversed = _isReversed.asStateFlow()
+
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedBodyOfWater = _selectedBodyOfWaterId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                fishRepo.getBodyOfWater(id)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTrip = _selectedTripId
@@ -67,7 +89,7 @@ class FishViewModel(
             if (id == null) {
                 flowOf(null)
             } else {
-                 fishRepo.getTrip(id)
+                fishRepo.getTrip(id)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -107,24 +129,65 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishSummary: StateFlow<FishSummary> = combine(
-        _selectedTripId,
+        _selectedBodyOfWaterId,
         _selectedEventId,
         _selectedFishermanId,
-        _selectedLureId
-    ) { tripId, eventId, fishermanId, lureId ->
-        val flow1 = fishRepo.getFishCounts(tripId, eventId, fishermanId, lureId)
-        val flow2 = fishRepo.getTopTrip(tripId, eventId, fishermanId, lureId)
-        val flow3 = fishRepo.getTopEvent(tripId, eventId, fishermanId, lureId)
+        _selectedLureId,
+        _selectedTripId
+    ) { bodyOfWaterId, eventId, fishermanId, lureId, tripId ->
+        val flow1 = fishRepo.getFishCounts(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
+
+        val flow2 = fishRepo.getTopTrip(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
+
+        val flow3 = fishRepo.getTopEvent(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
 
         // Combine 4-6
-        val flow4 = fishRepo.getTopFisherman(tripId, eventId, fishermanId, lureId)
-        val flow5 = fishRepo.getTopSpecies(tripId, eventId, fishermanId, lureId)
-        val flow6 = fishRepo.getTopLure(tripId, eventId, fishermanId, lureId)
+        val flow4 = fishRepo.getTopFisherman(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
 
-        combine(flow1, flow2, flow3) {
-            c1, c2, c3 -> Triple(c1, c2, c3)
-        }.combine(combine(flow4, flow5, flow6) {
-            c4, c5, c6 -> Triple(c4, c5, c6)
+        val flow5 = fishRepo.getTopSpecies(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
+
+        val flow6 = fishRepo.getTopLure(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId
+        )
+
+        combine(flow1, flow2, flow3) { c1, c2, c3 ->
+            Triple(c1, c2, c3)
+        }.combine(combine(flow4, flow5, flow6) { c4, c5, c6 ->
+            Triple(c4, c5, c6)
         }) { t1, t2 ->
             FishSummary(
                 counts = t1.first,
@@ -136,24 +199,50 @@ class FishViewModel(
             )
         }
     }.flatMapLatest { it }
-    .flowOn(Dispatchers.IO)
-    .onEach { summary ->
-        Log.d("FishSummaryDebug", "Summary emitted: for something $summary")
-    }
-    .stateIn(
+        .flowOn(Dispatchers.IO)
+        .onEach { summary ->
+            Log.d("FishSummaryDebug", "Summary emitted: for something $summary")
+        }
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = FishSummary()
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val bodiesOfWaterWithFish: StateFlow<List<BodyOfWater>> = combine(
+        _selectedEventId,
+        _selectedFishermanId,
+        _selectedLureId,
+        _selectedTripId
+    ) { eventId, fishermanId, lureId, tripId ->
+        Quad(eventId, fishermanId, lureId, tripId)
+    }.flatMapLatest { (eventId, fishermanId, lureId, tripId) ->
+        fishRepo.getBodiesOfWater(
+            eventId = eventId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId)
+    }.map { list ->
+        list.sortedBy { it.name }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val tripsWithFish: StateFlow<List<Trip>> = combine(
+        _selectedBodyOfWaterId,
         _selectedFishermanId,
         _selectedLureId
-    ) { fishermanId, lureId ->
-        Pair(fishermanId, lureId)
-    }.flatMapLatest { (fishermanId, lureId) ->
-        fishRepo.getTrips(fishermanId, lureId)
+    ) { bodyOfWaterId, fishermanId, lureId ->
+        Triple(bodyOfWaterId, fishermanId, lureId)
+    }.flatMapLatest { (bodyOfWaterId, fishermanId, lureId) ->
+        fishRepo.getTrips(
+            bodyOfWaterId = bodyOfWaterId,
+            fishermanId = fishermanId,
+            lureId = lureId)
     }.map { list ->
         list.sortedByDescending { it.startDate }
     }.stateIn(
@@ -164,13 +253,18 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val eventsWithFish: StateFlow<List<Event>> = combine(
-        _selectedTripId,
+        _selectedBodyOfWaterId,
         _selectedFishermanId,
-        _selectedLureId
-    ) { tripId, fishermanId, lureId ->
-        Triple(tripId, fishermanId, lureId)
-    }.flatMapLatest { (tripId, fishermanId, lureId) ->
-        fishRepo.getEvents(tripId, fishermanId, lureId)
+        _selectedLureId,
+        _selectedTripId
+    ) { bodyOfWaterId, fishermanId, lureId, tripId ->
+        Quad(bodyOfWaterId, fishermanId, lureId, tripId)
+    }.flatMapLatest { (bodyOfWaterId, fishermanId, lureId, tripId) ->
+        fishRepo.getEvents(
+            bodyOfWaterId = bodyOfWaterId,
+            fishermanId = fishermanId,
+            lureId = lureId,
+            tripId = tripId)
     }
     .map { list ->
         list.sortedBy { it.startTime }
@@ -183,13 +277,18 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishermenWithFish: StateFlow<List<Fisherman>> = combine(
-        _selectedTripId,
+        _selectedBodyOfWaterId,
         _selectedEventId,
-        _selectedLureId
-    ) { tripId, eventId, lureId ->
-        Triple(tripId, eventId, lureId)
-    }.flatMapLatest { (tripId, eventId, lureId) ->
-        fishRepo.getFishermen(tripId, eventId, lureId)
+        _selectedLureId,
+        _selectedTripId
+    ) { bodyOfWaterId, eventId, lureId, tripId ->
+        Quad(bodyOfWaterId, eventId, lureId, tripId)
+    }.flatMapLatest { (bodyOfWaterId, eventId, lureId, tripId) ->
+        fishRepo.getFishermen(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            lureId = lureId,
+            tripId = tripId)
     }.map { list ->
         list.sortedBy { it.fullName }
     }.stateIn(
@@ -200,13 +299,18 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val luresWithFish: StateFlow<List<LureWithColors>> = combine(
-        _selectedTripId,
+        _selectedBodyOfWaterId,
         _selectedEventId,
-        _selectedFishermanId
-    ) { tripId, eventId, fishermanId ->
-        Triple(tripId, eventId, fishermanId)
-    }.flatMapLatest { (tripId, eventId, fishermanId) ->
-        fishRepo.getLures(tripId, eventId, fishermanId)
+        _selectedFishermanId,
+        _selectedTripId
+    ) { bodyOfWaterId, eventId, fishermanId, tripId ->
+        Quad(bodyOfWaterId, eventId, fishermanId, tripId)
+    }.flatMapLatest { (bodyOfWaterId, eventId, fishermanId, tripId) ->
+        fishRepo.getLures(
+            bodyOfWaterId = bodyOfWaterId,
+            eventId = eventId,
+            fishermanId = fishermanId,
+            tripId = tripId)
     }.map { list -> sortLures(list)
     }.stateIn(
         scope = viewModelScope,
@@ -240,17 +344,28 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishForScope: StateFlow<List<FishWithDetails>> = combine(
-        _selectedTripId,
+        _selectedBodyOfWaterId,
         _selectedEventId,
         _selectedFishermanId,
-        _selectedLureId
-    ) { trip, seg, fish, lure ->
+        _selectedLureId,
+        _selectedTripId
+    ) { bodyOfWater, event, fish, lure, trip ->
         // Helper to pass params
-        FishFilterParams(trip, seg, fish, lure)
+        FishFilterParams(
+            bodyOfWaterId = bodyOfWater,
+            eventId = event,
+            fishermanId = fish,
+            lureId = lure,
+            tripId = trip)
     }.combine(combine(_sortOrder, _isReversed) {
             sort, reversed -> FishSortParams(sort, reversed)
     }) { params, sort->
-        fishRepo.getFilteredFish(params.tripId, params.eventId, params.fishermanId, params.lureId)
+        fishRepo.getFilteredFish(
+            bodyOfWaterId = params.bodyOfWaterId,
+            eventId = params.eventId,
+            fishermanId = params.fishermanId,
+            lureId = params.lureId,
+            tripId = params.tripId)
             .map { list -> applySorting(list, sort.sortOrder, sort.isReversed) }
     }.flatMapLatest {
         it
@@ -284,6 +399,7 @@ class FishViewModel(
 
     // UI Events
     fun clearSelections() {
+        selectBodyOfWater(null)
         selectTrip(null)
         selectEvent(null)
         selectFisherman(null)
@@ -291,6 +407,9 @@ class FishViewModel(
         selectTackleBox(null)
     }
 
+    fun selectBodyOfWater(id: String?) {
+        _selectedBodyOfWaterId.value = id
+    }
     fun selectTrip(id: String?) {
         _selectedTripId.value = id
         _selectedEventId.value = null // Reset event if trip changes
@@ -312,10 +431,11 @@ class FishViewModel(
     fun updateSortOrder(order: FishSortOrder) { _sortOrder.value = order }
 
     private data class FishFilterParams(
-        val tripId: String?,
+        val bodyOfWaterId: String?,
         val eventId: String?,
         val fishermanId: String?,
-        val lureId: String?
+        val lureId: String?,
+        val tripId: String?
     )
 
     private data class FishSortParams(
@@ -422,8 +542,16 @@ class FishViewModel(
     }
 }
 
+data class Quad<first, second, third, fourth>(
+    val first: first,
+    val second: second,
+    val third: third,
+    val fourth: fourth
+)
+
 class FishViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
@@ -434,6 +562,7 @@ class FishViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return FishViewModel(
                 locationProvider,
+                envRepo,
                 fishRepo,
                 lureRepo,
                 photoRepo,

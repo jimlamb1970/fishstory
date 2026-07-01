@@ -140,10 +140,15 @@ interface LureDao {
     @Query("""
         SELECT DISTINCT lure_table.* FROM lure_table 
         INNER JOIN fish_table ON lure_table.id = fish_table.lureId 
-        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+        WHERE (:bodyOfWaterId IS NULL OR fish_table.tripId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY lure_table.id
     """)
-    fun getLuresWithFish(tripId: String?, eventId: String?, fishermanId: String?): Flow<List<LureWithColors>>
+    fun getLuresWithFish(
+        bodyOfWaterId: String?,
+        eventId: String?,
+        fishermanId: String?,
+        tripId: String?): Flow<List<LureWithColors>>
 }

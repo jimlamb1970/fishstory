@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
-import com.funjim.fishstory.model.EventTargetSpecies
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripBodyOfWater
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +20,9 @@ interface BodyOfWaterDao {
 
     @Query("SELECT * FROM body_of_water_table")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWater>>
+
+    @Query("SELECT * FROM body_of_water_table WHERE id = :id")
+    fun getBodyOfWater (id: String): Flow<BodyOfWater?>
 
     @Delete
     suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWater)
@@ -72,4 +75,20 @@ interface BodyOfWaterDao {
 
     @Query("DELETE FROM event_body_of_water")
     suspend fun deleteAllEventBodiesOfWater()
+
+    @Query("""
+        SELECT body_of_water_table.* FROM body_of_water_table 
+        INNER JOIN fish_table ON body_of_water_table.id = fish_table.bodyOfWaterId  
+        WHERE (:eventId IS NULL OR fish_table.eventId = :eventId)
+          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:tripId IS NULL OR fish_table.tripId = :tripId)
+        GROUP BY body_of_water_table.id
+    """)
+    fun getBodiesOfWaterWithFish(
+        eventId: String?,
+        fishermanId: String?,
+        lureId: String?,
+        tripId: String?): Flow<List<BodyOfWater>>
+
 }

@@ -277,10 +277,15 @@ WHERE f.id = :fId
     @Query("""
         SELECT fisherman_table.* FROM fisherman_table 
         INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId 
-        WHERE (:tripId IS NULL OR fish_table.tripId = :tripId)
+        WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY fisherman_table.id
     """)
-    fun getFishermenWithFish(tripId: String?, eventId: String?, lureId: String?): Flow<List<Fisherman>>
+    fun getFishermenWithFish(
+        bodyOfWaterId: String?,
+        eventId: String?,
+        lureId: String?,
+        tripId: String?): Flow<List<Fisherman>>
 }

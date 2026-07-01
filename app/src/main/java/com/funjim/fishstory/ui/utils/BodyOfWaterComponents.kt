@@ -59,12 +59,13 @@ import com.funjim.fishstory.model.BodyOfWater
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BodyOfWaterSelection(
+fun BodyOfWaterSelectionField(
     items: List<BodyOfWater>,
     selectedItem: BodyOfWater?,
     onSelected: (BodyOfWater) -> Unit,
-    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
+    onAdd: (() -> Unit)? = null,
+    onClear: (() -> Unit)? = null,
     thumbnailProvider: @Composable (BodyOfWater) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
@@ -73,7 +74,7 @@ fun BodyOfWaterSelection(
     var isGridView by remember { mutableStateOf(true) }
 
     OutlinedTextField(
-        value = selectedItem?.name ?: "Select Body of Water",
+        value = selectedItem?.name ?: "Select Body of Water (optional)",
         onValueChange = {},
         readOnly = true,
         modifier = modifier.clickable { showSheet = true },
@@ -204,15 +205,28 @@ fun BodyOfWaterSelection(
                             )
                         }
 
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            HorizontalDivider()
+                        if (onClear != null && selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalResetButton(
+                                    title = "Reset Body of Water",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
                         }
 
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            ModalAddButton(
-                                title = "Add new body of water...",
-                                onAdd = { showSheet = false; onAdd() }
-                            )
+                        if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider()
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalAddButton(
+                                    title = "Add new body of water...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -254,12 +268,24 @@ fun BodyOfWaterSelection(
                             )
                         }
 
-                        item { HorizontalDivider() }
-                        item {
-                            ModalAddButton(
-                                title = "Add new body of water...",
-                                onAdd = { showSheet = false; onAdd() }
-                            )
+                        if (onClear != null && selectedItem != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalResetButton(
+                                    title = "Reset Body of Water",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalAddButton(
+                                    title = "Add new body of water...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
                         }
                     }
                 }

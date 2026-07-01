@@ -46,19 +46,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishListScreen(
     viewModel: FishViewModel,
-    tripId: String?,
+    bodyOfWaterId: String?,
     eventId: String?,
     fishermanId: String?,
     lureId: String?,
+    tripId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = listOf(tripId, eventId, fishermanId, lureId)) {
-        viewModel.selectTrip(tripId)
+    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, tripId)) {
+        viewModel.selectBodyOfWater(bodyOfWaterId)
         viewModel.selectEvent(eventId)
         viewModel.selectFisherman(fishermanId)
         viewModel.selectLure(lureId)
+        viewModel.selectTrip(tripId)
     }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -66,20 +68,27 @@ fun FishListScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
+    val bodyOfWater by viewModel.selectedBodyOfWater.collectAsStateWithLifecycle()
     val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val lure by viewModel.selectedLure.collectAsStateWithLifecycle()
+    val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
 
-    val isLoading = (tripId != null && trip == null) ||
+    val isLoading = (bodyOfWaterId != null && bodyOfWater == null) ||
             (eventId != null && event == null) ||
             (fishermanId != null && fisherman == null) ||
-            (lureId != null && lure == null)
+            (lureId != null && lure == null) ||
+            (tripId != null && trip == null)
 
     val names = if (isLoading) {
         emptyList() // Keep it clean while fetching
     } else {
-        listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.lure?.name)
+        listOfNotNull(
+            trip?.name,
+            event?.name,
+            fisherman?.fullName,
+            bodyOfWater?.name,
+            lure?.lure?.name)
     }
 
     // Load fish for the appropriate scope

@@ -52,6 +52,7 @@ class FishstoryApplication : Application() {
 
     val fishRepository by lazy {
         FishRepository(
+            bodyOfWaterDao = database.bodyOfWaterDao(),
             eventDao = database.eventDao(),
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
@@ -139,6 +140,7 @@ class FishstoryApplication : Application() {
 
     fun getFishViewModelFactory() = FishViewModelFactory(
         locationProvider = locationProvider,
+        envRepo = environmentRepository,
         fishRepo = fishRepository,
         lureRepo = lureRepository,
         photoRepo = photoRepository,

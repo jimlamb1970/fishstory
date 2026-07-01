@@ -77,7 +77,7 @@ class MainViewModel(
 
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
     val allFish: Flow<List<FishWithDetails>> =
-        fishDao.getFishWithDetails(null, null, null, null)
+        fishDao.getFishWithDetails(null, null, null, null, null)
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Event>> {
         return eventDao.getEventsForTrip(tripId)
