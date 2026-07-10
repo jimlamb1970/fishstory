@@ -22,9 +22,11 @@ import kotlin.collections.List
 // Placeholder data structure for serialization example. Replace with actual DB entities.
 @Serializable
 data class DatabaseExportData(
-    val bodiesOfWater: List<BodyOfWater> = emptyList(),
     val trips: List<Trip>,
     val events: List<Event>,
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),
+    val eventBodyOfWater: List<EventBodyOfWater> = emptyList(),
+    val tripBodyOfWater: List<TripBodyOfWater> = emptyList(),
     val fishermen: List<Fisherman>,
     val tripFishermanCrossRef: List<TripFishermanCrossRef>,
     val eventFishermanCrossRef: List<EventFishermanCrossRef>,
@@ -40,6 +42,7 @@ data class DatabaseExportData(
     val tripTargetSpecies: List<TripTargetSpecies> = emptyList(),
     val fish: List<Fish>,
     val photos: List<Photo>,
+    val photoBodyOfWaterCrossRef: List<PhotoBodyOfWaterCrossRef> = emptyList(),
     val photoEventsCrossRef: List<PhotoEventCrossRef>,
     val photoFishCrossRef: List<PhotoFishCrossRef>,
     val photoFishermanCrossRef: List<PhotoFishermanCrossRef>,
@@ -95,9 +98,11 @@ class MainViewModel(
         return withContext(Dispatchers.IO) {
             try {
                 val allData = DatabaseExportData(
-                    bodiesOfWater = bodyOfWaterDao.getAllBodiesOfWater().firstOrNull() ?: emptyList(),
                     trips = tripDao.getAllTrips().firstOrNull() ?: emptyList(),
                     events = eventDao.getAllEvents().firstOrNull() ?: emptyList(),
+                    bodiesOfWater = bodyOfWaterDao.getAllBodiesOfWater().firstOrNull() ?: emptyList(),
+                    tripBodyOfWater = bodyOfWaterDao.getAllTripBodiesOfWater().firstOrNull() ?: emptyList(),
+                    eventBodyOfWater = bodyOfWaterDao.getAllEventBodiesOfWater().firstOrNull() ?: emptyList(),
                     fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
                     tripFishermanCrossRef = tripDao.getAllTripFishermanCrossRefs().firstOrNull() ?: emptyList(),
                     eventFishermanCrossRef = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
@@ -113,6 +118,7 @@ class MainViewModel(
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
+                    photoBodyOfWaterCrossRef = photoDao.getAllPhotoBodyOfWaterCrossRefs().firstOrNull() ?: emptyList(),
                     photoEventsCrossRef = photoDao.getAllPhotoEventCrossRefs().firstOrNull() ?: emptyList(),
                     photoFishCrossRef = photoDao.getAllPhotoFishCrossRefs().firstOrNull() ?: emptyList(),
                     photoFishermanCrossRef = photoDao.getAllPhotoFishermanCrossRefs().firstOrNull() ?: emptyList(),
@@ -137,9 +143,11 @@ class MainViewModel(
                     val jsonString = inputStream.bufferedReader().use { it.readText() }
                     val data = json_import.decodeFromString<DatabaseExportData>(jsonString)
 
-                    bodyOfWaterDao.deleteAllBodiesOfWater()
                     tripDao.deleteAllTrips()
                     eventDao.deleteAllEvents()
+                    bodyOfWaterDao.deleteAllBodiesOfWater()
+                    bodyOfWaterDao.deleteAllTripBodiesOfWater()
+                    bodyOfWaterDao.deleteAllEventBodiesOfWater()
                     fishermanDao.deleteAllFishermen()
                     tripDao.deleteAllTripFishermanCrossRefs()
                     eventDao.deleteAllEventFishermanCrossRefs()
@@ -155,6 +163,7 @@ class MainViewModel(
                     eventDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
+                    photoDao.deleteAllPhotoBodyOfWaterCrossRefs()
                     photoDao.deleteAllPhotoEventCrossRefs()
                     photoDao.deleteAllPhotoFishCrossRefs()
                     photoDao.deleteAllPhotoFishermanCrossRefs()
@@ -162,9 +171,11 @@ class MainViewModel(
                     photoDao.deleteAllPhotoSpeciesCrossRefs()
                     photoDao.deleteAllPhotoTripCrossRefs()
 
-                    data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
+                    data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
+                    data.tripBodyOfWater.forEach { bodyOfWaterDao.insertTripBodyOfWater(it) }
+                    data.eventBodyOfWater.forEach { bodyOfWaterDao.insertEventBodyOfWater(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
@@ -180,6 +191,7 @@ class MainViewModel(
                     data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
+                    data.photoBodyOfWaterCrossRef.forEach { photoDao.addBodyOfWaterPhoto(it) }
                     data.photoEventsCrossRef.forEach { photoDao.addEventPhoto(it) }
                     data.photoFishCrossRef.forEach { photoDao.addFishPhoto(it) }
                     data.photoFishermanCrossRef.forEach { photoDao.addFishermanPhoto(it) }

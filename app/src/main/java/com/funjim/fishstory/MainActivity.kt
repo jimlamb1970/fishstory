@@ -59,6 +59,7 @@ import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
 import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
+import com.funjim.fishstory.ui.screens.ManageBodiesOfWaterScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
@@ -489,6 +490,18 @@ fun AppNavigation(
             )
         }
 
+        composable("manage_bodies_of_water") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: BodyOfWaterViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getBodyOfWaterViewModelFactory()
+            )
+
+            ManageBodiesOfWaterScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable("manage_colors") {
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -666,6 +679,9 @@ fun AppNavigation(
                 importViewModel = importViewModel,
                 onThemeChange = { selectedTheme ->
                     onThemeChange(selectedTheme)
+                },
+                navigateToManageBodiesOfWater = {
+                    navController.navigate("manage_bodies_of_water")
                 },
                 navigateToManageColors = {
                     navController.navigate("manage_colors")

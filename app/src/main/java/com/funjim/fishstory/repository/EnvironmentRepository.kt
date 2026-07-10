@@ -19,6 +19,7 @@ class EnvironmentRepository(
     val allBodiesOfWater: Flow<List<BodyOfWater>> = bodyOfWaterDao.getAllBodiesOfWater()
 
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.insertBodyOfWater(bodyOfWater)
+    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.upsertBodyOfWater(bodyOfWater)
     suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.deleteBodyOfWater(bodyOfWater)
 
     suspend fun insertTripBodyOfWater(

@@ -18,6 +18,9 @@ interface BodyOfWaterDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBodyOfWater(bodyOfWater: BodyOfWater)
 
+    @Upsert
+    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater)
+
     @Query("SELECT * FROM body_of_water_table")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWater>>
 

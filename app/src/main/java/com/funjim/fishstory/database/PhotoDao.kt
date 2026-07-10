@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
 import com.funjim.fishstory.model.PhotoEventCrossRef
 import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.PhotoFishermanCrossRef
@@ -20,6 +21,8 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_table")
     fun getAllPhotos(): Flow<List<Photo>>
 
+    @Query("SELECT * FROM photo_body_of_water_cross_ref")
+    fun getAllPhotoBodyOfWaterCrossRefs(): Flow<List<PhotoBodyOfWaterCrossRef>>
     @Query("SELECT * FROM photo_event_cross_ref")
     fun getAllPhotoEventCrossRefs(): Flow<List<PhotoEventCrossRef>>
     @Query("SELECT * FROM photo_fish_cross_ref")
@@ -36,6 +39,8 @@ interface PhotoDao {
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()
 
+    @Query("DELETE FROM photo_body_of_water_cross_ref")
+    suspend fun deleteAllPhotoBodyOfWaterCrossRefs()
     @Query("DELETE FROM photo_event_cross_ref")
     suspend fun deleteAllPhotoEventCrossRefs()
     @Query("DELETE FROM photo_fish_cross_ref")
@@ -62,6 +67,10 @@ interface PhotoDao {
     @Delete
     suspend fun deletePhoto(photo: Photo)
 
+    @Upsert
+    suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterCrossRef)
+    @Delete
+    suspend fun deleteBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterCrossRef)
     @Upsert
     suspend fun addTripPhoto(crossRef: PhotoTripCrossRef)
     @Delete
@@ -134,6 +143,14 @@ interface PhotoDao {
     WHERE photo_fisherman_cross_ref.fishermanId = :fishermanId
 """)
     fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
+
+    @Query("""
+        SELECT photo_table.* FROM photo_table
+        INNER JOIN photo_body_of_water_cross_ref ON photo_table.id = photo_body_of_water_cross_ref.photoId
+        WHERE photo_body_of_water_cross_ref.bodyOfWaterId = :id
+        LIMIT 1
+    """)
+    suspend fun getPhotoForBodyOfWater(id: String): Photo?
 
     @Query("""
         SELECT photo_table.* FROM photo_table

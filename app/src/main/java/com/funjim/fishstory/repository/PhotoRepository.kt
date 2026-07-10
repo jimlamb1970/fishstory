@@ -30,6 +30,7 @@ import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.room.withTransaction
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
 
 data class PhotoMetadata(
     val hashcode: String,
@@ -361,6 +362,16 @@ class PhotoRepository(
         return photoDao.getThumbnailForSpecies(id)
     }
 
+    suspend fun deleteBodyOfWaterThumbnail(id: String) {
+        // Check if existing photo cross reference exists
+        val existingPhoto = photoDao.getPhotoForBodyOfWater(id)
+
+        // If it does, delete the photo that corresponds to the cross reference from the photo table
+        // Deleting the photo will delete the cross reference too
+        if (existingPhoto != null) {
+            photoDao.deletePhoto(existingPhoto)
+        }
+    }
     suspend fun deleteSpeciesThumbnail(speciesId: String) {
         // Check if existing species photo cross reference exists
         val existingPhoto = photoDao.getPhotoForSpecies(speciesId)
@@ -369,6 +380,31 @@ class PhotoRepository(
         // Deleting the photo will delete the cross reference too
         if (existingPhoto != null) {
             photoDao.deletePhoto(existingPhoto)
+        }
+    }
+
+    suspend fun updateBodyOfWaterThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            // 1) Check if existing photo cross reference exists.
+            val existingPhoto = photoDao.getPhotoForBodyOfWater(id)
+
+            // 2) If it does, delete the photo that corresponds to the cross reference from the photo table
+            if (existingPhoto != null) {
+                photoDao.deletePhoto(existingPhoto)
+            }
+
+            val metadata = getPhotoMetadata(uri)
+
+            // 3) Create a new entry for the photo table
+            val photo = Photo(
+                uri = "body_of_water_thumb_${id}_${System.currentTimeMillis()}",
+                hashcode = metadata.hashcode,
+                thumbnail = metadata.thumbnail
+            )
+            photoDao.insertPhoto(photo)
+
+            // 4) Add the new photo species cross ref
+            photoDao.addBodyOfWaterPhoto(PhotoBodyOfWaterCrossRef(photo.id, id, true))
         }
     }
 

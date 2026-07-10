@@ -14,6 +14,7 @@ import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
 import com.funjim.fishstory.viewmodels.AddFishViewModelFactory
 import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
+import com.funjim.fishstory.viewmodels.BodyOfWaterViewModelFactory
 import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
 import com.funjim.fishstory.viewmodels.EventViewModelFactory
 import com.funjim.fishstory.viewmodels.FishViewModelFactory
@@ -122,6 +123,11 @@ class FishstoryApplication : Application() {
         fishRepository,
         photoRepository,
         tripRepository
+    )
+
+    fun getBodyOfWaterViewModelFactory() = BodyOfWaterViewModelFactory(
+        environmentRepository,
+        photoRepository
     )
 
     fun getDashboardViewModelFactory() = DashboardViewModelFactory(
