@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Share // Added for fallback if needed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,6 +40,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.absoluteValue
+
+// Helper function to invoke the native share sheet
+fun shareContent(context: Context, textToShare: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, textToShare)
+        type = "text/plain"
+    }
+    val shareIntent = Intent.createChooser(sendIntent, "Share your catch via:")
+    context.startActivity(shareIntent)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -277,8 +290,41 @@ private fun FishDetailContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // TODO - need to redo this for multi catches
-        ReleasedChip(fish.fish.keptCount == 0)
+
+        // Placed the Chip and Share button on the same horizontal line
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ReleasedChip(fish.fish.keptCount == 0)
+
+            IconButton(
+                onClick = {
+                    val status = if (fish.fish.keptCount == 0) "Released" else "Kept"
+                    val lengthStr = fish.fish.length?.toDisplayString(useMetric = false, useFractions = true) ?: ""
+                    val bodyOfWater = fish.bodyOfWater?.name ?: ""
+                    val dateStr = dateFormatter.format(Date(fish.fish.timestamp))
+                    val timeStr = timeFormatter.format(Date(fish.fish.timestamp))
+
+                    val shareMessage = buildString {
+                        append("${fish.fisherman.fullName} caught a ")
+                        if (lengthStr.isNotEmpty()) append(" $lengthStr ")
+                        append(fish.species.name)
+                        append(" at $timeStr on $dateStr")
+                        if (bodyOfWater.isNotEmpty()) append(" on $bodyOfWater")
+                    }
+
+                    shareContent(context, shareMessage)
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share Catch",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
         HorizontalDivider()
 
