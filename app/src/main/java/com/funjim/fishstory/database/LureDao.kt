@@ -140,7 +140,7 @@ interface LureDao {
     @Query("""
         SELECT DISTINCT lure_table.* FROM lure_table 
         INNER JOIN fish_table ON lure_table.id = fish_table.lureId 
-        WHERE (:bodyOfWaterId IS NULL OR fish_table.tripId = :bodyOfWaterId)
+        WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
