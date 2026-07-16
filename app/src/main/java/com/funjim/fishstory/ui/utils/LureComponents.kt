@@ -541,6 +541,7 @@ fun LureSelectionField(
 
     if (selectedItem != null) {
         LureColorComposition(
+            modifier = Modifier.padding(top = 4.dp),
             primary = selectedItem.primaryColors,
             secondary = selectedItem.secondaryColors,
             glows = selectedItem.lure.glows,
