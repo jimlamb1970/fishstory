@@ -410,9 +410,9 @@ class FishViewModel(
     fun selectBodyOfWater(id: String?) {
         _selectedBodyOfWaterId.value = id
     }
-    fun selectTrip(id: String?) {
-        _selectedTripId.value = id
-        _selectedEventId.value = null // Reset event if trip changes
+    fun selectTrip(tripId: String?, eventId: String? = null) {
+        _selectedTripId.value = tripId
+        _selectedEventId.value = eventId
     }
     fun selectEvent(id: String?) {
         _selectedEventId.value = id

@@ -57,10 +57,9 @@ fun FishListScreen(
 ) {
     LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, tripId)) {
         viewModel.selectBodyOfWater(bodyOfWaterId)
-        viewModel.selectEvent(eventId)
         viewModel.selectFisherman(fishermanId)
         viewModel.selectLure(lureId)
-        viewModel.selectTrip(tripId)
+        viewModel.selectTrip(tripId, eventId)
     }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
