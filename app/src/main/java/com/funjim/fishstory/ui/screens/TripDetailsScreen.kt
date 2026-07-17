@@ -689,7 +689,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     maxUsage = details.events.size,
                     thumbnailProvider = { bodyOfWater ->
                         val thumbnailFlow = remember(bodyOfWater.id) {
-                            viewModel.speciesThumbnail(bodyOfWater.id)
+                            viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
