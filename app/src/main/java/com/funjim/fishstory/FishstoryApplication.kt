@@ -127,6 +127,7 @@ class FishstoryApplication : Application() {
 
     fun getBodyOfWaterViewModelFactory() = BodyOfWaterViewModelFactory(
         environmentRepository,
+        fishRepository,
         photoRepository
     )
 

@@ -52,7 +52,6 @@ class FishViewModel(
     private val _isReversed = MutableStateFlow(false)
 
     // Exposed State for the UI
-    val species = fishRepo.allSpecies
     val speciesSummaries = fishRepo.speciesSummaries
 
     val selectedBodyOfWaterId = _selectedBodyOfWaterId.asStateFlow()

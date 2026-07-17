@@ -157,12 +157,20 @@ data class FishWithDetails(
         }
 }
 
+data class BodyOfWaterSummary(
+    @Embedded val bodyOfWater: BodyOfWater,
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallestFish: Double
+)
+
 data class SpeciesSummary(
     @Embedded val species: Species,
     val caughtCount: Int,
     val keptCount: Int,
     val largestFish: Double,
-    val smallest: Double
+    val smallestFish: Double
 )
 
 data class FishCounts(

@@ -1,6 +1,7 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
+import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
@@ -126,11 +127,24 @@ interface FishDao {
 
     @Query("""
     SELECT 
+        bow.*, 
+        SUM(f.caughtCount) AS caughtCount,
+        SUM(f.keptCount) AS keptCount,
+        MAX(f.length) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish
+    FROM body_of_water_table AS bow
+    LEFT JOIN fish_table AS f ON bow.id = f.bodyOfWaterId
+    GROUP BY bow.id
+""")
+    fun getBodyOfWaterSummaries(): Flow<List<BodyOfWaterSummary>>
+
+    @Query("""
+    SELECT 
         s.*, 
         SUM(f.caughtCount) AS caughtCount,
         SUM(f.keptCount) AS keptCount,
         MAX(f.length) AS largestFish,
-        MIN(f.length) AS smallest
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish
     FROM species_table AS s
     LEFT JOIN fish_table AS f ON s.id = f.speciesId
     GROUP BY s.id

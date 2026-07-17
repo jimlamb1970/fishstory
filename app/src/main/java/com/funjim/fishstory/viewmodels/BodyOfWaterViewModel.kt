@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.EnvironmentRepository
+import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -17,9 +18,17 @@ import kotlinx.coroutines.launch
 
 class BodyOfWaterViewModel(
     private val envRepo: EnvironmentRepository,
+    private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val bodyOfWaterSummaries: StateFlow<List<BodyOfWaterSummary>> = fishRepo.bodyOfWaterSummaries
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -63,12 +72,13 @@ class BodyOfWaterViewModel(
 
 class BodyOfWaterViewModelFactory(
     private val envRepo: EnvironmentRepository,
+    private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(BodyOfWaterViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return BodyOfWaterViewModel(envRepo, photoRepo) as T
+            return BodyOfWaterViewModel(envRepo, fishRepo, photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
