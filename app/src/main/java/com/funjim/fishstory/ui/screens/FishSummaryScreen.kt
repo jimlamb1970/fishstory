@@ -383,6 +383,39 @@ private fun FishVisual(
                         color = getOnCardColor())
                 }
 
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = getOnCardColor().copy(alpha = 0.75f)
+                )
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    StatItem(
+                        label = "CAUGHT",
+                        value = "${summary.counts.totalTargetCaught}",
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor())
+
+                    Icon(
+                        imageVector = AppIcons.Default.TargetFish,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(48.dp),
+                        tint = getOnCardColor()
+                    )
+
+                    StatItem(
+                        label = "KEPT",
+                        value = "${summary.counts.totalTargetKept}",
+                        labelColor = getOnCardSecondaryColor(),
+                        color = getOnCardColor())
+                }
+
+                if (names.isNotEmpty()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = getOnCardColor().copy(alpha = 0.75f)
+                    )
+                }
+
                 names.forEachIndexed { index, string ->
                     if (index == 0) {
                         Row(verticalAlignment = Alignment.CenterVertically,

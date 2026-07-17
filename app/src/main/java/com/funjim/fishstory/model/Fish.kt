@@ -192,6 +192,8 @@ data class SpeciesSummary(
 data class FishCounts(
     val totalCaught: Int = 0,
     val totalKept: Int = 0,
+    val totalTargetCaught: Int = 0,
+    val totalTargetKept: Int = 0,
     val bodyOfWaterCount: Int = 0,
     val eventCount: Int = 0,
     val fishermanCount: Int = 0,

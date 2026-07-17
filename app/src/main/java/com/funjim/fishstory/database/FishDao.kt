@@ -169,12 +169,30 @@ interface FishDao {
     SELECT 
         SUM(fish_table.caughtCount) AS totalCaught,
         SUM(fish_table.keptCount) AS totalKept,
+
+        SUM(
+            CASE 
+                -- Check if a corresponding entry exists in the target table
+                WHEN target.eventId IS NOT NULL THEN fish_table.caughtCount 
+                ELSE 0 
+            END
+        ) AS totalTargetCaught,
+        SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN fish_table.keptCount 
+                ELSE 0 
+            END
+        ) AS totalTargetKept,
+
         COUNT(DISTINCT fish_table.bodyOfWaterId) AS bodyOfWaterCount,
         COUNT(DISTINCT fish_table.eventId) AS eventCount,
         COUNT(DISTINCT fish_table.fishermanId) AS fishermanCount,
         COUNT(DISTINCT fish_table.lureId) AS lureCount,
         COUNT(DISTINCT fish_table.tripId) AS tripCount
     FROM fish_table
+    LEFT JOIN event_target_species AS target 
+        ON fish_table.eventId = target.eventId 
+        AND fish_table.speciesId = target.speciesId
     WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
