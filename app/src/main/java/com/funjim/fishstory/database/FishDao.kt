@@ -290,4 +290,16 @@ interface FishDao {
         lureId: String?,
         tripId: String?
     ): Flow<LureWithCounts?>
+
+    @Query("""
+        UPDATE fish_table 
+        SET bodyOfWaterId = :newBodyOfWaterId 
+        WHERE (:tripId IS NOT NULL AND tripId = :tripId)
+           OR (:eventId IS NOT NULL AND eventId = :eventId)
+    """)
+    suspend fun updateBodyOfWaterForTripOrEvent(
+        newBodyOfWaterId: String?,
+        tripId: String?,
+        eventId: String?
+    )
 }

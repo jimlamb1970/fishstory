@@ -237,7 +237,23 @@ class FishRepository(
     suspend fun deleteFishPhoto(fishId: String, photoId: String) =
         photoDao.deleteFishPhoto(PhotoFishCrossRef(photoId, fishId))
 
+    suspend fun updateFishBodyOfWater(
+        newBodyOfWaterId: String?,
+        tripId: String? = null,
+        eventId: String? = null
+    ) {
+        // Prevent accidental updates of the entire table if both are null
+        if (tripId == null && eventId == null) return
+
+        fishDao.updateBodyOfWaterForTripOrEvent(
+            newBodyOfWaterId = newBodyOfWaterId,
+            tripId = tripId,
+            eventId = eventId
+        )
+    }
+
     suspend fun addSpecies(species: Species) = fishDao.insertSpecies(species)
     suspend fun upsertSpecies(species: Species) = fishDao.upsertSpecies(species)
     suspend fun deleteSpecies(species: Species) = fishDao.deleteSpecies(species)
+
 }

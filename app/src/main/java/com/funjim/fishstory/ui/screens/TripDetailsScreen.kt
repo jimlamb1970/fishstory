@@ -44,6 +44,7 @@ import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
+import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -85,6 +86,10 @@ fun TripDetailsScreen(
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     var addNewBodyOfWater by remember { mutableStateOf(false) }
     var addBodyOfWaterName by remember { mutableStateOf("") }
+
+    // Dialog state for updating all catches for this body of water
+    var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
+    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -368,6 +373,10 @@ fun TripDetailsScreen(
                             BodiesOfWaterRow(
                                 items = details.bodiesOfWater,
                                 onAdd = { showBodiesOfWaterSelection = true },
+                                onClick = { bodyOfWater ->
+                                    bodyOfWaterToUpdateAll = bodyOfWater
+                                    showUpdateAllCatchesDialog = true
+                                },
                                 onDelete = { bodyOfWater ->
                                     viewModel.removeTripBodyOfWater(tripId, bodyOfWater.id)
                                 },
@@ -748,6 +757,32 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             },
             dismissButton = {
                 TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Confirmation Dialog for long pressing a Body of Water
+    if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
+        UpdateAllCatchesDialog(
+            bodyOfWater = bodyOfWaterToUpdateAll,
+            content = "Do you want to update all the catches associated with this trip to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            onDismiss = {
+                bodyOfWaterToUpdateAll = null
+            },
+            onConfirm = { targetBody ->
+                scope.launch {
+                    // UI waits for the database operation to finish
+                    viewModel.updateBodyOfWaterForTrip(
+                        newBodyOfWaterId = targetBody.id,
+                        tripId = tripId
+                    )
+
+                    // Runs only after the batch update successfully completes
+                    Toast.makeText(context, "Catches updated to ${targetBody.name}", Toast.LENGTH_SHORT).show()
+
+                    // Dismiss the dialog by clearing the state inside the coroutine block
+                    bodyOfWaterToUpdateAll = null
+                }
             }
         )
     }

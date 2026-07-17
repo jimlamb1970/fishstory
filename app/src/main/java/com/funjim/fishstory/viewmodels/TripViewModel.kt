@@ -338,6 +338,15 @@ class TripViewModel(
         }
     }
 
+    fun updateBodyOfWaterForTrip(tripId: String, newBodyOfWaterId: String?) {
+        viewModelScope.launch {
+            fishRepo.updateFishBodyOfWater(
+                newBodyOfWaterId = newBodyOfWaterId,
+                tripId = tripId
+            )
+        }
+    }
+
     fun clearTrip() {
         _selectedTripId.value = null
     }

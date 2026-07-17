@@ -46,6 +46,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -86,11 +87,15 @@ fun EventDetailsScreen(
     var addNewBodyOfWater by remember { mutableStateOf(false) }
     var addBodyOfWaterName by remember { mutableStateOf("") }
 
+    // Dialog state for updating all catches for this body of water
+    var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
+    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
+
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
     var showEditEventDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
-    
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val dateTimeFormatter = remember {
@@ -124,8 +129,6 @@ fun EventDetailsScreen(
 
     when (val state = uiState) {
         is EventDetailsUiState.Loading -> {
-            // Keeps the screen entirely blank or showing a spinner
-            // until all 3 database points arrive
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -135,7 +138,6 @@ fun EventDetailsScreen(
         }
 
         is EventDetailsUiState.Success -> {
-            // Pull your cleanly separated objects out of the verified state frame
             val eventDetails = state.details
             val eventSummary = state.summary
 
@@ -147,12 +149,10 @@ fun EventDetailsScreen(
             val eventLat = event.latitude
             val tripLat = trip.latitude
 
-            // Precedence logic: Use Event if it exists, otherwise use Trip
             val activeLat = eventLat ?: tripLat
 
             Scaffold(
                 topBar = {
-
                     TopAppBar(
                         title = { Text("Event Details") },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -376,6 +376,10 @@ fun EventDetailsScreen(
                             BodiesOfWaterRow(
                                 items = eventDetails.bodiesOfWater,
                                 onAdd = { showBodiesOfWaterSelection = true },
+                                onClick = { bodyOfWater ->
+                                    bodyOfWaterToUpdateAll = bodyOfWater
+                                    showUpdateAllCatchesDialog = true
+                                },
                                 onDelete = { bodyOfWater ->
                                     viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
                                 },
@@ -443,7 +447,6 @@ fun EventDetailsScreen(
                             title = { Text("Edit Event Details") },
                             text = {
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    // TODO - put limit on number of characters
                                     OutlinedTextField(
                                         value = eventName,
                                         onValueChange = { eventName = it },
@@ -649,6 +652,32 @@ fun EventDetailsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Confirmation Dialog for long pressing a Body of Water
+    if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
+        UpdateAllCatchesDialog(
+            bodyOfWater = bodyOfWaterToUpdateAll,
+            content = "Do you want to update all the catches associated with this event to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            onDismiss = {
+                bodyOfWaterToUpdateAll = null
+            },
+            onConfirm = { targetBody ->
+                scope.launch {
+                    // UI waits for the database operation to finish
+                    viewModel.updateBodyOfWaterForEvent(
+                        newBodyOfWaterId = targetBody.id,
+                        eventId = eventId
+                    )
+
+                    // Runs only after the batch update successfully completes
+                    Toast.makeText(context, "Catches updated to ${targetBody.name}", Toast.LENGTH_SHORT).show()
+
+                    // Dismiss the dialog by clearing the state inside the coroutine block
+                    bodyOfWaterToUpdateAll = null
+                }
             }
         )
     }

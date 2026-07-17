@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -560,6 +561,7 @@ fun BodyOfWaterSelection(
 fun BodiesOfWaterRow(
     items: List<BodyOfWater>,
     onAdd: () -> Unit,
+    onClick: (BodyOfWater) -> Unit,
     onDelete: (BodyOfWater) -> Unit,
     thumbnailProvider: @Composable (BodyOfWater) -> Unit,
     modifier: Modifier = Modifier,
@@ -612,7 +614,7 @@ fun BodiesOfWaterRow(
                 items(bodyOfWater) { bodyOfWater ->
                     InputChip(
                         selected = true,
-                        onClick = {},
+                        onClick = { onClick(bodyOfWater) },
                         label = { Text(bodyOfWater.name) },
                         avatar = { thumbnailProvider(bodyOfWater) },
                         colors = InputChipDefaults.inputChipColors(
@@ -645,5 +647,34 @@ fun BodiesOfWaterRow(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun UpdateAllCatchesDialog(
+    bodyOfWater: BodyOfWater?,
+    content: String,
+    onDismiss: () -> Unit,
+    onConfirm: (BodyOfWater) -> Unit
+) {
+    // Only render the AlertDialog if there is a valid body of water target
+    if (bodyOfWater != null) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(text = "Update Catches?") },
+            text = { Text(text = content) },
+            confirmButton = {
+                TextButton(onClick = { onConfirm(bodyOfWater) }
+                ) {
+                    Text("Update")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
