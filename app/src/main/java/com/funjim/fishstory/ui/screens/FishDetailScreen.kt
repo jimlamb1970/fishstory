@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Share // Added for fallback if needed
 import androidx.compose.material3.*
@@ -57,6 +58,7 @@ fun shareContent(context: Context, textToShare: String) {
 fun FishDetailScreen(
     viewModel: FishViewModel,
     initialFishId: String,
+    onEditFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateBack: () -> Unit
 ) {
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
@@ -100,6 +102,19 @@ fun FishDetailScreen(
                     }
                 },
                 actions = {
+                    if (fish != null) {
+                        IconButton(
+                            onClick = {
+                                onEditFish(
+                                    fish.trip.id,
+                                    fish.event.id,
+                                    fish.fish.id
+                                )
+                            }
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Trip")
+                        }
+                    }
                     if (fishList.size > 1) {
                         Text(
                             text = "${currentIndex + 1} / ${fishList.size}",

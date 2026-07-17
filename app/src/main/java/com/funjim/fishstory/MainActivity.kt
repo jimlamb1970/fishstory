@@ -831,6 +831,11 @@ fun AppNavigation(
                 FishDetailScreen(
                     viewModel = viewModel,
                     initialFishId = fishId,
+                    onEditFish = { tripId, eventId, fishId ->
+                        val route =
+                            if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
+                        navController.navigate(route)
+                    },
                     navigateBack = { navController.popBackStack() }
                 )
             } else {
@@ -842,6 +847,11 @@ fun AppNavigation(
                 FishDetailScreen(
                     viewModel = viewModel,
                     initialFishId = fishId,
+                    onEditFish = { tripId, eventId, fishId ->
+                        val route =
+                            if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
+                        navController.navigate(route)
+                    },
                     navigateBack = { navController.popBackStack() }
                 )
             }

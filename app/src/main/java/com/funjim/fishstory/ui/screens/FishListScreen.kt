@@ -305,19 +305,13 @@ fun FishListScreen(
                                     navigateToFishDetails(fishDetails.fish.id)
                                 },
                                 onEdit = {
-                                    scope.launch {
-                                        onAddFish(
-                                            fishDetails.trip.id,
-                                            fishDetails.event.id,
-                                            fishDetails.fish.id
-                                        )
-                                    }
+                                    onAddFish(
+                                        fishDetails.trip.id,
+                                        fishDetails.event.id,
+                                        fishDetails.fish.id
+                                    )
                                 },
-                                onDelete = {
-                                    scope.launch {
-                                        fishToDelete = viewModel.getFishById(fishDetails.fish.id)
-                                    }
-                                },
+                                onDelete = { fishToDelete = fishDetails.fish },
                                 onSetLocation = if (hasLocationPermission) {
                                     {
                                         scope.launch {
