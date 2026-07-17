@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.FishSummary
 import com.funjim.fishstory.model.Fisherman
@@ -142,6 +143,7 @@ fun FishSummaryScreen(
                     event = selectedEvent,
                     fisherman = selectedFisherman,
                     lure = selectedLure,
+                    bodyOfWater = selectedBodyOfWater,
                     onClick = {
                         onNavigateToFishList(
                             selectedBodyOfWaterId,
@@ -306,6 +308,7 @@ private fun FishVisual(
     event: Event?,
     fisherman: Fisherman?,
     lure: LureWithColors?,
+    bodyOfWater: BodyOfWater?,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -325,7 +328,12 @@ private fun FishVisual(
     val latitude = event?.latitude ?: trip?.latitude
     val longitude = event?.longitude ?: trip?.longitude
 
-    val names = listOfNotNull(trip?.name, event?.name, fisherman?.fullName, lure?.lure?.name)
+    val names = listOfNotNull(
+        trip?.name,
+        event?.name,
+        bodyOfWater?.name,
+        fisherman?.fullName,
+        lure?.lure?.name)
 
     Card(
         onClick = onClick,
