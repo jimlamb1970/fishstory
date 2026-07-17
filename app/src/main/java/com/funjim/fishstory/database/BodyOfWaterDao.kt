@@ -8,7 +8,6 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripBodyOfWater
 import kotlinx.coroutines.flow.Flow
 
@@ -21,7 +20,7 @@ interface BodyOfWaterDao {
     @Upsert
     suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater)
 
-    @Query("SELECT * FROM body_of_water_table")
+    @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWater>>
 
     @Query("SELECT * FROM body_of_water_table WHERE id = :id")
