@@ -8,28 +8,26 @@ import com.funjim.fishstory.model.*
 
 @Database(
     entities = [
+        Bait::class,
         BodyOfWater::class,                 // Backed up
         Event::class,                       // Backed up
+        EventBait::class,
         EventBodyOfWater::class,
+        EventFishermanCrossRef::class,      // Backed up
         EventTargetSpecies::class,
         Fish::class,                        // Backed up
         Fisherman::class,                   // Backed up
         Lure::class,                        // Backed up
         LureColor::class,                   // Backed up
-        Note::class,
-        Photo::class,                       // Backed up
-        Species::class,                     // Backed up
-        TackleBox::class,                   // Backed up
-        Trip::class,                        // Backed up
-        TripBodyOfWater::class,
-        TripTargetSpecies::class,
-        EventFishermanCrossRef::class,      // Backed up
         LureGlowColorCrossRef::class,       // Backed up
         LurePrimaryColorCrossRef::class,    // Backed up
         LureSecondaryColorCrossRef::class,  // Backed up
+        Note::class,
         NoteFishCrossRef::class,
         NoteEventCrossRef::class,
         NoteTripCrossRef::class,
+        Photo::class,                       // Backed up
+        PhotoBaitCrossRef::class,
         PhotoBodyOfWaterCrossRef::class,
         PhotoEventCrossRef::class,
         PhotoFishCrossRef::class,
@@ -37,17 +35,24 @@ import com.funjim.fishstory.model.*
         PhotoLureCrossRef::class,
         PhotoSpeciesCrossRef::class,
         PhotoTripCrossRef::class,
-        TackleBoxLureCrossRef::class,       // Backed up
-        TripFishermanCrossRef::class        // Backed up
+        Species::class,                     // Backed up
+        TackleBox::class,                   // Backed up
+        TackleBoxLureCrossRef::class,
+        Trip::class,                        // Backed up
+        TripBait::class,
+        TripBodyOfWater::class,
+        TripFishermanCrossRef::class,
+        TripTargetSpecies::class
     ],
     views = [
         EventDetailedSummary::class,
         TripDetailedSummary::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {
+    abstract fun baitDao(): BaitDao
     abstract fun bodyOfWaterDao(): BodyOfWaterDao
     abstract fun eventDao(): EventDao
     abstract fun fishDao(): FishDao

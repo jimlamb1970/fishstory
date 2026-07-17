@@ -1,9 +1,12 @@
 package com.funjim.fishstory.repository
 
+import com.funjim.fishstory.database.BaitDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColorCrossRef
@@ -18,13 +21,15 @@ import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import kotlinx.coroutines.flow.Flow
 
 class LureRepository(
+    private val baitDao: BaitDao,
+    private val fishermanDao: FishermanDao,
     private val lureDao: LureDao,
-    private val tackleBoxDao: TackleBoxDao,
     private val photoDao: PhotoDao,
-    private val fishermanDao: FishermanDao
+    private val tackleBoxDao: TackleBoxDao
 ) {
     // Data Streams
     val allLureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
+    val allBaits: Flow<List<Bait>> = baitDao.getAllBaits()
 
     fun getAllLures(): Flow<List<LureWithColors>> {
         return lureDao.getLuresWithColors()
@@ -77,6 +82,10 @@ class LureRepository(
     suspend fun insertLureColor(lureColor: LureColor) = lureDao.insertLureColor(lureColor)
     suspend fun upsertLureColor(lureColor: LureColor) = lureDao.upsertLureColor(lureColor)
     suspend fun deleteLureColor(lureColor: LureColor) = lureDao.deleteLureColor(lureColor)
+
+    suspend fun addBait(bait: Bait) = baitDao.insertBait(bait)
+    suspend fun upsertBait(bait: Bait) = baitDao.upsertBait(bait)
+    suspend fun deleteBait(bait: Bait) = baitDao.deleteBait(bait)
 
     suspend fun getFishermanById(id: String) = fishermanDao.getFishermanById(id)
     fun getTackleBoxById(id: String) = tackleBoxDao.getTackleBoxById(id)

@@ -125,6 +125,9 @@ fun FishDetailScreen(
         val fishPhotos = remember(fish.fish.id) {
             viewModel.fishPhotos(fish.fish.id)
         }
+        val baitThumbnailFlow = remember(fish.fish.baitId) {
+            viewModel.baitThumbnail(fish.fish.baitId ?: "")
+        }
         val bodyOfWaterThumbnailFlow = remember(fish.fish.bodyOfWaterId) {
             viewModel.bodyOfWaterThumbnail(fish.fish.bodyOfWaterId ?: "")
         }
@@ -195,6 +198,7 @@ fun FishDetailScreen(
                         if (fish.photoCount == 0) speciesThumbnailFlow
                         else fishThumbnailFlow,
                     fishPhotoFlow = fishPhotos,
+                    baitThumbnailFlow = baitThumbnailFlow,
                     bodyOfWaterThumbnailFlow = bodyOfWaterThumbnailFlow,
                     eventThumbnailFlow = eventThumbnailFlow,
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
@@ -251,6 +255,7 @@ private fun FishDetailContent(
     fish: FishWithDetails,
     fishThumbnailFlow: Flow<ByteArray?>,
     fishPhotoFlow: Flow<List<Photo>>,
+    baitThumbnailFlow: Flow<ByteArray?>,
     bodyOfWaterThumbnailFlow: Flow<ByteArray?>,
     eventThumbnailFlow: Flow<ByteArray?>,
     fishermanThumbnailFlow: Flow<ByteArray?>,
@@ -264,6 +269,8 @@ private fun FishDetailContent(
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val fishPhotos by fishPhotoFlow.collectAsState(initial = null)
+
+    val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
     val bodyOfWaterThumbnail by bodyOfWaterThumbnailFlow.collectAsState(initial = null)
     val fishThumbnail by fishThumbnailFlow.collectAsState(initial = null)
     val tripThumbnail by tripThumbnailFlow.collectAsState(initial = null)
@@ -559,6 +566,39 @@ private fun FishDetailContent(
                             secondary = fish.lure.secondaryColors,
                             glows = fish.lure.lure.glows,
                             glow = fish.lure.glowColors
+                        )
+                    }
+                }
+            }
+        }
+        if (fish.fish.baitId != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(.25f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ThumbnailBox(
+                        thumbnail = baitThumbnail,
+                        imageVector = AppIcons.Default.Bait,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.weight(.75f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = fish.bait?.name ?: "Unknown",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

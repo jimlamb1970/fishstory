@@ -24,6 +24,9 @@ import kotlin.collections.List
 data class DatabaseExportData(
     val trips: List<Trip>,
     val events: List<Event>,
+    val baits: List<Bait> = emptyList(),
+    val eventBait: List<EventBait> = emptyList(),
+    val tripBait: List<TripBait> = emptyList(),
     val bodiesOfWater: List<BodyOfWater> = emptyList(),
     val eventBodyOfWater: List<EventBodyOfWater> = emptyList(),
     val tripBodyOfWater: List<TripBodyOfWater> = emptyList(),
@@ -42,6 +45,7 @@ data class DatabaseExportData(
     val tripTargetSpecies: List<TripTargetSpecies> = emptyList(),
     val fish: List<Fish>,
     val photos: List<Photo>,
+    val photoBait: List<PhotoBaitCrossRef> = emptyList(),
     val photoBodyOfWaterCrossRef: List<PhotoBodyOfWaterCrossRef> = emptyList(),
     val photoEventsCrossRef: List<PhotoEventCrossRef>,
     val photoFishCrossRef: List<PhotoFishCrossRef>,
@@ -53,6 +57,7 @@ data class DatabaseExportData(
 
 class MainViewModel(
     private val locationProvider: LocationProvider,
+    private val baitDao: BaitDao,
     private val bodyOfWaterDao: BodyOfWaterDao,
     private val tripDao: TripDao,
     private val fishermanDao: FishermanDao,
@@ -100,6 +105,9 @@ class MainViewModel(
                 val allData = DatabaseExportData(
                     trips = tripDao.getAllTrips().firstOrNull() ?: emptyList(),
                     events = eventDao.getAllEvents().firstOrNull() ?: emptyList(),
+                    baits = baitDao.getAllBaits().firstOrNull() ?: emptyList(),
+                    tripBait = baitDao.getAllTripBaits().firstOrNull() ?: emptyList(),
+                    eventBait = baitDao.getAllEventBaits().firstOrNull() ?: emptyList(),
                     bodiesOfWater = bodyOfWaterDao.getAllBodiesOfWater().firstOrNull() ?: emptyList(),
                     tripBodyOfWater = bodyOfWaterDao.getAllTripBodiesOfWater().firstOrNull() ?: emptyList(),
                     eventBodyOfWater = bodyOfWaterDao.getAllEventBodiesOfWater().firstOrNull() ?: emptyList(),
@@ -118,6 +126,7 @@ class MainViewModel(
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
+                    photoBait = photoDao.getAllPhotoBaitCrossRefs().firstOrNull() ?: emptyList(),
                     photoBodyOfWaterCrossRef = photoDao.getAllPhotoBodyOfWaterCrossRefs().firstOrNull() ?: emptyList(),
                     photoEventsCrossRef = photoDao.getAllPhotoEventCrossRefs().firstOrNull() ?: emptyList(),
                     photoFishCrossRef = photoDao.getAllPhotoFishCrossRefs().firstOrNull() ?: emptyList(),
@@ -145,6 +154,9 @@ class MainViewModel(
 
                     tripDao.deleteAllTrips()
                     eventDao.deleteAllEvents()
+                    baitDao.deleteAllBaits()
+                    baitDao.deleteAllTripBaits()
+                    baitDao.deleteAllEventBaits()
                     bodyOfWaterDao.deleteAllBodiesOfWater()
                     bodyOfWaterDao.deleteAllTripBodiesOfWater()
                     bodyOfWaterDao.deleteAllEventBodiesOfWater()
@@ -163,6 +175,7 @@ class MainViewModel(
                     eventDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
+                    photoDao.deleteAllPhotoBaitCrossRefs()
                     photoDao.deleteAllPhotoBodyOfWaterCrossRefs()
                     photoDao.deleteAllPhotoEventCrossRefs()
                     photoDao.deleteAllPhotoFishCrossRefs()
@@ -173,6 +186,9 @@ class MainViewModel(
 
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
+                    data.baits.forEach { baitDao.insertBait(it) }
+                    data.tripBait.forEach { baitDao.insertTripBait(it) }
+                    data.eventBait.forEach { baitDao.insertEventBait(it) }
                     data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
                     data.tripBodyOfWater.forEach { bodyOfWaterDao.insertTripBodyOfWater(it) }
                     data.eventBodyOfWater.forEach { bodyOfWaterDao.insertEventBodyOfWater(it) }
@@ -191,6 +207,7 @@ class MainViewModel(
                     data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
+                    data.photoBait.forEach { photoDao.addBaitPhoto(it) }
                     data.photoBodyOfWaterCrossRef.forEach { photoDao.addBodyOfWaterPhoto(it) }
                     data.photoEventsCrossRef.forEach { photoDao.addEventPhoto(it) }
                     data.photoFishCrossRef.forEach { photoDao.addFishPhoto(it) }
@@ -211,6 +228,7 @@ class MainViewModel(
 
 class MainViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val baitDao: BaitDao,
     private val bodyOfWaterDao: BodyOfWaterDao,
     private val eventDao: EventDao,
     private val fishDao: FishDao,
@@ -225,6 +243,7 @@ class MainViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return MainViewModel(
                 locationProvider,
+                baitDao = baitDao,
                 bodyOfWaterDao = bodyOfWaterDao,
                 eventDao = eventDao,
                 fishDao = fishDao,

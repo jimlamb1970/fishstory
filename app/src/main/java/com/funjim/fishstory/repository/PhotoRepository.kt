@@ -30,6 +30,7 @@ import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.room.withTransaction
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.model.PhotoBaitCrossRef
 import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
 
 data class PhotoMetadata(
@@ -343,6 +344,9 @@ class PhotoRepository(
     fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForTrip(id)
     }
+    fun fetchBaitThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForBait(id)
+    }
     fun fetchBodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForBodyOfWater(id)
     }
@@ -362,6 +366,16 @@ class PhotoRepository(
         return photoDao.getThumbnailForSpecies(id)
     }
 
+    suspend fun deleteBaitThumbnail(id: String) {
+        // Check if existing photo cross reference exists
+        val existingPhoto = photoDao.getPhotoForBait(id)
+
+        // If it does, delete the photo that corresponds to the cross reference from the photo table
+        // Deleting the photo will delete the cross reference too
+        if (existingPhoto != null) {
+            photoDao.deletePhoto(existingPhoto)
+        }
+    }
     suspend fun deleteBodyOfWaterThumbnail(id: String) {
         // Check if existing photo cross reference exists
         val existingPhoto = photoDao.getPhotoForBodyOfWater(id)
@@ -380,6 +394,31 @@ class PhotoRepository(
         // Deleting the photo will delete the cross reference too
         if (existingPhoto != null) {
             photoDao.deletePhoto(existingPhoto)
+        }
+    }
+
+    suspend fun updateBaitThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            // 1) Check if existing photo cross reference exists.
+            val existingPhoto = photoDao.getPhotoForBait(id)
+
+            // 2) If it does, delete the photo that corresponds to the cross reference from the photo table
+            if (existingPhoto != null) {
+                photoDao.deletePhoto(existingPhoto)
+            }
+
+            val metadata = getPhotoMetadata(uri)
+
+            // 3) Create a new entry for the photo table
+            val photo = Photo(
+                uri = "bait_thumb_${id}_${System.currentTimeMillis()}",
+                hashcode = metadata.hashcode,
+                thumbnail = metadata.thumbnail
+            )
+            photoDao.insertPhoto(photo)
+
+            // 4) Add the new photo species cross ref
+            photoDao.addBaitPhoto(PhotoBaitCrossRef(photo.id, id, true))
         }
     }
 

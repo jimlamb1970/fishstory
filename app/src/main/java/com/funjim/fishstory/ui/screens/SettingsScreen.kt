@@ -31,6 +31,7 @@ fun SettingsScreen(
     viewModel: MainViewModel,
     importViewModel: ImportViewModel,
     onThemeChange: (String) -> Unit,
+    navigateToManageBaits: () -> Unit,
     navigateToManageBodiesOfWater: () -> Unit,
     navigateToManageColors: () -> Unit,
     navigateToManageSpecies: () -> Unit,
@@ -138,6 +139,14 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Fish from CSV")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { navigateToManageBaits() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manage Baits")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

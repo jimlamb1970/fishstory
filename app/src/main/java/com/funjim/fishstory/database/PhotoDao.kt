@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.PhotoBaitCrossRef
 import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
 import com.funjim.fishstory.model.PhotoEventCrossRef
 import com.funjim.fishstory.model.PhotoFishCrossRef
@@ -21,6 +22,8 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_table")
     fun getAllPhotos(): Flow<List<Photo>>
 
+    @Query("SELECT * FROM photo_bait_cross_ref")
+    fun getAllPhotoBaitCrossRefs(): Flow<List<PhotoBaitCrossRef>>
     @Query("SELECT * FROM photo_body_of_water_cross_ref")
     fun getAllPhotoBodyOfWaterCrossRefs(): Flow<List<PhotoBodyOfWaterCrossRef>>
     @Query("SELECT * FROM photo_event_cross_ref")
@@ -39,6 +42,8 @@ interface PhotoDao {
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()
 
+    @Query("DELETE FROM photo_bait_cross_ref")
+    suspend fun deleteAllPhotoBaitCrossRefs()
     @Query("DELETE FROM photo_body_of_water_cross_ref")
     suspend fun deleteAllPhotoBodyOfWaterCrossRefs()
     @Query("DELETE FROM photo_event_cross_ref")
@@ -67,6 +72,10 @@ interface PhotoDao {
     @Delete
     suspend fun deletePhoto(photo: Photo)
 
+    @Upsert
+    suspend fun addBaitPhoto(crossRef: PhotoBaitCrossRef)
+    @Delete
+    suspend fun deleteBaitPhoto(crossRef: PhotoBaitCrossRef)
     @Upsert
     suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterCrossRef)
     @Delete
@@ -146,6 +155,14 @@ interface PhotoDao {
 
     @Query("""
         SELECT photo_table.* FROM photo_table
+        INNER JOIN photo_bait_cross_ref ON photo_table.id = photo_bait_cross_ref.photoId
+        WHERE photo_bait_cross_ref.baitId = :id
+        LIMIT 1
+    """)
+    suspend fun getPhotoForBait(id: String): Photo?
+
+    @Query("""
+        SELECT photo_table.* FROM photo_table
         INNER JOIN photo_body_of_water_cross_ref ON photo_table.id = photo_body_of_water_cross_ref.photoId
         WHERE photo_body_of_water_cross_ref.bodyOfWaterId = :id
         LIMIT 1
@@ -168,6 +185,15 @@ interface PhotoDao {
     LIMIT 1
 """)
     fun getThumbnailForTrip(tripId: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_bait_cross_ref ON photo_table.id = photo_bait_cross_ref.photoId
+    WHERE baitId = :id 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForBait(id: String): Flow<ByteArray?>
 
     @Query("""
     SELECT thumbnail FROM photo_table 

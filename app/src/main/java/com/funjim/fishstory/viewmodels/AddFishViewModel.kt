@@ -56,6 +56,13 @@ class AddFishViewModel(
     val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
     val selectedLureId = _selectedLureId.asStateFlow()
 
+    val allBaits: StateFlow<List<Bait>> = lureRepo.allBaits
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(
             scope = viewModelScope,
@@ -253,6 +260,12 @@ class AddFishViewModel(
         }
     }
 
+    fun addBait(bait: Bait) {
+        viewModelScope.launch {
+            lureRepo.addBait(bait)
+        }
+    }
+
     fun addBodyOfWater(bodyOfWater: BodyOfWater) {
         viewModelScope.launch {
             envRepo.addBodyOfWater(bodyOfWater)
@@ -284,6 +297,11 @@ class AddFishViewModel(
         } else {
             draft != original.fish || photos != original.photos
         }
+    }
+
+    fun baitThumbnail(baitId: String): Flow<ByteArray?> {
+        return photoRepo.fetchBaitThumbnail(baitId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
@@ -330,6 +348,12 @@ class AddFishViewModel(
             holeNumber = 1
         )
         _fishPhotos.value = photos
+    }
+
+    fun updateBait(bait: Bait) {
+        _draftFish.update { current ->
+            current?.copy(baitId = bait.id)
+        }
     }
 
     fun updateBodyOfWater(bodyOfWater: BodyOfWater) {

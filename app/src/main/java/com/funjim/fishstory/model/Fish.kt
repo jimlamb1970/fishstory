@@ -82,6 +82,7 @@ data class Fish(
     val caughtCount: Int = 0,
     val keptCount: Int = 0,
     val lureId: String? = null,
+    val baitId: String? = null,
     val length: Long? = null,
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
@@ -141,6 +142,13 @@ data class FishWithDetails(
     val lure: LureWithColors?,
 
     @Relation(
+        entity = Bait::class,
+        parentColumn = "baitId",
+        entityColumn = "id"
+    )
+    val bait: Bait?,
+
+    @Relation(
         entity = BodyOfWater::class,
         parentColumn = "bodyOfWaterId",
         entityColumn = "id"
@@ -156,6 +164,14 @@ data class FishWithDetails(
             return lure.lure.name
         }
 }
+
+data class BaitSummary(
+    @Embedded val bait: Bait,
+    val caughtCount: Int,
+    val keptCount: Int,
+    val largestFish: Double,
+    val smallestFish: Double
+)
 
 data class BodyOfWaterSummary(
     @Embedded val bodyOfWater: BodyOfWater,

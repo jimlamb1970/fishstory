@@ -14,6 +14,7 @@ import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
 import com.funjim.fishstory.viewmodels.AddFishViewModelFactory
 import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
+import com.funjim.fishstory.viewmodels.BaitViewModelFactory
 import com.funjim.fishstory.viewmodels.BodyOfWaterViewModelFactory
 import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
 import com.funjim.fishstory.viewmodels.EventViewModelFactory
@@ -77,6 +78,7 @@ class FishstoryApplication : Application() {
 
     val lureRepository by lazy {
         LureRepository(
+            baitDao = database.baitDao(),
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
             photoDao = database.photoDao(),
@@ -125,6 +127,12 @@ class FishstoryApplication : Application() {
         tripRepository
     )
 
+    fun getBaitViewModelFactory() = BaitViewModelFactory(
+        fishRepository,
+        lureRepository,
+        photoRepository
+    )
+
     fun getBodyOfWaterViewModelFactory() = BodyOfWaterViewModelFactory(
         environmentRepository,
         fishRepository,
@@ -166,6 +174,7 @@ class FishstoryApplication : Application() {
     fun getMainViewModelFactory() = MainViewModelFactory(
         locationProvider = locationProvider,
         bodyOfWaterDao = database.bodyOfWaterDao(),
+        baitDao = database.baitDao(),
         eventDao = database.eventDao(),
         fishDao = database.fishDao(),
         fishermanDao = database.fishermanDao(),

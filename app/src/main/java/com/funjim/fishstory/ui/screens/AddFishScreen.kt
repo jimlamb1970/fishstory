@@ -40,11 +40,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BaitSelectionField
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelectionField
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
@@ -128,6 +130,10 @@ fun AddFishScreen(
         context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
+    val allBaits by viewModel.allBaits.collectAsStateWithLifecycle()
+    var addNewBait by remember { mutableStateOf(false) }
+    var addBaitName by remember { mutableStateOf("") }
+
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     var addNewBodyOfWater by remember { mutableStateOf(false) }
     var addBodyOfWaterName by remember { mutableStateOf("") }
@@ -172,6 +178,14 @@ fun AddFishScreen(
             val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
             val selectedLure = remember(draftFish, lures) {
                 lures.find { it.lure.id == draftFish?.lureId }
+            }
+
+            val baits = event.baits.map { it.id }.toSet()
+            val sortedBaits = allBaits.sortedByDescending { item ->
+                baits.contains(item.id)
+            }
+            val selectedBait = remember(draftFish, sortedBaits) {
+                sortedBaits.find { it.id == draftFish?.baitId }
             }
 
             val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
@@ -375,6 +389,27 @@ fun AddFishScreen(
                                 )
                             }
                         }
+
+                        BaitSelectionField(
+                            items = sortedBaits,
+                            selectedItem = selectedBait,
+                            onSelected = { bait -> viewModel.updateBait(bait) },
+                            onAdd = { addNewBait = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { bait ->
+                                val thumbnailFlow = remember(bait.id) {
+                                    viewModel.baitThumbnail(bait.id)
+                                }
+
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Bait,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            }
+                        )
 
                         // Length and Hole Number
                         Row(
@@ -607,6 +642,36 @@ fun AddFishScreen(
             },
             dismissButton = {
                 TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (addNewBait) {
+        AlertDialog(
+            onDismissRequest = { addNewBait = false },
+            title = { Text("Add New Bait") },
+            text = {
+                TextField(
+                    value = addBaitName,
+                    onValueChange = { addBaitName = it },
+                    placeholder = { Text("Bait Name (e.g. Worm)") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (addBaitName.isNotBlank()) {
+                        scope.launch {
+                            val bait = Bait(name = addBaitName)
+                            viewModel.addBait(bait)
+                            viewModel.updateBait(bait)
+                            addNewBait = false
+                            addBaitName = ""
+                        }
+                    }
+                }) { Text("Add Bait") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addNewBait = false }) { Text("Cancel") }
             }
         )
     }

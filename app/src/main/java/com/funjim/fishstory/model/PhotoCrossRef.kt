@@ -7,9 +7,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity(
-    primaryKeys = ["photoId", "tripId"],
-    tableName = "photo_trip_cross_ref",
-    indices = [Index(value = ["tripId"])],
+    primaryKeys = ["photoId", "baitId"],
+    tableName = "photo_bait_cross_ref",
+    indices = [Index(value = ["baitId"])],
     foreignKeys = [
         ForeignKey(
             entity = Photo::class,
@@ -18,16 +18,16 @@ import kotlinx.serialization.Serializable
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Trip::class,
+            entity = Bait::class,
             parentColumns = ["id"],
-            childColumns = ["tripId"],
+            childColumns = ["baitId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class PhotoTripCrossRef(
+data class PhotoBaitCrossRef(
     val photoId: String,
-    val tripId: String,
+    val baitId: String,
     val isPrimary: Boolean = false
 )
 
@@ -85,9 +85,9 @@ data class PhotoEventCrossRef(
 
 @Serializable
 @Entity(
-    primaryKeys = ["photoId", "lureId"],
-    tableName = "photo_lure_cross_ref",
-    indices = [Index(value = ["lureId"])],
+    primaryKeys = ["photoId", "fishId"],
+    tableName = "photo_fish_cross_ref",
+    indices = [Index(value = ["fishId"])],
     foreignKeys = [
         ForeignKey(
             entity = Photo::class,
@@ -96,16 +96,16 @@ data class PhotoEventCrossRef(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Lure::class,
+            entity = Fish::class,
             parentColumns = ["id"],
-            childColumns = ["lureId"],
+            childColumns = ["fishId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class PhotoLureCrossRef(
+data class PhotoFishCrossRef(
     val photoId: String,
-    val lureId: String,
+    val fishId: String,
     val isPrimary: Boolean = false
 )
 
@@ -137,9 +137,9 @@ data class PhotoFishermanCrossRef(
 
 @Serializable
 @Entity(
-    primaryKeys = ["photoId", "fishId"],
-    tableName = "photo_fish_cross_ref",
-    indices = [Index(value = ["fishId"])],
+    primaryKeys = ["photoId", "lureId"],
+    tableName = "photo_lure_cross_ref",
+    indices = [Index(value = ["lureId"])],
     foreignKeys = [
         ForeignKey(
             entity = Photo::class,
@@ -148,19 +148,21 @@ data class PhotoFishermanCrossRef(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Fish::class,
+            entity = Lure::class,
             parentColumns = ["id"],
-            childColumns = ["fishId"],
+            childColumns = ["lureId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class PhotoFishCrossRef(
+data class PhotoLureCrossRef(
     val photoId: String,
-    val fishId: String,
+    val lureId: String,
     val isPrimary: Boolean = false
-)@Serializable
+)
 
+
+@Serializable
 @Entity(
     primaryKeys = ["photoId", "speciesId"],
     tableName = "photo_species_cross_ref",
@@ -183,5 +185,31 @@ data class PhotoFishCrossRef(
 data class PhotoSpeciesCrossRef(
     val photoId: String,
     val speciesId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+@Entity(
+    primaryKeys = ["photoId", "tripId"],
+    tableName = "photo_trip_cross_ref",
+    indices = [Index(value = ["tripId"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = Photo::class,
+            parentColumns = ["id"],
+            childColumns = ["photoId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Trip::class,
+            parentColumns = ["id"],
+            childColumns = ["tripId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class PhotoTripCrossRef(
+    val photoId: String,
+    val tripId: String,
     val isPrimary: Boolean = false
 )

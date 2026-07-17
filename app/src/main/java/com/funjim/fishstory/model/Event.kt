@@ -105,6 +105,18 @@ data class EventWithDetails(
     val targetSpecies: List<Species>,
 
     @Relation(
+        entity = Bait::class,
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = EventBait::class,
+            parentColumn = "eventId",
+            entityColumn = "baitId"
+        )
+    )
+    val baits: List<Bait>,
+
+    @Relation(
         entity = BodyOfWater::class,
         parentColumn = "id",
         entityColumn = "id",
@@ -131,6 +143,18 @@ data class EventWithInfo(
         )
     )
     val targetSpecies: List<Species>,
+
+    @Relation(
+        entity = Bait::class,
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = EventBait::class,
+            parentColumn = "eventId",
+            entityColumn = "baitId"
+        )
+    )
+    val baits: List<Bait>,
 
     @Relation(
         entity = BodyOfWater::class,
