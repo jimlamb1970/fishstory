@@ -660,7 +660,7 @@ fun EventDetailsScreen(
     if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
         UpdateAllCatchesDialog(
             bodyOfWater = bodyOfWaterToUpdateAll,
-            content = "Do you want to update all the catches associated with this event to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            content = "Do you want to update all the fish logged for this event to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
             onDismiss = {
                 bodyOfWaterToUpdateAll = null
             },

@@ -765,7 +765,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
     if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
         UpdateAllCatchesDialog(
             bodyOfWater = bodyOfWaterToUpdateAll,
-            content = "Do you want to update all the catches associated with this trip to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            content = "Do you want to update all the fish logged for this trip to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
             onDismiss = {
                 bodyOfWaterToUpdateAll = null
             },
