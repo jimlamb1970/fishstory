@@ -23,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +43,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun EventHighlightCard(
     summary: EventDetailedSummary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFishClick: () -> Unit,
+    onTargetFishClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
@@ -73,12 +76,16 @@ fun EventHighlightCard(
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
 
-                Icon(
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                IconButton(
+                    onClick = { onFishClick() }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 StatItem(
                     label = "KEPT",
@@ -136,12 +143,16 @@ fun EventHighlightCard(
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
 
-                Icon(
-                    imageVector = AppIcons.Default.TargetFish,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                IconButton(
+                    onClick = { onTargetFishClick() }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.TargetFish,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 StatItem(
                     label = "KEPT",
@@ -382,7 +393,9 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
 @Composable
 fun TripHighlightCard(
     summary: TripDetailedSummary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFishClick: () -> Unit,
+    onTargetFishClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
@@ -416,12 +429,16 @@ fun TripHighlightCard(
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
 
-                Icon(
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                IconButton(
+                    onClick = { onFishClick() }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 StatItem(
                     label = "KEPT",
@@ -481,12 +498,16 @@ fun TripHighlightCard(
                     labelColor = getOnCardSecondaryColor(),
                     color = getOnCardColor())
 
-                Icon(
-                    imageVector = AppIcons.Default.TargetFish,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                IconButton(
+                    onClick = { onTargetFishClick() }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.TargetFish,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 StatItem(
                     label = "KEPT",

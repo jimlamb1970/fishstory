@@ -1,21 +1,14 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
@@ -67,7 +60,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: (String?, String?) -> Unit,
+    navigateToFishList: (String?, String?, Boolean?) -> Unit,
     navigateBack: () -> Unit
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -367,7 +360,9 @@ fun EventDetailsScreen(
 
                                 EventHighlightCard(
                                     summary = eventSummary,
-                                    onClick = { navigateToFishList(trip.id, event.id) }
+                                    onClick = { navigateToFishList(trip.id, event.id, false) },
+                                    onFishClick = { navigateToFishList(trip.id, event.id, false) },
+                                    onTargetFishClick = { navigateToFishList(trip.id, event.id, true) }
                                 )
                             }
 

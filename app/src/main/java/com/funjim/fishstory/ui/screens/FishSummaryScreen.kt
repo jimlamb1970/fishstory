@@ -48,7 +48,7 @@ fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (String?, String?, String?, String?, String?) -> Unit
+    onNavigateToFishList: (String?, String?, String?, String?, String?, Boolean) -> Unit
 ) {
     val selectedBodyOfWaterId by viewModel.selectedBodyOfWaterId.collectAsStateWithLifecycle()
     val selectedEventId by viewModel.selectedEventId.collectAsStateWithLifecycle()
@@ -151,6 +151,27 @@ fun FishSummaryScreen(
                             selectedFishermanId,
                             selectedLureId,
                             selectedTripId,
+                            false
+                        )
+                    },
+                    onFishClick = {
+                        onNavigateToFishList(
+                            selectedBodyOfWaterId,
+                            selectedEventId,
+                            selectedFishermanId,
+                            selectedLureId,
+                            selectedTripId,
+                            false
+                        )
+                    },
+                    onTargetFishClick = {
+                        onNavigateToFishList(
+                            selectedBodyOfWaterId,
+                            selectedEventId,
+                            selectedFishermanId,
+                            selectedLureId,
+                            selectedTripId,
+                            true
                         )
                     }
                 )
@@ -309,7 +330,9 @@ private fun FishVisual(
     fisherman: Fisherman?,
     lure: LureWithColors?,
     bodyOfWater: BodyOfWater?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFishClick: () -> Unit,
+    onTargetFishClick: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -369,12 +392,16 @@ private fun FishVisual(
                         labelColor = getOnCardSecondaryColor(),
                         color = getOnCardColor())
 
-                    Icon(
-                        imageVector = AppIcons.Default.LeapingFishWithFins,
-                        contentDescription = "Fish",
-                        modifier = Modifier.size(48.dp),
-                        tint = getOnCardColor()
-                    )
+                    IconButton(
+                        onClick = { onFishClick() }
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.LeapingFishWithFins,
+                            contentDescription = "Fish",
+                            modifier = Modifier.size(48.dp),
+                            tint = getOnCardColor()
+                        )
+                    }
 
                     StatItem(
                         label = "KEPT",
@@ -395,12 +422,16 @@ private fun FishVisual(
                         labelColor = getOnCardSecondaryColor(),
                         color = getOnCardColor())
 
-                    Icon(
-                        imageVector = AppIcons.Default.TargetFish,
-                        contentDescription = "Fish",
-                        modifier = Modifier.size(48.dp),
-                        tint = getOnCardColor()
-                    )
+                    IconButton(
+                        onClick = { onTargetFishClick() }
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.TargetFish,
+                            contentDescription = "Fish",
+                            modifier = Modifier.size(48.dp),
+                            tint = getOnCardColor()
+                        )
+                    }
 
                     StatItem(
                         label = "KEPT",

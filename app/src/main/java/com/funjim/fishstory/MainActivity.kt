@@ -347,7 +347,7 @@ fun AppNavigation(
                         if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
                     navController.navigate(route)
                 },
-                onNavigateToFishList = { bodyOfWaterId, eventId, fishermanId, lureId, tripId ->
+                onNavigateToFishList = { bodyOfWaterId, eventId, fishermanId, lureId, tripId, targetOnly ->
                     val route = buildString {
                         append("fish_list?")
                         if (bodyOfWaterId != null) append("bodyOfWaterId=$bodyOfWaterId&")
@@ -355,6 +355,7 @@ fun AppNavigation(
                         if (fishermanId != null) append("fishermanId=$fishermanId&")
                         if (lureId != null) append("lureId=$lureId&")
                         if (tripId != null) append("tripId=$tripId")
+                        if (targetOnly != null) append("targetOnly=$targetOnly")
                     }.removeSuffix("&")
 
                     navController.navigate(route)
@@ -663,11 +664,12 @@ fun AppNavigation(
                 navigateToSelectEventCrew = {  ->
                     navController.navigate("select_event_crew/$eventId/$tripId")
                 },
-                navigateToFishList = { tripId, eventId ->
+                navigateToFishList = { tripId, eventId, targetOnly ->
                     val route = buildString {
                         append("fish_list?")
                         if (tripId != null) append("tripId=$tripId&")
-                        if (eventId != null) append("eventId=$eventId")
+                        if (eventId != null) append("eventId=$eventId&")
+                        if (targetOnly != null) append("targetOnly=$targetOnly")
                     }.removeSuffix("&")
 
                     navController.navigate(route)
@@ -730,10 +732,11 @@ fun AppNavigation(
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
                 },
-                navigateToFishList = { tripId ->
+                navigateToFishList = { tripId, targetOnly ->
                     val route = buildString {
                         append("fish_list?")
                         if (tripId != null) append("tripId=$tripId&")
+                        if (targetOnly != null) append("targetOnly=$targetOnly&")
                     }.removeSuffix("&")
 
                     navController.navigate(route)

@@ -63,7 +63,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: (String?) -> Unit,
+    navigateToFishList: (String?, Boolean?) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
@@ -364,7 +364,9 @@ fun TripDetailsScreen(
 
                                 TripHighlightCard(
                                     summary = summary,
-                                    onClick = { navigateToFishList(tripId) }
+                                    onClick = { navigateToFishList(tripId, false) },
+                                    onFishClick = { navigateToFishList(tripId, false) },
+                                    onTargetFishClick = { navigateToFishList(tripId, true) }
                                 )
                             }
 
