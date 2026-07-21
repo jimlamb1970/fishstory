@@ -47,6 +47,7 @@ class FishViewModel(
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
     private val _selectedLureId = MutableStateFlow<String?>(null)
     private val _selectedTripId = MutableStateFlow<String?>(null)
+    private val _targetOnly = MutableStateFlow(false)
 
     private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
     private val _isReversed = MutableStateFlow(false)
@@ -60,6 +61,7 @@ class FishViewModel(
     val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
     val selectedLureId = _selectedLureId.asStateFlow()
     val selectedTripId = _selectedTripId.asStateFlow()
+    val targetOnly = _targetOnly.asStateFlow()
 
     val sortOrder = _sortOrder.asStateFlow()
     val isReversed = _isReversed.asStateFlow()
@@ -347,15 +349,24 @@ class FishViewModel(
         _selectedEventId,
         _selectedFishermanId,
         _selectedLureId,
-        _selectedTripId
-    ) { bodyOfWater, event, fish, lure, trip ->
+        _selectedTripId,
+        _targetOnly
+    ) { valuesArray ->
         // Helper to pass params
+        val bodyOfWater = valuesArray[0] as String?
+        val event = valuesArray[1] as String?
+        val fish = valuesArray[2] as String?
+        val lure = valuesArray[3] as String?
+        val trip = valuesArray[4] as String?
+        val targetOnly = valuesArray[5] as Boolean
+
         FishFilterParams(
             bodyOfWaterId = bodyOfWater,
             eventId = event,
             fishermanId = fish,
             lureId = lure,
-            tripId = trip)
+            tripId = trip,
+            targetOnly = targetOnly)
     }.combine(combine(_sortOrder, _isReversed) {
             sort, reversed -> FishSortParams(sort, reversed)
     }) { params, sort->
@@ -364,7 +375,8 @@ class FishViewModel(
             eventId = params.eventId,
             fishermanId = params.fishermanId,
             lureId = params.lureId,
-            tripId = params.tripId)
+            tripId = params.tripId,
+            targetOnly = params.targetOnly)
             .map { list -> applySorting(list, sort.sortOrder, sort.isReversed) }
     }.flatMapLatest {
         it
@@ -403,6 +415,7 @@ class FishViewModel(
         selectEvent(null)
         selectFisherman(null)
         selectLure(null)
+        selectTargetOnly(false)
         selectTackleBox(null)
     }
 
@@ -426,6 +439,10 @@ class FishViewModel(
         _selectedLureId.value = id
     }
 
+    fun selectTargetOnly(targetOnly: Boolean) {
+        _targetOnly.value = targetOnly
+    }
+
     fun toggleReverse() { _isReversed.value = !_isReversed.value }
     fun updateSortOrder(order: FishSortOrder) { _sortOrder.value = order }
 
@@ -434,7 +451,8 @@ class FishViewModel(
         val eventId: String?,
         val fishermanId: String?,
         val lureId: String?,
-        val tripId: String?
+        val tripId: String?,
+        val targetOnly: Boolean
     )
 
     private data class FishSortParams(

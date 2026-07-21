@@ -50,15 +50,17 @@ fun FishListScreen(
     eventId: String?,
     fishermanId: String?,
     lureId: String?,
+    targetOnly: Boolean,
     tripId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, tripId)) {
+    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, targetOnly, tripId)) {
         viewModel.selectBodyOfWater(bodyOfWaterId)
         viewModel.selectFisherman(fishermanId)
         viewModel.selectLure(lureId)
+        viewModel.selectTargetOnly(targetOnly)
         viewModel.selectTrip(tripId, eventId)
     }
 

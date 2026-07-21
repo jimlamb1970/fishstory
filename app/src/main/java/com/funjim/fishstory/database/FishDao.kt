@@ -31,6 +31,12 @@ interface FishDao {
           AND (:fishermanId IS NULL OR f.fishermanId = :fishermanId)
           AND (:lureId IS NULL OR f.lureId = :lureId)
           AND (:tripId IS NULL OR f.tripId = :tripId)
+          AND (:targetOnly IS NULL 
+            OR :targetOnly = 0 
+            OR EXISTS (SELECT 1 FROM event_target_species AS ets 
+                WHERE ets.eventId = f.eventId 
+                  AND ets.speciesId = f.speciesId)
+          )
         ORDER BY f.timestamp DESC
     """
     )
@@ -39,7 +45,8 @@ interface FishDao {
         eventId: String?,
         fishermanId: String?,
         lureId: String?,
-        tripId: String?
+        tripId: String?,
+        targetOnly: Boolean? = false
     ): Flow<List<FishWithDetails>>
 
     @Transaction

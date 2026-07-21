@@ -366,8 +366,7 @@ fun AppNavigation(
         }
 
         composable(
-            route = "fish_list?bodyOfWaterId={bodyOfWaterId}&eventId={eventId}&fishermanId={fishermanId}&lureId={lureId}&tripId={tripId}",
-            arguments = listOf(
+            route = "fish_list?bodyOfWaterId={bodyOfWaterId}&eventId={eventId}&fishermanId={fishermanId}&lureId={lureId}&tripId={tripId}&targetOnly={targetOnly}",            arguments = listOf(
                 navArgument("bodyOfWaterId") {
                     type = NavType.StringType
                     defaultValue = "null"
@@ -387,7 +386,10 @@ fun AppNavigation(
                 navArgument("tripId") {
                     type = NavType.StringType
                     defaultValue = "null"
-                }
+                },
+                navArgument("targetOnly") {
+                    type = NavType.BoolType
+                    defaultValue = false                }
             )
         ) { backStackEntry ->
             val bodyOfWaterId = backStackEntry.arguments?.getString("bodyOfWaterId")?.takeIf { it != "null" }
@@ -395,6 +397,8 @@ fun AppNavigation(
             val fishermanId = backStackEntry.arguments?.getString("fishermanId")?.takeIf { it != "null" }
             val lureId = backStackEntry.arguments?.getString("lureId")?.takeIf { it != "null" }
             val tripId = backStackEntry.arguments?.getString("tripId")?.takeIf { it != "null" }
+
+            val targetOnly = backStackEntry.arguments?.getBoolean("targetOnly") ?: false
 
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -407,6 +411,7 @@ fun AppNavigation(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 lureId = lureId,
+                targetOnly = targetOnly,
                 tripId = tripId,
                 onAddFish = { tripId, eventId, fishId ->
                     val route =
@@ -417,7 +422,6 @@ fun AppNavigation(
                     navController.navigate("fishDetails/$fishId")
                 },
                 navigateBack = {
-//                    navController.popBackStack(route = "dashboard", inclusive = false)
                     navController.popBackStack()
                 }
             )
@@ -797,6 +801,7 @@ fun AppNavigation(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 lureId = null,
+                targetOnly = false,
                 tripId = tripId,
                 onAddFish = { tripId, eventId, fishId ->
                     val route =

@@ -48,6 +48,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -210,6 +211,16 @@ fun DashboardScreen(
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
+                        onFishClick = { tripId, eventId, targetOnly ->
+                            val route = buildString {
+                                append("fish_list?")
+                                if (tripId != null) append("tripId=$tripId&")
+                                if (eventId != null) append("eventId=$eventId&")
+                                if (targetOnly != null) append("targetOnly=$targetOnly")
+                            }.removeSuffix("&")
+
+                            onNavigate(route)
+                        },
                         onSwipe = { tripId, eventId -> viewModel.selectEvent(tripId, eventId) },
                         onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
                     )
@@ -374,6 +385,7 @@ fun ActiveTripCard(
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
+    onFishClick: (String?, String?, Boolean?) -> Unit,
     onSwipe: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {
@@ -478,12 +490,16 @@ fun ActiveTripCard(
                                 labelColor = MaterialTheme.colorScheme.onTertiary
                             )
 
-                            Icon(
-                                imageVector = AppIcons.Default.LeapingFishWithFins,
-                                contentDescription = "Fish",
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.onTertiary
-                            )
+                            IconButton(
+                                onClick = { onFishClick(currentEvent.event.tripId, null, false) }
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                                    contentDescription = "Fish",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiary
+                                )
+                            }
 
                             StatItem(
                                 label = "KEPT",
@@ -494,7 +510,42 @@ fun ActiveTripCard(
                         }
 
                         HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(top = 0.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.onTertiary
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            StatItem(
+                                label = "CAUGHT",
+                                value = "${trip.targetFishCaught}",
+                                labelColor = getOnCardSecondaryColor(),
+                                color = getOnCardColor())
+
+                            IconButton(
+                                onClick = { onFishClick(currentEvent.event.tripId, null, true) }
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Default.TargetFish,
+                                    contentDescription = "Fish",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            StatItem(
+                                label = "KEPT",
+                                value = "${trip.targetFishKept}",
+                                labelColor = getOnCardSecondaryColor(),
+                                color = getOnCardColor())
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(top = 0.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.onTertiary
                         )
@@ -560,18 +611,57 @@ fun ActiveTripCard(
                     color = MaterialTheme.colorScheme.onTertiary,
                     labelColor = MaterialTheme.colorScheme.onTertiary)
 
-                Icon(
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    contentDescription = "Fish",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.onTertiary
-                )
+                IconButton(
+                    onClick = { onFishClick(currentEvent.event.tripId, currentEvent.event.id, false) }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onTertiary
+                    )
+                }
 
                 StatItem(
                     label = "KEPT",
                     value = "${currentEvent.fishKept}",
                     color = MaterialTheme.colorScheme.onTertiary,
                     labelColor = MaterialTheme.colorScheme.onTertiary)
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 0.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StatItem(
+                    label = "CAUGHT",
+                    value = "${currentEvent.targetFishCaught}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
+
+                IconButton(
+                    onClick = { onFishClick(currentEvent.event.tripId, currentEvent.event.id, true) }
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Default.TargetFish,
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                StatItem(
+                    label = "KEPT",
+                    value = "${currentEvent.targetFishKept}",
+                    labelColor = getOnCardSecondaryColor(),
+                    color = getOnCardColor())
             }
 
             Column(
@@ -591,7 +681,7 @@ fun ActiveTripCard(
                     if (eventSummary != null) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             HorizontalDivider(
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                                modifier = Modifier.padding(top = 0.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
                                 thickness = 0.5.dp,
                                 color = MaterialTheme.colorScheme.onTertiary
                             )
