@@ -764,6 +764,11 @@ fun AppNavigation(
                 navigateToTripDetails = { tripId ->
                     navController.navigate("trip_details/$tripId")
                 },
+                navigateToFishList = { tripId, targetOnly ->
+                    val route = "fish_list?tripId=$tripId&targetOnly=$targetOnly"
+
+                    navController.navigate(route)
+                },
                 navigateToAddTrip = {
                     navController.navigate("add_trip")
                 },

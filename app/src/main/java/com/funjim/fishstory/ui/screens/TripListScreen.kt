@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 fun TripListScreen(
     viewModel: TripListViewModel,
     navigateToTripDetails: (String) -> Unit,
+    navigateToFishList: (String, Boolean) -> Unit,
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -230,7 +231,9 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFishClick = null,
+                                    onFishClick = { tripId, targetOnly ->
+                                        navigateToFishList(tripId, targetOnly)
+                                    },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -248,7 +251,9 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFishClick = null,
+                                    onFishClick = { tripId, targetOnly ->
+                                        navigateToFishList(tripId, targetOnly)
+                                    },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -266,7 +271,9 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
-                                    onFishClick = null,
+                                    onFishClick = { tripId, targetOnly ->
+                                        navigateToFishList(tripId, targetOnly)
+                                    },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
