@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -61,7 +62,6 @@ fun EventItem(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())
     }
-    val now = System.currentTimeMillis()
     val startString = dateTimeFormatter.format(Date(item.event.startTime))
     val endString = dateTimeFormatter.format(Date(item.event.endTime))
 
@@ -73,12 +73,18 @@ fun EventItem(
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    val hasMenuActions = (onSelectLocation != null) ||
+            (onSetLocation != null) ||
+            (onUseTripLocation != null) ||
+            (onClearLocation != null) ||
+            (onDelete != null)
+
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = { onClick() },
-                onLongClick = { menuExpanded = true }
+                onLongClick = { if (hasMenuActions) menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
@@ -214,91 +220,94 @@ fun EventItem(
                         contentColor = secondaryContentColor
                     )
                 }
+            }
 
-                if ((onSelectLocation != null) ||
-                    (onSetLocation != null) ||
-                    (onUseTripLocation != null) ||
-                    (onClearLocation != null) ||
-                    (onDelete != null)
-                ) {
-                    Box {
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            if (onSetLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Use Current Location") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onSetLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.MyLocation,
-                                            contentDescription = null,
-                                            tint =
-                                                if (activeLat != null) Color(0xFF4CAF50)
-                                                else LocalContentColor.current
-                                        )
-                                    }
-                                )
-                            }
+            if (hasMenuActions) {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Event options",
+                            tint = contentColor
+                        )
+                    }
 
-                            if (onSelectLocation != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Select on Map") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onSelectLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Map,
-                                            contentDescription = null,
-                                            tint =
-                                                if (activeLat != null) Color(0xFF4CAF50)
-                                                else LocalContentColor.current
-                                        )
-                                    }
-                                )
-                            }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        if (onSetLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Use Current Location") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSetLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.MyLocation,
+                                        contentDescription = null,
+                                        tint =
+                                            if (activeLat != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
 
-                            if (eventLat != null && onClearLocation != null) {
-                                DropdownMenuItem(
-                                    text = {
-                                        if (tripLat == null) Text("Clear Location")
-                                        else Text("Reset Location")
-                                    },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onClearLocation()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.LocationOff,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                )
-                            }
-                            if (onDelete != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onDelete()
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                )
-                            }
+                        if (onSelectLocation != null) {
+                            DropdownMenuItem(
+                                text = { Text("Select on Map") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onSelectLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Map,
+                                        contentDescription = null,
+                                        tint =
+                                            if (activeLat != null) Color(0xFF4CAF50)
+                                            else LocalContentColor.current
+                                    )
+                                }
+                            )
+                        }
+
+                        if (eventLat != null && onClearLocation != null) {
+                            DropdownMenuItem(
+                                text = {
+                                    if (tripLat == null) Text("Clear Location")
+                                    else Text("Reset Location")
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onClearLocation()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.LocationOff,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
+                        if (onDelete != null) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
                         }
                     }
                 }
