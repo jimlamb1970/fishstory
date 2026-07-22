@@ -291,8 +291,8 @@ fun TripItem(
                     }
                 }
 
-                val now = System.currentTimeMillis()
-                if (trip.fishCaught != 0  || now >= trip.trip.startDate) {
+                // Only show the fish caught counts when something has been caught
+                if (trip.fishCaught != 0) {
                     FishCaughtItem(
                         icon = AppIcons.Default.LeapingFishWithFins,
                         caughtCount = trip.fishCaught,
@@ -303,7 +303,8 @@ fun TripItem(
                         contentColor = secondaryContentColor
                     )
                 }
-                if (trip.targetFishCaught != 0  || now >= trip.trip.startDate) {
+
+                if (trip.targetFishCaught != 0) {
                     Spacer(Modifier.height(4.dp))
                     FishCaughtItem(
                         icon = AppIcons.Default.TargetFish,
