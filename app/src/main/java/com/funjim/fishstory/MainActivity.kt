@@ -354,8 +354,8 @@ fun AppNavigation(
                         if (eventId != null) append("eventId=$eventId&")
                         if (fishermanId != null) append("fishermanId=$fishermanId&")
                         if (lureId != null) append("lureId=$lureId&")
-                        if (tripId != null) append("tripId=$tripId")
-                        if (targetOnly != null) append("targetOnly=$targetOnly")
+                        if (tripId != null) append("tripId=$tripId&")
+                        append("targetOnly=$targetOnly")
                     }.removeSuffix("&")
 
                     navController.navigate(route)
