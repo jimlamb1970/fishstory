@@ -217,8 +217,28 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        SUM(f.caughtCount) AS targetFishCaught,
-        SUM(f.keptCount) AS targetFishKept
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.caughtCount 
+                ELSE 0 
+            END
+        ) AS targetFishCaught,
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.keptCount 
+                ELSE 0 
+            END
+        ) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -238,8 +258,28 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        SUM(f.caughtCount) AS targetFishCaught,
-        SUM(f.keptCount) AS targetFishKept
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.caughtCount 
+                ELSE 0 
+            END
+        ) AS targetFishCaught,
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.keptCount 
+                ELSE 0 
+            END
+        ) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
@@ -259,8 +299,28 @@ WHERE f.id = :fId
         SUM(f.keptCount) AS fishKept,
         -1 as fishermanCount,
         -1 as tackleBoxCount,
-        SUM(f.caughtCount) AS targetFishCaught,
-        SUM(f.keptCount) AS targetFishKept
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.caughtCount 
+                ELSE 0 
+            END
+        ) AS targetFishCaught,
+        SUM(
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM event_target_species AS target 
+                    WHERE target.eventId = f.eventId 
+                      AND target.speciesId = f.speciesId
+                ) THEN f.keptCount 
+                ELSE 0 
+            END
+        ) AS targetFishKept
     FROM trip_table AS t
     JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
     LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
