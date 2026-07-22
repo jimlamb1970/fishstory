@@ -196,7 +196,8 @@ fun EventItem(
                             icon = AppIcons.Default.LeapingFish,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
-                            contentColor = secondaryContentColor
+                            contentColor = secondaryContentColor,
+                            onFishClick = null
                         )
                     }
                 }

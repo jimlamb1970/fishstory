@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,6 +57,7 @@ fun TripItemWithMenu(
     hasLocationPermission: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
     onNavigateToDetails: (String) -> Unit,
+    onFishClick: ((String, Boolean) -> Unit)? = null,
     onAction: (TripAction) -> Unit,
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
@@ -68,46 +70,91 @@ fun TripItemWithMenu(
         thumbnailFlow = thumbnailFlow,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
-        onAction = onAction
-    ) {
-        TripMenu(
-            expanded = showMenu,
-            onDismiss = onMenuDismiss
-        ) {
-            // Centralized Menu Actions
-            val lat = tripSummary.trip.latitude
-            if (hasLocationPermission) {
-                DropdownMenuItem(
-                    text = { Text("Use Current Location") },
-                    onClick = { onAction(TripAction.UseCurrentLocation(tripSummary)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.MyLocation,
-                            null,
-                            tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current
+        onFishClick = onFishClick,
+        onAction = onAction,
+        actions = {
+            Box {
+                IconButton(onClick = { onAction(TripAction.Menu(tripSummary)) }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Trip options"
+                    )
+                }
+
+                TripMenu(
+                    expanded = showMenu,
+                    onDismiss = onMenuDismiss
+                ) {
+                    // Centralized Menu Actions
+                    val lat = tripSummary.trip.latitude
+                    if (hasLocationPermission) {
+                        DropdownMenuItem(
+                            text = { Text("Use Current Location") },
+                            onClick = {
+                                onMenuDismiss()
+                                onAction(TripAction.UseCurrentLocation(tripSummary))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.MyLocation,
+                                    null,
+                                    tint =
+                                        if (lat != null) Color(0xFF4CAF50)
+                                        else LocalContentColor.current
+                                )
+                            }
                         )
                     }
-                )
+                    DropdownMenuItem(
+                        text = { Text("Select on Map") },
+                        onClick = {
+                            onMenuDismiss()
+                            onAction(TripAction.SelectLocation(tripSummary))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Map,
+                                null,
+                                tint =
+                                    if (lat != null) Color(0xFF4CAF50)
+                                    else LocalContentColor.current
+                            )
+                        }
+                    )
+                    if (lat != null) {
+                        DropdownMenuItem(
+                            text = { Text("Clear Location") },
+                            onClick = {
+                                onMenuDismiss()
+                                onAction(TripAction.ClearLocation(tripSummary))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.LocationOff,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            onMenuDismiss()
+                            onAction(TripAction.Delete(tripSummary))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    )
+                }
             }
-            DropdownMenuItem(
-                text = { Text("Select on Map") },
-                onClick = { onAction(TripAction.SelectLocation(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.Map, null, tint = if (lat != null) Color(0xFF4CAF50) else LocalContentColor.current) }
-            )
-            if (lat != null) {
-                DropdownMenuItem(
-                    text = { Text("Clear Location") },
-                    onClick = { onAction(TripAction.ClearLocation(tripSummary)) },
-                    leadingIcon = { Icon(Icons.Default.LocationOff, null, tint = MaterialTheme.colorScheme.error) }
-                )
-            }
-            DropdownMenuItem(
-                text = { Text("Delete") },
-                onClick = { onAction(TripAction.Delete(tripSummary)) },
-                leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) }
-            )
         }
-    }
+    )
 }
 
 @Composable
@@ -119,6 +166,7 @@ fun TripItem(
     thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onFishClick: ((String, Boolean) -> Unit)? = null,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
 ) {
@@ -243,14 +291,28 @@ fun TripItem(
                     }
                 }
 
-                val caughtCount = trip.fishCaught
-                val keptCount = trip.fishKept
                 val now = System.currentTimeMillis()
-                if (caughtCount != 0  || now >= trip.trip.startDate) {
+                if (trip.fishCaught != 0  || now >= trip.trip.startDate) {
                     FishCaughtItem(
-                        icon = AppIcons.Default.LeapingFish,
-                        caughtCount = caughtCount,
-                        keptCount = keptCount,
+                        icon = AppIcons.Default.LeapingFishWithFins,
+                        caughtCount = trip.fishCaught,
+                        keptCount = trip.fishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(trip.trip.id, false) }
+                        },
+                        contentColor = secondaryContentColor
+                    )
+                }
+                if (trip.targetFishCaught != 0  || now >= trip.trip.startDate) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.TargetFish,
+                        description = "Target Fish Caught",
+                        caughtCount = trip.targetFishCaught,
+                        keptCount = trip.targetFishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(trip.trip.id, true) }
+                        },
                         contentColor = secondaryContentColor
                     )
                 }

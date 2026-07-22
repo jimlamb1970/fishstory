@@ -230,6 +230,7 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onFishClick = null,
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -247,6 +248,7 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onFishClick = null,
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -264,6 +266,7 @@ fun TripListScreen(
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onFishClick = null,
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }

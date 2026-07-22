@@ -329,6 +329,7 @@ fun FishermanDetailsScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
+                                    onFishClick = null,
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
@@ -369,6 +370,7 @@ fun FishermanDetailsScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
+                                    onFishClick = null,
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {

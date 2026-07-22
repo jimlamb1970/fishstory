@@ -122,7 +122,8 @@ fun FishermanItem(
                             icon = AppIcons.Default.LeapingFish,
                             caughtCount = caughtCount,
                             keptCount = keptCount,
-                            contentColor = secondaryContentColor
+                            contentColor = secondaryContentColor,
+                            onFishClick = null
                         )
                     }
                 }

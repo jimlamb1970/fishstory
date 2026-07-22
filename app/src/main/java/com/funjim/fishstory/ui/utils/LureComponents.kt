@@ -116,7 +116,8 @@ fun LureItem(
                         icon = AppIcons.Default.LeapingFish,
                         caughtCount = item.caughtCount,
                         keptCount = item.keptCount,
-                        contentColor = secondaryContentColor
+                        contentColor = secondaryContentColor,
+                        onFishClick = null
                     )
                 }
             }

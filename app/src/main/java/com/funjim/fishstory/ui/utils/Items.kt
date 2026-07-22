@@ -105,7 +105,8 @@ fun FishCaughtItem(
     icon: ImageVector,
     caughtCount: Int,
     keptCount: Int,
-    modifier: Modifier = Modifier,
+    description: String = "Fish Caught",
+    onFishClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
@@ -115,9 +116,17 @@ fun FishCaughtItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
-                contentDescription = "Fish",
+                contentDescription = description,
                 tint = contentColor,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .then(
+                        if (onFishClick != null) {
+                            Modifier.clickable { onFishClick() }
+                        } else {
+                            Modifier
+                        }
+                    )
             )
             BoldingNumbersText(
                 text = "Kept $keptCount of $caughtCount",

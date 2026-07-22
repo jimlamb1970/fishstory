@@ -338,6 +338,15 @@ fun DashboardScreen(
                     hasLocationPermission,
                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
+                    onFishClick = { tripId, targetOnly ->
+                        val route = buildString {
+                            append("fish_list?")
+                            append("tripId=$tripId&")
+                            append("targetOnly=$targetOnly")
+                        }.removeSuffix("&")
+
+                        onNavigate(route)
+                    },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                     onMenuDismiss = { showMenu = false }
