@@ -553,6 +553,9 @@ fun AppNavigation(
                 onEdit = { lureId ->
                     navController.navigate("add_lure?lureId=$lureId")
                 },
+                navigateToFishList = { lureId, targetOnly ->
+                    navController.navigate("fish_list?lureId=$lureId&targetOnly=$targetOnly")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -829,9 +832,7 @@ fun AppNavigation(
                     navController.navigate("trip_details/$tripId")
                 },
                 navigateToFishList = { tripId, targetOnly ->
-                    val route = "fish_list?tripId=$tripId&targetOnly=$targetOnly"
-
-                    navController.navigate(route)
+                    navController.navigate("fish_list?tripId=$tripId&targetOnly=$targetOnly")
                 },
                 navigateToAddTrip = {
                     navController.navigate("add_trip")

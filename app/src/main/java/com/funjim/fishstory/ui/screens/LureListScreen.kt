@@ -36,6 +36,7 @@ fun LureListScreen(
     viewModel: LureViewModel,
     onAdd: () -> Unit,
     onEdit: (String) -> Unit,
+    navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
@@ -171,6 +172,9 @@ fun LureListScreen(
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 index = index,
                                 totalItems = totalItems,
+                                onFishClick = { lureId, targetOnly ->
+                                    navigateToFishList(lureId, targetOnly)
+                                },
                                 onEdit = { onEdit(item.lure.id) },
                                 onDelete = { lureToDelete = item.lure }
                             )

@@ -126,8 +126,38 @@ interface LureDao {
     @Query("""
     SELECT 
         l.*, 
-        SUM(f.caughtCount) AS caughtCount,
-        SUM(f.keptCount) AS keptCount,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
+
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            -- Join inside the subquery to calculate 'isTarget' dynamic flag
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.lureId = l.id
+        ) as targetFishCaught,
+
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.lureId = l.id
+        ) as targetFishKept,
+
         MAX(f.length) AS largestFish,
         MIN(f.length) AS smallestFish
     FROM lure_table AS l

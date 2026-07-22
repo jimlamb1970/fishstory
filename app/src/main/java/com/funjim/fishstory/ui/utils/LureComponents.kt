@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -47,6 +48,7 @@ fun LureItem(
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
+    onFishClick: ((String, Boolean) -> Unit)? = null,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -111,18 +113,41 @@ fun LureItem(
                     color = secondaryContentColor
                 )
 
-                if (item.caughtCount != 0) {
+                if (item.fishCaught != 0) {
                     FishCaughtItem(
-                        icon = AppIcons.Default.LeapingFish,
-                        caughtCount = item.caughtCount,
-                        keptCount = item.keptCount,
-                        contentColor = secondaryContentColor,
-                        onFishClick = null
+                        icon = AppIcons.Default.LeapingFishWithFins,
+                        caughtCount = item.fishCaught,
+                        keptCount = item.fishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(item.lure.id, false) }
+                        },
+                        contentColor = secondaryContentColor
+                    )
+                }
+
+                if (item.targetFishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.TargetFish,
+                        caughtCount = item.targetFishCaught,
+                        keptCount = item.targetFishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(item.lure.id, true) }
+                        },
+                        contentColor = secondaryContentColor
                     )
                 }
             }
 
             Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Lure options",
+                        tint = contentColor
+                    )
+                }
+
                 DropdownMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false }

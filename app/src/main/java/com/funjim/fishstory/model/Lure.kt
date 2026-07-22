@@ -277,8 +277,12 @@ data class LureSummaryWithColors(
     )
     val glowColors: List<LureColor>,
 
-    val caughtCount: Int,
-    val keptCount: Int,
+    val fishCaught: Int,
+    val fishKept: Int,
+
+    val targetFishCaught: Int,
+    val targetFishKept: Int,
+
     val largestFish: Double,
     val smallestFish: Double
 )
