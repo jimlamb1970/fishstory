@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 fun FishermanListScreen(
     viewModel: FishermanListViewModel,
     navigateToFishermanDetails: (String) -> Unit,
+    navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
@@ -157,6 +158,9 @@ fun FishermanListScreen(
                             onClick = {
                                 navigateToFishermanDetails(fisherman.fisherman.id)
                             },
+                            onFishClick = { fishermanId, targetOnly ->
+                                navigateToFishList(fishermanId, targetOnly)
+                            },
                             onDelete = { fishermanToDelete = fisherman }
                         )
                     }
@@ -241,7 +245,7 @@ This cannot be undone.
 
 If you delete ${item.fisherman.fullName}, they will be removed from all trips (${item.totalTrips}) and events.
 
-Tackle boxes and fish (${item.totalCatches}) logged for ${item.fisherman.fullName} will also be deleted.""") },
+Tackle boxes and fish (${item.fishCaught}) logged for ${item.fisherman.fullName} will also be deleted.""") },
             confirmButton = {
                 Button(
                     onClick = {

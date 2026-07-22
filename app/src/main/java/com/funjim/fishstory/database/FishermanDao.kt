@@ -89,8 +89,38 @@ interface FishermanDao {
     @Query("""
     SELECT 
         f.*, 
-        (SELECT COALESCE(SUM(ft.caughtCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalCatches,
-        (SELECT COALESCE(SUM(ft.keptCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as totalKept,
+        (SELECT COALESCE(SUM(ft.caughtCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as fishCaught,
+        (SELECT COALESCE(SUM(ft.keptCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as fishKept,
+
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            -- Join inside the subquery to calculate 'isTarget' dynamic flag
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.fishermanId = f.id
+        ) as targetFishCaught,
+
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.fishermanId = f.id
+        ) as targetFishKept,
+
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
         (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
     FROM fisherman_table AS f

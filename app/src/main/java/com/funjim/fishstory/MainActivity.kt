@@ -532,6 +532,9 @@ fun AppNavigation(
                 navigateToFishermanDetails = { fishermanId ->
                     navController.navigate("fisherman_details/$fishermanId")
                 },
+                navigateToFishList = { id, targetOnly ->
+                    navController.navigate("fisherman_fish_list/$id?targetOnly=$targetOnly")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }

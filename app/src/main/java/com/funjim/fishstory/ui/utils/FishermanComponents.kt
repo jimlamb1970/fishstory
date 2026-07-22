@@ -42,12 +42,10 @@ fun FishermanItem(
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
+    onFishClick: (String, Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-    val caughtCount = fisherman.totalCatches
-    val keptCount = fisherman.totalKept
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -112,21 +110,39 @@ fun FishermanItem(
                     }
                 }
 
-                if (caughtCount != 0) {
+                if (fisherman.fishCaught != 0) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         FishCaughtItem(
-                            icon = AppIcons.Default.LeapingFish,
-                            caughtCount = caughtCount,
-                            keptCount = keptCount,
+                            icon = AppIcons.Default.LeapingFishWithFins,
+                            caughtCount = fisherman.fishCaught,
+                            keptCount = fisherman.fishKept,
+                            onFishClick = { onFishClick(fisherman.fisherman.id, false) },
                             contentColor = secondaryContentColor,
-                            onFishClick = null
                         )
                     }
                 }
+
+                if (fisherman.targetFishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.TargetFish,
+                            caughtCount = fisherman.targetFishCaught,
+                            keptCount = fisherman.targetFishKept,
+                            onFishClick = { onFishClick(fisherman.fisherman.id, true) },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+                }
+
             }
 
             Box {
@@ -446,13 +462,16 @@ fun FishermanItemPreview() {
         FishermanItem(
             fisherman = FishermanSummary(
                 fisherman = Fisherman(firstName = "John", lastName = "Doe", nickname = "Big Fish"),
-                totalCatches = 10,
-                totalKept = 2,
+                fishCaught = 10,
+                fishKept = 2,
+                targetFishCaught = 8,
+                targetFishKept = 1,
                 totalTrips = 5,
                 totalTackleBoxes = 3
             ),
             thumbnailFlow = flowOf(null),
             onClick = {},
+            onFishClick = { _, _ -> },
             onDelete = {},
         )
     }

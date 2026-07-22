@@ -107,8 +107,12 @@ data class FishermanWithDetails(
 
 data class FishermanSummary(
     @Embedded val fisherman: Fisherman,
-    val totalCatches: Int,
-    val totalKept: Int,
+    val fishCaught: Int,
+    val fishKept: Int,
+
+    val targetFishCaught: Int,
+    val targetFishKept: Int,
+
     val totalTrips: Int,
     val totalTackleBoxes: Int
 )
