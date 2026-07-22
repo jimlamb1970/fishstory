@@ -796,7 +796,6 @@ fun AddTripScreen(
                                 tripViewModel.updateWizardStep(WizardStep.TripInfo)
                             },
                             onLongClick = { showTripMenu = true },
-                            onFishClick = null,
                             onAction = { action ->
                                 when (action) {
                                     is TripAction.OpenMap -> {
