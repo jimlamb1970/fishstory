@@ -345,41 +345,46 @@ class FishViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishForScope: StateFlow<List<FishWithDetails>> = combine(
-        _selectedBodyOfWaterId,
-        _selectedEventId,
-        _selectedFishermanId,
-        _selectedLureId,
-        _selectedTripId,
-        _targetOnly
-    ) { valuesArray ->
-        // Helper to pass params
-        val bodyOfWater = valuesArray[0] as String?
-        val event = valuesArray[1] as String?
-        val fish = valuesArray[2] as String?
-        val lure = valuesArray[3] as String?
-        val trip = valuesArray[4] as String?
-        val targetOnly = valuesArray[5] as Boolean
-
-        FishFilterParams(
+        // Group 1: First 3 filters
+        combine(
+            _selectedBodyOfWaterId,
+            _selectedEventId,
+            _selectedFishermanId
+        ) { bodyOfWater, event, fish ->
+            Triple(bodyOfWater, event, fish)
+        },
+        // Group 2: Next 3 filters
+        combine(
+            _selectedLureId,
+            _selectedTripId,
+            _targetOnly
+        ) { lure, trip, targetOnly ->
+            Triple(lure, trip, targetOnly)
+        },
+        // Group 3: Sorting parameters
+        combine(_sortOrder, _isReversed
+        ) { sort, reversed ->
+            FishSortParams(sort, reversed)
+        }
+    ) { (bodyOfWater, event, fisherman), (lure, trip, targetOnly), sortParams ->
+        val filterParams = FishFilterParams(
             bodyOfWaterId = bodyOfWater,
             eventId = event,
-            fishermanId = fish,
+            fishermanId = fisherman,
             lureId = lure,
             tripId = trip,
-            targetOnly = targetOnly)
-    }.combine(combine(_sortOrder, _isReversed) {
-            sort, reversed -> FishSortParams(sort, reversed)
-    }) { params, sort->
+            targetOnly = targetOnly
+        )
+        Pair(filterParams, sortParams)
+    }.flatMapLatest { (params, sort) ->
         fishRepo.getFilteredFish(
             bodyOfWaterId = params.bodyOfWaterId,
             eventId = params.eventId,
             fishermanId = params.fishermanId,
             lureId = params.lureId,
             tripId = params.tripId,
-            targetOnly = params.targetOnly)
-            .map { list -> applySorting(list, sort.sortOrder, sort.isReversed) }
-    }.flatMapLatest {
-        it
+            targetOnly = params.targetOnly
+        ).map { list -> applySorting(list, sort.sortOrder, sort.isReversed) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun applySorting(list: List<FishWithDetails>, order: FishSortOrder, reversed: Boolean): List<FishWithDetails> {

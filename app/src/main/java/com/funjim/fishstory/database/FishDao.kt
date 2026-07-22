@@ -46,7 +46,7 @@ interface FishDao {
         fishermanId: String?,
         lureId: String?,
         tripId: String?,
-        targetOnly: Boolean? = false
+        targetOnly: Boolean = false
     ): Flow<List<FishWithDetails>>
 
     @Transaction

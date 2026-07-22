@@ -211,7 +211,7 @@ class FishRepository(
         fishermanId: String?,
         lureId: String?,
         tripId: String?,
-        targetOnly: Boolean? = false
+        targetOnly: Boolean = false
     ): Flow<List<FishWithDetails>> {
         return fishDao.getFishWithDetails(
             bodyOfWaterId = bodyOfWaterId,
@@ -219,7 +219,8 @@ class FishRepository(
             fishermanId = fishermanId,
             lureId = lureId,
             tripId = tripId,
-            targetOnly = targetOnly)
+            targetOnly = targetOnly
+        )
     }
 
     suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish)
