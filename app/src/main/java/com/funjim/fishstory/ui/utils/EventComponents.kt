@@ -49,6 +49,7 @@ fun EventItem(
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
+    onFishClick: ((String, String, Boolean) -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
@@ -86,7 +87,9 @@ fun EventItem(
         border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -187,21 +190,30 @@ fun EventItem(
                     }
                 }
 
-                if (item.fishCaught != 0 || now >= item.event.startTime) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        FishCaughtItem(
-                            icon = AppIcons.Default.LeapingFish,
-                            caughtCount = item.fishCaught,
-                            keptCount = item.fishKept,
-                            contentColor = secondaryContentColor,
-                            onFishClick = null
-                        )
-                    }
+                if (item.fishCaught != 0) {
+                    FishCaughtItem(
+                        icon = AppIcons.Default.LeapingFishWithFins,
+                        caughtCount = item.fishCaught,
+                        keptCount = item.fishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(item.trip.id, item.event.id, false) }
+                        },
+                        contentColor = secondaryContentColor
+                    )
                 }
 
+                if (item.targetFishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.TargetFish,
+                        caughtCount = item.targetFishCaught,
+                        keptCount = item.targetFishKept,
+                        onFishClick = onFishClick?.let { onClick ->
+                            { onClick(item.trip.id, item.event.id, true) }
+                        },
+                        contentColor = secondaryContentColor
+                    )
+                }
 
                 if ((onSelectLocation != null) ||
                     (onSetLocation != null) ||

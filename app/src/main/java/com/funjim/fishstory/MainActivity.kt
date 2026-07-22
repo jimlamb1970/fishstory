@@ -795,10 +795,11 @@ fun AppNavigation(
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
                 },
-                navigateToFishList = { tripId, targetOnly ->
+                navigateToFishList = { tripId, eventId, targetOnly ->
                     val route = buildString {
                         append("fish_list?")
                         if (tripId != null) append("tripId=$tripId&")
+                        if (eventId != null) append("eventId=$eventId&")
                         if (targetOnly != null) append("targetOnly=$targetOnly&")
                     }.removeSuffix("&")
 

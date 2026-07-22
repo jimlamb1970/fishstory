@@ -63,7 +63,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: (String?, Boolean?) -> Unit,
+    navigateToFishList: (String?, String?, Boolean?) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
@@ -364,9 +364,9 @@ fun TripDetailsScreen(
 
                                 TripHighlightCard(
                                     summary = summary,
-                                    onClick = { navigateToFishList(tripId, false) },
-                                    onFishClick = { navigateToFishList(tripId, false) },
-                                    onTargetFishClick = { navigateToFishList(tripId, true) }
+                                    onClick = { navigateToFishList(tripId, null, false) },
+                                    onFishClick = { navigateToFishList(tripId, null, false) },
+                                    onTargetFishClick = { navigateToFishList(tripId, null, true) }
                                 )
                             }
 
@@ -481,6 +481,9 @@ fun TripDetailsScreen(
                                 totalItems = totalItems,
                                 thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
                                 onClick = { navigateToEventDetails(eventSummary.event.id) },
+                                onFishClick = { _, _, targetOnly ->
+                                    navigateToFishList(tripId, eventSummary.event.id, targetOnly)
+                                },
                                 onDelete = { eventToDelete = eventSummary },
                                 onSetLocation = if (hasLocationPermission) {
                                     {
