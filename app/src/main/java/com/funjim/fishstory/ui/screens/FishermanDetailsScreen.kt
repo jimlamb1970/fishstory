@@ -62,7 +62,7 @@ fun FishermanDetailsScreen(
     viewModel: FishermanDetailsViewModel,
     fishermanId: String,
     navigateToTripDetails: (String) -> Unit,
-    navigateToFishList: (String) -> Unit,
+    navigateToFishList: (String, String?, Boolean) -> Unit,
     navigateToSelectLures: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -113,7 +113,9 @@ fun FishermanDetailsScreen(
                 )
             }
         ) { padding ->
-            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()) {
                 stats?.let { details ->
                     val totalTackleBoxes = details.tackleBoxesWithLures.size
                     val pagerState = rememberPagerState(pageCount = { totalTackleBoxes })
@@ -145,7 +147,7 @@ fun FishermanDetailsScreen(
                             HorizontalDivider()
 
                             FishermanHighlightCard(stats!!) {
-                                navigateToFishList(fishermanId)
+                                navigateToFishList(fishermanId, null, false)
                             }
                             HorizontalDivider()
 
@@ -230,7 +232,9 @@ fun FishermanDetailsScreen(
                                     }
 
                                     Row(
-                                        Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp, bottom = 8.dp),
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         repeat(totalTackleBoxes) { index ->
@@ -329,7 +333,9 @@ fun FishermanDetailsScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
-                                    onFishClick = null,
+                                    onFishClick = { tripId, targetOnly ->
+                                        navigateToFishList(fishermanId, tripId, targetOnly)
+                                    },
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
@@ -370,7 +376,9 @@ fun FishermanDetailsScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
-                                    onFishClick = null,
+                                    onFishClick = { tripId, targetOnly ->
+                                        navigateToFishList(fishermanId, tripId, targetOnly)
+                                    },
                                     onAction = { action ->
                                         when (action) {
                                             is TripAction.OpenMap -> {
@@ -569,12 +577,16 @@ fun FishermanLoadingView() {
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // Mock "Fisherman Name" header
-        Box(modifier = Modifier.size(width = 200.dp, height = 32.dp).background(brush, RoundedCornerShape(4.dp)))
+        Box(modifier = Modifier
+            .size(width = 200.dp, height = 32.dp)
+            .background(brush, RoundedCornerShape(4.dp)))
 
         // Mock "Stats" Row
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             repeat(3) {
-                Box(modifier = Modifier.size(100.dp, 60.dp).background(brush, RoundedCornerShape(8.dp)))
+                Box(modifier = Modifier
+                    .size(100.dp, 60.dp)
+                    .background(brush, RoundedCornerShape(8.dp)))
             }
         }
 
@@ -588,8 +600,13 @@ fun FishermanLoadingView() {
 
         // Mock "Smallest/Largest" Fish Section
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(modifier = Modifier.size(width = 150.dp, height = 24.dp).background(brush, RoundedCornerShape(4.dp)))
-            Box(modifier = Modifier.fillMaxWidth().height(80.dp).background(brush, RoundedCornerShape(12.dp)))
+            Box(modifier = Modifier
+                .size(width = 150.dp, height = 24.dp)
+                .background(brush, RoundedCornerShape(4.dp)))
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .background(brush, RoundedCornerShape(12.dp)))
         }
     }
 }
