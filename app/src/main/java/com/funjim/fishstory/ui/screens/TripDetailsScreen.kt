@@ -484,6 +484,12 @@ fun TripDetailsScreen(
                                 onFishClick = { _, _, targetOnly ->
                                     navigateToFishList(tripId, eventSummary.event.id, targetOnly)
                                 },
+                                onPhotoAdded = {
+                                    viewModel.addEventPhoto(eventSummary.event.id, it, true)
+                                },
+                                onPhotoTaken = {
+                                    viewModel.addEventPhoto(eventSummary.event.id, it, false)
+                                },
                                 onDelete = { eventToDelete = eventSummary },
                                 onSetLocation = if (hasLocationPermission) {
                                     {

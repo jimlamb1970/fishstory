@@ -60,10 +60,10 @@ fun LureItem(
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
-    onPhotoAdded: (Uri) -> Unit,
-    onPhotoTaken: (Uri) -> Unit,
     onFishClick: ((String, Boolean) -> Unit)? = null,
     onEdit: () -> Unit,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current

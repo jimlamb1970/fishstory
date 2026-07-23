@@ -297,6 +297,15 @@ class TripViewModel(
                 .onFailure {  }
         }
     }
+
+    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addEventPhoto(eventId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+
     fun deleteTripPhoto(tripId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }

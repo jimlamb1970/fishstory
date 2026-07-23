@@ -1,8 +1,13 @@
 package com.funjim.fishstory.ui.utils
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +22,7 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOff
@@ -24,6 +30,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -46,16 +54,18 @@ import java.util.Locale
 fun EventItem(
     item: EventSummary,
     modifier: Modifier = Modifier,
+    thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
-    thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
     onFishClick: ((String, String, Boolean) -> Unit)? = null,
-    onDelete: (() -> Unit)? = null,
+    onPhotoAdded: ((Uri) -> Unit)? = null,
+    onPhotoTaken: ((Uri) -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
-    onClearLocation: (() -> Unit)? = null
+    onClearLocation: (() -> Unit)? = null,
+   onDelete: (() -> Unit)? = null
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
@@ -73,10 +83,54 @@ fun EventItem(
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    val hasMenuActions = (onSelectLocation != null) ||
-            (onSetLocation != null) ||
-            (onUseTripLocation != null) ||
-            (onClearLocation != null) ||
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // This can happen if the provider doesn't support persistable permissions
+                }
+                if (onPhotoAdded != null) {
+                    onPhotoAdded(it)
+                }
+            }
+        }
+    )
+
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempUri?.let {
+                    if (onPhotoTaken != null) {
+                        onPhotoTaken(it)
+                    }
+                }
+            }
+        }
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = createPublicImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val hasMenuActions = (onPhotoAdded != null) || (onPhotoTaken != null) ||
+            (onSelectLocation != null) || (onSetLocation != null) ||
+            (onUseTripLocation != null) || (onClearLocation != null) ||
             (onDelete != null)
 
     OutlinedCard(
@@ -236,6 +290,44 @@ fun EventItem(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
+                        if (onPhotoAdded != null) {
+                            DropdownMenuItem(
+                                text = { Text("Add Photo") },
+                                onClick = {
+                                    menuExpanded = false
+                                    galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.PhotoLibrary,
+                                        contentDescription = "Add Photo From Gallery"
+                                    )
+                                }
+                            )
+                        }
+                        if (onPhotoTaken != null) {
+                            DropdownMenuItem(
+                                text = { Text("Take Photo") },
+                                onClick = {
+                                    menuExpanded = false
+                                    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                        val uri = createPublicImageUri(context)
+                                        tempUri = uri
+                                        cameraLauncher.launch(uri)
+                                    } else {
+                                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.AddAPhoto,
+                                        contentDescription = "Take Photo"
+                                    )
+                                }
+                            )
+                        }
+
                         if (onSetLocation != null) {
                             DropdownMenuItem(
                                 text = { Text("Use Current Location") },
