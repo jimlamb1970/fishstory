@@ -135,6 +135,14 @@ class LureViewModel(
         return photoRepo.getPhotoMetadata(uri)
     }
 
+    fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addLurePhoto(lureId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+
     fun addLurePhotos(lureId: String, photos: List<Photo>) {
         viewModelScope.launch {
             photoRepo.addLurePhotos(lureId, photos)

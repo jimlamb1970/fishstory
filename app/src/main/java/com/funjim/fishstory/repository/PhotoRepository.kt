@@ -249,6 +249,7 @@ class PhotoRepository(
     ): Result<Unit> {
         return try {
             val metadata = getPhotoMetadata(uri)
+            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
 
             val existingId =
                 if (selected) photoDao.getPhotoIdByHash(metadata.hashcode)
@@ -304,6 +305,13 @@ class PhotoRepository(
 
     suspend fun deleteFishermanPhoto(fishermanId: String, photoId: String) =
         photoDao.deleteFishermanPhoto(PhotoFishermanCrossRef(photoId, fishermanId))
+
+    suspend fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) =
+        addPhoto(uri, selected) { photoId ->
+            photoDao.addLurePhoto(PhotoLureCrossRef(
+                photoId = photoId,
+                lureId = lureId))
+        }
 
     suspend fun addLurePhotos(lureId: String, photos: List<Photo>) {
         photos.forEach { photo ->

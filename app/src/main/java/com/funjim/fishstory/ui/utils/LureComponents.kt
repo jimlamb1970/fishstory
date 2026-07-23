@@ -1,5 +1,13 @@
 package com.funjim.fishstory.ui.utils
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,10 +24,12 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -28,11 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import androidx.core.graphics.toColorInt
@@ -48,10 +60,13 @@ fun LureItem(
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
     onFishClick: ((String, Boolean) -> Unit)? = null,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
     var menuExpanded by remember { mutableStateOf(false) }
@@ -60,6 +75,45 @@ fun LureItem(
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // This can happen if the provider doesn't support persistable permissions
+                }
+                onPhotoAdded(it)
+            }
+        }
+    )
+
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempUri?.let { onPhotoTaken(it) }
+            }
+        }
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = createPublicImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     OutlinedCard(
         modifier = Modifier
@@ -165,6 +219,42 @@ fun LureItem(
                             )
                         }
                     )
+
+                    DropdownMenuItem(
+                        text = { Text("Add Photo") },
+                        onClick = {
+                            menuExpanded = false
+                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = "Add Photo From Gallery"
+                            )
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Take Photo") },
+                        onClick = {
+                            menuExpanded = false
+                            val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                val uri = createPublicImageUri(context)
+                                tempUri = uri
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.AddAPhoto,
+                                contentDescription = "Take Photo"
+                            )
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Delete") },
                         onClick = {
