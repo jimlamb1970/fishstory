@@ -313,6 +313,18 @@ fun FishListScreen(
                                         fishDetails.fish.id
                                     )
                                 },
+                                onPhotoAdded = { uri ->
+                                    viewModel.addFishPhoto(
+                                        fishId = fishDetails.fish.id,
+                                        uri = uri,
+                                        selected = true)
+                                },
+                                onPhotoTaken = { uri ->
+                                    viewModel.addFishPhoto(
+                                        fishId = fishDetails.fish.id,
+                                        uri = uri,
+                                        selected = false)
+                                },
                                 onDelete = { fishToDelete = fishDetails.fish },
                                 onSetLocation = if (hasLocationPermission) {
                                     {
