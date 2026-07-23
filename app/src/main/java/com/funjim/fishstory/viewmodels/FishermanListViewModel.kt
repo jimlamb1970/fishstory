@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -55,6 +56,14 @@ class FishermanListViewModel(
     fun deleteFisherman(fisherman: Fisherman) {
         viewModelScope.launch {
             fishermanRepo.deleteFisherman(fisherman)
+        }
+    }
+
+    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
         }
     }
 

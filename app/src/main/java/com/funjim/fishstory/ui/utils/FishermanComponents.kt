@@ -1,5 +1,13 @@
 package com.funjim.fishstory.ui.utils
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -14,19 +22,24 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -43,6 +56,8 @@ fun FishermanItem(
     thumbnailFlow: Flow<ByteArray?>,
     onClick: () -> Unit,
     onFishClick: (String, Boolean) -> Unit,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
     onDelete: () -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -53,6 +68,48 @@ fun FishermanItem(
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
+
+    val context = LocalContext.current
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // This can happen if the provider doesn't support persistable permissions
+                }
+                onPhotoAdded(it)
+            }
+        }
+    )
+
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempUri?.let {
+                    onPhotoTaken(it)
+                }
+            }
+        }
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = createPublicImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     OutlinedCard(
         modifier = Modifier
@@ -146,10 +203,52 @@ fun FishermanItem(
             }
 
             Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Fisherman options",
+                        tint = contentColor
+                    )
+                }
+
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Add Photo") },
+                        onClick = {
+                            expanded = false
+                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = "Add Photo From Gallery"
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Take Photo") },
+                        onClick = {
+                            expanded = false
+                            val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                val uri = createPublicImageUri(context)
+                                tempUri = uri
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.AddAPhoto,
+                                contentDescription = "Take Photo"
+                            )
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Delete") },
                         onClick = {
@@ -472,6 +571,8 @@ fun FishermanItemPreview() {
             thumbnailFlow = flowOf(null),
             onClick = {},
             onFishClick = { _, _ -> },
+            onPhotoAdded = {},
+            onPhotoTaken = {},
             onDelete = {},
         )
     }

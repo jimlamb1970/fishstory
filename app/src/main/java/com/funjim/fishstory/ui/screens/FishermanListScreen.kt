@@ -161,6 +161,12 @@ fun FishermanListScreen(
                             onFishClick = { fishermanId, targetOnly ->
                                 navigateToFishList(fishermanId, targetOnly)
                             },
+                            onPhotoAdded = {
+                                viewModel.addFishermanPhoto(fisherman.fisherman.id, it, true)
+                            },
+                            onPhotoTaken = {
+                                viewModel.addFishermanPhoto(fisherman.fisherman.id, it, false)
+                            },
                             onDelete = { fishermanToDelete = fisherman }
                         )
                     }
