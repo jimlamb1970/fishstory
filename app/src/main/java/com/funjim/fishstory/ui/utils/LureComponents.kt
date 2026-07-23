@@ -288,10 +288,10 @@ fun LureCompositionWithColors(
     secondaryColor: Color = MaterialTheme.colorScheme.onSurface,
     colorBadgeSize: Dp = 28.dp
 ) {
-    Row(
+    FlowRow(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(1.dp)
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (name.isNotEmpty()) {
             Text(
@@ -308,14 +308,14 @@ fun LureCompositionWithColors(
                 colorBadgeSize = colorBadgeSize)
         }
 
+        if (primary.isNotEmpty() && secondary.isNotEmpty()) {
+            Text(
+                text = " / ",
+                style = MaterialTheme.typography.bodySmall,
+                color = secondaryColor
+            )
+        }
         secondary.forEach { color ->
-            if (primary.isNotEmpty()) {
-                Text(
-                    text = " / ",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = secondaryColor
-                )
-            }
             ProcessColor(
                 color,
                 contentColor = secondaryColor,
