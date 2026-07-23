@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -67,6 +68,14 @@ class TripListViewModel(
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
             tripRepo.deleteTripById(trip.id)
+        }
+    }
+
+    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addTripPhoto(tripId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
         }
     }
 

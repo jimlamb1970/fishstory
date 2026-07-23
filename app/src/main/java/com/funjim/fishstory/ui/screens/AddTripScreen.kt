@@ -188,7 +188,8 @@ fun AddTripScreen(
                 tripViewModel.saveTrip()
                 Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT).show()
             }
-
+            is TripAction.SelectPhoto -> {}
+            is TripAction.TakePhoto -> {}
             is TripAction.Delete -> {}
         }
     }

@@ -1,8 +1,13 @@
 package com.funjim.fishstory.ui.screens
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
@@ -20,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -27,6 +33,7 @@ import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripListFilter
@@ -69,6 +76,59 @@ fun TripListScreen(
             }
         }
     )
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // This can happen if the provider doesn't support persistable permissions
+                }
+                selectedTrip?.let { trip ->
+                    viewModel.addTripPhoto(
+                        tripId = trip.trip.id,
+                        uri = uri,
+                        selected = true
+                    )
+                }
+            }
+        }
+    )
+
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempUri?.let {
+                    selectedTrip?.let { trip ->
+                        viewModel.addTripPhoto(
+                            tripId = trip.trip.id,
+                            uri = it,
+                            selected = false
+                        )
+                    }
+                }
+            }
+        }
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = createPublicImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val onAction: (TripAction) -> Unit = { action ->
         when (action) {
@@ -128,6 +188,19 @@ fun TripListScreen(
                     )
                     Toast.makeText(context, "Location cleared", Toast.LENGTH_SHORT)
                         .show()
+                }
+            }
+            is TripAction.SelectPhoto -> {
+                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+            is TripAction.TakePhoto -> {
+                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    val uri = createPublicImageUri(context)
+                    tempUri = uri
+                    cameraLauncher.launch(uri)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }
             is TripAction.Delete -> {
