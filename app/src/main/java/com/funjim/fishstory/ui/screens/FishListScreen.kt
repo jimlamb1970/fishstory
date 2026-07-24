@@ -50,16 +50,18 @@ fun FishListScreen(
     eventId: String?,
     fishermanId: String?,
     lureId: String?,
+    speciesId: String?,
     targetOnly: Boolean,
     tripId: String?,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, targetOnly, tripId)) {
+    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, speciesId, targetOnly, tripId)) {
         viewModel.selectBodyOfWater(bodyOfWaterId)
         viewModel.selectFisherman(fishermanId)
         viewModel.selectLure(lureId)
+        viewModel.selectSpecies(speciesId)
         viewModel.selectTargetOnly(targetOnly)
         viewModel.selectTrip(tripId, eventId)
     }
@@ -73,12 +75,14 @@ fun FishListScreen(
     val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val lure by viewModel.selectedLure.collectAsStateWithLifecycle()
+    val species by viewModel.selectedSpecies.collectAsStateWithLifecycle()
     val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
 
     val isLoading = (bodyOfWaterId != null && bodyOfWater == null) ||
             (eventId != null && event == null) ||
             (fishermanId != null && fisherman == null) ||
             (lureId != null && lure == null) ||
+            (speciesId != null && species == null) ||
             (tripId != null && trip == null)
 
     val names = if (isLoading) {
@@ -87,6 +91,7 @@ fun FishListScreen(
         listOfNotNull(
             trip?.name,
             event?.name,
+            species?.name,
             fisherman?.fullName,
             bodyOfWater?.name,
             lure?.lure?.name)

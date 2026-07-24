@@ -370,12 +370,15 @@ WHERE f.id = :fId
         WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY fisherman_table.id
     """)
     fun getFishermenWithFish(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        lureId: String?,
-        tripId: String?): Flow<List<Fisherman>>
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
+    ): Flow<List<Fisherman>>
 }

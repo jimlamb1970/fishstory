@@ -84,13 +84,16 @@ interface BodyOfWaterDao {
         WHERE (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY body_of_water_table.id
     """)
     fun getBodiesOfWaterWithFish(
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?): Flow<List<BodyOfWater>>
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
+    ): Flow<List<BodyOfWater>>
 
 }

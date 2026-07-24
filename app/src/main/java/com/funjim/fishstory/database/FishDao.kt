@@ -9,10 +9,12 @@ import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithCounts
 import kotlinx.coroutines.flow.Flow
 
@@ -30,6 +32,7 @@ interface FishDao {
           AND (:eventId IS NULL OR f.eventId = :eventId)
           AND (:fishermanId IS NULL OR f.fishermanId = :fishermanId)
           AND (:lureId IS NULL OR f.lureId = :lureId)
+          AND (:speciesId IS NULL OR f.speciesId = :speciesId)
           AND (:tripId IS NULL OR f.tripId = :tripId)
           AND (:targetOnly IS NULL 
             OR :targetOnly = 0 
@@ -41,11 +44,12 @@ interface FishDao {
     """
     )
     fun getFishWithDetails(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?,
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null,
         targetOnly: Boolean = false
     ): Flow<List<FishWithDetails>>
 
@@ -114,6 +118,10 @@ interface FishDao {
 
     @Delete
     suspend fun deleteFish(fish: Fish)
+
+    @Transaction
+    @Query("SELECT * FROM species_table WHERE id = :speciesId")
+    fun getSpecies(speciesId: String): Flow<Species?>
 
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<Species>>
@@ -204,14 +212,16 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
 """)
     fun getFishCounts(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<FishCounts>
 
     @Query("""
@@ -224,17 +234,19 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
     GROUP BY trip_table.id
     ORDER BY totalCaught DESC
     LIMIT 1
 """)
     fun getTopTrip(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<TripWithCounts?>
 
     @Query("""
@@ -247,17 +259,19 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
     GROUP BY event_table.id
     ORDER BY totalCaught DESC
     LIMIT 1
 """)
     fun getTopEvent(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<EventWithCounts?>
 
     @Query("""
@@ -270,17 +284,19 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
     GROUP BY fisherman_table.id
     ORDER BY totalCaught DESC
     LIMIT 1
 """)
     fun getTopFisherman(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<FishermanWithCounts?>
 
     @Query("""
@@ -293,17 +309,19 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
     GROUP BY species_table.id
     ORDER BY totalCaught DESC
     LIMIT 1
 """)
     fun getTopSpecies(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<SpeciesWithCounts?>
 
     @Transaction
@@ -317,17 +335,19 @@ interface FishDao {
       AND (:eventId IS NULL OR fish_table.eventId = :eventId)
       AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
       AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+      AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
       AND (:tripId IS NULL OR fish_table.tripId = :tripId)
     GROUP BY lure_table.id
     ORDER BY totalCaught DESC
     LIMIT 1
 """)
     fun getTopLure(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        lureId: String?,
-        tripId: String?
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
     ): Flow<LureWithCounts?>
 
     @Query("""
@@ -341,4 +361,23 @@ interface FishDao {
         tripId: String?,
         eventId: String?
     )
+
+    @Transaction
+    @Query("""
+        SELECT DISTINCT species_table.* FROM species_table 
+        INNER JOIN fish_table ON species_table.id = fish_table.speciesId 
+        WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
+          AND (:eventId IS NULL OR fish_table.eventId = :eventId)
+          AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:tripId IS NULL OR fish_table.tripId = :tripId)
+        GROUP BY species_table.id
+    """)
+    fun getSpeciesWithFish(
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        tripId: String? = null
+    ): Flow<List<Species>>
 }

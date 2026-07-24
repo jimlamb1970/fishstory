@@ -25,12 +25,14 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.FishSummary
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelectionField
 import com.funjim.fishstory.ui.utils.EventSelectionField
 import com.funjim.fishstory.ui.utils.FishermanSelectionField
 import com.funjim.fishstory.ui.utils.LureSelectionField
+import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripSelectionField
@@ -48,12 +50,13 @@ fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (String?, String?, String?, String?, String?, Boolean) -> Unit
+    onNavigateToFishList: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit
 ) {
     val selectedBodyOfWaterId by viewModel.selectedBodyOfWaterId.collectAsStateWithLifecycle()
     val selectedEventId by viewModel.selectedEventId.collectAsStateWithLifecycle()
     val selectedFishermanId by viewModel.selectedFishermanId.collectAsStateWithLifecycle()
     val selectedLureId by viewModel.selectedLureId.collectAsStateWithLifecycle()
+    val selectedSpeciesId by viewModel.selectedSpeciesId.collectAsStateWithLifecycle()
     val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
 
     val allBodiesOfWater by viewModel.bodiesOfWaterWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -61,9 +64,9 @@ fun FishSummaryScreen(
         allBodiesOfWater.find { it.id == selectedBodyOfWaterId }
     }
 
-    val allTrips by viewModel.tripsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedTrip = remember(allTrips, selectedTripId) {
-        allTrips.find { it.id == selectedTripId }
+    val trips by viewModel.tripsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
+    val selectedTrip = remember(trips, selectedTripId) {
+        trips.find { it.id == selectedTripId }
     }
 
     val events by viewModel.eventsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -79,6 +82,11 @@ fun FishSummaryScreen(
     val lures by viewModel.luresWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedLure = remember(lures, selectedLureId) {
         lures.find { it.lure.id == selectedLureId }
+    }
+
+    val species by viewModel.speciesWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
+    val selectedSpecies = remember(species, selectedSpeciesId) {
+        species.find { it.id == selectedSpeciesId }
     }
 
     val summary by viewModel.fishSummary.collectAsStateWithLifecycle()
@@ -141,6 +149,7 @@ fun FishSummaryScreen(
                     summary = summary,
                     trip = selectedTrip,
                     event = selectedEvent,
+                    species = selectedSpecies,
                     fisherman = selectedFisherman,
                     lure = selectedLure,
                     bodyOfWater = selectedBodyOfWater,
@@ -150,6 +159,7 @@ fun FishSummaryScreen(
                             selectedEventId,
                             selectedFishermanId,
                             selectedLureId,
+                            selectedSpeciesId,
                             selectedTripId,
                             false
                         )
@@ -160,6 +170,7 @@ fun FishSummaryScreen(
                             selectedEventId,
                             selectedFishermanId,
                             selectedLureId,
+                            selectedSpeciesId,
                             selectedTripId,
                             false
                         )
@@ -170,6 +181,7 @@ fun FishSummaryScreen(
                             selectedEventId,
                             selectedFishermanId,
                             selectedLureId,
+                            selectedSpeciesId,
                             selectedTripId,
                             true
                         )
@@ -191,7 +203,7 @@ fun FishSummaryScreen(
             ) {
                 item {
                     TripSelectionField(
-                        items = allTrips,
+                        items = trips,
                         selectedItem = selectedTrip,
                         onSelected = { trip ->
                             viewModel.selectTrip(trip.id)
@@ -239,6 +251,32 @@ fun FishSummaryScreen(
                             ThumbnailBox(
                                 thumbnail = thumbnail,
                                 imageVector = AppIcons.Default.Boat,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    )
+                }
+
+                item {
+                    SpeciesSelection(
+                        items = species,
+                        selectedItem = selectedSpecies,
+                        onSelected = { species ->
+                            viewModel.selectSpecies(species.id) },
+                        modifier = Modifier.fillMaxWidth(),
+                        onClear = {
+                            viewModel.selectSpecies(null)
+                        },
+                        thumbnailProvider = { species ->
+                            val thumbnailFlow = remember(species.id) {
+                                viewModel.speciesThumbnail(species.id)
+                            }
+
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.LeapingFish,
                                 modifier = Modifier.size(48.dp)
                             )
                         }
@@ -327,6 +365,7 @@ private fun FishVisual(
     summary: FishSummary,
     trip: Trip?,
     event: Event?,
+    species: Species?,
     fisherman: Fisherman?,
     lure: LureWithColors?,
     bodyOfWater: BodyOfWater?,
@@ -354,6 +393,7 @@ private fun FishVisual(
     val names = listOfNotNull(
         trip?.name,
         event?.name,
+        species?.name,
         bodyOfWater?.name,
         fisherman?.fullName,
         lure?.lure?.name)

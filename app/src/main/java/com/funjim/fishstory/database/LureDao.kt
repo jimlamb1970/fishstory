@@ -173,12 +173,15 @@ interface LureDao {
         WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
+          AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY lure_table.id
     """)
     fun getLuresWithFish(
-        bodyOfWaterId: String?,
-        eventId: String?,
-        fishermanId: String?,
-        tripId: String?): Flow<List<LureWithColors>>
+        bodyOfWaterId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null,
+        speciesId: String? = null,
+        tripId: String? = null
+    ): Flow<List<LureWithColors>>
 }

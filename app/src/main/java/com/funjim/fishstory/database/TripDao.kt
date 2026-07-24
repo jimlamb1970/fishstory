@@ -208,9 +208,15 @@ ORDER BY t.startDate DESC
         WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:fishermanId IS NULL OR fish_table.fishermanId = :fishermanId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
+          AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
         GROUP BY trip_table.id
     """)
-    fun getTripsWithFish(bodyOfWaterId: String?, fishermanId: String?, lureId: String?): Flow<List<Trip>>
+    fun getTripsWithFish(
+        bodyOfWaterId: String? = null,
+        fishermanId: String? = null,
+        lureId: String? = null,
+        speciesId: String? = null
+    ): Flow<List<Trip>>
 
     @Query("SELECT * FROM trip_target_species")
     fun getAllTripTargetSpecies(): Flow<List<TripTargetSpecies>>

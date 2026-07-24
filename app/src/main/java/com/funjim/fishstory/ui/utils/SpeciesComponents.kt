@@ -55,6 +55,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,8 +64,9 @@ fun SpeciesSelection(
     items: List<Species>,
     selectedItem: Species?,
     onSelected: (Species) -> Unit,
-    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
+    onAdd: (() -> Unit)? = null,
+    onClear: (() -> Unit)? = null,
     thumbnailProvider: @Composable (Species) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
@@ -204,15 +206,28 @@ fun SpeciesSelection(
                             )
                         }
 
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            HorizontalDivider()
+                        if (onClear != null && selectedItem != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalResetButton(
+                                    title = "Reset Species",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
                         }
 
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            ModalAddButton(
-                                title = "Add new species...",
-                                onAdd = { showSheet = false; onAdd() }
-                            )
+                        if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                HorizontalDivider()
+                            }
+
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalAddButton(
+                                    title = "Add new species...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -254,12 +269,24 @@ fun SpeciesSelection(
                             )
                         }
 
-                        item { HorizontalDivider() }
-                        item {
-                            ModalAddButton(
-                                title = "Add new species...",
-                                onAdd = { showSheet = false; onAdd() }
-                            )
+                        if (onClear != null && selectedItem != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalResetButton(
+                                    title = "Reset Species",
+                                    onClear = { showSheet = false; onClear() }
+                                )
+                            }
+                        }
+
+                        if (onAdd != null) {
+                            item { HorizontalDivider() }
+                            item {
+                                ModalAddButton(
+                                    title = "Add new species...",
+                                    onAdd = { showSheet = false; onAdd() }
+                                )
+                            }
                         }
                     }
                 }

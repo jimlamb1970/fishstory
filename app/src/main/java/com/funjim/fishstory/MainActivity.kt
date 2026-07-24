@@ -347,13 +347,21 @@ fun AppNavigation(
                         if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
                     navController.navigate(route)
                 },
-                onNavigateToFishList = { bodyOfWaterId, eventId, fishermanId, lureId, tripId, targetOnly ->
+                onNavigateToFishList = {
+                    bodyOfWaterId,
+                    eventId,
+                    fishermanId,
+                    lureId,
+                    speciesId,
+                    tripId,
+                    targetOnly ->
                     val route = buildString {
                         append("fish_list?")
                         if (bodyOfWaterId != null) append("bodyOfWaterId=$bodyOfWaterId&")
                         if (eventId != null) append("eventId=$eventId&")
                         if (fishermanId != null) append("fishermanId=$fishermanId&")
                         if (lureId != null) append("lureId=$lureId&")
+                        if (speciesId != null) append("speciesId=$speciesId&")
                         if (tripId != null) append("tripId=$tripId&")
                         append("targetOnly=$targetOnly")
                     }.removeSuffix("&")
@@ -367,7 +375,7 @@ fun AppNavigation(
         }
 
         composable(
-            route = "fish_list?bodyOfWaterId={bodyOfWaterId}&eventId={eventId}&fishermanId={fishermanId}&lureId={lureId}&tripId={tripId}&targetOnly={targetOnly}",
+            route = "fish_list?bodyOfWaterId={bodyOfWaterId}&eventId={eventId}&fishermanId={fishermanId}&lureId={lureId}&speciesId={speciesId}&tripId={tripId}&targetOnly={targetOnly}",
             arguments = listOf(
                 navArgument("bodyOfWaterId") {
                     type = NavType.StringType
@@ -389,6 +397,10 @@ fun AppNavigation(
                     type = NavType.StringType
                     defaultValue = "null"
                 },
+                navArgument("speciesId") {
+                    type = NavType.StringType
+                    defaultValue = "null"
+                },
                 navArgument("targetOnly") {
                     type = NavType.BoolType
                     defaultValue = false
@@ -399,6 +411,7 @@ fun AppNavigation(
             val eventId = backStackEntry.arguments?.getString("eventId")?.takeIf { it != "null" }
             val fishermanId = backStackEntry.arguments?.getString("fishermanId")?.takeIf { it != "null" }
             val lureId = backStackEntry.arguments?.getString("lureId")?.takeIf { it != "null" }
+            val speciesId = backStackEntry.arguments?.getString("speciesId")?.takeIf { it != "null" }
             val tripId = backStackEntry.arguments?.getString("tripId")?.takeIf { it != "null" }
 
             val targetOnly = backStackEntry.arguments?.getBoolean("targetOnly") ?: false
@@ -414,6 +427,7 @@ fun AppNavigation(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 lureId = lureId,
+                speciesId = speciesId,
                 targetOnly = targetOnly,
                 tripId = tripId,
                 onAddFish = { tripId, eventId, fishId ->
@@ -503,6 +517,7 @@ fun AppNavigation(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 lureId = null,
+                speciesId = null,
                 targetOnly = targetOnly,
                 tripId = tripId,
                 onAddFish = { tripId, eventId, fishId ->
