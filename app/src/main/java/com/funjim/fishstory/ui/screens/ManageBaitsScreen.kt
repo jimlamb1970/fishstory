@@ -7,6 +7,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,10 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.BaitViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,7 +151,7 @@ fun ManageBaitsScreen(
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    val preventDelete = item.caughtCount > 0 || item.keptCount > 0
+                    val preventDelete = item.fishCaught > 0 || item.fishKept > 0
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
@@ -221,9 +224,30 @@ fun ManageBaitsScreen(
                                 }
                             }
                         },
-                        headlineContent = { Text(item.bait.name) },
+                        headlineContent = {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(item.bait.name)
+                                if (item.fishCaught > 0) {
+                                    FishCaughtItem(
+                                        icon = AppIcons.Default.LeapingFishWithFins,
+                                        caughtCount = item.fishCaught,
+                                        keptCount = item.fishKept,
+                                        onFishClick = null,
+                                        contentColor = getOnCardSecondaryColor()
+                                    )
+                                }
+                                if (item.targetFishCaught > 0) {
+                                    FishCaughtItem(
+                                        icon = AppIcons.Default.TargetFish,
+                                        caughtCount = item.targetFishCaught,
+                                        keptCount = item.targetFishKept,
+                                        onFishClick = null,
+                                        contentColor = getOnCardSecondaryColor()
+                                    )
+                                }
+                            }
+                        },
                         supportingContent = {
-                            Text("Caught: ${item.caughtCount}, Kept: ${item.keptCount}")
                         },
                         trailingContent = {
                             Box {
