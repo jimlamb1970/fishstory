@@ -333,7 +333,7 @@ fun AddFishScreen(
 
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.LeapingFish,
+                                    imageVector = AppIcons.Default.Species,
                                     modifier = Modifier.size(48.dp)
                                 )
                             }
@@ -406,7 +406,7 @@ fun AddFishScreen(
 
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Bait,
+                                    imageVector = AppIcons.Default.Worm,
                                     modifier = Modifier.size(48.dp)
                                 )
                             }

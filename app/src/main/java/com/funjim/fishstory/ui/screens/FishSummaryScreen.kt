@@ -276,7 +276,7 @@ fun FishSummaryScreen(
 
                             ThumbnailBox(
                                 thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.LeapingFish,
+                                imageVector = AppIcons.Default.Species,
                                 modifier = Modifier.size(48.dp)
                             )
                         }
@@ -349,7 +349,7 @@ fun FishSummaryScreen(
 
                             ThumbnailBox(
                                 thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Lure,
+                                imageVector = AppIcons.Default.BodyOfWater,
                                 modifier = Modifier.size(48.dp)
                             )
                         }

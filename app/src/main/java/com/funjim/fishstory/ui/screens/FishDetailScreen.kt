@@ -598,7 +598,7 @@ private fun FishDetailContent(
                 ) {
                     ThumbnailBox(
                         thumbnail = baitThumbnail,
-                        imageVector = AppIcons.Default.Bait,
+                        imageVector = AppIcons.Default.Worm,
                         modifier = Modifier.size(40.dp)
                     )
                 }

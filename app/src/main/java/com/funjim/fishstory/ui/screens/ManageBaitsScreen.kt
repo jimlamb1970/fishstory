@@ -180,7 +180,7 @@ fun ManageBaitsScreen(
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Bait,
+                                    imageVector = AppIcons.Default.Worm,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 DropdownMenu(
