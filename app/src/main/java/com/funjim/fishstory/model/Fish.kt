@@ -175,8 +175,10 @@ data class BaitSummary(
 
 data class BodyOfWaterSummary(
     @Embedded val bodyOfWater: BodyOfWater,
-    val caughtCount: Int,
-    val keptCount: Int,
+    val fishCaught: Int,
+    val fishKept: Int,
+    val targetFishCaught: Int,
+    val targetFishKept: Int,
     val largestFish: Double,
     val smallestFish: Double
 )

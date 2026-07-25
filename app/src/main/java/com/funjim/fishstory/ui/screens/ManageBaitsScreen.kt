@@ -308,7 +308,6 @@ fun ManageBaitsScreen(
                         },
                         colors = ListItemDefaults.colors(containerColor = backgroundColor)
                     )
-                    HorizontalDivider(thickness = 0.5.dp)
                 }
             }
         }

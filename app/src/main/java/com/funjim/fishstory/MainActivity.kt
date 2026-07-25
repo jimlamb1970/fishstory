@@ -597,6 +597,9 @@ fun AppNavigation(
 
             ManageBodiesOfWaterScreen(
                 viewModel = viewModel,
+                navigateToFishList = { id, targetOnly ->
+                    navController.navigate("fish_list?bodyOfWaterId=$id&targetOnly=$targetOnly")
+                },
                 navigateBack = { navController.popBackStack() }
             )
         }
