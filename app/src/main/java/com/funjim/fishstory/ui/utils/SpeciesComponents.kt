@@ -65,6 +65,7 @@ fun SpeciesSelection(
     selectedItem: Species?,
     onSelected: (Species) -> Unit,
     modifier: Modifier = Modifier,
+    defaultText : String = "Select Species (optional)",
     onAdd: (() -> Unit)? = null,
     onClear: (() -> Unit)? = null,
     thumbnailProvider: @Composable (Species) -> Unit
@@ -75,7 +76,7 @@ fun SpeciesSelection(
     var isGridView by remember { mutableStateOf(true) }
 
     OutlinedTextField(
-        value = selectedItem?.name ?: "Select Species",
+        value = selectedItem?.name ?: defaultText,
         onValueChange = {},
         readOnly = true,
         modifier = modifier.clickable { showSheet = true },

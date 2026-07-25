@@ -170,15 +170,85 @@ interface FishDao {
     @Query("""
     SELECT 
         s.*, 
-        SUM(f.caughtCount) AS caughtCount,
-        SUM(f.keptCount) AS keptCount,
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
         MAX(f.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN f.caughtCount 
+                ELSE 0 
+            END
+        ) AS targetFishCaught,
+        SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN f.keptCount 
+                ELSE 0 
+            END
+        ) AS targetFishKept
     FROM species_table AS s
     LEFT JOIN fish_table AS f ON s.id = f.speciesId
+    LEFT JOIN event_target_species AS target 
+        ON f.eventId = target.eventId 
+        AND s.id = target.speciesId
     GROUP BY s.id
 """)
     fun getSpeciesSummaries(): Flow<List<SpeciesSummary>>
+
+    @Query("""
+    SELECT 
+        s.*, 
+        -- Total Caught
+        (
+            SELECT COALESCE(SUM(ft.caughtCount), 0) 
+            FROM fish_table ft 
+            WHERE ft.speciesId = s.id
+        ) AS fishCaught,
+
+        -- Total Kept
+        (
+            SELECT COALESCE(SUM(ft.keptCount), 0) 
+            FROM fish_table ft 
+            WHERE ft.speciesId = s.id
+        ) AS fishKept,
+
+        -- Largest & Smallest
+        (
+            SELECT COALESCE(MAX(ft.length), 0.0) 
+            FROM fish_table ft 
+            WHERE ft.speciesId = s.id
+        ) AS largestFish,
+
+        (
+            SELECT COALESCE(MIN(CASE WHEN ft.length > 0 THEN ft.length END), 0.0) 
+            FROM fish_table ft 
+            WHERE ft.speciesId = s.id
+        ) AS smallestFish,
+
+        -- Target Fish Caught (Only sums fish entries matching event_target_species)
+        (
+            SELECT COALESCE(SUM(ft.caughtCount), 0)
+            FROM fish_table ft
+            INNER JOIN event_target_species target 
+                ON ft.eventId = target.eventId 
+               AND ft.speciesId = target.speciesId
+            WHERE ft.speciesId = s.id
+        ) AS targetFishCaught,
+
+        -- Target Fish Kept
+        (
+            SELECT COALESCE(SUM(ft.keptCount), 0)
+            FROM fish_table ft
+            INNER JOIN event_target_species target 
+                ON ft.eventId = target.eventId 
+               AND ft.speciesId = target.speciesId
+            WHERE ft.speciesId = s.id
+        ) AS targetFishKept
+
+    FROM species_table AS s
+    GROUP BY s.id
+""")
+    fun getSpeciesSummaries2(): Flow<List<SpeciesSummary>>
 
     @Query("""
     SELECT 

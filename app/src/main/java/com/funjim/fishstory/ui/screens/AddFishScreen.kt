@@ -323,6 +323,7 @@ fun AddFishScreen(
                             onSelected = { species -> viewModel.updateSpecies(species) },
                             onAdd = { addNewSpecies = true },
                             modifier = Modifier.fillMaxWidth(),
+                            defaultText = "Select Species",
                             thumbnailProvider = { species ->
                                 val thumbnailFlow = remember(species.id) {
                                     viewModel.speciesThumbnail(species.id)

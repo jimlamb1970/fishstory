@@ -31,12 +31,16 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_lure)
         val Settings: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_settings)
+        val Species: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_species)
         val TackleBox: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_tacklebox)
         val TargetFish: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_target_fish)
         val Trip: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_trip)
+        val Worm: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_worm)
 
         // You can add more icons here
         // val StarIcon: ImageVector @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_star)

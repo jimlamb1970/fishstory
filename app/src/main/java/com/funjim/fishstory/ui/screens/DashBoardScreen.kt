@@ -376,11 +376,14 @@ fun DashboardScreen(
                 Text("Management", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(4.dp))
                 DashboardGrid(
+                    onBaitsClick = { onNavigate("manage_baits") },
+                    onBodiesOfWaterClick = { onNavigate("manage_bodies_of_water") },
                     onFishClick = { onNavigate("fish") },
                     onFishermenClick = { onNavigate("fishermen") },
                     onLuresClick = { onNavigate("lures") },
                     onReportsClick = { onNavigate("reports") },
                     onSettingsClick = { onNavigate("settings") },
+                    onSpeciesClick = { onNavigate("manage_species") },
                     onTripsClick = { onNavigate("trips") }
                 )
                 HorizontalDivider(
@@ -847,19 +850,25 @@ fun ActiveTripCard(
 
 @Composable
 fun DashboardGrid(
+    onBaitsClick: () -> Unit,
+    onBodiesOfWaterClick: () -> Unit,
     onFishClick: () -> Unit,
     onFishermenClick: () -> Unit,
     onLuresClick: () -> Unit,
     onReportsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSpeciesClick: () -> Unit,
     onTripsClick: () -> Unit
 ) {
     val items = listOf(
         Triple("Trips", AppIcons.Default.Boat, onTripsClick),
-        Triple("Fish", AppIcons.Default.LeapingFish, onFishClick),
+        Triple("Fish", AppIcons.Default.LeapingFishWithFins, onFishClick),
         Triple("Fishermen", AppIcons.Default.Fisherman, onFishermenClick),
-        Triple("Lures", AppIcons.Default.Lure, onLuresClick), // Or a custom hook icon
-        Triple("Reports", Icons.Default.AutoGraph, onReportsClick), // Or a custom hook icon
+        Triple("Bodies of Water", AppIcons.Default.BodyOfWater, onBodiesOfWaterClick),
+        Triple("Species", AppIcons.Default.Species, onSpeciesClick),
+        Triple("Lures", AppIcons.Default.Lure, onLuresClick),
+        Triple("Baits", AppIcons.Default.Worm, onBaitsClick),
+        Triple("Reports", Icons.Default.AutoGraph, onReportsClick),
         Triple("Settings", AppIcons.Default.Settings, onSettingsClick)
     )
 
@@ -873,6 +882,11 @@ fun DashboardGrid(
             GridItem(items[3], Modifier.weight(1f))
             GridItem(items[4], Modifier.weight(1f))
             GridItem(items[5], Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            GridItem(items[6], Modifier.weight(1f))
+            GridItem(items[7], Modifier.weight(1f))
+            GridItem(items[8], Modifier.weight(1f))
         }
     }
 }

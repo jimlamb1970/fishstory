@@ -621,6 +621,9 @@ fun AppNavigation(
 
             ManageSpeciesScreen(
                 viewModel = viewModel,
+                navigateToFishList = { speciesId, targetOnly ->
+                    navController.navigate("fish_list?speciesId=$speciesId&targetOnly=$targetOnly")
+                },
                 navigateBack = { navController.popBackStack() }
             )
         }

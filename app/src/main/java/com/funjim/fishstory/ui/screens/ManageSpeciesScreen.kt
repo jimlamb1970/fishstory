@@ -8,8 +8,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,22 +50,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.FishViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ManageSpeciesScreen(
     viewModel: FishViewModel,
+    navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -149,7 +156,7 @@ fun ManageSpeciesScreen(
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    val preventDelete = summary.caughtCount > 0 || summary.keptCount > 0
+                    val preventDelete = summary.fishCaught > 0 || summary.fishKept > 0
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
@@ -181,7 +188,8 @@ fun ManageSpeciesScreen(
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    modifier = Modifier.size(48.dp)
+                                    modifier = Modifier.size(48.dp),
+                                    imageVector = AppIcons.Default.Species
                                 )
                                 DropdownMenu(
                                     expanded = thumbnailMenuExpanded,
@@ -221,9 +229,30 @@ fun ManageSpeciesScreen(
                                 }
                             }
                         },
-                        headlineContent = { Text(species.name) },
+                        headlineContent = {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(species.name)
+                                if (summary.fishCaught > 0) {
+                                    FishCaughtItem(
+                                        icon = AppIcons.Default.LeapingFishWithFins,
+                                        caughtCount = summary.fishCaught,
+                                        keptCount = summary.fishKept,
+                                        onFishClick = { navigateToFishList(summary.species.id, false) },
+                                        contentColor = getOnCardSecondaryColor()
+                                    )
+                                }
+                                if (summary.targetFishCaught > 0) {
+                                    FishCaughtItem(
+                                        icon = AppIcons.Default.TargetFish,
+                                        caughtCount = summary.targetFishCaught,
+                                        keptCount = summary.targetFishKept,
+                                        onFishClick = { navigateToFishList(summary.species.id, true) },
+                                        contentColor = getOnCardSecondaryColor()
+                                    )
+                                }
+                            }
+                        },
                         supportingContent = {
-                            Text("Caught: ${summary.caughtCount}, Kept: ${summary.keptCount}")
                         },
                         trailingContent = {
                             Box {
