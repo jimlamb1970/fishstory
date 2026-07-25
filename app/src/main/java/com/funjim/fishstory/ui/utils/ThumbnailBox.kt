@@ -32,7 +32,7 @@ fun ByteArray.toImageBitmap(): ImageBitmap? {
 fun ThumbnailBox(
     thumbnail: ByteArray?,
     modifier: Modifier = Modifier,
-    imageVector: ImageVector = AppIcons.Default.LeapingFish
+    imageVector: ImageVector = AppIcons.Default.Species
 ) {
     Box(
         modifier = modifier
