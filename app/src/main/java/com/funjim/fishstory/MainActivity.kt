@@ -70,7 +70,7 @@ import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 import com.funjim.fishstory.ui.utils.FishListRoute
-import com.funjim.fishstory.ui.utils.FishListFilter
+import com.funjim.fishstory.ui.utils.FishFilter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -371,7 +371,7 @@ fun AppNavigation(
 
         composable<FishListRoute> { backStackEntry ->
             val route: FishListRoute = backStackEntry.toRoute()
-            val filter = FishListFilter.fromRoute(route)
+            val filter = FishFilter.fromRoute(route)
 
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(

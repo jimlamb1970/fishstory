@@ -24,6 +24,7 @@ import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithCounts
+import com.funjim.fishstory.ui.utils.FishFilter
 import kotlinx.coroutines.flow.Flow
 
 class FishRepository(
@@ -41,89 +42,54 @@ class FishRepository(
     val bodyOfWaterSummaries: Flow<List<BodyOfWaterSummary>> = fishDao.getBodyOfWaterSummaries()
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
-    fun getBodiesOfWater(
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ): Flow<List<BodyOfWater>> {
+    fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {
         return bodyOfWaterDao.getBodiesOfWaterWithFish(
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTrips(
-        bodyOfWaterId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null
-    ): Flow<List<Trip>> =
+    fun getTrips(filter: FishFilter): Flow<List<Trip>> =
         tripDao.getTripsWithFish(
-            bodyOfWaterId = bodyOfWaterId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId)
 
-    fun getEvents(
-        bodyOfWaterId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) =
+    fun getEvents(filter: FishFilter) =
         eventDao.getEventsWithFish(
-            bodyOfWaterId = bodyOfWaterId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
 
-    fun getFishermen(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) =
+    fun getFishermen(filter: FishFilter) =
         fishermanDao.getFishermenWithFish(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
 
-    fun getLures(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ): Flow<List<LureWithColors>> {
+    fun getLures(filter: FishFilter): Flow<List<LureWithColors>> {
         return lureDao.getLuresWithFish(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getSpecies(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        tripId: String? = null
-    ): Flow<List<Species>> {
+    fun getSpecies(filter: FishFilter): Flow<List<Species>> {
         return fishDao.getSpeciesWithFish(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            tripId = filter.tripId)
     }
 
     fun getBodyOfWater(id: String) = bodyOfWaterDao.getBodyOfWater(id)
@@ -134,129 +100,79 @@ class FishRepository(
     fun getTrip(id: String) = tripDao.getTrip(id)
     fun getTripById(id: String) = tripDao.getTripById(id)
 
-    fun getFishCounts(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<FishCounts> {
+    fun getFishCounts(filter: FishFilter): Flow<FishCounts> {
         return fishDao.getFishCounts(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTopTrip(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<TripWithCounts?> {
+    fun getTopTrip(filter: FishFilter) : Flow<TripWithCounts?> {
         return fishDao.getTopTrip(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTopEvent(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<EventWithCounts?> {
+    fun getTopEvent(filter: FishFilter) : Flow<EventWithCounts?> {
         return fishDao.getTopEvent(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTopFisherman(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<FishermanWithCounts?> {
+    fun getTopFisherman(filter: FishFilter) : Flow<FishermanWithCounts?> {
         return fishDao.getTopFisherman(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTopSpecies(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<SpeciesWithCounts?> {
+    fun getTopSpecies(filter: FishFilter) : Flow<SpeciesWithCounts?> {
         return fishDao.getTopSpecies(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
-    fun getTopLure(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null
-    ) : Flow<LureWithCounts?> {
+    fun getTopLure(filter: FishFilter) : Flow<LureWithCounts?> {
         return fishDao.getTopLure(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId)
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId)
     }
 
     suspend fun getFish(id: String) = fishDao.getFish(id)
     fun getFishWithPhotos(id: String) = fishDao.getFishWithPhotos(id)
 
     // The Core Filtering Logic (Migrated from ViewModel)
-    fun getFilteredFish(
-        bodyOfWaterId: String? = null,
-        eventId: String? = null,
-        fishermanId: String? = null,
-        lureId: String? = null,
-        speciesId: String? = null,
-        tripId: String? = null,
-        targetOnly: Boolean = false
-    ): Flow<List<FishWithDetails>> {
+    fun getFilteredFish(filter: FishFilter): Flow<List<FishWithDetails>> {
         return fishDao.getFishWithDetails(
-            bodyOfWaterId = bodyOfWaterId,
-            eventId = eventId,
-            fishermanId = fishermanId,
-            lureId = lureId,
-            speciesId = speciesId,
-            tripId = tripId,
-            targetOnly = targetOnly
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId,
+            targetOnly = filter.targetOnly
         )
     }
 

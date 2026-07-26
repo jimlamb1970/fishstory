@@ -13,7 +13,7 @@ data class FishListRoute(
     val targetOnly: Boolean = false
 )
 
-data class FishListFilter(
+data class FishFilter(
     val bodyOfWaterId: String? = null,
     val eventId: String? = null,
     val fishermanId: String? = null,
@@ -24,7 +24,7 @@ data class FishListFilter(
 ) {
     // Convenient extension to map route to domain filter
     companion object {
-        fun fromRoute(route: FishListRoute) = FishListFilter(
+        fun fromRoute(route: FishListRoute) = FishFilter(
             bodyOfWaterId = route.bodyOfWaterId,
             eventId = route.eventId,
             fishermanId = route.fishermanId,

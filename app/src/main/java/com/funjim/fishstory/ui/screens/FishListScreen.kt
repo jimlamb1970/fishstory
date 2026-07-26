@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
-import com.funjim.fishstory.ui.utils.FishListFilter
+import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getChipColor
@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishListScreen(
     viewModel: FishViewModel,
-    filter: FishListFilter,
+    filter: FishFilter,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit

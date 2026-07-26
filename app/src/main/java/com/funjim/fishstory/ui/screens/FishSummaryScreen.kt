@@ -52,41 +52,36 @@ fun FishSummaryScreen(
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     onNavigateToFishList: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit
 ) {
-    val selectedBodyOfWaterId by viewModel.selectedBodyOfWaterId.collectAsStateWithLifecycle()
-    val selectedEventId by viewModel.selectedEventId.collectAsStateWithLifecycle()
-    val selectedFishermanId by viewModel.selectedFishermanId.collectAsStateWithLifecycle()
-    val selectedLureId by viewModel.selectedLureId.collectAsStateWithLifecycle()
-    val selectedSpeciesId by viewModel.selectedSpeciesId.collectAsStateWithLifecycle()
-    val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
 
     val allBodiesOfWater by viewModel.bodiesOfWaterWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedBodyOfWater = remember(allBodiesOfWater, selectedBodyOfWaterId) {
-        allBodiesOfWater.find { it.id == selectedBodyOfWaterId }
+    val selectedBodyOfWater = remember(allBodiesOfWater, filter.bodyOfWaterId) {
+        allBodiesOfWater.find { it.id == filter.bodyOfWaterId }
     }
 
     val trips by viewModel.tripsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedTrip = remember(trips, selectedTripId) {
-        trips.find { it.id == selectedTripId }
+    val selectedTrip = remember(trips, filter.tripId) {
+        trips.find { it.id == filter.tripId }
     }
 
     val events by viewModel.eventsWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedEvent = remember(events, selectedEventId) {
-        events.find { it.id == selectedEventId }
+    val selectedEvent = remember(events, filter.eventId) {
+        events.find { it.id == filter.eventId }
     }
 
     val fishermen by viewModel.fishermenWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedFisherman = remember(fishermen, selectedFishermanId) {
-        fishermen.find { it.id == selectedFishermanId }
+    val selectedFisherman = remember(fishermen, filter.fishermanId) {
+        fishermen.find { it.id == filter.fishermanId }
     }
 
     val lures by viewModel.luresWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedLure = remember(lures, selectedLureId) {
-        lures.find { it.lure.id == selectedLureId }
+    val selectedLure = remember(lures, filter.lureId) {
+        lures.find { it.lure.id == filter.lureId }
     }
 
     val species by viewModel.speciesWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
-    val selectedSpecies = remember(species, selectedSpeciesId) {
-        species.find { it.id == selectedSpeciesId }
+    val selectedSpecies = remember(species, filter.speciesId) {
+        species.find { it.id == filter.speciesId }
     }
 
     val summary by viewModel.fishSummary.collectAsStateWithLifecycle()
@@ -155,34 +150,34 @@ fun FishSummaryScreen(
                     bodyOfWater = selectedBodyOfWater,
                     onClick = {
                         onNavigateToFishList(
-                            selectedBodyOfWaterId,
-                            selectedEventId,
-                            selectedFishermanId,
-                            selectedLureId,
-                            selectedSpeciesId,
-                            selectedTripId,
+                            filter.bodyOfWaterId,
+                            filter.eventId,
+                            filter.fishermanId,
+                            filter.lureId,
+                            filter.speciesId,
+                            filter.tripId,
                             false
                         )
                     },
                     onFishClick = {
                         onNavigateToFishList(
-                            selectedBodyOfWaterId,
-                            selectedEventId,
-                            selectedFishermanId,
-                            selectedLureId,
-                            selectedSpeciesId,
-                            selectedTripId,
+                            filter.bodyOfWaterId,
+                            filter.eventId,
+                            filter.fishermanId,
+                            filter.lureId,
+                            filter.speciesId,
+                            filter.tripId,
                             false
                         )
                     },
                     onTargetFishClick = {
                         onNavigateToFishList(
-                            selectedBodyOfWaterId,
-                            selectedEventId,
-                            selectedFishermanId,
-                            selectedLureId,
-                            selectedSpeciesId,
-                            selectedTripId,
+                            filter.bodyOfWaterId,
+                            filter.eventId,
+                            filter.fishermanId,
+                            filter.lureId,
+                            filter.speciesId,
+                            filter.tripId,
                             true
                         )
                     }
