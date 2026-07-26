@@ -212,6 +212,11 @@ fun FishListScreen(
                             currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
                             viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                         }
+                        SortChip(
+                            "Length",
+                            currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
+                            viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
+                        }
                         if (filter.tripId.isNullOrEmpty()) {
                             SortChip(
                                 "Trip",
@@ -226,6 +231,14 @@ fun FishListScreen(
                                 viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
                             }
                         }
+                        if (filter.speciesId.isNullOrEmpty()) {
+                            SortChip(
+                                "Species",
+                                currentOrder == FishSortOrder.SPECIES_AZ
+                            ) {
+                                viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
+                            }
+                        }
                         if (filter.fishermanId.isNullOrEmpty()) {
                             SortChip(
                                 "Fisherman",
@@ -233,25 +246,18 @@ fun FishListScreen(
                                 viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
                             }
                         }
-                        SortChip(
-                            "Species",
-                            currentOrder == FishSortOrder.SPECIES_AZ) {
-                            viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
-                        }
-                        SortChip(
-                            "Length",
-                            currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
-                            viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
+                        if (filter.lureId.isNullOrEmpty()) {
+                            SortChip(
+                                "Lure",
+                                currentOrder == FishSortOrder.LURE
+                            ) {
+                                viewModel.updateSortOrder(FishSortOrder.LURE)
+                            }
                         }
                         SortChip(
                             "Kept",
                             currentOrder == FishSortOrder.KEPT) {
                             viewModel.updateSortOrder(FishSortOrder.KEPT)
-                        }
-                        SortChip(
-                            "Lure",
-                            currentOrder == FishSortOrder.LURE) {
-                            viewModel.updateSortOrder(FishSortOrder.LURE)
                         }
                     }
 
