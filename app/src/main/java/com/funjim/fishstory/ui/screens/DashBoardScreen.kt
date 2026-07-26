@@ -87,6 +87,7 @@ import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AchievementItem
+import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.createPublicImageUri
@@ -100,7 +101,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(
-    onNavigate: (String) -> Unit, // e.g., "fishermen", "lures"
+    onNavigate: (String) -> Unit,
+    onFishListNavigate: (FishListRoute) -> Unit,
     viewModel: DashboardViewModel
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -288,14 +290,10 @@ fun DashboardScreen(
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onFishClick = { tripId, eventId, targetOnly ->
-                            val route = buildString {
-                                append("fish_list?")
-                                if (tripId != null) append("tripId=$tripId&")
-                                if (eventId != null) append("eventId=$eventId&")
-                                if (targetOnly != null) append("targetOnly=$targetOnly")
-                            }.removeSuffix("&")
-
-                            onNavigate(route)
+                            onFishListNavigate(FishListRoute(
+                                tripId = tripId,
+                                eventId = eventId,
+                                targetOnly = targetOnly))
                         },
                         onSwipe = { tripId, eventId -> viewModel.selectEvent(tripId, eventId) },
                         onLogFish = { tripId, eventId -> onNavigate("add_fish/$tripId/$eventId") }
@@ -418,13 +416,9 @@ fun DashboardScreen(
                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
                     onFishClick = { tripId, targetOnly ->
-                        val route = buildString {
-                            append("fish_list?")
-                            append("tripId=$tripId&")
-                            append("targetOnly=$targetOnly")
-                        }.removeSuffix("&")
-
-                        onNavigate(route)
+                        onFishListNavigate(FishListRoute(
+                            tripId = tripId,
+                            targetOnly = targetOnly))
                     },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
@@ -473,7 +467,7 @@ fun ActiveTripCard(
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
-    onFishClick: (String?, String?, Boolean?) -> Unit,
+    onFishClick: (String?, String?, Boolean) -> Unit,
     onSwipe: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {

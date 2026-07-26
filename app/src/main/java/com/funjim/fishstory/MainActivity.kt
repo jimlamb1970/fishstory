@@ -235,6 +235,7 @@ fun AppNavigation(
 
             DashboardScreen(
                 onNavigate = { route -> navController.navigate(route) },
+                onFishListNavigate = { route -> navController.navigate(route) },
                 viewModel = viewModel
             )
         }
@@ -769,7 +770,12 @@ fun AppNavigation(
                     navController.navigate("trip_details/$tripId")
                 },
                 navigateToFishList = { tripId, targetOnly ->
-                    navController.navigate("fish_list?tripId=$tripId&targetOnly=$targetOnly")
+                    navController.navigate(
+                        FishListRoute(
+                            tripId = tripId,
+                            targetOnly = targetOnly
+                        )
+                    )
                 },
                 navigateToAddTrip = {
                     navController.navigate("add_trip")
