@@ -1,10 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -27,11 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.utils.FishItem
+import com.funjim.fishstory.ui.utils.FishListFilter
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getChipColor
@@ -46,24 +42,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun FishListScreen(
     viewModel: FishViewModel,
-    bodyOfWaterId: String?,
-    eventId: String?,
-    fishermanId: String?,
-    lureId: String?,
-    speciesId: String?,
-    targetOnly: Boolean,
-    tripId: String?,
+    filter: FishListFilter,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateToFishDetails: (fishId: String) -> Unit
 ) {
-    LaunchedEffect(key1 = listOf(bodyOfWaterId, eventId, fishermanId, lureId, speciesId, targetOnly, tripId)) {
-        viewModel.selectBodyOfWater(bodyOfWaterId)
-        viewModel.selectFisherman(fishermanId)
-        viewModel.selectLure(lureId)
-        viewModel.selectSpecies(speciesId)
-        viewModel.selectTargetOnly(targetOnly)
-        viewModel.selectTrip(tripId, eventId)
+    LaunchedEffect(filter) {
+        viewModel.selectBodyOfWater(filter.bodyOfWaterId)
+        viewModel.selectFisherman(filter.fishermanId)
+        viewModel.selectLure(filter.lureId)
+        viewModel.selectSpecies(filter.speciesId)
+        viewModel.selectTargetOnly(filter.targetOnly)
+        viewModel.selectTrip(filter.tripId, filter.eventId)
     }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -78,12 +68,12 @@ fun FishListScreen(
     val species by viewModel.selectedSpecies.collectAsStateWithLifecycle()
     val trip by viewModel.selectedTrip.collectAsStateWithLifecycle()
 
-    val isLoading = (bodyOfWaterId != null && bodyOfWater == null) ||
-            (eventId != null && event == null) ||
-            (fishermanId != null && fisherman == null) ||
-            (lureId != null && lure == null) ||
-            (speciesId != null && species == null) ||
-            (tripId != null && trip == null)
+    val isLoading = (filter.bodyOfWaterId != null && bodyOfWater == null) ||
+            (filter.eventId != null && event == null) ||
+            (filter.fishermanId != null && fisherman == null) ||
+            (filter.lureId != null && lure == null) ||
+            (filter.speciesId != null && species == null) ||
+            (filter.tripId != null && trip == null)
 
     val names = if (isLoading) {
         emptyList() // Keep it clean while fetching
@@ -151,10 +141,10 @@ fun FishListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    if (tripId != null && eventId != null) {
+                    if (filter.tripId != null && filter.eventId != null) {
                         TextButton(
                             onClick = {
-                                onAddFish(tripId, eventId, null)
+                                onAddFish(filter.tripId, filter.eventId, null)
                             },
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.textButtonColors(
@@ -222,21 +212,21 @@ fun FishListScreen(
                             currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
                             viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
                         }
-                        if (tripId.isNullOrEmpty()) {
+                        if (filter.tripId.isNullOrEmpty()) {
                             SortChip(
                                 "Trip",
                                 currentOrder == FishSortOrder.TRIP_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
                             }
                         }
-                        if (eventId.isNullOrEmpty()) {
+                        if (filter.eventId.isNullOrEmpty()) {
                             SortChip(
                                 "Event",
                                 currentOrder == FishSortOrder.EVENT_AZ) {
                                 viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
                             }
                         }
-                        if (fishermanId.isNullOrEmpty()) {
+                        if (filter.fishermanId.isNullOrEmpty()) {
                             SortChip(
                                 "Fisherman",
                                 currentOrder == FishSortOrder.FISHERMAN_AZ) {
@@ -302,9 +292,9 @@ fun FishListScreen(
                                 fish = fishDetails,
                                 index = index,
                                 totalItems = totalItems,
-                                includeTrip = tripId.isNullOrEmpty(),
-                                includeEvent = eventId.isNullOrEmpty(),
-                                includeFisherman = fishermanId.isNullOrEmpty(),
+                                includeTrip = filter.tripId.isNullOrEmpty(),
+                                includeEvent = filter.eventId.isNullOrEmpty(),
+                                includeFisherman = filter.fishermanId.isNullOrEmpty(),
                                 thumbnailFlow =
                                     if (fishDetails.photoCount == 0) viewModel.speciesThumbnail(fishDetails.fish.speciesId)
                                     else viewModel.fishThumbnail(fishDetails.fish.id),

@@ -63,7 +63,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: (String?, String?, Boolean?) -> Unit,
+    navigateToFishList: (String?, String?, Boolean) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit

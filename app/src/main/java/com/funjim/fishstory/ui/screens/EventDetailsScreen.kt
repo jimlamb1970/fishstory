@@ -60,7 +60,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: (String?, String?, Boolean?) -> Unit,
+    navigateToFishList: (String?, String?, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
