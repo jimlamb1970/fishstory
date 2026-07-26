@@ -46,7 +46,6 @@ class FishViewModel(
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     private val _selectedLureId = MutableStateFlow<String?>(null)
-    private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
     private val _selectedSpeciesId = MutableStateFlow<String?>(null)
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _targetOnly = MutableStateFlow(false)
@@ -62,7 +61,6 @@ class FishViewModel(
     val selectedFishermanId = _selectedFishermanId.asStateFlow()
     val selectedLureId = _selectedLureId.asStateFlow()
     val selectedSpeciesId = _selectedSpeciesId.asStateFlow()
-    val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
     val selectedTripId = _selectedTripId.asStateFlow()
     val targetOnly = _targetOnly.asStateFlow()
 
@@ -541,7 +539,6 @@ class FishViewModel(
         selectLure(null)
         selectSpecies(null)
         selectTargetOnly(false)
-        selectTackleBox(null)
     }
 
     fun selectBodyOfWater(id: String?) {
@@ -558,9 +555,6 @@ class FishViewModel(
     }
     fun selectSpecies(id: String?) {
         _selectedSpeciesId.value = id
-    }
-    fun selectTackleBox(id: String?) {
-        _selectedTackleBoxId.value = id
     }
     fun selectTrip(tripId: String?, eventId: String? = null) {
         _selectedTripId.value = tripId
