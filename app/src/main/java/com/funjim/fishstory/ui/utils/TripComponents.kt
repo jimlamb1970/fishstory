@@ -367,13 +367,11 @@ fun TripMenu(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Box {
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismiss,
-            content = content
-        )
-    }
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        content = content
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
