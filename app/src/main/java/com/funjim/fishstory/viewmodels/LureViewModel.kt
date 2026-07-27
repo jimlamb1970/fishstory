@@ -135,6 +135,11 @@ class LureViewModel(
         return photoRepo.getPhotoMetadata(uri)
     }
 
+    fun lurePhotos(lureId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForLure(lureId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addLurePhoto(lureId, uri, selected)
@@ -146,6 +151,11 @@ class LureViewModel(
     fun addLurePhotos(lureId: String, photos: List<Photo>) {
         viewModelScope.launch {
             photoRepo.addLurePhotos(lureId, photos)
+        }
+    }
+    fun deleteLurePhoto(lureId: String, photo: Photo) {
+        viewModelScope.launch {
+            photoRepo.deleteLurePhoto(lureId, photo)
         }
     }
     fun deleteLurePhotos(lureId: String, photos: List<Photo>) {

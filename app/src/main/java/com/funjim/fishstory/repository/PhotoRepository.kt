@@ -241,6 +241,7 @@ class PhotoRepository(
     fun getPhotosForEvent(id: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(id)
     fun getPhotosForFisherman(id: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(id)
     fun getPhotosForFish(id: String): Flow<List<Photo>> = photoDao.getPhotosForFish(id)
+    fun getPhotosForLure(id: String): Flow<List<Photo>> = photoDao.getPhotosForLure(id)
 
     suspend fun addPhoto(
         uri: Uri,
@@ -322,11 +323,17 @@ class PhotoRepository(
                 .onFailure { }
         }
     }
+
+    suspend fun deleteLurePhoto(lureId: String, photo: Photo) {
+        photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))
+    }
+
     suspend fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))
         }
     }
+
     suspend fun addFishPhotos(fishId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->

@@ -384,7 +384,6 @@ class FishViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-
     fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addFishPhoto(fishId, uri, selected)

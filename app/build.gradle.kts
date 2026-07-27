@@ -84,6 +84,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:3.0.3")
     implementation("com.patrykandpatrick.vico:compose-m3:3.0.3")
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.animation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

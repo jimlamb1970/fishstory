@@ -8,7 +8,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +31,8 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
@@ -52,11 +56,275 @@ import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureSummaryWithColors
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
 import com.funjim.fishstory.viewmodels.LureSortOrder
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LureItem(
+    item: LureSummaryWithColors,
+    thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onFishClick: ((String, Boolean) -> Unit)? = null,
+    onEdit: () -> Unit,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
+    onDelete: () -> Unit
+) {
+    val context = LocalContext.current
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
+
+    var isExpanded by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // This can happen if the provider doesn't support persistable permissions
+                }
+                onPhotoAdded(it)
+            }
+        }
+    )
+
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempUri?.let { onPhotoTaken(it) }
+            }
+        }
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = createPublicImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .animateContentSize()
+            .combinedClickable(
+                onClick = { isExpanded = !isExpanded },
+                onLongClick = { menuExpanded = true }
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Left Column: Thumbnail + Directional Arrow underneath
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Lure,
+                        modifier = Modifier.size(64.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Directional Arrow Button under thumbnail
+                    IconButton(
+                        onClick = { isExpanded = !isExpanded },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            tint = secondaryContentColor
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Middle Column: Lure Details
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.lure.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    LureColorComposition(
+                        primary = item.primaryColors,
+                        secondary = item.secondaryColors,
+                        glows = item.lure.glows,
+                        glow = item.glowColors
+                    )
+
+                    Text(
+                        text = "Number of hooks: ${item.lure.hookCount}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = secondaryContentColor
+                    )
+
+                    if (item.fishCaught != 0) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFishWithFins,
+                            caughtCount = item.fishCaught,
+                            keptCount = item.fishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(item.lure.id, false) }
+                            },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+
+                    if (item.targetFishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        FishCaughtItem(
+                            icon = AppIcons.Default.TargetFish,
+                            caughtCount = item.targetFishCaught,
+                            keptCount = item.targetFishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(item.lure.id, true) }
+                            },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+                }
+
+                // Right Column: Overflow Menu
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Lure options",
+                            tint = contentColor
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Add Photo") },
+                            onClick = {
+                                menuExpanded = false
+                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoLibrary,
+                                    contentDescription = "Add Photo From Gallery"
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Take Photo") },
+                            onClick = {
+                                menuExpanded = false
+                                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                    val uri = createPublicImageUri(context)
+                                    tempUri = uri
+                                    cameraLauncher.launch(uri)
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = "Take Photo"
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Expanded content: PhotoPickerRow
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = borderColor)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LureItemOrig(
     item: LureSummaryWithColors,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,

@@ -242,6 +242,7 @@ fun LureListScreen(
                             LureItem(
                                 item = item,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
+                                photosFlow = viewModel.lurePhotos(item.lure.id),
                                 index = index,
                                 totalItems = totalItems,
                                 onPhotoAdded = { uri ->
@@ -257,6 +258,9 @@ fun LureListScreen(
                                         uri = uri,
                                         selected = false
                                     )
+                                },
+                                onPhotoDeleted = { photo ->
+                                    viewModel.deleteLurePhoto(item.lure.id, photo)
                                 },
                                 onFishClick = { lureId, targetOnly ->
                                     navigateToFishList(lureId, targetOnly)
