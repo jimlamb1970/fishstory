@@ -851,42 +851,56 @@ fun sortLures(lureList: List<LureWithColors>): List<LureWithColors> {
 }
 
 fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
-    // Helper function to turn a list of colors into a single, predictable alphabetical string
+    // Helper function returning empty string if empty
     val getColorsSortingString = { colors: List<LureColor> ->
-        colors.map { it.name }
-            .sorted() // Sort the colors of THIS specific lure alphabetically first
-            .joinToString(separator = ",") // Merge them into a single string like "Black,Blue"
+        if (colors.isEmpty()) ""
+        else colors.map { it.name }.sorted().joinToString(",")
     }
 
     return when (order) {
         LureSortOrder.NAME -> lureList.sortedWith(
             compareBy<LureSummaryWithColors> { it.lure.name }
+                .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
+                .thenBy { it.secondaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.secondaryColors) }
+                .thenBy { it.glowColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.PRIMARY_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { getColorsSortingString(it.primaryColors) }
+            compareBy<LureSummaryWithColors> { it.primaryColors.isEmpty() } // false (has colors) before true (empty)
+                .thenBy { getColorsSortingString(it.primaryColors) }
                 .thenBy { it.lure.name }
+                .thenBy { it.secondaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.secondaryColors) }
+                .thenBy { it.glowColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.SECONDARY_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { getColorsSortingString(it.secondaryColors) }
+            compareBy<LureSummaryWithColors> { it.secondaryColors.isEmpty() }
+                .thenBy { getColorsSortingString(it.secondaryColors) }
                 .thenBy { it.lure.name }
+                .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
+                .thenBy { it.glowColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.GLOW_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { getColorsSortingString(it.glowColors) }
+            compareBy<LureSummaryWithColors> { it.glowColors.isEmpty() }
+                .thenBy { getColorsSortingString(it.glowColors) }
                 .thenBy { it.lure.name }
+                .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
+                .thenBy { it.secondaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.secondaryColors) }
         )
         else -> lureList.sortedWith(
             compareBy<LureSummaryWithColors> { it.lure.name }
+                .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
+                .thenBy { it.secondaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.secondaryColors) }
+                .thenBy { it.glowColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
     }
