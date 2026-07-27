@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
@@ -135,7 +136,8 @@ fun ManageColorsScreen(
                         }
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
             )
 
             LazyColumn(modifier = Modifier.weight(1f)) {
