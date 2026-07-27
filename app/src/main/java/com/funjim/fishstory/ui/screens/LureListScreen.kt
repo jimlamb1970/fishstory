@@ -13,6 +13,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -41,11 +43,34 @@ fun LureListScreen(
 ) {
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     var lureToDelete by remember { mutableStateOf<Lure?>(null) }
-
-    val scope = rememberCoroutineScope()
+    var searchQuery by remember { mutableStateOf("") }
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
+
+    // Filter lures based on the search query across common fields
+    val filteredLures = remember(allLures, searchQuery) {
+        if (searchQuery.isBlank()) {
+            allLures
+        } else {
+            val query = searchQuery.trim()
+            allLures.filter { item ->
+                item.lure.name.contains(query, ignoreCase = true) ||
+                // Check primary colors list
+                item.primaryColors.any { color ->
+                    color.name.contains(query, ignoreCase = true)
+                } ||
+                // Check secondary colors list
+                item.secondaryColors.any { color ->
+                    color.name.contains(query, ignoreCase = true)
+                } ||
+                // Check glow colors list
+                item.glowColors.any { color ->
+                    color.name.contains(query, ignoreCase = true)
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -54,7 +79,7 @@ fun LureListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Lures")
                         Spacer(Modifier.width(4.dp))
-                        val total = allLures.size
+                        val total = filteredLures.size
                         Text(
                             text = "($total)",
                             style = MaterialTheme.typography.bodyMedium
@@ -80,7 +105,8 @@ fun LureListScreen(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
@@ -92,11 +118,38 @@ fun LureListScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            // Search / Filter Field
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Search lures...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Search Icon")
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // Sort Controls
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -104,28 +157,40 @@ fun LureListScreen(
                         .weight(1f)
                         .horizontalScroll(rememberScrollState())
                 ) {
-                    SortChip("Name",
-                        currentOrder == LureSortOrder.NAME) {
+                    SortChip(
+                        "Name",
+                        currentOrder == LureSortOrder.NAME
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.NAME)
                     }
-                    SortChip("Primary Color",
-                        currentOrder == LureSortOrder.PRIMARY_COLOR) {
+                    SortChip(
+                        "Primary Color",
+                        currentOrder == LureSortOrder.PRIMARY_COLOR
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
                     }
-                    SortChip("Secondary Color",
-                        currentOrder == LureSortOrder.SECONDARY_COLOR) {
+                    SortChip(
+                        "Secondary Color",
+                        currentOrder == LureSortOrder.SECONDARY_COLOR
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
                     }
-                    SortChip("Glow Color",
-                        currentOrder == LureSortOrder.GLOW_COLOR) {
+                    SortChip(
+                        "Glow Color",
+                        currentOrder == LureSortOrder.GLOW_COLOR
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
                     }
-                    SortChip("Glows",
-                        currentOrder == LureSortOrder.GLOW) {
+                    SortChip(
+                        "Glows",
+                        currentOrder == LureSortOrder.GLOW
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.GLOW)
                     }
-                    SortChip("Hook Type",
-                        currentOrder == LureSortOrder.HOOKS) {
+                    SortChip(
+                        "Hook Type",
+                        currentOrder == LureSortOrder.HOOKS
+                    ) {
                         viewModel.setSortOrder(LureSortOrder.HOOKS)
                     }
                 }
@@ -139,7 +204,8 @@ fun LureListScreen(
                             width = 1.dp,
                             color = getChipColor(),
                             shape = RoundedCornerShape(8.dp)
-                        ).size(34.dp)
+                        )
+                        .size(34.dp)
                 ) {
                     Icon(
                         imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
@@ -149,24 +215,30 @@ fun LureListScreen(
                 }
             }
 
-            if (allLures.isEmpty()) {
+            if (filteredLures.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No lures found. Add one!")
+                    Text(
+                        if (searchQuery.isBlank()) "No lures found. Add one!"
+                        else "No lures match '$searchQuery'"
+                    )
                 }
             } else {
                 val listState = rememberLazyListState()
 
-                Box(modifier = Modifier
-                    .fillMaxSize()
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
                     ) {
-                        val totalItems = allLures.size
+                        val totalItems = filteredLures.size
                         itemsIndexed(
-                            allLures,
-                            key = { _, item -> item.lure.id }) { index, item ->
+                            filteredLures,
+                            key = { _, item -> item.lure.id }
+                        ) { index, item ->
                             LureItem(
                                 item = item,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
@@ -176,13 +248,15 @@ fun LureListScreen(
                                     viewModel.addLurePhoto(
                                         lureId = item.lure.id,
                                         uri = uri,
-                                        selected = true)
+                                        selected = true
+                                    )
                                 },
                                 onPhotoTaken = { uri ->
                                     viewModel.addLurePhoto(
                                         lureId = item.lure.id,
                                         uri = uri,
-                                        selected = false)
+                                        selected = false
+                                    )
                                 },
                                 onFishClick = { lureId, targetOnly ->
                                     navigateToFishList(lureId, targetOnly)
@@ -215,14 +289,18 @@ fun LureListScreen(
         AlertDialog(
             onDismissRequest = { lureToDelete = null },
             title = { Text("Delete Lure?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+            text = {
+                Text(
+                    """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone.
 
 If you delete this lure, it will be removed from all fish that were caught with it.
 
 It will also be removed from all tackle boxes that contained it.
-""") },
+"""
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
