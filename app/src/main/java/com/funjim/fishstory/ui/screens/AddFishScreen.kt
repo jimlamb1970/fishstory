@@ -164,20 +164,23 @@ fun AddFishScreen(
 
             val speciesList = state.species
             val selectedSpecies = remember(draftFish, speciesList) {
-                speciesList.find { it.id == draftFish?.speciesId }
+                if (speciesList.size == 1) speciesList.first()
+                else speciesList.find { it.id == draftFish?.speciesId }
             }
 
             val eventFishermen = state.fishermen
             val tackleBoxMap = state.tackleBoxMap
 
             val selectedFisherman = remember(draftFish, eventFishermen) {
-                eventFishermen.find { it.id == draftFish?.fishermanId }
+                if (eventFishermen.size == 1) eventFishermen.first()
+                else eventFishermen.find { it.id == draftFish?.fishermanId }
             }
 
             val lures by viewModel.tackleBoxWithLures.collectAsStateWithLifecycle(initialValue = emptyList())
             val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
             val selectedLure = remember(draftFish, lures) {
-                lures.find { it.lure.id == draftFish?.lureId }
+                if (lures.size == 1) lures.first()
+                else lures.find { it.lure.id == draftFish?.lureId }
             }
 
             val baits = event.baits.map { it.id }.toSet()
@@ -185,7 +188,8 @@ fun AddFishScreen(
                 baits.contains(item.id)
             }
             val selectedBait = remember(draftFish, sortedBaits) {
-                sortedBaits.find { it.id == draftFish?.baitId }
+                if (sortedBaits.size == 1) sortedBaits.first()
+                else sortedBaits.find { it.id == draftFish?.baitId }
             }
 
             val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
@@ -193,7 +197,8 @@ fun AddFishScreen(
                 bodiesOfWater.contains(item.id)
             }
             val selectedBodyOfWater = remember(draftFish, sortedBodiesOfWater) {
-                sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
+                if (sortedBodiesOfWater.size == 1) sortedBodiesOfWater.first()
+                else sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
             }
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)
