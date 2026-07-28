@@ -155,6 +155,7 @@ fun FishermanListScreen(
                             index = index,
                             totalItems = totalItems,
                             thumbnailFlow = viewModel.fishermanThumbnail(fisherman.fisherman.id),
+                            photosFlow = viewModel.fishermanPhotos(fisherman.fisherman.id),
                             onClick = {
                                 navigateToFishermanDetails(fisherman.fisherman.id)
                             },
@@ -166,6 +167,14 @@ fun FishermanListScreen(
                             },
                             onPhotoTaken = {
                                 viewModel.addFishermanPhoto(fisherman.fisherman.id, it, false)
+                            },
+                            onSetThumbnail = { photo ->
+                                viewModel.setFishermanThumbnail(
+                                    fishermanId = fisherman.fisherman.id,
+                                    photoId = photo.id)
+                            },
+                            onPhotoDeleted = { photo ->
+                                viewModel.deleteFishermanPhoto(fisherman.fisherman.id, photo.id)
                             },
                             onDelete = { fishermanToDelete = fisherman }
                         )

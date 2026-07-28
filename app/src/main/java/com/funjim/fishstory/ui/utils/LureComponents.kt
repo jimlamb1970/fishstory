@@ -152,7 +152,6 @@ fun LureItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left Column: Thumbnail + Directional Arrow underneath
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -307,7 +306,6 @@ fun LureItem(
                 }
             }
 
-            // Expanded content: PhotoPickerRow
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)

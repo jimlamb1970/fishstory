@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
@@ -43,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import kotlinx.coroutines.flow.Flow
@@ -55,14 +59,20 @@ fun FishermanItem(
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
     onClick: () -> Unit,
     onFishClick: (String, Boolean) -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
     onDelete: () -> Unit
 ) {
+    val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
+    var isExpanded by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
 
     val backgroundColor = getCardColor(index, totalItems)
@@ -70,7 +80,6 @@ fun FishermanItem(
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
 
-    val context = LocalContext.current
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
@@ -93,9 +102,7 @@ fun FishermanItem(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
             if (success) {
-                tempUri?.let {
-                    onPhotoTaken(it)
-                }
+                tempUri?.let { onPhotoTaken(it) }
             }
         }
     )
@@ -116,6 +123,7 @@ fun FishermanItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+            .animateContentSize()
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { expanded = true }
@@ -126,144 +134,191 @@ fun FishermanItem(
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            ThumbnailBox(
-                thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Fisherman,
-                modifier = Modifier.size(64.dp)
-            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Fisherman,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    fisherman.fisherman.fullName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold)
-
-                if (fisherman.totalTrips != 0 || fisherman.totalTackleBoxes != 0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    // Directional Arrow Button under thumbnail
+                    IconButton(
+                        onClick = { isExpanded = !isExpanded },
+                        modifier = Modifier.size(32.dp)
                     ) {
-                        if (fisherman.totalTrips != 0) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Boat,
-                                value = fisherman.totalTrips.toString(),
-                                contentColor = secondaryContentColor
-                            )
-                        }
-                        if (fisherman.totalTackleBoxes != 0) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.TackleBox,
-                                value = fisherman.totalTackleBoxes.toString(),
-                                contentColor = secondaryContentColor
-                            )
-                        }
-                    }
-                }
-
-                if (fisherman.fishCaught != 0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        FishCaughtItem(
-                            icon = AppIcons.Default.LeapingFishWithFins,
-                            caughtCount = fisherman.fishCaught,
-                            keptCount = fisherman.fishKept,
-                            onFishClick = { onFishClick(fisherman.fisherman.id, false) },
-                            contentColor = secondaryContentColor,
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            tint = secondaryContentColor
                         )
                     }
                 }
 
-                if (fisherman.targetFishCaught != 0) {
-                    Spacer(Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        fisherman.fisherman.fullName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if (fisherman.totalTrips != 0 || fisherman.totalTackleBoxes != 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            if (fisherman.totalTrips != 0) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Boat,
+                                    value = fisherman.totalTrips.toString(),
+                                    contentColor = secondaryContentColor
+                                )
+                            }
+                            if (fisherman.totalTackleBoxes != 0) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.TackleBox,
+                                    value = fisherman.totalTackleBoxes.toString(),
+                                    contentColor = secondaryContentColor
+                                )
+                            }
+                        }
+                    }
+
+                    if (fisherman.fishCaught != 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            FishCaughtItem(
+                                icon = AppIcons.Default.LeapingFishWithFins,
+                                caughtCount = fisherman.fishCaught,
+                                keptCount = fisherman.fishKept,
+                                onFishClick = { onFishClick(fisherman.fisherman.id, false) },
+                                contentColor = secondaryContentColor,
+                            )
+                        }
+                    }
+
+                    if (fisherman.targetFishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            FishCaughtItem(
+                                icon = AppIcons.Default.TargetFish,
+                                caughtCount = fisherman.targetFishCaught,
+                                keptCount = fisherman.targetFishKept,
+                                onFishClick = { onFishClick(fisherman.fisherman.id, true) },
+                                contentColor = secondaryContentColor
+                            )
+                        }
+                    }
+
+                }
+
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Fisherman options",
+                            tint = contentColor
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
                     ) {
-                        FishCaughtItem(
-                            icon = AppIcons.Default.TargetFish,
-                            caughtCount = fisherman.targetFishCaught,
-                            keptCount = fisherman.targetFishKept,
-                            onFishClick = { onFishClick(fisherman.fisherman.id, true) },
-                            contentColor = secondaryContentColor
+                        DropdownMenuItem(
+                            text = { Text("Add Photo") },
+                            onClick = {
+                                expanded = false
+                                galleryLauncher.launch(
+                                    PickVisualMediaRequest(
+                                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoLibrary,
+                                    contentDescription = "Add Photo From Gallery"
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Take Photo") },
+                            onClick = {
+                                expanded = false
+                                val permissionCheckResult = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                )
+                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                    val uri = createPublicImageUri(context)
+                                    tempUri = uri
+                                    cameraLauncher.launch(uri)
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = "Take Photo"
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                expanded = false
+                                onDelete()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         )
                     }
                 }
-
             }
 
-            Box {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Fisherman options",
-                        tint = contentColor
-                    )
-                }
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = borderColor)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Add Photo") },
-                        onClick = {
-                            expanded = false
-                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = "Add Photo From Gallery"
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Take Photo") },
-                        onClick = {
-                            expanded = false
-                            val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                val uri = createPublicImageUri(context)
-                                tempUri = uri
-                                cameraLauncher.launch(uri)
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.CAMERA)
-                            }
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = "Take Photo"
-                            )
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        onClick = {
-                            expanded = false
-                            onDelete()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error)
-                        }
-                    )
-                }
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                )
             }
         }
     }
@@ -571,10 +626,13 @@ fun FishermanItemPreview() {
                 totalTackleBoxes = 3
             ),
             thumbnailFlow = flowOf(null),
+            photosFlow = flowOf(emptyList()),
             onClick = {},
             onFishClick = { _, _ -> },
             onPhotoAdded = {},
             onPhotoTaken = {},
+            onSetThumbnail = {},
+            onPhotoDeleted = {},
             onDelete = {},
         )
     }
