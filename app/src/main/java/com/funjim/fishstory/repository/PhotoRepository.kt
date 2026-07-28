@@ -301,6 +301,10 @@ class PhotoRepository(
         addPhoto(uri, selected) { photoId ->
             photoDao.addEventPhoto(PhotoEventCrossRef(photoId, eventId))
         }
+
+    suspend fun setEventThumbnail(eventId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForEvent(eventId = eventId, photoId = photoId)
+
     suspend fun deleteEventPhoto(eventId: String, photoId: String) =
         photoDao.deleteEventPhoto(PhotoEventCrossRef(photoId, eventId))
 
@@ -308,6 +312,10 @@ class PhotoRepository(
         addPhoto(uri, selected) { photoId ->
             photoDao.addFishermanPhoto(PhotoFishermanCrossRef(photoId, fishermanId))
         }
+
+    suspend fun setFishermanThumbnail(fishermanId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForFisherman(fishermanId = fishermanId, photoId = photoId)
+
 
     suspend fun deleteFishermanPhoto(fishermanId: String, photoId: String) =
         photoDao.deleteFishermanPhoto(PhotoFishermanCrossRef(photoId, fishermanId))

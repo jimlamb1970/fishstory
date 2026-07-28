@@ -251,16 +251,28 @@ interface PhotoDao {
     fun getThumbnailForSpecies(speciesId: String): Flow<ByteArray?>
 
     @Transaction
-    suspend fun setPrimaryPhotoForTrip(tripId: String, photoId: String) {
-        clearPrimaryPhotoForTrip(tripId)
-        setPhotoAsPrimaryForTrip(tripId, photoId)
+    suspend fun setPrimaryPhotoForEvent(eventId: String, photoId: String) {
+        clearPrimaryPhotoForEvent(eventId)
+        setPhotoAsPrimaryForEvent(eventId, photoId)
     }
 
-    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 0 WHERE tripId = :tripId")
-    suspend fun clearPrimaryPhotoForTrip(tripId: String)
+    @Query("UPDATE photo_event_cross_ref SET isPrimary = 0 WHERE eventId = :eventId")
+    suspend fun clearPrimaryPhotoForEvent(eventId: String)
 
-    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForTrip(tripId: String, photoId: String)
+    @Query("UPDATE photo_event_cross_ref SET isPrimary = 1 WHERE eventId = :eventId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForEvent(eventId: String, photoId: String)
+
+    @Transaction
+    suspend fun setPrimaryPhotoForFisherman(fishermanId: String, photoId: String) {
+        clearPrimaryPhotoForFisherman(fishermanId)
+        setPhotoAsPrimaryForFisherman(fishermanId, photoId)
+    }
+
+    @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 0 WHERE fishermanId = :fishermanId")
+    suspend fun clearPrimaryPhotoForFisherman(fishermanId: String)
+
+    @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 1 WHERE fishermanId = :fishermanId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForFisherman(fishermanId: String, photoId: String)
 
     @Transaction
     suspend fun setPrimaryPhotoForLure(lureId: String, photoId: String) {
@@ -273,4 +285,16 @@ interface PhotoDao {
 
     @Query("UPDATE photo_lure_cross_ref SET isPrimary = 1 WHERE lureId = :lureId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForLure(lureId: String, photoId: String)
+
+    @Transaction
+    suspend fun setPrimaryPhotoForTrip(tripId: String, photoId: String) {
+        clearPrimaryPhotoForTrip(tripId)
+        setPhotoAsPrimaryForTrip(tripId, photoId)
+    }
+
+    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 0 WHERE tripId = :tripId")
+    suspend fun clearPrimaryPhotoForTrip(tripId: String)
+
+    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForTrip(tripId: String, photoId: String)
 }

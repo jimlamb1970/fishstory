@@ -270,6 +270,10 @@ class EventViewModel(
         }
     }
 
+    fun setEventThumbnail(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
+    }
+
     fun deleteEventPhoto(eventId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }

@@ -350,6 +350,9 @@ fun EventDetailsScreen(
                                 onPhotoTaken = { uri ->
                                     viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
                                 },
+                                onSetThumbnail = { photo ->
+                                    viewModel.setEventThumbnail(eventId = eventId, photoId = photo.id)
+                                },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteEventPhoto(eventId, photo.id)
                                 }
