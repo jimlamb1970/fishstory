@@ -483,6 +483,8 @@ fun TripDetailsScreen(
                                 index = index,
                                 totalItems = totalItems,
                                 thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
+                                photosFlow = viewModel.eventPhotos(eventSummary.event.id),
+                                showPhotoPicker = true,
                                 onClick = { navigateToEventDetails(eventSummary.event.id) },
                                 onFishClick = { _, _, targetOnly ->
                                     navigateToFishList(tripId, eventSummary.event.id, targetOnly)
@@ -493,6 +495,8 @@ fun TripDetailsScreen(
                                 onPhotoTaken = {
                                     viewModel.addEventPhoto(eventSummary.event.id, it, false)
                                 },
+                                onSetThumbnail = { photo -> viewModel.setEventThumbnail(eventSummary.event.id, photo.id) },
+                                onPhotoDeleted = { photo -> viewModel.deleteEventPhoto(eventSummary.event.id, photo.id) },
                                 onDelete = { eventToDelete = eventSummary },
                                 onSetLocation = if (hasLocationPermission) {
                                     {

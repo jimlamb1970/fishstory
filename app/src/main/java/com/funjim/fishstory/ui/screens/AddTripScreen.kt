@@ -892,6 +892,7 @@ fun AddTripScreen(
                                     index = index,
                                     totalItems = totalItems,
                                     thumbnailFlow = flowOf(null),
+                                    photosFlow = flowOf(emptyList()),
                                     onClick = {
                                         fromReview = true
 

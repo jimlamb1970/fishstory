@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui.utils
 
 import android.net.Uri
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -244,6 +245,7 @@ fun TripItem(
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize()
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { onLongClick() }
@@ -254,167 +256,173 @@ fun TripItem(
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
-        Row(
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                ThumbnailBox(
-                    thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.Boat,
-                    modifier = Modifier.size(64.dp)
-                )
-
-                if (showPhotoPicker) {
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Directional Arrow Button under thumbnail
-                    IconButton(
-                        onClick = { isExpanded = !isExpanded },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector =
-                                if (isExpanded) Icons.Default.KeyboardArrowUp
-                                else Icons.Default.KeyboardArrowDown,
-                            contentDescription =
-                                if (isExpanded) "Collapse"
-                                else "Expand",
-                            tint = secondaryContentColor
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(trip.trip.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (trip.trip.latitude != null && trip.trip.longitude != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    onAction(
-                                        TripAction.OpenMap(
-                                            trip.trip.latitude,
-                                            trip.trip.longitude
-                                        )
-                                    )
-                                }
-                        )
-                    }
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        "$startString",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Boat,
+                        modifier = Modifier.size(64.dp)
                     )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Arrow",
-                        tint = secondaryContentColor,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        "$endString",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
-                    )
+
+                    if (showPhotoPicker) {
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Directional Arrow Button under thumbnail
+                        IconButton(
+                            onClick = { isExpanded = !isExpanded },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector =
+                                    if (isExpanded) Icons.Default.KeyboardArrowUp
+                                    else Icons.Default.KeyboardArrowDown,
+                                contentDescription =
+                                    if (isExpanded) "Collapse"
+                                    else "Expand",
+                                tint = secondaryContentColor
+                            )
+                        }
+                    }
                 }
 
-                val eventCount = trip.eventCount
-                val fishermanCount = trip.fishermanCount
-                val tackleBoxCount = trip.tackleBoxCount
-                if (eventCount != 0 || fishermanCount != -1) {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            trip.trip.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (trip.trip.latitude != null && trip.trip.longitude != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onAction(
+                                            TripAction.OpenMap(
+                                                trip.trip.latitude,
+                                                trip.trip.longitude
+                                            )
+                                        )
+                                    }
+                            )
+                        }
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
                     ) {
-                        if (eventCount != 0) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Boat,
-                                value = eventCount.toString(),
-                                contentColor = secondaryContentColor
-                            )
-                        }
+                        Text(
+                            "$startString",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = secondaryContentColor
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Arrow",
+                            tint = secondaryContentColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            "$endString",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = secondaryContentColor
+                        )
+                    }
 
-                        if (fishermanCount != -1) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Fisherman,
-                                value = fishermanCount.toString(),
-                                contentColor = secondaryContentColor
-                            )
+                    val eventCount = trip.eventCount
+                    val fishermanCount = trip.fishermanCount
+                    val tackleBoxCount = trip.tackleBoxCount
+                    if (eventCount != 0 || fishermanCount != -1) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            if (eventCount != 0) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Boat,
+                                    value = eventCount.toString(),
+                                    contentColor = secondaryContentColor
+                                )
+                            }
 
-                            CardItemWithValue(
-                                icon = AppIcons.Default.TackleBox,
-                                value = tackleBoxCount.toString(),
-                                contentColor = secondaryContentColor
-                            )
+                            if (fishermanCount != -1) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Fisherman,
+                                    value = fishermanCount.toString(),
+                                    contentColor = secondaryContentColor
+                                )
+
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.TackleBox,
+                                    value = tackleBoxCount.toString(),
+                                    contentColor = secondaryContentColor
+                                )
+                            }
                         }
+                    }
+
+                    // Only show the fish caught counts when something has been caught
+                    if (trip.fishCaught != 0) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFishWithFins,
+                            caughtCount = trip.fishCaught,
+                            keptCount = trip.fishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(trip.trip.id, false) }
+                            },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+
+                    if (trip.targetFishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        FishCaughtItem(
+                            icon = AppIcons.Default.TargetFish,
+                            description = "Target Fish Caught",
+                            caughtCount = trip.targetFishCaught,
+                            keptCount = trip.targetFishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(trip.trip.id, true) }
+                            },
+                            contentColor = secondaryContentColor
+                        )
                     }
                 }
 
-                // Only show the fish caught counts when something has been caught
-                if (trip.fishCaught != 0) {
-                    FishCaughtItem(
-                        icon = AppIcons.Default.LeapingFishWithFins,
-                        caughtCount = trip.fishCaught,
-                        keptCount = trip.fishKept,
-                        onFishClick = onFishClick?.let { onClick ->
-                            { onClick(trip.trip.id, false) }
-                        },
-                        contentColor = secondaryContentColor
-                    )
-                }
-
-                if (trip.targetFishCaught != 0) {
-                    Spacer(Modifier.height(4.dp))
-                    FishCaughtItem(
-                        icon = AppIcons.Default.TargetFish,
-                        description = "Target Fish Caught",
-                        caughtCount = trip.targetFishCaught,
-                        keptCount = trip.targetFishKept,
-                        onFishClick = onFishClick?.let { onClick ->
-                            { onClick(trip.trip.id, true) }
-                        },
-                        contentColor = secondaryContentColor
-                    )
-                }
+                actions()
             }
 
-            actions()
-        }
+            // Expanded content: PhotoPickerRow
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = borderColor)
+                Spacer(modifier = Modifier.height(8.dp))
 
-        // Expanded content: PhotoPickerRow
-        if (isExpanded) {
-            HorizontalDivider(color = borderColor, modifier = Modifier.padding(horizontal = 16.dp))
-            PhotoPickerRow(
-                photos = photos,
-                onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
-                onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
-                onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
-                onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
+                    onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+                )
+            }
         }
     }
 }

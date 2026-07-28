@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -45,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
@@ -56,19 +60,25 @@ fun EventItem(
     item: EventSummary,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
+    showPhotoPicker: Boolean = false,
     index: Int = 0,
     totalItems: Int = 0,
     onClick: () -> Unit,
     onFishClick: ((String, String, Boolean) -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
+    onSetThumbnail: ((Photo) -> Unit)? = null,
+    onPhotoDeleted: ((Photo) -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
     onClearLocation: (() -> Unit)? = null,
-   onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())
@@ -82,7 +92,7 @@ fun EventItem(
     val secondaryContentColor = getOnCardSecondaryColor()
 
     var menuExpanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    var isExpanded by remember { mutableStateOf(false) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -137,6 +147,7 @@ fun EventItem(
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize()
             .combinedClickable(
                 onClick = { onClick() },
                 onLongClick = { if (hasMenuActions) menuExpanded = true }
@@ -147,263 +158,314 @@ fun EventItem(
         ),
         border = BorderStroke(1.dp, color = borderColor)
     ) {
-        Row(
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            ThumbnailBox(
-                thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Boat,
-                modifier = Modifier.size(64.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-            val currentEvent = item.event
-            val currentTrip = item.trip
-
-            val eventLat = currentEvent.latitude
-            val tripLat = currentTrip.latitude
-
-            // Precedence logic: Use Event if it exists, otherwise use Trip
-            val activeLat = eventLat ?: tripLat
-            val activeLng = currentEvent.longitude ?: currentTrip.longitude
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        item.event.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Boat,
+                        modifier = Modifier.size(64.dp)
                     )
-                    if (activeLat != null && activeLng != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                        )
-                        if (eventLat == null) {
-                            Text(
-                                text = "(Trip)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
+
+                    if (showPhotoPicker) {
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Directional Arrow Button under thumbnail
+                        IconButton(
+                            onClick = { isExpanded = !isExpanded },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector =
+                                    if (isExpanded) Icons.Default.KeyboardArrowUp
+                                    else Icons.Default.KeyboardArrowDown,
+                                contentDescription =
+                                    if (isExpanded) "Collapse"
+                                    else "Expand",
+                                tint = secondaryContentColor
                             )
                         }
                     }
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
-                ) {
-                    Text(
-                        "$startString",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Arrow",
-                        modifier = Modifier.size(16.dp),
-                        tint = secondaryContentColor
-                    )
-                    Text(
-                        "$endString",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
-                    )
-                }
+                Spacer(modifier = Modifier.width(8.dp))
+                val currentEvent = item.event
+                val currentTrip = item.trip
 
-                if (item.fishermanCount > 0) {
+                val eventLat = currentEvent.latitude
+                val tripLat = currentTrip.latitude
+
+                // Precedence logic: Use Event if it exists, otherwise use Trip
+                val activeLat = eventLat ?: tripLat
+                val activeLng = currentEvent.longitude ?: currentTrip.longitude
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            item.event.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (activeLat != null && activeLng != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        val mapUri =
+                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not open map",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                            )
+                            if (eventLat == null) {
+                                Text(
+                                    text = "(Trip)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
                     ) {
-                        CardItemWithValue(
-                            icon = AppIcons.Default.Fisherman,
-                            value = item.fishermanCount.toString(),
+                        Text(
+                            "$startString",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = secondaryContentColor
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Arrow",
+                            modifier = Modifier.size(16.dp),
+                            tint = secondaryContentColor
+                        )
+                        Text(
+                            "$endString",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = secondaryContentColor
+                        )
+                    }
+
+                    if (item.fishermanCount > 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Fisherman,
+                                value = item.fishermanCount.toString(),
+                                contentColor = secondaryContentColor
+                            )
+
+                            CardItemWithValue(
+                                icon = AppIcons.Default.TackleBox,
+                                value = item.tackleBoxCount.toString(),
+                                contentColor = secondaryContentColor
+                            )
+                        }
+                    }
+
+                    if (item.fishCaught != 0) {
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFishWithFins,
+                            caughtCount = item.fishCaught,
+                            keptCount = item.fishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(item.trip.id, item.event.id, false) }
+                            },
                             contentColor = secondaryContentColor
                         )
+                    }
 
-                        CardItemWithValue(
-                            icon = AppIcons.Default.TackleBox,
-                            value = item.tackleBoxCount.toString(),
+                    if (item.targetFishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        FishCaughtItem(
+                            icon = AppIcons.Default.TargetFish,
+                            caughtCount = item.targetFishCaught,
+                            keptCount = item.targetFishKept,
+                            onFishClick = onFishClick?.let { onClick ->
+                                { onClick(item.trip.id, item.event.id, true) }
+                            },
                             contentColor = secondaryContentColor
                         )
                     }
                 }
 
-                if (item.fishCaught != 0) {
-                    FishCaughtItem(
-                        icon = AppIcons.Default.LeapingFishWithFins,
-                        caughtCount = item.fishCaught,
-                        keptCount = item.fishKept,
-                        onFishClick = onFishClick?.let { onClick ->
-                            { onClick(item.trip.id, item.event.id, false) }
-                        },
-                        contentColor = secondaryContentColor
-                    )
-                }
+                if (hasMenuActions) {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Event options",
+                                tint = contentColor
+                            )
+                        }
 
-                if (item.targetFishCaught != 0) {
-                    Spacer(Modifier.height(4.dp))
-                    FishCaughtItem(
-                        icon = AppIcons.Default.TargetFish,
-                        caughtCount = item.targetFishCaught,
-                        keptCount = item.targetFishKept,
-                        onFishClick = onFishClick?.let { onClick ->
-                            { onClick(item.trip.id, item.event.id, true) }
-                        },
-                        contentColor = secondaryContentColor
-                    )
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            if (onPhotoAdded != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Add Photo") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        galleryLauncher.launch(
+                                            PickVisualMediaRequest(
+                                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                                            )
+                                        )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.PhotoLibrary,
+                                            contentDescription = "Add Photo From Gallery"
+                                        )
+                                    }
+                                )
+                            }
+                            if (onPhotoTaken != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Take Photo") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        val permissionCheckResult =
+                                            ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.CAMERA
+                                            )
+                                        if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                            val uri = createPublicImageUri(context)
+                                            tempUri = uri
+                                            cameraLauncher.launch(uri)
+                                        } else {
+                                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.AddAPhoto,
+                                            contentDescription = "Take Photo"
+                                        )
+                                    }
+                                )
+                            }
+
+                            if (onSetLocation != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Use Current Location") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSetLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.MyLocation,
+                                            contentDescription = null,
+                                            tint =
+                                                if (activeLat != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
+                                        )
+                                    }
+                                )
+                            }
+
+                            if (onSelectLocation != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Select on Map") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSelectLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Map,
+                                            contentDescription = null,
+                                            tint =
+                                                if (activeLat != null) Color(0xFF4CAF50)
+                                                else LocalContentColor.current
+                                        )
+                                    }
+                                )
+                            }
+
+                            if (eventLat != null && onClearLocation != null) {
+                                DropdownMenuItem(
+                                    text = {
+                                        if (tripLat == null) Text("Clear Location")
+                                        else Text("Reset Location")
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onClearLocation()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.LocationOff,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
+                            if (onDelete != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onDelete()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
-            if (hasMenuActions) {
-                Box {
-                    IconButton(onClick = { menuExpanded = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Event options",
-                            tint = contentColor
-                        )
-                    }
+            // Expanded content: PhotoPickerRow
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = borderColor)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false }
-                    ) {
-                        if (onPhotoAdded != null) {
-                            DropdownMenuItem(
-                                text = { Text("Add Photo") },
-                                onClick = {
-                                    menuExpanded = false
-                                    galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.PhotoLibrary,
-                                        contentDescription = "Add Photo From Gallery"
-                                    )
-                                }
-                            )
-                        }
-                        if (onPhotoTaken != null) {
-                            DropdownMenuItem(
-                                text = { Text("Take Photo") },
-                                onClick = {
-                                    menuExpanded = false
-                                    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                        val uri = createPublicImageUri(context)
-                                        tempUri = uri
-                                        cameraLauncher.launch(uri)
-                                    } else {
-                                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                                    }
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.AddAPhoto,
-                                        contentDescription = "Take Photo"
-                                    )
-                                }
-                            )
-                        }
-
-                        if (onSetLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Use Current Location") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSetLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.MyLocation,
-                                        contentDescription = null,
-                                        tint =
-                                            if (activeLat != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
-
-                        if (onSelectLocation != null) {
-                            DropdownMenuItem(
-                                text = { Text("Select on Map") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSelectLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Map,
-                                        contentDescription = null,
-                                        tint =
-                                            if (activeLat != null) Color(0xFF4CAF50)
-                                            else LocalContentColor.current
-                                    )
-                                }
-                            )
-                        }
-
-                        if (eventLat != null && onClearLocation != null) {
-                            DropdownMenuItem(
-                                text = {
-                                    if (tripLat == null) Text("Clear Location")
-                                    else Text("Reset Location")
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    onClearLocation()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.LocationOff,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                        }
-                        if (onDelete != null) {
-                            DropdownMenuItem(
-                                text = { Text("Delete") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onDelete()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
+                    onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+                )
             }
         }
     }

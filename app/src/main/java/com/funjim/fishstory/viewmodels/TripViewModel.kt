@@ -209,6 +209,11 @@ class TripViewModel(
             .flowOn(Dispatchers.IO)
     }
 
+    fun eventPhotos(eventId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForEvent(eventId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -298,6 +303,14 @@ class TripViewModel(
         }
     }
 
+    fun setTripThumbnail(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    }
+
+    fun deleteTripPhoto(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    }
+
     fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addEventPhoto(eventId, uri, selected)
@@ -306,12 +319,12 @@ class TripViewModel(
         }
     }
 
-    fun setTripThumbnail(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    fun setEventThumbnail(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
     }
 
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    fun deleteEventPhoto(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }
 
     fun addSpecies(species: Species) {
