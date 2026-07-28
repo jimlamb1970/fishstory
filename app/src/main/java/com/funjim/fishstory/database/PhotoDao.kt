@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.PhotoBaitCrossRef
@@ -248,4 +249,28 @@ interface PhotoDao {
     LIMIT 1
 """)
     fun getThumbnailForSpecies(speciesId: String): Flow<ByteArray?>
+
+    @Transaction
+    suspend fun setPrimaryPhotoForTrip(tripId: String, photoId: String) {
+        clearPrimaryPhotoForTrip(tripId)
+        setPhotoAsPrimaryForTrip(tripId, photoId)
+    }
+
+    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 0 WHERE tripId = :tripId")
+    suspend fun clearPrimaryPhotoForTrip(tripId: String)
+
+    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForTrip(tripId: String, photoId: String)
+
+    @Transaction
+    suspend fun setPrimaryPhotoForLure(lureId: String, photoId: String) {
+        clearPrimaryPhotoForLure(lureId)
+        setPhotoAsPrimaryForLure(lureId, photoId)
+    }
+
+    @Query("UPDATE photo_lure_cross_ref SET isPrimary = 0 WHERE lureId = :lureId")
+    suspend fun clearPrimaryPhotoForLure(lureId: String)
+
+    @Query("UPDATE photo_lure_cross_ref SET isPrimary = 1 WHERE lureId = :lureId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForLure(lureId: String, photoId: String)
 }

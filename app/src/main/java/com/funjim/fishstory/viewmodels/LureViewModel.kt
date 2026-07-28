@@ -153,6 +153,11 @@ class LureViewModel(
             photoRepo.addLurePhotos(lureId, photos)
         }
     }
+
+    fun setLureThumbnail(lureId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setLureThumbnail(lureId, photoId) }
+    }
+
     fun deleteLurePhoto(lureId: String, photo: Photo) {
         viewModelScope.launch {
             photoRepo.deleteLurePhoto(lureId, photo)

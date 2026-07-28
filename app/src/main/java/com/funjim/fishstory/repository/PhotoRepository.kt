@@ -290,8 +290,13 @@ class PhotoRepository(
         addPhoto(uri, selected) { photoId ->
             photoDao.addTripPhoto(PhotoTripCrossRef(photoId, tripId))
         }
+
+    suspend fun setTripThumbnail(tripId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForTrip(tripId = tripId, photoId = photoId)
+
     suspend fun deleteTripPhoto(tripId: String, photoId: String) =
         photoDao.deleteTripPhoto(PhotoTripCrossRef(photoId, tripId))
+
     suspend fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
             photoDao.addEventPhoto(PhotoEventCrossRef(photoId, eventId))
@@ -323,6 +328,10 @@ class PhotoRepository(
                 .onFailure { }
         }
     }
+
+    suspend fun setLureThumbnail(lureId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForLure(lureId = lureId, photoId = photoId)
+
 
     suspend fun deleteLurePhoto(lureId: String, photo: Photo) {
         photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))

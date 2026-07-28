@@ -72,6 +72,7 @@ fun LureItem(
     onEdit: () -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
     onDelete: () -> Unit
 ) {
@@ -316,6 +317,7 @@ fun LureItem(
                     photos = photos,
                     onPhotoSelected = { uri -> onPhotoAdded(uri) },
                     onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
                     onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
                 )
             }

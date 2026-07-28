@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -27,8 +28,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,23 +50,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import android.provider.MediaStore
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.funjim.fishstory.model.Photo
-import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -83,15 +85,17 @@ fun createPublicImageUri(context: Context): Uri? {
 @Composable
 fun PhotoPickerRow(
     photos: List<Photo>,
+    modifier: Modifier = Modifier,
     onPhotoSelected: (Uri) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    modifier: Modifier = Modifier
+    onSetThumbnail: ((Photo) -> Unit)? = null,
+    onPhotoDeleted: (Photo) -> Unit
 ) {
     val context = LocalContext.current
     var tempUri by remember { mutableStateOf<Uri?>(null) }
     var fullScreenPhotoUri by remember { mutableStateOf<String?>(null) }
     var photoToDelete by remember { mutableStateOf<Photo?>(null) }
+    var photoForMenu by remember { mutableStateOf<Photo?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -170,7 +174,13 @@ fun PhotoPickerRow(
                         .padding(4.dp)
                         .combinedClickable(
                             onClick = { fullScreenPhotoUri = photo.uri },
-                            onLongClick = { photoToDelete = photo }
+                            onLongClick = {
+                                if (onSetThumbnail != null) {
+                                    photoForMenu = photo
+                                } else {
+                                    photoToDelete = photo
+                                }
+                            }
                         )
                 ) {
                     val brokenImage = rememberVectorPainter(Icons.Filled.BrokenImage)
@@ -192,6 +202,40 @@ fun PhotoPickerRow(
                         ),
                         fallback = brokenImage
                     )
+
+                    // Dropdown menu shown when onSetThumbnail is provided and item is long-pressed
+                    DropdownMenu(
+                        expanded = photoForMenu == photo,
+                        onDismissRequest = { photoForMenu = null }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Set Thumbnail") },
+                            onClick = {
+                                photoForMenu = null
+                                onSetThumbnail?.invoke(photo)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                photoForMenu = null
+                                photoToDelete = photo
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

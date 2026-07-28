@@ -259,6 +259,11 @@ fun LureListScreen(
                                         selected = false
                                     )
                                 },
+                                onSetThumbnail = { photo ->
+                                    viewModel.setLureThumbnail(
+                                        lureId = item.lure.id,
+                                        photoId = photo.id)
+                                },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteLurePhoto(item.lure.id, photo)
                                 },

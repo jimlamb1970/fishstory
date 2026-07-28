@@ -354,6 +354,9 @@ fun TripDetailsScreen(
                                 onPhotoTaken = { uri ->
                                     viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
                                 },
+                                onSetThumbnail = { photo ->
+                                    viewModel.setTripThumbnail(tripId = tripId, photoId = photo.id)
+                                },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteTripPhoto(tripId, photo.id)
                                 }

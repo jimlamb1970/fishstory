@@ -306,6 +306,10 @@ class TripViewModel(
         }
     }
 
+    fun setTripThumbnail(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    }
+
     fun deleteTripPhoto(tripId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
