@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
@@ -154,6 +155,11 @@ class DashboardViewModel(
         _activeTripId.value = id
     }
 
+    fun tripPhotos(tripId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForTrip(tripId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -176,6 +182,13 @@ class DashboardViewModel(
                 .onSuccess {  }
                 .onFailure {  }
         }
+    }
+    fun setTripThumbnail(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    }
+
+    fun deleteTripPhoto(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
 }
 

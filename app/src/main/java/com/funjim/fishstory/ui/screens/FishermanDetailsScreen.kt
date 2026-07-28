@@ -54,6 +54,7 @@ import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -334,6 +335,7 @@ fun FishermanDetailsScreen(
                                     totalItems = totalActiveItems,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                                    photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
                                     onFishClick = { tripId, targetOnly ->
@@ -377,6 +379,7 @@ fun FishermanDetailsScreen(
                                     totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                                    photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
                                     onFishClick = { tripId, targetOnly ->

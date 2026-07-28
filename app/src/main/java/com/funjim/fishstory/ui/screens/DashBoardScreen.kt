@@ -414,12 +414,17 @@ fun DashboardScreen(
                     modifier = Modifier.padding(),
                     hasLocationPermission,
                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                    photosFlow = viewModel.tripPhotos(trip.trip.id),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
                     onFishClick = { tripId, targetOnly ->
                         onFishListNavigate(FishListRoute(
                             tripId = tripId,
                             targetOnly = targetOnly))
                     },
+                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
+                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
+                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                     onMenuDismiss = { showMenu = false }

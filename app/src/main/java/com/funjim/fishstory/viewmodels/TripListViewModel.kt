@@ -79,6 +79,19 @@ class TripListViewModel(
         }
     }
 
+    fun setTripThumbnail(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    }
+
+    fun deleteTripPhoto(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    }
+
+    fun tripPhotos(tripId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForTrip(tripId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread

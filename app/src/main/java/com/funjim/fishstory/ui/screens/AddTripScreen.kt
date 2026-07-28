@@ -792,6 +792,7 @@ fun AddTripScreen(
                             trip = currentTrip,
                             modifier = Modifier.padding(),
                             thumbnailFlow = flowOf(null),
+                            photosFlow = flowOf(emptyList()),
                             onClick = {
                                 fromReview = true
                                 tripViewModel.updateWizardStep(WizardStep.TripInfo)

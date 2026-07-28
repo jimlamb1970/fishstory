@@ -303,10 +303,15 @@ fun TripListScreen(
                                     modifier = Modifier.padding(vertical = 4.dp),
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                                    photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
+                                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
+                                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -323,10 +328,15 @@ fun TripListScreen(
                                     modifier = Modifier.padding(vertical = 4.dp),
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                                    photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
+                                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
+                                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -343,10 +353,15 @@ fun TripListScreen(
                                     modifier = Modifier.padding(vertical = 4.dp),
                                     hasLocationPermission,
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
+                                    photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
+                                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
+                                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }

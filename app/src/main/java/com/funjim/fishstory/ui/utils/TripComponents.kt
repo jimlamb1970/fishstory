@@ -1,9 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +19,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -37,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -66,8 +65,13 @@ fun TripItemWithMenu(
     modifier: Modifier = Modifier,
     hasLocationPermission: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
     onNavigateToDetails: (String) -> Unit,
     onFishClick: ((String, Boolean) -> Unit)? = null,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
     onAction: (TripAction) -> Unit,
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
@@ -78,9 +82,15 @@ fun TripItemWithMenu(
         totalItems = totalItems,
         modifier = modifier,
         thumbnailFlow = thumbnailFlow,
+        photosFlow = photosFlow,
+        showPhotoPicker = true,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
         onFishClick = onFishClick,
+        onPhotoAdded = onPhotoAdded,
+        onPhotoTaken = onPhotoTaken,
+        onSetThumbnail = onSetThumbnail,
+        onPhotoDeleted = onPhotoDeleted,
         onAction = onAction,
         actions = {
             Box {
@@ -202,17 +212,26 @@ fun TripItem(
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
+    showPhotoPicker: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onFishClick: ((String, Boolean) -> Unit)? = null,
+    onPhotoAdded: ((Uri) -> Unit)? = null,
+    onPhotoTaken: ((Uri) -> Unit)? = null,
+    onSetThumbnail: ((Photo) -> Unit)? = null,
+    onPhotoDeleted: ((Photo) -> Unit)? = null,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     }
+
+    var isExpanded by remember { mutableStateOf(false) }
 
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
@@ -242,11 +261,36 @@ fun TripItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ThumbnailBox(
-                thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Boat,
-                modifier = Modifier.size(64.dp)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Boat,
+                    modifier = Modifier.size(64.dp)
+                )
+
+                if (showPhotoPicker) {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Directional Arrow Button under thumbnail
+                    IconButton(
+                        onClick = { isExpanded = !isExpanded },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isExpanded) Icons.Default.KeyboardArrowUp
+                                else Icons.Default.KeyboardArrowDown,
+                            contentDescription =
+                                if (isExpanded) "Collapse"
+                                else "Expand",
+                            tint = secondaryContentColor
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.width(8.dp))
 
@@ -358,6 +402,19 @@ fun TripItem(
             }
 
             actions()
+        }
+
+        // Expanded content: PhotoPickerRow
+        if (isExpanded) {
+            HorizontalDivider(color = borderColor, modifier = Modifier.padding(horizontal = 16.dp))
+            PhotoPickerRow(
+                photos = photos,
+                onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
+                onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
+                onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
+                onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
