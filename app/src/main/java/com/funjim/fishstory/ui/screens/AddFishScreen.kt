@@ -164,7 +164,10 @@ fun AddFishScreen(
 
             val speciesList = state.species
             val selectedSpecies = remember(draftFish, speciesList) {
-                if (speciesList.size == 1) speciesList.first()
+                if ((speciesList.size == 1) && (fishId == null)) {
+                    viewModel.updateSpecies(speciesList.first())
+                    speciesList.first()
+                }
                 else speciesList.find { it.id == draftFish?.speciesId }
             }
 
@@ -172,14 +175,22 @@ fun AddFishScreen(
             val tackleBoxMap = state.tackleBoxMap
 
             val selectedFisherman = remember(draftFish, eventFishermen) {
-                if (eventFishermen.size == 1) eventFishermen.first()
+                if ((eventFishermen.size == 1) && (fishId == null)) {
+                    viewModel.updateFisherman(eventFishermen.first())
+                    viewModel.selectFisherman(eventFishermen.first().id)
+                    viewModel.selectTackleBox(tackleBoxMap[eventFishermen.first().id] ?: "")
+                    eventFishermen.first()
+                }
                 else eventFishermen.find { it.id == draftFish?.fishermanId }
             }
 
             val lures by viewModel.tackleBoxWithLures.collectAsStateWithLifecycle(initialValue = emptyList())
             val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
             val selectedLure = remember(draftFish, lures) {
-                if (lures.size == 1) lures.first()
+                if ((lures.size == 1) && (fishId == null)) {
+                    viewModel.updateLure(lures.first())
+                    lures.first()
+                }
                 else lures.find { it.lure.id == draftFish?.lureId }
             }
 
@@ -188,7 +199,10 @@ fun AddFishScreen(
                 baits.contains(item.id)
             }
             val selectedBait = remember(draftFish, sortedBaits) {
-                if (sortedBaits.size == 1) sortedBaits.first()
+                if ((sortedBaits.size == 1) && (fishId == null)) {
+                    viewModel.updateBait(sortedBaits.first())
+                    sortedBaits.first()
+                }
                 else sortedBaits.find { it.id == draftFish?.baitId }
             }
 
@@ -197,7 +211,10 @@ fun AddFishScreen(
                 bodiesOfWater.contains(item.id)
             }
             val selectedBodyOfWater = remember(draftFish, sortedBodiesOfWater) {
-                if (sortedBodiesOfWater.size == 1) sortedBodiesOfWater.first()
+                if ((sortedBodiesOfWater.size == 1) && (fishId == null)) {
+                    viewModel.updateBodyOfWater(sortedBodiesOfWater.first())
+                    sortedBodiesOfWater.first()
+                }
                 else sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
             }
 
