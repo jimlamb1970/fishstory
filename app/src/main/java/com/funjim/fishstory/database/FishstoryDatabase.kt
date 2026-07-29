@@ -9,24 +9,24 @@ import com.funjim.fishstory.model.*
 @Database(
     entities = [
         Bait::class,
-        BodyOfWater::class,                 // Backed up
-        Event::class,                       // Backed up
+        BodyOfWater::class,
+        Event::class,
         EventBait::class,
         EventBodyOfWater::class,
-        EventFishermanCrossRef::class,      // Backed up
+        EventFishermanCrossRef::class,
         EventTargetSpecies::class,
-        Fish::class,                        // Backed up
-        Fisherman::class,                   // Backed up
-        Lure::class,                        // Backed up
-        LureColor::class,                   // Backed up
-        LureGlowColorCrossRef::class,       // Backed up
-        LurePrimaryColorCrossRef::class,    // Backed up
-        LureSecondaryColorCrossRef::class,  // Backed up
+        Fish::class,
+        Fisherman::class,
+        Lure::class,
+        LureColor::class,
+        LureGlowColorCrossRef::class,
+        LurePrimaryColorCrossRef::class,
+        LureSecondaryColorCrossRef::class,
         Note::class,
         NoteFishCrossRef::class,
         NoteEventCrossRef::class,
         NoteTripCrossRef::class,
-        Photo::class,                       // Backed up
+        Photo::class,
         PhotoBaitCrossRef::class,
         PhotoBodyOfWaterCrossRef::class,
         PhotoEventCrossRef::class,
@@ -35,10 +35,10 @@ import com.funjim.fishstory.model.*
         PhotoLureCrossRef::class,
         PhotoSpeciesCrossRef::class,
         PhotoTripCrossRef::class,
-        Species::class,                     // Backed up
-        TackleBox::class,                   // Backed up
+        Species::class,
+        TackleBox::class,
         TackleBoxLureCrossRef::class,
-        Trip::class,                        // Backed up
+        Trip::class,
         TripBait::class,
         TripBodyOfWater::class,
         TripFishermanCrossRef::class,
