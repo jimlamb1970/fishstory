@@ -183,7 +183,7 @@ fun ManageWaterClarityScreen(
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    imageVector = AppIcons.Default.Water,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 DropdownMenu(

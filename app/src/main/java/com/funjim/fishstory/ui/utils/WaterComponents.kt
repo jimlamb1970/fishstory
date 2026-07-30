@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.WaterWithDetails
+import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -163,10 +164,10 @@ fun WaterCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Water,
+                imageVector = AppIcons.Default.Water,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
