@@ -152,30 +152,12 @@ fun LureItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    ThumbnailBox(
-                        thumbnail = thumbnail,
-                        imageVector = AppIcons.Default.Lure,
-                        modifier = Modifier.size(64.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Directional Arrow Button under thumbnail
-                    IconButton(
-                        onClick = { isExpanded = !isExpanded },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (isExpanded) "Collapse" else "Expand",
-                            tint = secondaryContentColor
-                        )
-                    }
-                }
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Lure,
+                    modifier = Modifier.size(64.dp),
+                    onClick = { isExpanded = !isExpanded }
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 

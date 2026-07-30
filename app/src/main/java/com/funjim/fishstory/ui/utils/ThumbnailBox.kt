@@ -2,6 +2,7 @@ package com.funjim.fishstory.ui.utils
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -32,12 +33,20 @@ fun ByteArray.toImageBitmap(): ImageBitmap? {
 fun ThumbnailBox(
     thumbnail: ByteArray?,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     imageVector: ImageVector = AppIcons.Default.Species
 ) {
     Box(
         modifier = modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp))
+            .then(
+                if (onClick != null) {
+                    modifier.clickable { onClick() }
+                } else {
+                    modifier
+                }
+            ),
         contentAlignment = Alignment.Center
     ) {
         val bitmap = remember(thumbnail) {
