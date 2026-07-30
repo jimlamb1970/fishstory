@@ -24,12 +24,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
-import kotlin.collections.map
 
 class EventViewModel(
     private val locationProvider: LocationProvider,
@@ -172,6 +168,13 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
+    val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val uiState: StateFlow<EventDetailsUiState> = combine(
         selectedEventWithDetails,
         selectedEventDetailedSummary
@@ -235,6 +238,10 @@ class EventViewModel(
             .flowOn(Dispatchers.IO)
     }
 
+    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
     fun addSpecies(species: Species) {
         viewModelScope.launch {
             fishRepo.addSpecies(species)
@@ -247,6 +254,25 @@ class EventViewModel(
             tripRepo.upsertEvent(event)
         }
     }
+
+    fun addWater(water: Water) {
+        viewModelScope.launch {
+            envRepo.addWater(water)
+        }
+    }
+
+    fun upsertWater(water: Water) {
+        viewModelScope.launch {
+            envRepo.upsertWater(water)
+        }
+    }
+
+    fun deleteWater(waterId: String) {
+        viewModelScope.launch {
+            envRepo.deleteWater(waterId = waterId)
+        }
+    }
+
 
     fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {

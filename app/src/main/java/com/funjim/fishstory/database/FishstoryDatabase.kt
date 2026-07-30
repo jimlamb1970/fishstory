@@ -42,13 +42,15 @@ import com.funjim.fishstory.model.*
         TripBait::class,
         TripBodyOfWater::class,
         TripFishermanCrossRef::class,
-        TripTargetSpecies::class
+        TripTargetSpecies::class,
+        Water::class,
+        WaterClarity::class
     ],
     views = [
         EventDetailedSummary::class,
         TripDetailedSummary::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class FishstoryDatabase : RoomDatabase() {
@@ -62,6 +64,7 @@ abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun photoDao(): PhotoDao
     abstract fun tackleBoxDao(): TackleBoxDao
     abstract fun tripDao(): TripDao
+    abstract fun waterDao(): WaterDao
 
     companion object {
         @Volatile

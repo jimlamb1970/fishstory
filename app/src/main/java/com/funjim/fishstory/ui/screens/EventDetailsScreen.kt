@@ -3,18 +3,24 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -24,11 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.Water
+import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
@@ -40,6 +49,10 @@ import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
+import com.funjim.fishstory.ui.utils.WaterCard
+import com.funjim.fishstory.ui.utils.WaterClaritySelectionField
+import com.funjim.fishstory.ui.utils.WaterDialog
+import com.funjim.fishstory.ui.utils.WaterRow
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -80,6 +93,12 @@ fun EventDetailsScreen(
     var addNewBodyOfWater by remember { mutableStateOf(false) }
     var addBodyOfWaterName by remember { mutableStateOf("") }
 
+    // Water snapshot state
+    var showAddWaterDialog by remember { mutableStateOf(false) }
+    var waterToEdit by remember { mutableStateOf<Water?>(null) }
+    var waterToDelete by remember { mutableStateOf<Water?>(null) }
+    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
+
     // Dialog state for updating all catches for this body of water
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
@@ -94,13 +113,16 @@ fun EventDetailsScreen(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
+    val timeOnlyFormatter = remember {
+        SimpleDateFormat("HH:mm", Locale.getDefault())
+    }
     val now = System.currentTimeMillis()
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
-        existingLat = selectedEvent?.latitude,  // Passed from your DB object
+        existingLat = selectedEvent?.latitude,
         existingLng = selectedEvent?.longitude,
         onFetchLocation = { scope.launch { viewModel.fetchDeviceLocationOnce() } },
         onLocationConfirmed = { lat, lng ->
@@ -143,6 +165,11 @@ fun EventDetailsScreen(
             val tripLat = trip.latitude
 
             val activeLat = eventLat ?: tripLat
+
+            // Sort water snapshots descending (most recent first)
+            val sortedWaterList = remember(eventDetails.waterList) {
+                eventDetails.waterList.sortedByDescending { it.water.timestamp }
+            }
 
             Scaffold(
                 topBar = {
@@ -291,7 +318,6 @@ fun EventDetailsScreen(
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = getOnMainColor()
-
                                 )
                                 val displayLat = event.latitude ?: trip.latitude
                                 val displayLng = event.longitude ?: event.longitude
@@ -351,7 +377,10 @@ fun EventDetailsScreen(
                                     viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
                                 },
                                 onSetThumbnail = { photo ->
-                                    viewModel.setEventThumbnail(eventId = eventId, photoId = photo.id)
+                                    viewModel.setEventThumbnail(
+                                        eventId = eventId,
+                                        photoId = photo.id
+                                    )
                                 },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteEventPhoto(eventId, photo.id)
@@ -363,11 +392,27 @@ fun EventDetailsScreen(
 
                                 EventHighlightCard(
                                     summary = eventSummary,
-                                    onClick = { navigateToFishList(trip.id, event.id, false) },
-                                    onFishClick = { navigateToFishList(trip.id, event.id, false) },
-                                    onTargetFishClick = { navigateToFishList(trip.id, event.id, true) }
+                                    onClick = {
+                                        navigateToFishList(trip.id, event.id, false)
+                                    },
+                                    onFishClick = {
+                                        navigateToFishList(trip.id, event.id, false)
+                                    },
+                                    onTargetFishClick = {
+                                        navigateToFishList(trip.id, event.id, true)
+                                    }
                                 )
                             }
+
+                            // Water Conditions Section
+                            HorizontalDivider()
+
+                            WaterRow(
+                                waterList = sortedWaterList,
+                                onAddWater = { showAddWaterDialog = true },
+                                onEdit = { waterToEdit = it },
+                                onDelete = { waterToDelete = it }
+                            )
 
                             HorizontalDivider()
 
@@ -526,6 +571,101 @@ fun EventDetailsScreen(
                             }
                         )
                     }
+
+                    if (showAddWaterDialog) {
+                        WaterDialog(
+                            initialTemp = null,
+                            initialDepth = null,
+                            initialClarity = null,
+                            allClarity = allWaterClarity,
+                            title = "New Water Conditions",
+                            thumbnailProvider = { clarity ->
+                                val thumbnailFlow = remember(clarity.id) {
+                                    viewModel.waterClarityThumbnail(clarity.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onDismiss = { showAddWaterDialog = false },
+                            onConfirm = { temp, depth, clarity ->
+                                val newWater = Water(
+                                    eventId = eventId,
+                                    temperature = temp,
+                                    depth = depth,
+                                    clarityId = clarity?.id
+                                )
+
+                                viewModel.addWater(newWater)
+                                showAddWaterDialog = false
+
+                            }
+                        )
+                    }
+
+                    waterToEdit?.let { water ->
+                        WaterDialog(
+                            initialTemp = water.temperature,
+                            initialDepth = water.depth,
+                            initialClarity = water.clarityId,
+                            allClarity = allWaterClarity,
+                            title = "Edit Water Conditions",
+                            thumbnailProvider = { clarity ->
+                                val thumbnailFlow = remember(clarity.id) {
+                                    viewModel.waterClarityThumbnail(clarity.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onDismiss = { waterToEdit = null },
+                            onConfirm = { temp, depth, clarity ->
+                                viewModel.upsertWater(
+                                    water.copy(
+                                        temperature = temp,
+                                        depth = depth,
+                                        clarityId = clarity?.id
+                                    )
+                                )
+                                waterToEdit = null
+                            }
+                        )
+                    }
+
+                    // Delete Water Confirmation Dialog
+                    waterToDelete?.let { water ->
+                        AlertDialog(
+                            onDismissRequest = { waterToDelete = null },
+                            title = { Text("Delete Water Conditions") },
+                            text = { Text("Are you sure you want to delete these water conditions?") },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                            viewModel.deleteWater(water.id)
+                                            waterToDelete = null
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Text("Delete")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { waterToDelete = null }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
@@ -664,16 +804,11 @@ fun EventDetailsScreen(
             },
             onConfirm = { targetBody ->
                 scope.launch {
-                    // UI waits for the database operation to finish
                     viewModel.updateBodyOfWaterForEvent(
                         newBodyOfWaterId = targetBody.id,
                         eventId = eventId
                     )
-
-                    // Runs only after the batch update successfully completes
                     Toast.makeText(context, "Catches updated to ${targetBody.name}", Toast.LENGTH_SHORT).show()
-
-                    // Dismiss the dialog by clearing the state inside the coroutine block
                     bodyOfWaterToUpdateAll = null
                 }
             }

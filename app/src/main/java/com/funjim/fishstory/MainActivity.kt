@@ -65,6 +65,7 @@ import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
 import com.funjim.fishstory.ui.screens.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
+import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
 import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
@@ -550,6 +551,18 @@ fun AppNavigation(
             )
         }
 
+        composable("manage_water_clarity") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: WaterClarityViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getWaterClarityViewModelFactory()
+            )
+
+            ManageWaterClarityScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable("reports") {
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -713,8 +726,8 @@ fun AppNavigation(
                 navigateToManageColors = {
                     navController.navigate("manage_colors")
                 },
-                navigateToManageSpecies = {
-                    navController.navigate("manage_species")
+                navigateToManageWaterClarity = {
+                    navController.navigate("manage_water_clarity")
                 },
                 navigateBack = { navController.popBackStack() }
             )

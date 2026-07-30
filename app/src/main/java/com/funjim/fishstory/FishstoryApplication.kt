@@ -24,6 +24,7 @@ import com.funjim.fishstory.viewmodels.LureViewModelFactory
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
 import com.funjim.fishstory.viewmodels.TripListViewModelFactory
 import com.funjim.fishstory.viewmodels.TripViewModelFactory
+import com.funjim.fishstory.viewmodels.WaterClarityViewModelFactory
 import kotlin.getValue
 
 class FishstoryApplication : Application() {
@@ -42,6 +43,7 @@ class FishstoryApplication : Application() {
             database = database,
             bodyOfWaterDao = database.bodyOfWaterDao(),
             eventDao = database.eventDao(),
+            waterDao = database.waterDao()
         )
     }
 
@@ -197,5 +199,10 @@ class FishstoryApplication : Application() {
         locationProvider = locationProvider,
         photoRepo = photoRepository,
         tripRepo = tripRepository
+    )
+
+    fun getWaterClarityViewModelFactory() = WaterClarityViewModelFactory(
+        environmentRepository,
+        photoRepository
     )
 }

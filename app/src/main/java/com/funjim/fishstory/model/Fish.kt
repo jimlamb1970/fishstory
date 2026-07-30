@@ -88,6 +88,7 @@ data class Fish(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val bodyOfWaterId: String? = null,
+    val waterId: String? = null,
     val holeNumber: Int? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false

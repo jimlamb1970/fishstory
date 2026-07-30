@@ -29,6 +29,7 @@ data class Event(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val bodyOfWaterId: String? = null,
+    val waterId: String? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 )
@@ -126,7 +127,14 @@ data class EventWithDetails(
             entityColumn = "bodyOfWaterId"
         )
     )
-    val bodiesOfWater: List<BodyOfWater>
+    val bodiesOfWater: List<BodyOfWater>,
+
+    @Relation(
+        entity = Water::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val waterList: List<WaterWithDetails>
 )
 
 data class EventWithInfo(

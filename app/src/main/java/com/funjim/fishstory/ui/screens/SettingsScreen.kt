@@ -35,7 +35,7 @@ fun SettingsScreen(
     navigateToManageBaits: () -> Unit,
     navigateToManageBodiesOfWater: () -> Unit,
     navigateToManageColors: () -> Unit,
-    navigateToManageSpecies: () -> Unit,
+    navigateToManageWaterClarity: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -168,10 +168,10 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { navigateToManageSpecies() },
+                onClick = { navigateToManageWaterClarity() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Manage Species")
+                Text("Manage Water Clarity")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

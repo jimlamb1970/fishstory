@@ -32,6 +32,7 @@ import androidx.room.withTransaction
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.model.PhotoBaitCrossRef
 import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
+import kotlinx.coroutines.flow.flowOf
 
 data class PhotoMetadata(
     val hashcode: String,
@@ -398,6 +399,11 @@ class PhotoRepository(
         return photoDao.getThumbnailForSpecies(id)
     }
 
+    fun fetchWaterClarityThumbnail(id: String): Flow<ByteArray?> {
+        //return photoDao.getThumbnailForWaterClarity(id)
+        return flowOf(null)
+    }
+
     suspend fun deleteBaitThumbnail(id: String) {
         // Check if existing photo cross reference exists
         val existingPhoto = photoDao.getPhotoForBait(id)
@@ -427,6 +433,9 @@ class PhotoRepository(
         if (existingPhoto != null) {
             photoDao.deletePhoto(existingPhoto)
         }
+    }
+
+    suspend fun deleteWaterClarityThumbnail(speciesId: String) {
     }
 
     suspend fun updateBaitThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
@@ -502,5 +511,8 @@ class PhotoRepository(
             // 4) Add the new photo species cross ref
             photoDao.addSpeciesPhoto(PhotoSpeciesCrossRef(photo.id, speciesId, true))
         }
+    }
+
+    suspend fun updateWaterClarityThumbnail(speciesId: String, uri: Uri) = withContext(Dispatchers.IO) {
     }
 }
