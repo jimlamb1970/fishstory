@@ -226,7 +226,7 @@ fun BodyOfWaterSelectionField(
 
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add new body of water...",
+                                    title = "Add new body of water ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -285,7 +285,7 @@ fun BodyOfWaterSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add new body of water...",
+                                    title = "Add new body of water ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -465,7 +465,7 @@ fun BodyOfWaterSelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add new body of water...",
+                                title = "Add new body of water ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -549,7 +549,7 @@ fun BodyOfWaterSelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add new body of water...",
+                                title = "Add new body of water ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -604,7 +604,7 @@ fun BodiesOfWaterRow(
                 text = "No bodies of water are set.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {
             LazyRow(

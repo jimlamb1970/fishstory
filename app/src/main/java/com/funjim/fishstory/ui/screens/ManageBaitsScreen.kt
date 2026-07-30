@@ -32,7 +32,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -313,7 +312,7 @@ fun ManageBaitsScreen(
                                             if (preventDelete) {
                                                 Toast.makeText(
                                                     context,
-                                                    "Can't delete this body of water. There are fish logged for it.",
+                                                    "Can't delete this bait. There are fish logged for it.",
                                                     Toast.LENGTH_SHORT).show()
                                             } else {
                                                 itemToDelete = item.bait
@@ -343,7 +342,7 @@ fun ManageBaitsScreen(
     itemToDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete Body of Water?") },
+            title = { Text("Delete Bait?") },
             text = { Text("""Are you sure you want to delete '${item.name}'?
 
 This cannot be undone."""
@@ -371,13 +370,13 @@ This cannot be undone."""
     itemToEdit?.let { item ->
         AlertDialog(
             onDismissRequest = { itemToEdit = null },
-            title = { Text("Rename Body of Water") },
+            title = { Text("Rename Bait") },
             text = {
                 OutlinedTextField(
                     value = editName,
                     onValueChange = { editName = it },
                     singleLine = true,
-                    label = { Text("Species Name") }
+                    label = { Text("Bait") }
                 )
             },
             confirmButton = {

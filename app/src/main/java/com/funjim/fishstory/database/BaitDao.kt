@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BaitDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBait(bait: Bait)
 
@@ -92,5 +91,4 @@ interface BaitDao {
         fishermanId: String?,
         lureId: String?,
         tripId: String?): Flow<List<Bait>>
-
 }

@@ -56,7 +56,6 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -227,7 +226,7 @@ fun SpeciesSelection(
 
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add new species...",
+                                    title = "Add new species ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -286,7 +285,7 @@ fun SpeciesSelection(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add new species...",
+                                    title = "Add new species ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -466,7 +465,7 @@ fun SpeciesSelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add new species...",
+                                title = "Add new species ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -550,7 +549,7 @@ fun SpeciesSelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add new species...",
+                                title = "Add new species ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -604,7 +603,7 @@ fun TargetSpeciesRow(
                 text = "No target species are set.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {
             LazyRow(
