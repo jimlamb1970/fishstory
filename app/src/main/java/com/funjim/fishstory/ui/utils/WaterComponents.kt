@@ -57,7 +57,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,21 +70,58 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.WaterWithDetails
-import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToLong
 
-private fun Water.tempDisplayString(): String? {
-    return temperature?.let { "$it°" }
+/**
+ * Converts Fahrenheit input (Double or String) to DB storage format.
+ * Example: 72.5 -> 7250L
+ */
+fun Double.fahrenheitToDbValue(): Long = (this * 100.0).roundToLong()
+fun String.fahrenheitToDbValue(): Long? = this.toDoubleOrNull()?.fahrenheitToDbValue()
+
+/**
+ * Converts Celsius input (Double or String) to DB storage format.
+ * Example: 22.5 -> (22.5 * 180) + 3200 = 7250L
+ */
+fun Double.celsiusToDbValue(): Long = (this * 180.0 + 3200.0).roundToLong()
+fun String.celsiusToDbValue(): Long? = this.toDoubleOrNull()?.celsiusToDbValue()
+
+/**
+ * Converts DB value (7250L) back to Fahrenheit Double (72.5).
+ */
+fun Long.toFahrenheitDouble(): Double = this / 100.0
+
+/**
+ * Converts DB value (7250L) back to Celsius Double (22.5).
+ */
+fun Long.toCelsiusDouble(): Double = (this - 3200.0) / 180.0
+
+private fun Water.tempDisplayString(useCelsius: Boolean = false): String? {
+    val tempDb = temperature ?: return null
+    return if (useCelsius) {
+        String.format(Locale.getDefault(), "%.1f°C", tempDb.toCelsiusDouble())
+    } else {
+        String.format(Locale.getDefault(), "%.1f°F", tempDb.toFahrenheitDouble())
+    }
 }
 
 private fun Water.depthDisplayString(): String? {
-    return depth?.let { "$it ft" }
+    return depth?.let { totalInches ->
+        val feet = totalInches.toInches().toLong() / 12
+        val inches = totalInches.toInches().toLong() % 12
+
+        when {
+            feet > 0 && inches > 0 -> "${feet}' ${inches}\""
+            feet > 0 -> "${feet}'"
+            else -> "${inches}\""
+        }
+    }
 }
 
 @Composable
@@ -237,7 +273,7 @@ fun WaterCard(
 @Composable
 fun WaterDialog(
     initialTemp: Long?,
-    initialDepth: Long?,
+    initialDepth: Long?, // Total depth in feet
     initialClarity: String?,
     allClarity: List<WaterClarity>,
     title: String,
@@ -245,8 +281,31 @@ fun WaterDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long?, Long?, WaterClarity?) -> Unit
 ) {
-    var temp by remember { mutableStateOf(initialTemp?.toString() ?: "") }
-    var depth by remember { mutableStateOf(initialDepth?.toString() ?: "") }
+    var temp by remember {
+        mutableStateOf(
+            initialTemp?.let {
+                val fahrenheit = it.toFahrenheitDouble()
+                // Drop trailing .0 if it's a whole number for a cleaner text field, otherwise show decimal
+                if (fahrenheit == fahrenheit.toLong().toDouble()) {
+                    fahrenheit.toLong().toString()
+                } else {
+                    fahrenheit.toString()
+                }
+            } ?: ""
+        )
+    }
+
+    var depthFeet by remember {
+        mutableStateOf(
+            initialDepth?.let { (it.toInches().toLong() / 12).toString() } ?: ""
+        )
+    }
+    var depthInches by remember {
+        mutableStateOf(
+            initialDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
+        )
+    }
+
     var clarity by remember {
         mutableStateOf(allClarity.find { it.id == initialClarity })
     }
@@ -259,23 +318,46 @@ fun WaterDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Temperature field with Fahrenheit suffix indication
                 OutlinedTextField(
                     value = temp,
-                    onValueChange = { temp = it },
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
+                            temp = input
+                        }
+                    },
                     label = { Text("Temperature") },
+                    suffix = { Text("°F") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
 
-                OutlinedTextField(
-                    value = depth,
-                    onValueChange = { depth = it },
-                    label = { Text("Depth") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                // Depth split into Feet and Inches
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = depthFeet,
+                        onValueChange = { depthFeet = it },
+                        label = { Text("Depth (ft)") },
+                        suffix = { Text("ft") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = depthInches,
+                        onValueChange = { depthInches = it },
+                        label = { Text("Depth (in)") },
+                        suffix = { Text("in") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
 
                 WaterClaritySelectionField(
                     items = allClarity,
@@ -289,10 +371,18 @@ fun WaterDialog(
         },
         confirmButton = {
             Button(onClick = {
-                val tempValue = temp.toLongOrNull()
-                val depthValue = depth.toLongOrNull()
+                val tempValue = temp.fahrenheitToDbValue()
 
-                onConfirm(tempValue, depthValue, clarity)
+                val feetValue = depthFeet.toLongOrNull() ?: 0L
+                val inchesValue = depthInches.toLongOrNull() ?: 0L
+
+                val totalDepth = if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
+                    (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
+                } else {
+                    null
+                }
+
+                onConfirm(tempValue, totalDepth, clarity)
             }) {
                 Text("Save")
             }
@@ -304,7 +394,6 @@ fun WaterDialog(
         }
     )
 }
-
 @Composable
 fun WaterRow(
     waterList: List<WaterWithDetails>,
