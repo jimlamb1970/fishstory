@@ -357,6 +357,12 @@ fun TripDetailsScreen(
                                 color = getOnSecondaryColor()
                             )
 
+                            HorizontalDivider(
+                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
+
                             PhotoPickerRow(
                                 photos = details.photos,
                                 onPhotoSelected = { uri ->
@@ -374,7 +380,11 @@ fun TripDetailsScreen(
                             )
 
                             if (summary.fishCaught != 0 || now >= trip.startDate) {
-                                HorizontalDivider()
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                    thickness = 1.dp,
+                                    color = getOnMainColor()
+                                )
 
                                 TripHighlightCard(
                                     summary = summary,
@@ -384,7 +394,11 @@ fun TripDetailsScreen(
                                 )
                             }
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             BodiesOfWaterRow(
                                 items = details.bodiesOfWater,
@@ -412,7 +426,11 @@ fun TripDetailsScreen(
                                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             TargetSpeciesRow(
                                 items = details.targetSpecies,
@@ -436,7 +454,11 @@ fun TripDetailsScreen(
                                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             // The Boat Concept
                             FishermanSummary(
@@ -445,7 +467,11 @@ fun TripDetailsScreen(
                                 onClick = { navigateToSelectTripCrew(tripId) }
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             Row(
                                 modifier = Modifier.fillMaxWidth()
@@ -459,7 +485,7 @@ fun TripDetailsScreen(
                                 ) {
                                     Text(
                                         text = "Events",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleMedium
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(

@@ -392,6 +392,12 @@ fun EventDetailsScreen(
                                 color = getOnSecondaryColor()
                             )
 
+                            HorizontalDivider(
+                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
+
                             PhotoPickerRow(
                                 photos = eventDetails.photos,
                                 onPhotoSelected = { uri ->
@@ -412,7 +418,11 @@ fun EventDetailsScreen(
                             )
 
                             if (eventSummary.fishCaught != 0 || now >= event.startTime) {
-                                HorizontalDivider()
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                    thickness = 1.dp,
+                                    color = getOnMainColor()
+                                )
 
                                 EventHighlightCard(
                                     summary = eventSummary,
@@ -428,8 +438,11 @@ fun EventDetailsScreen(
                                 )
                             }
 
-                            // Water Conditions Section
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             WaterRow(
                                 waterList = sortedWaterList,
@@ -438,7 +451,11 @@ fun EventDetailsScreen(
                                 onDelete = { waterToDelete = it }
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             BodiesOfWaterRow(
                                 items = eventDetails.bodiesOfWater,
@@ -466,7 +483,11 @@ fun EventDetailsScreen(
                                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             TargetSpeciesRow(
                                 items = eventDetails.targetSpecies,
@@ -490,7 +511,11 @@ fun EventDetailsScreen(
                                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             FishermanSummary(
                                 fishermanCount = eventSummary.fishermanCount,

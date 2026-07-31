@@ -34,6 +34,7 @@ import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.flow.Flow
@@ -310,7 +311,7 @@ private fun FishDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
 
         // Placed the Chip and Share button on the same horizontal line
@@ -376,7 +377,7 @@ private fun FishDetailContent(
                     Text(
                         text = fish.species.name,
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     if (activeLat != null && activeLng != null) {
@@ -454,6 +455,7 @@ private fun FishDetailContent(
                     Text(
                         text = fish.fisherman.fullName,
                         style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -534,6 +536,8 @@ private fun FishDetailContent(
                 DetailRow(label = "Time", value = timeFormatter.format(Date(fish.fish.timestamp)))
             }
         }
+
+        HorizontalDivider()
 
         PhotoPickerRow(
             photos = fishPhotos ?: emptyList(),

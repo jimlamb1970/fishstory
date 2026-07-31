@@ -53,6 +53,7 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
+import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -132,6 +133,12 @@ fun FishermanDetailsScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
 
+                            HorizontalDivider(
+                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
+
                             PhotoPickerRow(
                                 photos = fishermanPhotos,
                                 onPhotoSelected = { uri ->
@@ -148,12 +155,21 @@ fun FishermanDetailsScreen(
                                 }
                             )
 
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             FishermanHighlightCard(stats!!) {
                                 navigateToFishList(fishermanId, null, false)
                             }
-                            HorizontalDivider()
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             Row(
                                 modifier = Modifier
@@ -289,7 +305,11 @@ fun FishermanDetailsScreen(
                         }
 
                         item {
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                thickness = 1.dp,
+                                color = getOnMainColor()
+                            )
 
                             Text(
                                 text = "Trips",
