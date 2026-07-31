@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -578,11 +579,27 @@ fun TargetSpeciesRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Target Species",
-                style = MaterialTheme.typography.titleMedium,
-                color = getOnMainColor()
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Target Species",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+                if (items.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${items.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
             IconButton(
                 onClick = { onAdd() },
                 colors = IconButtonDefaults.iconButtonColors(

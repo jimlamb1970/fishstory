@@ -175,7 +175,7 @@ fun FishermanDetailsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { tackleBoxesExpanded = !tackleBoxesExpanded }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -192,17 +192,25 @@ fun FishermanDetailsScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
                                             text = "Tackle Boxes",
-                                            style = MaterialTheme.typography.titleLarge
+                                            style = MaterialTheme.typography.titleMedium
                                         )
 
-                                        if (!tackleBoxesExpanded && totalTackleBoxes > 1) {
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                        if (totalTackleBoxes > 1) {
+                                            Spacer(modifier = Modifier.width(4.dp))
 
-                                            Text(
-                                                text = "(${pagerState.currentPage + 1} of ${totalTackleBoxes})",
-                                                style = MaterialTheme.typography.titleSmall,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
+                                            if (!tackleBoxesExpanded) {
+                                                Text(
+                                                    text = "(${pagerState.currentPage + 1} of ${totalTackleBoxes})",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = "(${totalTackleBoxes})",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -288,8 +296,8 @@ fun FishermanDetailsScreen(
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
-                                            start = 8.dp,
-                                            end = 8.dp,
+                                            start = 16.dp,
+                                            end = 16.dp,
                                             bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
                                         ),
                                         onEdit = {
@@ -311,20 +319,51 @@ fun FishermanDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            Text(
-                                text = "Trips",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Trips",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+
+                                if (state.recentTrips.size + state.activeTrips.size + state.upcomingTrips.size > 1) {
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    val total = state.recentTrips.size +
+                                            state.activeTrips.size +
+                                            state.upcomingTrips.size
+                                    Text(
+                                        text = "(${total})",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
                         }
 
                         item {
                             if (state.upcomingTrips.isNotEmpty()) {
-                                Text(
-                                    "Upcoming Trips",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Upcoming Trips",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    if (state.upcomingTrips.size > 1) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+                                        Text(
+                                            text = "(${state.upcomingTrips.size})",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -341,11 +380,24 @@ fun FishermanDetailsScreen(
 
                         if (state.activeTrips.isNotEmpty()) {
                             item {
-                                Text(
-                                    "Active Trips",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Active Trips",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    if (state.activeTrips.size > 1) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+                                        Text(
+                                            text = "(${state.activeTrips.size})",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
                             }
                             val totalActiveItems = state.activeTrips.size
                             itemsIndexed(state.activeTrips) { index, trip ->
@@ -385,11 +437,24 @@ fun FishermanDetailsScreen(
                         }
                         if (state.recentTrips.isNotEmpty()) {
                             item {
-                                Text(
-                                    "Past Trips",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Past Trips",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    if (state.recentTrips.size > 1) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+                                        Text(
+                                            text = "(${state.recentTrips.size})",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
                             }
                             val tripsSize = state.recentTrips.size
                             itemsIndexed(state.recentTrips) { index, trip ->

@@ -441,7 +441,7 @@ fun WaterRow(
             )
 
             if (waterList.size > 1) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
                     text = "(${waterList.size})",
