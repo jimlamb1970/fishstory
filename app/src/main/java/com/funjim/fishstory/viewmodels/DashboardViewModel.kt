@@ -10,6 +10,9 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.model.Water
+import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -32,6 +35,7 @@ import kotlinx.coroutines.launch
 
 class DashboardViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
@@ -41,6 +45,13 @@ class DashboardViewModel(
             delay(60_000)
         }
     }
+
+    val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
@@ -165,11 +176,22 @@ class DashboardViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun addWater(water: Water) {
+        viewModelScope.launch {
+            envRepo.addWater(water)
+        }
+    }
+
+    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
     fun saveTrip(trip: Trip) {
         viewModelScope.launch {
             tripRepo.upsertTrip(trip)
         }
     }
+
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
             tripRepo.deleteTripById(trip.id)
@@ -183,6 +205,7 @@ class DashboardViewModel(
                 .onFailure {  }
         }
     }
+
     fun setTripThumbnail(tripId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
     }
@@ -223,6 +246,7 @@ data class EventGroups(
 
 class DashboardViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
@@ -231,6 +255,7 @@ class DashboardViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return DashboardViewModel(
                 locationProvider,
+                envRepo,
                 photoRepo,
                 tripRepo) as T
         }

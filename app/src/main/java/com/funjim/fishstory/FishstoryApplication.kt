@@ -143,6 +143,7 @@ class FishstoryApplication : Application() {
 
     fun getDashboardViewModelFactory() = DashboardViewModelFactory(
         locationProvider = locationProvider,
+        envRepo = environmentRepository,
         photoRepo = photoRepository,
         tripRepo = tripRepository
     )

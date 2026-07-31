@@ -28,8 +28,6 @@ data class Event(
     val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val bodyOfWaterId: String? = null,
-    val waterId: String? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 )
@@ -339,6 +337,13 @@ data class EventSummary(
         entityColumn = "id"        // The primary key in your Trip entity
     )
     val trip: Trip,
+
+    @Relation(
+        entity = Water::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val waterList: List<WaterWithDetails>,
 
     val fishCaught: Int,
     val fishKept: Int,

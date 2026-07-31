@@ -1,6 +1,5 @@
 package com.funjim.fishstory.ui.utils
 
-import android.health.connect.datatypes.units.Temperature
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -34,10 +33,8 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -164,7 +161,7 @@ fun WaterCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.Water,
+                imageVector = AppIcons.Default.WaterCup,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
@@ -274,7 +271,7 @@ fun WaterCard(
 @Composable
 fun WaterDialog(
     initialTemp: Long?,
-    initialDepth: Long?, // Total depth in feet
+    initialDepth: Long?,
     initialClarity: String?,
     allClarity: List<WaterClarity>,
     title: String,
@@ -282,34 +279,38 @@ fun WaterDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long?, Long?, WaterClarity?) -> Unit
 ) {
-    var temp by remember {
-        mutableStateOf(
-            initialTemp?.let {
-                val fahrenheit = it.toFahrenheitDouble()
-                // Drop trailing .0 if it's a whole number for a cleaner text field, otherwise show decimal
-                if (fahrenheit == fahrenheit.toLong().toDouble()) {
-                    fahrenheit.toLong().toString()
-                } else {
-                    fahrenheit.toString()
-                }
-            } ?: ""
-        )
+    val originalTemp = remember(initialTemp) {
+        initialTemp?.let {
+            val fahrenheit = it.toFahrenheitDouble()
+            if (fahrenheit == fahrenheit.toLong().toDouble()) {
+                fahrenheit.toLong().toString()
+            } else {
+                fahrenheit.toString()
+            }
+        } ?: ""
     }
 
-    var depthFeet by remember {
-        mutableStateOf(
-            initialDepth?.let { (it.toInches().toLong() / 12).toString() } ?: ""
-        )
-    }
-    var depthInches by remember {
-        mutableStateOf(
-            initialDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
-        )
+    val originalFeet = remember(initialDepth) {
+        initialDepth?.let { (it.toInches().toLong() / 12).toString() } ?: ""
     }
 
-    var clarity by remember {
-        mutableStateOf(allClarity.find { it.id == initialClarity })
+    val originalInches = remember(initialDepth) {
+        initialDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
     }
+
+    val originalClarity = remember(initialClarity, allClarity) {
+        allClarity.find { it.id == initialClarity }
+    }
+
+    var temp by remember { mutableStateOf(originalTemp) }
+    var depthFeet by remember { mutableStateOf(originalFeet) }
+    var depthInches by remember { mutableStateOf(originalInches) }
+    var clarity by remember { mutableStateOf(originalClarity) }
+
+    val isChanged = temp != originalTemp ||
+            depthFeet != originalFeet ||
+            depthInches != originalInches ||
+            clarity != originalClarity
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -329,7 +330,7 @@ fun WaterDialog(
                     },
                     label = { Text("Temperature") },
                     suffix = { Text("°F") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -371,20 +372,23 @@ fun WaterDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val tempValue = temp.fahrenheitToDbValue()
+            Button(
+                onClick = {
+                    val tempValue = temp.fahrenheitToDbValue()
 
-                val feetValue = depthFeet.toLongOrNull() ?: 0L
-                val inchesValue = depthInches.toLongOrNull() ?: 0L
+                    val feetValue = depthFeet.toLongOrNull() ?: 0L
+                    val inchesValue = depthInches.toLongOrNull() ?: 0L
 
-                val totalDepth = if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
-                    (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
-                } else {
-                    null
-                }
+                    val totalDepth = if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
+                        (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
+                    } else {
+                        null
+                    }
 
-                onConfirm(tempValue, totalDepth, clarity)
-            }) {
+                    onConfirm(tempValue, totalDepth, clarity)
+                },
+                enabled = isChanged // Enabled only if user made a change
+            ) {
                 Text("Save")
             }
         },

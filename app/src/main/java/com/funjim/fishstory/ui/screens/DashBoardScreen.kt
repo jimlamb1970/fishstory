@@ -61,6 +61,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -83,13 +85,16 @@ import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
+import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AchievementItem
 import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.StatItem
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
+import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -282,6 +287,7 @@ fun DashboardScreen(
             item {
                 if (state.activeTrips.isNotEmpty() && activeTripEvents.active.isNotEmpty()) {
                     ActiveTripCard(
+                        viewModel = viewModel,
                         activeTrips = state.activeTrips,
                         activeEvents = activeTripEvents.active,
                         eventSummary = state.eventSummary,
@@ -465,6 +471,7 @@ All events (${item.eventCount}) and fish (${item.fishCaught}) associated with th
 
 @Composable
 fun ActiveTripCard(
+    viewModel: DashboardViewModel,
     activeTrips: List<TripSummary>,
     activeEvents: List<EventSummary>,
     eventSummary: EventDetailedSummary?,
@@ -481,6 +488,11 @@ fun ActiveTripCard(
     var tripExpanded by remember { mutableStateOf(false) }
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
     val trip = activeTrips.find { it.trip.id == currentEvent.event.tripId } ?: return
+
+    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
+    var showAddWaterDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -610,8 +622,9 @@ fun ActiveTripCard(
                             StatItem(
                                 label = "CAUGHT",
                                 value = "${trip.targetFishCaught}",
-                                labelColor = getOnCardSecondaryColor(),
-                                color = getOnCardColor())
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
 
                             IconButton(
                                 onClick = { onFishClick(currentEvent.event.tripId, null, true) }
@@ -620,15 +633,16 @@ fun ActiveTripCard(
                                     imageVector = AppIcons.Default.TargetFish,
                                     contentDescription = "Fish",
                                     modifier = Modifier.size(32.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.onTertiary
                                 )
                             }
 
                             StatItem(
                                 label = "KEPT",
                                 value = "${trip.targetFishKept}",
-                                labelColor = getOnCardSecondaryColor(),
-                                color = getOnCardColor())
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                labelColor = MaterialTheme.colorScheme.onTertiary
+                            )
                         }
 
                         HorizontalDivider(
@@ -730,8 +744,9 @@ fun ActiveTripCard(
                 StatItem(
                     label = "CAUGHT",
                     value = "${currentEvent.targetFishCaught}",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    labelColor = MaterialTheme.colorScheme.onTertiary
+                )
 
                 IconButton(
                     onClick = { onFishClick(currentEvent.event.tripId, currentEvent.event.id, true) }
@@ -740,15 +755,16 @@ fun ActiveTripCard(
                         imageVector = AppIcons.Default.TargetFish,
                         contentDescription = "Fish",
                         modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onTertiary
                     )
                 }
 
                 StatItem(
                     label = "KEPT",
                     value = "${currentEvent.targetFishKept}",
-                    labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    labelColor = MaterialTheme.colorScheme.onTertiary
+                )
             }
 
             Column(
@@ -808,18 +824,23 @@ fun ActiveTripCard(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { onLogFish(currentEvent.event.tripId, currentEvent.event.id) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ),
-                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onSecondary),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("LOG A CATCH")
-            }
+            Spacer(Modifier.height(12.dp))
+            ActiveTripGrid(
+                waterSet = currentEvent.waterList.isNotEmpty(),
+                weatherSet = false,
+                onFishClick = { onLogFish(currentEvent.event.tripId, currentEvent.event.id) },
+                onWaterClick = { showAddWaterDialog = true },
+                onWeatherClick = {
+                    Toast.makeText(
+                        context,
+                        "Not yet implemented",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+
             if (activeEvents.size > 1) {
                 Spacer(Modifier.height(12.dp))
                 Row(
@@ -843,6 +864,78 @@ fun ActiveTripCard(
                     }
                 }
             }
+        }
+    }
+
+    if (showAddWaterDialog) {
+        val sortedWaterList = remember(currentEvent.waterList) {
+            currentEvent.waterList.sortedByDescending { it.water.timestamp }
+        }
+
+        WaterDialog(
+            initialTemp = sortedWaterList.firstOrNull()?.water?.temperature,
+            initialDepth = sortedWaterList.firstOrNull()?.water?.depth,
+            initialClarity = sortedWaterList.firstOrNull()?.water?.clarityId,
+            allClarity = allWaterClarity,
+            title = if (sortedWaterList.isEmpty()) { "Set Water Conditions" } else {"Update Water Conditions"} ,
+            thumbnailProvider = { clarity ->
+                val thumbnailFlow = remember(clarity.id) {
+                    viewModel.waterClarityThumbnail(clarity.id)
+                }
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.WaterCup,
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onDismiss = { showAddWaterDialog = false },
+            onConfirm = { temp, depth, clarity ->
+                val newWater = Water(
+                    eventId = currentEvent.event.id,
+                    temperature = temp,
+                    depth = depth,
+                    clarityId = clarity?.id
+                )
+
+                viewModel.addWater(newWater)
+                showAddWaterDialog = false
+
+            }
+        )
+    }
+}
+@Composable
+fun ActiveTripGrid(
+    waterSet: Boolean = false,
+    weatherSet: Boolean = false,
+    onFishClick: () -> Unit,
+    onWaterClick: () -> Unit,
+    onWeatherClick: () -> Unit,
+    containerColor: Color,
+    contentColor: Color
+) {
+    val items = listOf(
+        Triple(
+            "Fish",
+            AppIcons.Default.LeapingFishWithFinsAdd,
+            onFishClick),
+        Triple(
+            "Water",
+            if (waterSet) AppIcons.Default.WaterSetAdd else AppIcons.Default.WaterAdd,
+            onWaterClick),
+        Triple(
+            "Weather",
+            if (weatherSet) AppIcons.Default.WeatherSetAdd else AppIcons.Default.WeatherAdd,
+            onWeatherClick)
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            GridItem(items[0], Modifier.weight(1f), containerColor, contentColor, contentColor)
+            GridItem(items[1], Modifier.weight(1f), containerColor, contentColor, contentColor)
+            GridItem(items[2], Modifier.weight(1f), containerColor, contentColor, contentColor)
         }
     }
 }
@@ -891,11 +984,20 @@ fun DashboardGrid(
 }
 
 @Composable
-fun GridItem(item: Triple<String, ImageVector, () -> Unit>, modifier: Modifier) {
+fun GridItem(
+    item: Triple<String, ImageVector, () -> Unit>,
+    modifier: Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    borderColor: Color = MaterialTheme.colorScheme.primary
+) {
     OutlinedCard(
         onClick = item.third,
         modifier = modifier.height(100.dp),
-        colors = CardDefaults.outlinedCardColors(contentColor = MaterialTheme.colorScheme.primary)
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = containerColor,
+            contentColor = contentColor),
+        border = BorderStroke(1.dp, color = borderColor),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

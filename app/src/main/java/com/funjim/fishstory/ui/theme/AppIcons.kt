@@ -25,6 +25,8 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fishing_boat)
         val LeapingFishWithFins: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish_with_fins)
+        val LeapingFishWithFinsAdd: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish_with_fins_add)
         val LeapingFish: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish)
         val Lure: ImageVector
@@ -39,8 +41,24 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_target_fish)
         val Trip: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_trip)
-        val Water: ImageVector
+        val WaterCup: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_water)
+        val Water: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_water_unset)
+        val WaterAdd: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_water_add)
+        val WaterSet: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_water_set)
+        val WaterSetAdd: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_water_set_add)
+        val Weather: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_weather_unset)
+        val WeatherAdd: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_weather_add)
+        val WeatherSet: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_weather_set)
+        val WeatherSetAdd: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_weather_set_add)
         val Worm: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fishing_boat)
 
