@@ -182,6 +182,12 @@ class DashboardViewModel(
         }
     }
 
+    fun addWaterClarity(waterClarity: WaterClarity) {
+        viewModelScope.launch {
+            envRepo.addWaterClarity(waterClarity)
+        }
+    }
+
     fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }

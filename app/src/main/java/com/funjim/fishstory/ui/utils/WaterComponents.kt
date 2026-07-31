@@ -277,7 +277,8 @@ fun WaterDialog(
     title: String,
     thumbnailProvider: @Composable (WaterClarity) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (Long?, Long?, WaterClarity?) -> Unit
+    onConfirm: (Long?, Long?, WaterClarity?) -> Unit,
+    onAddWaterClarity: () -> Unit
 ) {
     val originalTemp = remember(initialTemp) {
         initialTemp?.let {
@@ -365,6 +366,7 @@ fun WaterDialog(
                     items = allClarity,
                     selectedItem = clarity,
                     onSelected = { clarity = it },
+                    onAdd = onAddWaterClarity,
                     onClear = { clarity = null },
                     modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = thumbnailProvider

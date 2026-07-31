@@ -10,16 +10,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -29,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
@@ -48,12 +43,8 @@ import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
-import com.funjim.fishstory.ui.utils.WaterCard
-import com.funjim.fishstory.ui.utils.WaterClaritySelectionField
 import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterRow
-import com.funjim.fishstory.ui.utils.getMainButtonColor
-import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -97,6 +88,7 @@ fun EventDetailsScreen(
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
+    var addWaterClarity by remember { mutableStateOf(false) }
 
     // Dialog state for updating all catches for this body of water
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
@@ -652,7 +644,8 @@ fun EventDetailsScreen(
                                 viewModel.addWater(newWater)
                                 showAddWaterDialog = false
 
-                            }
+                            },
+                            onAddWaterClarity = { addWaterClarity = true}
                         )
                     }
 
@@ -685,7 +678,8 @@ fun EventDetailsScreen(
                                     )
                                 )
                                 waterToEdit = null
-                            }
+                            },
+                            onAddWaterClarity = { addWaterClarity = true }
                         )
                     }
 
@@ -839,6 +833,34 @@ fun EventDetailsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (addWaterClarity) {
+        var waterClarityName by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { addWaterClarity = false },
+            title = { Text("Add New Water Clarity") },
+            text = {
+                TextField(
+                    value = waterClarityName,
+                    onValueChange = { waterClarityName = it },
+                    placeholder = { "Water Clarity (e.g. Clear)" }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (waterClarityName.isNotBlank()) {
+                        viewModel.addWaterClarity(WaterClarity(name = waterClarityName.trim()))
+                        addWaterClarity = false
+                        waterClarityName = ""
+                    }
+                }) { Text("Add Water Clarity") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addWaterClarity = false }) { Text("Cancel") }
             }
         )
     }

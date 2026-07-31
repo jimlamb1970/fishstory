@@ -261,6 +261,12 @@ class EventViewModel(
         }
     }
 
+    fun addWaterClarity(waterClarity: WaterClarity) {
+        viewModelScope.launch {
+            envRepo.addWaterClarity(waterClarity)
+        }
+    }
+
     fun upsertWater(water: Water) {
         viewModelScope.launch {
             envRepo.upsertWater(water)
