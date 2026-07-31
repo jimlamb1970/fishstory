@@ -213,7 +213,10 @@ fun FishermanHighlightCard(
     val scope = rememberCoroutineScope()
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp).clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(),
             contentColor = getOnCardColor()

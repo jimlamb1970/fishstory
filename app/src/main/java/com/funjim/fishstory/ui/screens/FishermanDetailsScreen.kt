@@ -327,7 +327,7 @@ fun FishermanDetailsScreen(
                                 )
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                                 ) {
                                     items(state.upcomingTrips) { trip ->
                                         UpcomingTripChip(
@@ -353,7 +353,7 @@ fun FishermanDetailsScreen(
                                     trip = trip,
                                     index = index,
                                     totalItems = totalActiveItems,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
@@ -397,7 +397,7 @@ fun FishermanDetailsScreen(
                                     trip = trip,
                                     index = index,
                                     totalItems = tripsSize,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
