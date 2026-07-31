@@ -3,11 +3,10 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -187,8 +186,28 @@ fun EventDetailsScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = { showEditEventDialog = true }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit Event")
+                            IconButton(onClick = { navigateToAddFish() }) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Default.LeapingFishWithFins,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp))
+
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
                             }
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
@@ -198,6 +217,20 @@ fun EventDetailsScreen(
                                     expanded = menuExpanded,
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            showEditEventDialog = true
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Edit,
+                                                contentDescription = "Edit Event"
+                                            )
+                                        }
+                                    )
+
                                     if (hasLocationPermission) {
                                         DropdownMenuItem(
                                             text = { Text("Use Current Location") },
@@ -291,15 +324,6 @@ fun EventDetailsScreen(
                                 }
                             }
                         }
-                    )
-                },
-                floatingActionButton = {
-                    ExtendedFloatingActionButton(
-                        onClick = { navigateToAddFish() },
-                        containerColor = getMainButtonColor(),
-                        contentColor = getOnMainButtonColor(),
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        text = { Text("Log Fish") }
                     )
                 }
             ) { padding ->

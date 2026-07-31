@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,6 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.ExpandLess
@@ -102,7 +104,15 @@ import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
+import com.funjim.fishstory.viewmodels.Quad
 import kotlinx.coroutines.launch
+
+private data class GridParams(
+    val text: String,
+    val icon: ImageVector,
+    val iconOverlay: ImageVector?,
+    val onClink: () -> Unit
+)
 
 @Composable
 fun DashboardScreen(
@@ -917,17 +927,20 @@ fun ActiveTripGrid(
     contentColor: Color
 ) {
     val items = listOf(
-        Triple(
+        GridParams(
             "Fish",
-            AppIcons.Default.LeapingFishWithFinsAdd,
+            AppIcons.Default.LeapingFishWithFins,
+            Icons.Default.Add,
             onFishClick),
-        Triple(
+        GridParams(
             "Water",
-            if (waterSet) AppIcons.Default.WaterSetAdd else AppIcons.Default.WaterAdd,
+            if (waterSet) AppIcons.Default.WaterSet else AppIcons.Default.Water,
+            Icons.Default.Add,
             onWaterClick),
-        Triple(
+        GridParams(
             "Weather",
-            if (weatherSet) AppIcons.Default.WeatherSetAdd else AppIcons.Default.WeatherAdd,
+            if (weatherSet) AppIcons.Default.WeatherSet else AppIcons.Default.Weather,
+            Icons.Default.Add,
             onWeatherClick)
     )
 
@@ -953,15 +966,15 @@ fun DashboardGrid(
     onTripsClick: () -> Unit
 ) {
     val items = listOf(
-        Triple("Trips", AppIcons.Default.Boat, onTripsClick),
-        Triple("Fish", AppIcons.Default.LeapingFishWithFins, onFishClick),
-        Triple("Fishermen", AppIcons.Default.Fisherman, onFishermenClick),
-        Triple("Bodies of Water", AppIcons.Default.BodyOfWater, onBodiesOfWaterClick),
-        Triple("Species", AppIcons.Default.Species, onSpeciesClick),
-        Triple("Lures", AppIcons.Default.Lure, onLuresClick),
-        Triple("Baits", AppIcons.Default.Worm, onBaitsClick),
-        Triple("Reports", Icons.Default.AutoGraph, onReportsClick),
-        Triple("Settings", AppIcons.Default.Settings, onSettingsClick)
+        GridParams("Trips", AppIcons.Default.Boat, null, onTripsClick),
+        GridParams("Fish", AppIcons.Default.LeapingFishWithFins, null, onFishClick),
+        GridParams("Fishermen", AppIcons.Default.Fisherman, null, onFishermenClick),
+        GridParams("Bodies of Water", AppIcons.Default.BodyOfWater, null, onBodiesOfWaterClick),
+        GridParams("Species", AppIcons.Default.Species, null, onSpeciesClick),
+        GridParams("Lures", AppIcons.Default.Lure, null, onLuresClick),
+        GridParams("Baits", AppIcons.Default.Worm, null, onBaitsClick),
+        GridParams("Reports", Icons.Default.AutoGraph, null, onReportsClick),
+        GridParams("Settings", AppIcons.Default.Settings, null, onSettingsClick)
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -984,15 +997,15 @@ fun DashboardGrid(
 }
 
 @Composable
-fun GridItem(
-    item: Triple<String, ImageVector, () -> Unit>,
+private fun GridItem(
+    item: GridParams,
     modifier: Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     borderColor: Color = MaterialTheme.colorScheme.primary
 ) {
     OutlinedCard(
-        onClick = item.third,
+        onClick = item.onClink,
         modifier = modifier.height(100.dp),
         colors = CardDefaults.outlinedCardColors(
             containerColor = containerColor,
@@ -1004,8 +1017,30 @@ fun GridItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(item.second, contentDescription = null, modifier = Modifier.size(32.dp))
-            Text(item.first, style = MaterialTheme.typography.labelLarge)
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    item.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp))
+
+                if (item.iconOverlay != null) {
+                    Surface(
+                        shape = CircleShape,
+                        color = containerColor,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
+            }
+            Text(item.text, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

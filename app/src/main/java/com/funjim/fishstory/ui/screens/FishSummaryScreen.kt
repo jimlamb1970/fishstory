@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -106,22 +107,29 @@ fun FishSummaryScreen(
                 ),
                 actions = {
                     if (selectedEvent != null) {
-                        TextButton(
-                            onClick = {
-                                onAddFish(selectedEvent.tripId, selectedEvent.id, null)
-                            },
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            )
+                        IconButton(
+                            onClick = { onAddFish(selectedEvent.tripId, selectedEvent.id, null) }
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = null)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Log Fish")
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    AppIcons.Default.LeapingFishWithFins,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp))
+
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
                             }
                         }
                     }

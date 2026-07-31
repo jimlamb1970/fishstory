@@ -187,9 +187,6 @@ fun TripDetailsScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = { showEditTripDialog = true }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit Trip")
-                            }
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = "More")
@@ -198,6 +195,20 @@ fun TripDetailsScreen(
                                     expanded = menuExpanded,
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            showEditTripDialog = true
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Edit,
+                                                contentDescription = "Edit Trip"
+                                            )
+                                        }
+                                    )
+
                                     if (hasLocationPermission) {
                                         DropdownMenuItem(
                                             text = { Text("Use Current Location") },
