@@ -1,4 +1,4 @@
-package com.funjim.fishstory.model
+package com.funjim.fishstory.database
 
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -6,11 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import kotlinx.serialization.Serializable
+import com.funjim.fishstory.model.WindDirection
 import java.util.UUID
+import com.funjim.fishstory.model.Event
 
-@Serializable
-@Entity(tableName = "water_table",
+@Entity(tableName = "weather_table",
     foreignKeys = [
         ForeignKey(
             entity = Event::class,
@@ -19,33 +19,37 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = WaterClarity::class,
+            entity = SkyConditionEntity::class,
             parentColumns = ["id"],
-            childColumns = ["clarityId"],
+            childColumns = ["skyConditionId"],
             onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["eventId"]),
-        Index(value = ["clarityId"])
+        Index(value = ["skyConditionId"])
     ]
 )
-data class Water(
+data class WeatherEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val eventId: String,
-    val depth: Long? = null,
     val temperature: Long? = null,
-    val clarityId: String? = null,
+    val skyConditionId: String? = null,
+    val windDirection: WindDirection? = null,
+    val windSpeed: Long? = null,
+    val atmosphericPressure: Long? = null,
+    val airVisibility: Long? = null,
+    val airHumidity: Long? = null,
     val timestamp: Long = System.currentTimeMillis()
     )
 
-data class WaterWithDetails(
+data class WeatherEntityWithDetails(
     @Embedded
-    val water: Water,
+    val weather: WeatherEntity,
     @Relation(
-        parentColumn = "clarityId",
+        parentColumn = "skyConditionId",
         entityColumn = "id"
     )
-    val clarity: WaterClarity? = null
+    val skyCondition: SkyConditionEntity
 )

@@ -399,6 +399,11 @@ class PhotoRepository(
         return photoDao.getThumbnailForSpecies(id)
     }
 
+    fun fetchSkyConditionThumbnail(id: String): Flow<ByteArray?> {
+        //return photoDao.getThumbnailForSkyCondition(id)
+        return flowOf(null)
+    }
+
     fun fetchWaterClarityThumbnail(id: String): Flow<ByteArray?> {
         //return photoDao.getThumbnailForWaterClarity(id)
         return flowOf(null)
@@ -435,7 +440,10 @@ class PhotoRepository(
         }
     }
 
-    suspend fun deleteWaterClarityThumbnail(speciesId: String) {
+    suspend fun deleteSkyConditionThumbnail(id: String) {
+    }
+
+    suspend fun deleteWaterClarityThumbnail(id: String) {
     }
 
     suspend fun updateBaitThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
@@ -513,6 +521,9 @@ class PhotoRepository(
         }
     }
 
-    suspend fun updateWaterClarityThumbnail(speciesId: String, uri: Uri) = withContext(Dispatchers.IO) {
+    suspend fun updateSkyConditionThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+    }
+
+    suspend fun updateWaterClarityThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
     }
 }

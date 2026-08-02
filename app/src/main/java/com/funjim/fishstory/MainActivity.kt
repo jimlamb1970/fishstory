@@ -65,6 +65,7 @@ import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
 import com.funjim.fishstory.ui.screens.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
+import com.funjim.fishstory.ui.screens.ManageSkyConditionsScreen
 import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
 import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
@@ -551,6 +552,18 @@ fun AppNavigation(
             )
         }
 
+        composable("manage_sky_conditions") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: SkyConditionViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getSkyConditionViewModelFactory()
+            )
+
+            ManageSkyConditionsScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable("manage_water_clarity") {
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: WaterClarityViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -717,14 +730,11 @@ fun AppNavigation(
                 onThemeChange = { selectedTheme ->
                     onThemeChange(selectedTheme)
                 },
-                navigateToManageBaits = {
-                    navController.navigate("manage_baits")
-                },
-                navigateToManageBodiesOfWater = {
-                    navController.navigate("manage_bodies_of_water")
-                },
                 navigateToManageColors = {
                     navController.navigate("manage_colors")
+                },
+                navigateToManageSkyConditions = {
+                    navController.navigate("manage_sky_conditions")
                 },
                 navigateToManageWaterClarity = {
                     navController.navigate("manage_water_clarity")

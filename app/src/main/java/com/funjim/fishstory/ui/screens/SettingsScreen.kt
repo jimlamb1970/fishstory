@@ -32,9 +32,8 @@ fun SettingsScreen(
     viewModel: MainViewModel,
     importViewModel: ImportViewModel,
     onThemeChange: (String) -> Unit,
-    navigateToManageBaits: () -> Unit,
-    navigateToManageBodiesOfWater: () -> Unit,
     navigateToManageColors: () -> Unit,
+    navigateToManageSkyConditions: () -> Unit,
     navigateToManageWaterClarity: () -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -144,26 +143,18 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { navigateToManageBaits() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Manage Baits")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { navigateToManageBodiesOfWater() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Manage Bodies of Water")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
                 onClick = { navigateToManageColors() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Manage Colors")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { navigateToManageSkyConditions() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Manage Sky Conditions")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

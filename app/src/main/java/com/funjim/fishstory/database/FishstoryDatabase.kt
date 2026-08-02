@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.funjim.fishstory.model.*
 
 @Database(
@@ -35,6 +36,7 @@ import com.funjim.fishstory.model.*
         PhotoLureCrossRef::class,
         PhotoSpeciesCrossRef::class,
         PhotoTripCrossRef::class,
+        SkyConditionEntity::class,
         Species::class,
         TackleBox::class,
         TackleBoxLureCrossRef::class,
@@ -44,7 +46,8 @@ import com.funjim.fishstory.model.*
         TripFishermanCrossRef::class,
         TripTargetSpecies::class,
         Water::class,
-        WaterClarity::class
+        WaterClarity::class,
+        WeatherEntity::class
     ],
     views = [
         EventDetailedSummary::class,
@@ -53,6 +56,7 @@ import com.funjim.fishstory.model.*
     version = 10,
     exportSchema = false
 )
+@TypeConverters(WeatherConverters::class)
 abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun baitDao(): BaitDao
     abstract fun bodyOfWaterDao(): BodyOfWaterDao
@@ -65,6 +69,7 @@ abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun tackleBoxDao(): TackleBoxDao
     abstract fun tripDao(): TripDao
     abstract fun waterDao(): WaterDao
+    abstract fun weatherDao(): WeatherDao
 
     companion object {
         @Volatile

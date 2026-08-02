@@ -5,22 +5,31 @@ import com.funjim.fishstory.database.BodyOfWaterDao
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.WaterDao
+import com.funjim.fishstory.database.WeatherDao
+import com.funjim.fishstory.database.toDomainList
+import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.TripBodyOfWater
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.Weather
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.collections.map
 
 class EnvironmentRepository(
     private val database: FishstoryDatabase,
     private val bodyOfWaterDao: BodyOfWaterDao,
     private val eventDao: EventDao,
-    private val waterDao: WaterDao
+    private val waterDao: WaterDao,
+    private val weatherDao: WeatherDao
 ) {
     // Basic Data Streams
     val allBodiesOfWater: Flow<List<BodyOfWater>> = bodyOfWaterDao.getAllBodiesOfWater()
+    val allSkyConditions: Flow<List<SkyCondition>>  = weatherDao.getAllSkyConditions()
+        .map { list -> list.toDomainList() }
     val allWaterClarity: Flow<List<WaterClarity>> = waterDao.getAllWaterClarity()
 
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.insertBodyOfWater(bodyOfWater)
@@ -85,4 +94,27 @@ class EnvironmentRepository(
     suspend fun addWaterClarity(waterClarity: WaterClarity) = waterDao.insertWaterClarity(waterClarity)
     suspend fun upsertWaterClarity(waterClarity: WaterClarity) = waterDao.upsertWaterClarity(waterClarity)
     suspend fun deleteWaterClarity(waterClarity: WaterClarity) = waterDao.deleteWaterClarity(waterClarity)
+
+    suspend fun addWeather(weather: Weather) {
+        weatherDao.insertWeather(weather.toEntity())
+    }
+    suspend fun upsertWeather(weather: Weather) {
+        weatherDao.upsertWeather(weather.toEntity())
+    }
+    suspend fun deleteWeather(weather: Weather) {
+        weatherDao.deleteWeather(weather.toEntity())
+    }
+    suspend fun deleteWeather(id: String) {
+        weatherDao.deleteWeather(id)
+    }
+
+    suspend fun addSkyCondition(skyCondition: SkyCondition) {
+        weatherDao.insertSkyCondition(skyCondition.toEntity())
+    }
+    suspend fun upsertSkyCondition(skyCondition: SkyCondition) {
+        weatherDao.upsertSkyCondition(skyCondition.toEntity())
+    }
+    suspend fun deleteSkyCondition(skyCondition: SkyCondition) {
+        weatherDao.deleteSkyCondition(skyCondition.toEntity())
+    }
 }
