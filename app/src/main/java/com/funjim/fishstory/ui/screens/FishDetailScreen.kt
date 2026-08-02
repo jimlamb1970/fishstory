@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -580,11 +581,12 @@ private fun FishDetailContent(
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        // FIX LATER
                         LureColorComposition(
-                            primary = fish.lure.primaryColors,
-                            secondary = fish.lure.secondaryColors,
+                            primary = fish.lure.primaryColors.toLureColorDomainList(),
+                            secondary = fish.lure.secondaryColors.toLureColorDomainList(),
                             glows = fish.lure.lure.glows,
-                            glow = fish.lure.glowColors
+                            glow = fish.lure.glowColors.toLureColorDomainList()
                         )
                     }
                 }

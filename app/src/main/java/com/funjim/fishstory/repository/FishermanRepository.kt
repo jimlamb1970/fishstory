@@ -2,6 +2,7 @@ package com.funjim.fishstory.repository
 
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -96,8 +97,10 @@ class FishermanRepository(
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> =
         tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
 
-    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> =
-        tackleBoxDao.getLuresInTackleBox(tackleBoxId)
+    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {
+        return tackleBoxDao.getLuresInTackleBox(tackleBoxId)
+            .map { list -> list.toLureWithColorsDomainList() }
+    }
 
     suspend fun deleteTackleBox(tackleBox: TackleBox) = tackleBoxDao.deleteTackleBox(tackleBox)
 }

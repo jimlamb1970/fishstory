@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.SortChip
@@ -297,7 +297,7 @@ fun FishermanTackleBoxScreen(
 
 @Composable
 private fun LureTackleBoxItem(
-    item: LureSummaryWithColors,
+    item: LureWithColorsSummary,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,

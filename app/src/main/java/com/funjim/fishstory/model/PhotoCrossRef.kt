@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import com.funjim.fishstory.database.BaitEntity
 import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.LureEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -150,7 +151,7 @@ data class PhotoFishermanCrossRef(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Lure::class,
+            entity = LureEntity::class,
             parentColumns = ["id"],
             childColumns = ["lureId"],
             onDelete = ForeignKey.CASCADE

@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
@@ -216,12 +217,13 @@ fun FishItem(
                     )
 
                 fish.lure?.let { lure ->
+                    // FIX LATER
                     LureCompositionWithColors(
                         name = lure.lure.name,
-                        lure.primaryColors,
-                        lure.secondaryColors,
+                        lure.primaryColors.toLureColorDomainList(),
+                        lure.secondaryColors.toLureColorDomainList(),
                         lure.lure.glows,
-                        lure.glowColors,
+                        lure.glowColors.toLureColorDomainList(),
                         style = MaterialTheme.typography.bodySmall,
                         contentColor = getOnCardSecondaryColor(),
                         colorBadgeSize = 20.dp

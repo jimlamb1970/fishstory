@@ -31,9 +31,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureGlowColorCrossRef
-import com.funjim.fishstory.model.LurePrimaryColorCrossRef
-import com.funjim.fishstory.model.LureSecondaryColorCrossRef
+import com.funjim.fishstory.model.LureGlowColor
+import com.funjim.fishstory.model.LurePrimaryColor
+import com.funjim.fishstory.model.LureSecondaryColor
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.utils.LureColorComposition
@@ -289,24 +289,24 @@ fun AddLureScreen(
                         viewModel.upsertLure(newLure)
 
                         selectedPrimaryColors.forEach { primaryColor ->
-                            viewModel.upsertLurePrimaryColorCrossRef(
-                                LurePrimaryColorCrossRef(
+                            viewModel.upsertLurePrimaryColor(
+                                LurePrimaryColor(
                                     newLure.id,
                                     primaryColor.id
                                 )
                             )
                         }
                         selectedSecondaryColors.forEach { secondaryColor ->
-                            viewModel.upsertLureSecondaryColorCrossRef(
-                                LureSecondaryColorCrossRef(
+                            viewModel.upsertLureSecondaryColor(
+                                LureSecondaryColor(
                                     newLure.id,
                                     secondaryColor.id
                                 )
                             )
                         }
                         selectedGlowColors.forEach { glowColor ->
-                            viewModel.upsertLureGlowColorCrossRef(
-                                LureGlowColorCrossRef(
+                            viewModel.upsertLureGlowColor(
+                                LureGlowColor(
                                     newLure.id,
                                     glowColor.id
                                 )

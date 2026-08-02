@@ -38,6 +38,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.LureEntityWithColors
+import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColors
@@ -721,10 +723,11 @@ fun TackleBoxCard(
             }
 
             tackleBoxWithLures.lures.sortedWith(
-                compareBy<LureWithColors> { it.lure.name }
-                    .thenBy { getColorsSortingString(it.primaryColors) }
-                    .thenBy { getColorsSortingString(it.secondaryColors) }
-                    .thenBy { getColorsSortingString(it.glowColors) }
+                // FIX LATER
+                compareBy<LureEntityWithColors> { it.lure.name }
+                    .thenBy { getColorsSortingString(it.primaryColors.toLureColorDomainList()) }
+                    .thenBy { getColorsSortingString(it.secondaryColors.toLureColorDomainList()) }
+                    .thenBy { getColorsSortingString(it.glowColors.toLureColorDomainList()) }
             )
         }
     }
@@ -819,12 +822,13 @@ fun TackleBoxCard(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            // FIX LATER
                             LureCompositionWithColors(
                                 name = "• ${lure.lure.name}",
-                                lure.primaryColors,
-                                lure.secondaryColors,
+                                lure.primaryColors.toLureColorDomainList(),
+                                lure.secondaryColors.toLureColorDomainList(),
                                 lure.lure.glows,
-                                lure.glowColors,
+                                lure.glowColors.toLureColorDomainList(),
                                 style = MaterialTheme.typography.bodySmall,
                                 contentColor = secondaryContentColor,
                                 modifier = Modifier

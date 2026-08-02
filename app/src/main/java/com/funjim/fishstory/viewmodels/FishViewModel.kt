@@ -285,9 +285,10 @@ class FishViewModel(
 
             FishSortOrder.LURE -> list.sortedWith(
                 compareBy<FishWithDetails> { it.lure?.lure?.name }
-                    .thenBy { getColorsSortingString(it.lure?.primaryColors ?: emptyList()) }
-                    .thenBy { getColorsSortingString(it.lure?.secondaryColors ?: emptyList()) }
-                    .thenBy { getColorsSortingString(it.lure?.glowColors ?: emptyList()) }
+                    // FIX LATER
+//                    .thenBy { getColorsSortingString(it.lure?.primaryColors ?: emptyList()) }
+//                    .thenBy { getColorsSortingString(it.lure?.secondaryColors ?: emptyList()) }
+//                    .thenBy { getColorsSortingString(it.lure?.glowColors ?: emptyList()) }
             )
         }
         return if (reversed) sorted.reversed() else sorted

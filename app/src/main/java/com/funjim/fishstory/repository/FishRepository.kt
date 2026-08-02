@@ -11,6 +11,7 @@ import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.toDomain
+import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -88,7 +89,7 @@ class FishRepository(
             eventId = filter.eventId,
             fishermanId = filter.fishermanId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { list -> list.toLureWithColorsDomainList() }
     }
 
     fun getSpecies(filter: FishFilter): Flow<List<Species>> {

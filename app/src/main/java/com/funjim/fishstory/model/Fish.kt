@@ -8,6 +8,8 @@ import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.LureEntity
+import com.funjim.fishstory.database.LureEntityWithColors
 import com.funjim.fishstory.database.BodyOfWaterEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -53,7 +55,7 @@ data class Species(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Lure::class,
+            entity = LureEntity::class,
             parentColumns = ["id"],
             childColumns = ["lureId"],
             onDelete = ForeignKey.SET_NULL
@@ -138,11 +140,11 @@ data class FishWithDetails(
     val event: Event,
 
     @Relation(
-        entity = Lure::class,
+        entity = LureEntity::class,
         parentColumn = "lureId",
         entityColumn = "id"
     )
-    val lure: LureWithColors?,
+    val lure: LureEntityWithColors?,
 
     @Relation(
         entity = BaitEntity::class,
@@ -215,7 +217,7 @@ data class SpeciesWithCounts(
 )
 
 data class LureWithCounts(
-    @Embedded val lure: LureWithColors,
+    @Embedded val lure: LureEntityWithColors,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )

@@ -23,6 +23,7 @@ fun Bait.toEntity(): BaitEntity {
         name = name
     )
 }
+
 // Extension: Database Entity -> Domain Model
 fun BaitSummaryEntity.toDomain(): BaitSummary {
     return BaitSummary(

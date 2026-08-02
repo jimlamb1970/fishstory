@@ -54,7 +54,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureSummaryWithColors
+import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
@@ -63,7 +63,7 @@ import com.funjim.fishstory.viewmodels.LureSortOrder
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LureItem(
-    item: LureSummaryWithColors,
+    item: LureWithColorsSummary,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     index: Int = 0,
@@ -611,7 +611,7 @@ fun sortLures(lureList: List<LureWithColors>): List<LureWithColors> {
     )
 }
 
-fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
+fun sortLures(lureList: List<LureWithColorsSummary>, order: LureSortOrder): List<LureWithColorsSummary> {
     // Helper function returning empty string if empty
     val getColorsSortingString = { colors: List<LureColor> ->
         if (colors.isEmpty()) ""
@@ -620,7 +620,7 @@ fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List
 
     return when (order) {
         LureSortOrder.NAME -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { it.lure.name }
+            compareBy<LureWithColorsSummary> { it.lure.name }
                 .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
                 .thenBy { it.secondaryColors.isEmpty() }
@@ -629,7 +629,7 @@ fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.PRIMARY_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { it.primaryColors.isEmpty() } // false (has colors) before true (empty)
+            compareBy<LureWithColorsSummary> { it.primaryColors.isEmpty() } // false (has colors) before true (empty)
                 .thenBy { getColorsSortingString(it.primaryColors) }
                 .thenBy { it.lure.name }
                 .thenBy { it.secondaryColors.isEmpty() }
@@ -638,7 +638,7 @@ fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.SECONDARY_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { it.secondaryColors.isEmpty() }
+            compareBy<LureWithColorsSummary> { it.secondaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.secondaryColors) }
                 .thenBy { it.lure.name }
                 .thenBy { it.primaryColors.isEmpty() }
@@ -647,7 +647,7 @@ fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List
                 .thenBy { getColorsSortingString(it.glowColors) }
         )
         LureSortOrder.GLOW_COLOR -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { it.glowColors.isEmpty() }
+            compareBy<LureWithColorsSummary> { it.glowColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.glowColors) }
                 .thenBy { it.lure.name }
                 .thenBy { it.primaryColors.isEmpty() }
@@ -656,7 +656,7 @@ fun sortLures(lureList: List<LureSummaryWithColors>, order: LureSortOrder): List
                 .thenBy { getColorsSortingString(it.secondaryColors) }
         )
         else -> lureList.sortedWith(
-            compareBy<LureSummaryWithColors> { it.lure.name }
+            compareBy<LureWithColorsSummary> { it.lure.name }
                 .thenBy { it.primaryColors.isEmpty() }
                 .thenBy { getColorsSortingString(it.primaryColors) }
                 .thenBy { it.secondaryColors.isEmpty() }

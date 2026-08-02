@@ -1,8 +1,6 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import kotlinx.coroutines.flow.Flow
@@ -71,7 +69,7 @@ interface TackleBoxDao {
         INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId
         WHERE tackle_box_lure_cross_ref.tackleBoxId = :tackleBoxId
     """)
-    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>>
+    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureEntityWithColors>>
     
     @Query("""
         SELECT lure_table.* FROM lure_table
@@ -79,7 +77,7 @@ interface TackleBoxDao {
         INNER JOIN tackle_box_table ON tackle_box_lure_cross_ref.tackleBoxId = tackle_box_table.id
         WHERE tackle_box_table.fishermanId = :fishermanId
     """)
-    fun getLuresForFisherman(fishermanId: String): Flow<List<Lure>>
+    fun getLuresForFisherman(fishermanId: String): Flow<List<LureEntity>>
 }
 
 // TODO - add query to get lures for tacklebox/fishermen with names built out

@@ -37,7 +37,7 @@ class LureViewModel(
     val lureColors = _lureColors
 
     // Combine lures, colors, and photos into the UI model
-    val luresWithDisplay: StateFlow<List<LureSummaryWithColors>> = combine(
+    val luresWithDisplay: StateFlow<List<LureWithColorsSummary>> = combine(
         repository.getLureSummariesWithColors(),
         _sortOrder,
         _isReversed
@@ -49,7 +49,7 @@ class LureViewModel(
         SharingStarted.WhileSubscribed(5000),
         emptyList())
 
-    private fun applySorting(list: List<LureSummaryWithColors>, order: LureSortOrder): List<LureSummaryWithColors> {
+    private fun applySorting(list: List<LureWithColorsSummary>, order: LureSortOrder): List<LureWithColorsSummary> {
         return when (order) {
             LureSortOrder.NAME -> sortLures(list, order)
             LureSortOrder.PRIMARY_COLOR -> sortLures(list, order)
@@ -105,22 +105,18 @@ class LureViewModel(
         }
     }
 
-    suspend fun getLureWithPhotos(id: String): LureWithPhotos? {
-        return repository.getLureWithPhotos(id)
-    }
-
     suspend fun getLureWithDetails(id: String): LureWithDetails? {
         return repository.getLureWithDetails(id)
     }
 
-    suspend fun upsertLurePrimaryColorCrossRef(crossRef: LurePrimaryColorCrossRef) {
-        repository.upsertLurePrimaryColorCrossRef(crossRef)
+    suspend fun upsertLurePrimaryColor(crossRef: LurePrimaryColor) {
+        repository.upsertLurePrimaryColor(crossRef)
     }
-    suspend fun upsertLureSecondaryColorCrossRef(crossRef: LureSecondaryColorCrossRef) {
-        repository.upsertLureSecondaryColorCrossRef(crossRef)
+    suspend fun upsertLureSecondaryColor(crossRef: LureSecondaryColor) {
+        repository.upsertLureSecondaryColor(crossRef)
     }
-    suspend fun upsertLureGlowColorCrossRef(crossRef: LureGlowColorCrossRef) {
-        repository.upsertLureGlowColorCrossRef(crossRef)
+    suspend fun upsertLureGlowColor(crossRef: LureGlowColor) {
+        repository.upsertLureGlowColor(crossRef)
     }
 
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {

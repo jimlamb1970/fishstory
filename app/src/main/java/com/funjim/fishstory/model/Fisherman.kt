@@ -7,6 +7,8 @@ import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.funjim.fishstory.database.LureEntity
+import com.funjim.fishstory.database.LureEntityWithColors
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -36,7 +38,7 @@ data class Fisherman(
 data class TackleBoxWithLures(
     @Embedded val tackleBox: TackleBox,
     @Relation(
-        entity = Lure::class,
+        entity = LureEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
@@ -45,7 +47,7 @@ data class TackleBoxWithLures(
             entityColumn = "lureId"
         )
     )
-    val lures: List<LureWithColors>
+    val lures: List<LureEntityWithColors>
 )
 
 data class FishermanWithTackleBox(

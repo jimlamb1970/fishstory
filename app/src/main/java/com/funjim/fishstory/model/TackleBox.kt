@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.funjim.fishstory.database.LureEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -39,7 +40,7 @@ data class TackleBox(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Lure::class,
+            entity = LureEntity::class,
             parentColumns = ["id"],
             childColumns = ["lureId"],
             onDelete = ForeignKey.CASCADE

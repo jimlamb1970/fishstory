@@ -6,6 +6,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.LureColorEntity
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.model.Fish
@@ -111,7 +112,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[primaryName] ?: run {
-                        val newColor = LureColor(name = row[8])
+                        val newColor = LureColorEntity(name = row[8])
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id
@@ -123,7 +124,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[secondaryName] ?: run {
-                        val newColor = LureColor(name = row[9])
+                        val newColor = LureColorEntity(name = row[9])
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id
@@ -137,7 +138,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[glowName] ?: run {
-                        val newColor = LureColor(name = row[11])
+                        val newColor = LureColorEntity(name = row[11])
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id
