@@ -42,35 +42,6 @@ data class Event(
     val isFavorite: Boolean = false
 )
 
-data class EventWithPhotos(
-    @Embedded val event: Event,
-    @Relation(
-        parentColumn = "id",        // Event ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoEventCrossRef::class,
-            parentColumn = "eventId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>
-)
-
-data class EventWithFishermen(
-    @Embedded val event: Event,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(
-            value = EventFishermanCrossRef::class,
-            parentColumn = "eventId",
-            entityColumn = "fishermanId"
-        )
-    )
-    val fishermen: List<Fisherman>
-)
-
-
 data class EventWithDetails(
     @Embedded val event: Event,
 

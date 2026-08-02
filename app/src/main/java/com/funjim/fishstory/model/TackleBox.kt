@@ -1,10 +1,14 @@
 package com.funjim.fishstory.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.Junction
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import com.funjim.fishstory.database.LureEntity
+import com.funjim.fishstory.database.LureEntityWithColors
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -51,4 +55,19 @@ data class TackleBox(
 data class TackleBoxLureCrossRef(
     val tackleBoxId: String,
     val lureId: String
+)
+
+data class TackleBoxWithLures(
+    @Embedded val tackleBox: TackleBox,
+    @Relation(
+        entity = LureEntity::class,
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TackleBoxLureCrossRef::class,
+            parentColumn = "tackleBoxId",
+            entityColumn = "lureId"
+        )
+    )
+    val lures: List<LureEntityWithColors>
 )

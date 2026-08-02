@@ -76,10 +76,6 @@ ORDER BY s.startTime ASC
 """)
     fun getActiveEvents(currentTime: Long = System.currentTimeMillis()): Flow<List<Event>>
 
-    @Transaction
-    @Query("SELECT * FROM event_table WHERE id = :eventId")
-    fun getEventWithFishermen(eventId: String): Flow<EventWithFishermen?>
-
     @Query("""
     SELECT DISTINCT f.* FROM fisherman_table AS f
     JOIN event_fisherman_cross_ref AS xr ON f.id = xr.fishermanId

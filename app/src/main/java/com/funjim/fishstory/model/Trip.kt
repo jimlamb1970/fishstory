@@ -27,20 +27,6 @@ data class Trip(
     val isFavorite: Boolean = false
 )
 
-data class TripWithPhotos(
-    @Embedded val trip: Trip,
-    @Relation(
-        parentColumn = "id",        // Trip ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoTripCrossRef::class,
-            parentColumn = "tripId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<Photo>
-)
-
 data class TripWithFishermen(
     @Embedded val trip: Trip,
     @Relation(
