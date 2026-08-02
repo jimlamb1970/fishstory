@@ -10,10 +10,10 @@ import com.funjim.fishstory.model.*
 @Database(
     entities = [
         BaitEntity::class,
-        BodyOfWater::class,
+        BodyOfWaterEntity::class,
         Event::class,
         EventBaitEntity::class,
-        EventBodyOfWater::class,
+        EventBodyOfWaterEntity::class,
         EventFishermanCrossRef::class,
         EventTargetSpecies::class,
         Fish::class,
@@ -42,7 +42,7 @@ import com.funjim.fishstory.model.*
         TackleBoxLureCrossRef::class,
         Trip::class,
         TripBaitEntity::class,
-        TripBodyOfWater::class,
+        TripBodyOfWaterEntity::class,
         TripFishermanCrossRef::class,
         TripTargetSpecies::class,
         WaterEntity::class,

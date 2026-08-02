@@ -8,6 +8,7 @@ import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.BodyOfWaterEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -58,7 +59,7 @@ data class Species(
             onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
-            entity = BodyOfWater::class,
+            entity = BodyOfWaterEntity::class,
             parentColumns = ["id"],
             childColumns = ["bodyOfWaterId"],
             onDelete = ForeignKey.SET_NULL
@@ -151,11 +152,11 @@ data class FishWithDetails(
     val bait: Bait?,
 
     @Relation(
-        entity = BodyOfWater::class,
+        entity = BodyOfWaterEntity::class,
         parentColumn = "bodyOfWaterId",
         entityColumn = "id"
     )
-    val bodyOfWater: BodyOfWater?,
+    val bodyOfWater: BodyOfWaterEntity?,
 
     val photoCount: Int = 0
 ) {
@@ -166,16 +167,6 @@ data class FishWithDetails(
             return lure.lure.name
         }
 }
-
-data class BodyOfWaterSummary(
-    @Embedded val bodyOfWater: BodyOfWater,
-    val fishCaught: Int,
-    val fishKept: Int,
-    val targetFishCaught: Int,
-    val targetFishKept: Int,
-    val largestFish: Double,
-    val smallestFish: Double
-)
 
 data class SpeciesSummary(
     @Embedded val species: Species,

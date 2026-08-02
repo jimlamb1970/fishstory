@@ -6,6 +6,8 @@ import androidx.room.Entity
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.TripBodyOfWaterEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -121,15 +123,16 @@ data class TripWithDetails(
     val targetSpecies: List<Species>,
 
     @Relation(
+        entity = BodyOfWaterEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = TripBodyOfWater::class,
+            value = TripBodyOfWaterEntity::class,
             parentColumn = "tripId",
             entityColumn = "bodyOfWaterId"
         )
     )
-    val bodiesOfWater: List<BodyOfWater>
+    val bodiesOfWater: List<BodyOfWaterEntity>
 )
 
 @DatabaseView(

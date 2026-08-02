@@ -2,7 +2,9 @@ package com.funjim.fishstory.model
 
 import androidx.room.*
 import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.BodyOfWaterEntity
 import com.funjim.fishstory.database.EventBaitEntity
+import com.funjim.fishstory.database.EventBodyOfWaterEntity
 import com.funjim.fishstory.database.WaterEntity
 import com.funjim.fishstory.database.WaterEntityWithDetails
 import com.funjim.fishstory.database.WeatherEntity
@@ -122,16 +124,16 @@ data class EventWithDetails(
     val baits: List<BaitEntity>,
 
     @Relation(
-        entity = BodyOfWater::class,
+        entity = BodyOfWaterEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventBodyOfWater::class,
+            value = EventBodyOfWaterEntity::class,
             parentColumn = "eventId",
             entityColumn = "bodyOfWaterId"
         )
     )
-    val bodiesOfWater: List<BodyOfWater>,
+    val bodiesOfWater: List<BodyOfWaterEntity>,
 
     @Relation(
         entity = WaterEntity::class,
@@ -176,16 +178,16 @@ data class EventWithInfo(
     val baits: List<BaitEntity>,
 
     @Relation(
-        entity = BodyOfWater::class,
+        entity = BodyOfWaterEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventBodyOfWater::class,
+            value = EventBodyOfWaterEntity::class,
             parentColumn = "eventId",
             entityColumn = "bodyOfWaterId"
         )
     )
-    val bodiesOfWater: List<BodyOfWater>
+    val bodiesOfWater: List<BodyOfWaterEntity>
 )
 
 @DatabaseView(

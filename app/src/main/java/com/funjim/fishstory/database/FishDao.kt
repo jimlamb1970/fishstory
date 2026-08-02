@@ -1,20 +1,16 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.BaitSummary
-import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
-import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithCounts
 import kotlinx.coroutines.flow.Flow
 
@@ -219,7 +215,7 @@ interface FishDao {
     LEFT JOIN fish_table AS f ON bow.id = f.bodyOfWaterId
     GROUP BY bow.id
 """)
-    fun getBodyOfWaterSummaries(): Flow<List<BodyOfWaterSummary>>
+    fun getBodyOfWaterSummaries(): Flow<List<BodyOfWaterSummaryEntity>>
 
     @Query("""
     SELECT 

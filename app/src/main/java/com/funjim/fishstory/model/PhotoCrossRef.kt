@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.BodyOfWaterEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -45,7 +46,7 @@ data class PhotoBaitCrossRef(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = BodyOfWater::class,
+            entity = BodyOfWaterEntity::class,
             parentColumns = ["id"],
             childColumns = ["bodyOfWaterId"],
             onDelete = ForeignKey.CASCADE

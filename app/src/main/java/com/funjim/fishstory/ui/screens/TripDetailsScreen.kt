@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
@@ -401,7 +402,9 @@ fun TripDetailsScreen(
                             )
 
                             BodiesOfWaterRow(
-                                items = details.bodiesOfWater,
+                                // FIX LATER
+                                //items = details.bodiesOfWater,
+                                items = details.bodiesOfWater.toBodyOfWaterDomainList(),
                                 onAdd = { showBodiesOfWaterSelection = true },
                                 onClick = { bodyOfWater ->
                                     bodyOfWaterToUpdateAll = bodyOfWater
@@ -728,7 +731,9 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             if (showBodiesOfWaterSelection) {
                 BodyOfWaterSelection(
                     items = allBodiesOfWater,
-                    selectedItems = details.bodiesOfWater,
+                    // FIX LATER
+                    //selectedItems = details.bodiesOfWater,
+                    selectedItems = details.bodiesOfWater.toBodyOfWaterDomainList(),
                     onSelected = { selectedBodyOfWater ->
                         viewModel.addTripBodyOfWater(tripId, selectedBodyOfWater.id)
                     },

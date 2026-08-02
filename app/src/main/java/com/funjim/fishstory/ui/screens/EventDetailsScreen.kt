@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toWaterWithDetailsDomainList
 import com.funjim.fishstory.database.toWeatherWithDetailsDomainList
 import com.funjim.fishstory.model.BodyOfWater
@@ -482,7 +483,9 @@ fun EventDetailsScreen(
                             )
 
                             BodiesOfWaterRow(
-                                items = eventDetails.bodiesOfWater,
+//                                items = eventDetails.bodiesOfWater,
+                                // FIX LATER
+                                items = eventDetails.bodiesOfWater.toBodyOfWaterDomainList(),
                                 onAdd = { showBodiesOfWaterSelection = true },
                                 onClick = { bodyOfWater ->
                                     bodyOfWaterToUpdateAll = bodyOfWater
@@ -890,7 +893,9 @@ fun EventDetailsScreen(
             if (showBodiesOfWaterSelection) {
                 BodyOfWaterSelection(
                     items = allBodiesOfWater,
-                    selectedItems = eventDetails.bodiesOfWater,
+                    // FIX LATER
+                    //selectedItems = eventDetails.bodiesOfWater,
+                    selectedItems = eventDetails.bodiesOfWater.toBodyOfWaterDomainList(),
                     onSelected = { selectedBodyOfWater ->
                         viewModel.addEventBodyOfWater(eventId, selectedBodyOfWater.id)
                     },

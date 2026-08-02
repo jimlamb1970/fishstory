@@ -8,6 +8,9 @@ import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.database.toBaitSummaryDomainList
+import com.funjim.fishstory.database.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -43,6 +46,7 @@ class FishRepository(
     val baitSummaries: Flow<List<BaitSummary>> = fishDao.getBaitSummaries()
         .map { list -> list.toBaitSummaryDomainList() }
     val bodyOfWaterSummaries: Flow<List<BodyOfWaterSummary>> = fishDao.getBodyOfWaterSummaries()
+        .map { list -> list.toBodyOfWaterSummaryDomainList() }
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
     fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {
@@ -51,7 +55,8 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId
+        ).map { list -> list.toBodyOfWaterDomainList() }
     }
 
     fun getTrips(filter: FishFilter): Flow<List<Trip>> =
@@ -95,7 +100,11 @@ class FishRepository(
             tripId = filter.tripId)
     }
 
-    fun getBodyOfWater(id: String) = bodyOfWaterDao.getBodyOfWater(id)
+    fun getBodyOfWater(id: String): Flow<BodyOfWater?> {
+        return bodyOfWaterDao.getBodyOfWater(id)
+            .map { entity -> entity?.toDomain() }
+    }
+
     fun getEventById(id: String) = eventDao.getEventById(id)
     fun getFisherman(id: String) = fishermanDao.getFisherman(id)
     fun getLure(id: String) = lureDao.getLure(id)

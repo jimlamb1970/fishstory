@@ -6,34 +6,31 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
-import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.EventBodyOfWater
-import com.funjim.fishstory.model.TripBodyOfWater
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BodyOfWaterDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBodyOfWater(bodyOfWater: BodyOfWater)
+    suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Upsert
-    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater)
+    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
-    fun getAllBodiesOfWater(): Flow<List<BodyOfWater>>
+    fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>
 
     @Query("SELECT * FROM body_of_water_table WHERE id = :id")
-    fun getBodyOfWater (id: String): Flow<BodyOfWater?>
+    fun getBodyOfWater (id: String): Flow<BodyOfWaterEntity?>
 
     @Delete
-    suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWater)
+    suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Query("DELETE FROM body_of_water_table")
     suspend fun deleteAllBodiesOfWater()
 
     @Query("SELECT * FROM trip_body_of_water")
-    fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWater>>
+    fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>
 
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
@@ -41,10 +38,10 @@ interface BodyOfWaterDao {
         WHERE trip_body_of_water.tripId = :tripId
         GROUP BY body_of_water_table.id
         """)
-    fun getTripBodiesOfWater(tripId: String): Flow<List<BodyOfWater>>
+    fun getTripBodiesOfWater(tripId: String): Flow<List<BodyOfWaterEntity>>
 
     @Upsert
-    suspend fun insertTripBodyOfWater(crossRef: TripBodyOfWater)
+    suspend fun insertTripBodyOfWater(crossRef: TripBodyOfWaterEntity)
 
     @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteTripBodyOfWater(tripId: String, bodyOfWaterId: String)
@@ -53,7 +50,7 @@ interface BodyOfWaterDao {
     suspend fun deleteAllTripBodiesOfWater()
 
     @Query("SELECT * FROM event_body_of_water")
-    fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWater>>
+    fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
 
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
@@ -61,13 +58,13 @@ interface BodyOfWaterDao {
         WHERE event_body_of_water.eventId = :eventId
         GROUP BY body_of_water_table.id
         """)
-    fun getEventBodiesOfWater(eventId: String): Flow<List<BodyOfWater>>
+    fun getEventBodiesOfWater(eventId: String): Flow<List<BodyOfWaterEntity>>
 
     @Upsert
-    suspend fun insertEventBodyOfWater(crossRef: EventBodyOfWater)
+    suspend fun insertEventBodyOfWater(crossRef: EventBodyOfWaterEntity)
 
     @Upsert
-    suspend fun insertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWater>)
+    suspend fun insertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWaterEntity>)
 
     @Query("DELETE FROM event_body_of_water WHERE eventId = :eventId AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String)
@@ -94,6 +91,5 @@ interface BodyOfWaterDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<List<BodyOfWater>>
-
+    ): Flow<List<BodyOfWaterEntity>>
 }
