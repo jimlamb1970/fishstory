@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
@@ -87,7 +88,6 @@ class AddFishViewModel(
         .filterNotNull()
         .flatMapLatest { id -> fishRepo.getFishWithPhotos(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedFisherman = _selectedFishermanId
@@ -183,7 +183,7 @@ class AddFishViewModel(
         // Helper to pass params
         CoreParams(trip, event, species, fishermen, tackleBoxMap)
     }.combine(combine(selectedFish, _selectedFishId) { fish, fishId ->
-        FishParams(fish, fishId)
+        FishParams(fish?.toDomain(), fishId)
     }) { core, fish ->
         val isCoreDataLoaded = core.trip != null && core.event != null
 

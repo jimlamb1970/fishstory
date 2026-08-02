@@ -13,6 +13,7 @@ import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
@@ -136,7 +137,7 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { entity -> entity?.toDomain() }
     }
 
     fun getTopEvent(filter: FishFilter) : Flow<EventWithCounts?> {
@@ -146,7 +147,7 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { entity -> entity?.toDomain() }
     }
 
     fun getTopFisherman(filter: FishFilter) : Flow<FishermanWithCounts?> {
@@ -156,7 +157,7 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { entity -> entity?.toDomain() }
     }
 
     fun getTopSpecies(filter: FishFilter) : Flow<SpeciesWithCounts?> {
@@ -166,7 +167,7 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { entity -> entity?.toDomain() }
     }
 
     fun getTopLure(filter: FishFilter) : Flow<LureWithCounts?> {
@@ -176,7 +177,7 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { entity -> entity?.toDomain() }
     }
 
     suspend fun getFish(id: String) = fishDao.getFish(id)
@@ -192,11 +193,11 @@ class FishRepository(
             speciesId = filter.speciesId,
             tripId = filter.tripId,
             targetOnly = filter.targetOnly
-        )
+        ).map { list -> list.toFishWithDetailsDomainList() }
     }
 
-    suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish)
-    suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish)
+    suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish.toEntity())
+    suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish.toEntity())
 
     suspend fun addFishPhoto(fishId: String, photo: Photo) {
         val result = photoDao.insertPhoto(photo.toEntity())

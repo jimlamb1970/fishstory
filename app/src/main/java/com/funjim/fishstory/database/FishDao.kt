@@ -1,15 +1,7 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.EventWithCounts
-import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
-import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.FishWithPhotos
-import com.funjim.fishstory.model.FishermanWithCounts
-import com.funjim.fishstory.model.LureWithCounts
-import com.funjim.fishstory.model.SpeciesWithCounts
-import com.funjim.fishstory.model.TripWithCounts
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -45,7 +37,7 @@ interface FishDao {
         speciesId: String? = null,
         tripId: String? = null,
         targetOnly: Boolean = false
-    ): Flow<List<FishWithDetails>>
+    ): Flow<List<FishEntityWithDetails>>
 
     @Transaction
     @Query(
@@ -58,7 +50,7 @@ interface FishDao {
         ORDER BY f.timestamp DESC
     """
     )
-    fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>>
+    fun getFishForTrip(tripId: String): Flow<List<FishEntityWithDetails>>
 
     @Transaction
     @Query(
@@ -71,7 +63,7 @@ interface FishDao {
         ORDER BY f.timestamp DESC
     """
     )
-    fun getFishForFisherman(fishermanId: String): Flow<List<FishWithDetails>>
+    fun getFishForFisherman(fishermanId: String): Flow<List<FishEntityWithDetails>>
 
     @Transaction
     @Query(
@@ -84,34 +76,34 @@ interface FishDao {
         ORDER BY f.timestamp DESC
     """
     )
-    fun getFishForEvent(eventId: String): Flow<List<FishWithDetails>>
+    fun getFishForEvent(eventId: String): Flow<List<FishEntityWithDetails>>
 
     @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
-    fun getAllFish(): Flow<List<Fish>>
+    fun getAllFish(): Flow<List<FishEntity>>
 
     @Query("DELETE FROM fish_table")
     suspend fun deleteAllFish()
 
     @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFishById(id: String): Fish?
+    suspend fun getFishById(id: String): FishEntity?
     @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFish(id: String): Fish?
+    suspend fun getFish(id: String): FishEntity?
 
     @Transaction
     @Query("SELECT * FROM fish_table WHERE id = :id")
-    fun getFishWithPhotos(id: String): Flow<FishWithPhotos>
+    fun getFishWithPhotos(id: String): Flow<FishEntityWithPhotos>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFish(fish: Fish)
+    suspend fun insertFish(fish: FishEntity)
 
     @Upsert
-    suspend fun upsertFish(fish: Fish)
+    suspend fun upsertFish(fish: FishEntity)
 
     @Update
-    suspend fun updateFish(fish: Fish)
+    suspend fun updateFish(fish: FishEntity)
 
     @Delete
-    suspend fun deleteFish(fish: Fish)
+    suspend fun deleteFish(fish: FishEntity)
 
     @Transaction
     @Query("SELECT * FROM species_table WHERE id = :speciesId")
@@ -365,7 +357,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<TripWithCounts?>
+    ): Flow<TripEntityWithCounts?>
 
     @Query("""
     SELECT event_table.*, 
@@ -390,7 +382,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<EventWithCounts?>
+    ): Flow<EventEntityWithCounts?>
 
     @Query("""
     SELECT fisherman_table.*, 
@@ -415,7 +407,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<FishermanWithCounts?>
+    ): Flow<FishermanEntityWithCounts?>
 
     @Query("""
     SELECT species_table.*, 
@@ -440,7 +432,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<SpeciesWithCounts?>
+    ): Flow<SpeciesEntityWithCounts?>
 
     @Transaction
     @Query("""
@@ -466,7 +458,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<LureWithCounts?>
+    ): Flow<LureEntityWithCounts?>
 
     @Query("""
         UPDATE fish_table 

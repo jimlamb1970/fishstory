@@ -217,13 +217,12 @@ fun FishItem(
                     )
 
                 fish.lure?.let { lure ->
-                    // FIX LATER
                     LureCompositionWithColors(
                         name = lure.lure.name,
-                        lure.primaryColors.toLureColorDomainList(),
-                        lure.secondaryColors.toLureColorDomainList(),
+                        lure.primaryColors,
+                        lure.secondaryColors,
                         lure.lure.glows,
-                        lure.glowColors.toLureColorDomainList(),
+                        lure.glowColors,
                         style = MaterialTheme.typography.bodySmall,
                         contentColor = getOnCardSecondaryColor(),
                         colorBadgeSize = 20.dp

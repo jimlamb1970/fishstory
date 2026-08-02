@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
@@ -347,7 +348,7 @@ class FishViewModel(
     )
 
     suspend fun getFishById(id: String): Fish? {
-        return fishRepo.getFish(id)
+        return fishRepo.getFish(id)?.toDomain()
     }
 
     fun upsertFish(fish: Fish) {

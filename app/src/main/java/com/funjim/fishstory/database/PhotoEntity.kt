@@ -4,12 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.funjim.fishstory.database.BaitEntity
-import com.funjim.fishstory.database.BodyOfWaterEntity
-import com.funjim.fishstory.database.LureEntity
-import com.funjim.fishstory.database.SpeciesEntity
 import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
 import kotlinx.serialization.Serializable
@@ -150,7 +145,7 @@ data class PhotoEventEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Fish::class,
+            entity = FishEntity::class,
             parentColumns = ["id"],
             childColumns = ["fishId"],
             onDelete = ForeignKey.CASCADE

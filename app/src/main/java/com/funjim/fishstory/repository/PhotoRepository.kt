@@ -33,7 +33,6 @@ import com.funjim.fishstory.database.PhotoFishermanEntity
 import com.funjim.fishstory.database.PhotoLureEntity
 import com.funjim.fishstory.database.PhotoSpeciesEntity
 import com.funjim.fishstory.database.PhotoTripEntity
-import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toPhotoDomainList
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map

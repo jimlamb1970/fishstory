@@ -6,6 +6,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.FishEntity
 import com.funjim.fishstory.database.LureColorEntity
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TripDao
@@ -173,7 +174,7 @@ class FishStoryRepository(
                 val newLength = (length * 254000.0).toLong()
                 val isKept = row[14].contains("Y", ignoreCase = true)
 
-                val fish = Fish(
+                val fish = FishEntity(
                     speciesId = "",
                     fishermanId = fishermanId,
                     tripId = tripId,

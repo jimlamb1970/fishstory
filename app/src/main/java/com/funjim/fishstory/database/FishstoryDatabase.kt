@@ -16,7 +16,7 @@ import com.funjim.fishstory.model.*
         EventBodyOfWaterEntity::class,
         EventFishermanCrossRef::class,
         EventTargetSpeciesEntity::class,
-        Fish::class,
+        FishEntity::class,
         Fisherman::class,
         LureEntity::class,
         LureColorEntity::class,

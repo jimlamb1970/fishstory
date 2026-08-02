@@ -22,7 +22,6 @@ import com.funjim.fishstory.viewmodels.FishViewModelFactory
 import com.funjim.fishstory.viewmodels.ImportViewModelFactory
 import com.funjim.fishstory.viewmodels.LureViewModelFactory
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
-import com.funjim.fishstory.viewmodels.SkyConditionViewModel
 import com.funjim.fishstory.viewmodels.SkyConditionViewModelFactory
 import com.funjim.fishstory.viewmodels.TripListViewModelFactory
 import com.funjim.fishstory.viewmodels.TripViewModelFactory
@@ -86,7 +85,6 @@ class FishstoryApplication : Application() {
             baitDao = database.baitDao(),
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
-            photoDao = database.photoDao(),
             tackleBoxDao = database.tackleBoxDao()
         )
     }

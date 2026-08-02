@@ -104,12 +104,11 @@ fun AddFishScreen(
             if (fishId != null && state.fish != null) {
                 // Edit Mode Initialization
                 originalFish = state.fish
-                // FIX LATER
                 viewModel.initDraftFish(
                     state.fish.fish,
                     state.fish.fish.tripId,
                     state.fish.fish.eventId,
-                    state.fish.photos.toPhotoDomainList()
+                    state.fish.photos
                 )
                 viewModel.selectFisherman(state.fish.fish.fishermanId)
                 viewModel.selectTackleBox(state.tackleBoxMap[state.fish.fish.fishermanId])
@@ -620,8 +619,7 @@ fun AddFishScreen(
                                     }
 
                                     viewModel.addFishPhotos(fish.id, newPhotos)
-                                    // FIX LATER
-                                    viewModel.deleteFishPhotos(fish.id, deletedPhotos.toPhotoDomainList())
+                                    viewModel.deleteFishPhotos(fish.id, deletedPhotos)
 
                                     navigateBack()
                                 }

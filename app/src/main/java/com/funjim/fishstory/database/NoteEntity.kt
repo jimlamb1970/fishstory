@@ -85,7 +85,7 @@ data class NoteEventEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Fish::class,
+            entity = FishEntity::class,
             parentColumns = ["id"],
             childColumns = ["fishId"],
             onDelete = ForeignKey.CASCADE

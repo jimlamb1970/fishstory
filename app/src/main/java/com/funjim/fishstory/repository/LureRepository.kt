@@ -3,7 +3,6 @@ package com.funjim.fishstory.repository
 import com.funjim.fishstory.database.BaitDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
-import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TackleBoxLureEntity
 import com.funjim.fishstory.database.toBaitDomainList
@@ -29,7 +28,6 @@ class LureRepository(
     private val baitDao: BaitDao,
     private val fishermanDao: FishermanDao,
     private val lureDao: LureDao,
-    private val photoDao: PhotoDao,
     private val tackleBoxDao: TackleBoxDao
 ) {
     // Data Streams

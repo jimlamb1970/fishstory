@@ -44,7 +44,7 @@ data class DatabaseExportData(
     val species: List<SpeciesEntity> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpeciesEntity> = emptyList(),
     val tripTargetSpecies: List<TripTargetSpeciesEntity> = emptyList(),
-    val fish: List<Fish>,
+    val fish: List<FishEntity> = emptyList(),
     val photos: List<PhotoEntity> = emptyList(),
     val photosBait: List<PhotoBaitEntity> = emptyList(),
     val photosBodyOfWater: List<PhotoBodyOfWaterEntity> = emptyList(),
@@ -88,6 +88,7 @@ class MainViewModel(
         .map { list -> list.toSpeciesDomainList() }
     val allFish: Flow<List<FishWithDetails>> =
         fishDao.getFishWithDetails(null, null, null, null, null)
+            .map { list -> list.toFishWithDetailsDomainList() }
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Event>> {
         return eventDao.getEventsForTrip(tripId)
@@ -95,10 +96,12 @@ class MainViewModel(
 
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForTrip(tripId)
+            .map { list -> list.toFishWithDetailsDomainList() }
     }
 
     fun getFishForSegment(segmentId: String): Flow<List<FishWithDetails>> {
         return fishDao.getFishForEvent(segmentId)
+            .map { list -> list.toFishWithDetailsDomainList() }
     }
 
     suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {

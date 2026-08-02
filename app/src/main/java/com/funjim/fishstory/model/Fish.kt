@@ -1,75 +1,10 @@
 package com.funjim.fishstory.model
 
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.Junction
-import androidx.room.PrimaryKey
-import androidx.room.Relation
-import com.funjim.fishstory.database.BaitEntity
-import com.funjim.fishstory.database.BodyOfWaterEntity
-import com.funjim.fishstory.database.LureEntity
-import com.funjim.fishstory.database.LureEntityWithColors
-import com.funjim.fishstory.database.PhotoEntity
-import com.funjim.fishstory.database.PhotoFishEntity
-import com.funjim.fishstory.database.SpeciesEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-// TODO -- add the ability to add fish without a trip and/or event
 @Serializable
-@Entity(
-    tableName = "fish_table",
-    foreignKeys = [
-        ForeignKey(
-            entity = SpeciesEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["speciesId"],
-            onDelete = ForeignKey.RESTRICT
-        ),
-        ForeignKey(
-            entity = Fisherman::class,
-            parentColumns = ["id"],
-            childColumns = ["fishermanId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Trip::class,
-            parentColumns = ["id"],
-            childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Event::class,
-            parentColumns = ["id"],
-            childColumns = ["eventId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = LureEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["lureId"],
-            onDelete = ForeignKey.SET_NULL
-        ),
-        ForeignKey(
-            entity = BodyOfWaterEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["bodyOfWaterId"],
-            onDelete = ForeignKey.SET_NULL
-        )
-    ],
-    indices = [
-        Index(value = ["speciesId"]),
-        Index(value = ["fishermanId"]),
-        Index(value = ["tripId"]),
-        Index(value = ["eventId"]),
-        Index(value = ["lureId"]),
-        Index(value = ["bodyOfWaterId"])
-    ]
-)
 data class Fish(
-    @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val speciesId: String,
     val fishermanId: String,
@@ -91,67 +26,19 @@ data class Fish(
 )
 
 data class FishWithPhotos(
-    @Embedded val fish: Fish,
-    @Relation(
-        parentColumn = "id",        // Fish ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoFishEntity::class,
-            parentColumn = "fishId",
-            entityColumn = "photoId"
-        )
-    )
-    val photos: List<PhotoEntity>
+    val fish: Fish,
+    val photos: List<Photo>
 )
 
 data class FishWithDetails(
-    @Embedded val fish: Fish,
-
-    @Relation(
-        parentColumn = "speciesId",
-        entityColumn = "id"
-    )
-    val species: SpeciesEntity,
-
-    @Relation(
-        parentColumn = "fishermanId",
-        entityColumn = "id"
-    )
+    val fish: Fish,
+    val species: Species,
     val fisherman: Fisherman,
-
-    @Relation(
-        parentColumn = "tripId",
-        entityColumn = "id"
-    )
     val trip: Trip,
-
-    @Relation(
-        parentColumn = "eventId",
-        entityColumn = "id"
-    )
     val event: Event,
-
-    @Relation(
-        entity = LureEntity::class,
-        parentColumn = "lureId",
-        entityColumn = "id"
-    )
-    val lure: LureEntityWithColors?,
-
-    @Relation(
-        entity = BaitEntity::class,
-        parentColumn = "baitId",
-        entityColumn = "id"
-    )
+    val lure: LureWithColors?,
     val bait: Bait?,
-
-    @Relation(
-        entity = BodyOfWaterEntity::class,
-        parentColumn = "bodyOfWaterId",
-        entityColumn = "id"
-    )
-    val bodyOfWater: BodyOfWaterEntity?,
-
+    val bodyOfWater: BodyOfWater?,
     val photoCount: Int = 0
 ) {
     val fullLureName: String
@@ -175,39 +62,37 @@ data class FishCounts(
 )
 
 data class TripWithCounts(
-    @Embedded val trip: Trip,
+    val trip: Trip,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class EventWithCounts(
-    @Embedded val event: Event,
+    val event: Event,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class FishermanWithCounts(
-    @Embedded val fisherman: Fisherman,
+    val fisherman: Fisherman,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class SpeciesWithCounts(
-    @Embedded val species: SpeciesEntity,
+    val species: Species,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class LureWithCounts(
-    @Embedded val lure: LureEntityWithColors,
+    val lure: LureWithColors,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class FishSummary(
     val counts: FishCounts = FishCounts(),
-//    @Embedded val biggestFish: Fish,
-//    @Embedded val smallestFish: Fish,
     val topTrip: TripWithCounts? = null,
     val topEvent: EventWithCounts? = null,
     val topFisherman: FishermanWithCounts? = null,

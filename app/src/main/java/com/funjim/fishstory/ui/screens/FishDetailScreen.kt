@@ -581,12 +581,11 @@ private fun FishDetailContent(
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // FIX LATER
                         LureColorComposition(
-                            primary = fish.lure.primaryColors.toLureColorDomainList(),
-                            secondary = fish.lure.secondaryColors.toLureColorDomainList(),
+                            primary = fish.lure.primaryColors,
+                            secondary = fish.lure.secondaryColors,
                             glows = fish.lure.lure.glows,
-                            glow = fish.lure.glowColors.toLureColorDomainList()
+                            glow = fish.lure.glowColors
                         )
                     }
                 }
