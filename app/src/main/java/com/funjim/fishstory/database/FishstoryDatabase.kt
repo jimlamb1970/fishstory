@@ -45,8 +45,8 @@ import com.funjim.fishstory.model.*
         TripBodyOfWater::class,
         TripFishermanCrossRef::class,
         TripTargetSpecies::class,
-        Water::class,
-        WaterClarity::class,
+        WaterEntity::class,
+        WaterClarityEntity::class,
         WeatherEntity::class
     ],
     views = [

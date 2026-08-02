@@ -1,6 +1,8 @@
 package com.funjim.fishstory.model
 
 import androidx.room.*
+import com.funjim.fishstory.database.WaterEntity
+import com.funjim.fishstory.database.WaterEntityWithDetails
 import com.funjim.fishstory.database.WeatherEntity
 import com.funjim.fishstory.database.WeatherEntityWithDetails
 import kotlinx.serialization.Serializable
@@ -130,11 +132,11 @@ data class EventWithDetails(
     val bodiesOfWater: List<BodyOfWater>,
 
     @Relation(
-        entity = Water::class,
+        entity = WaterEntity::class,
         parentColumn = "id",
         entityColumn = "eventId"
     )
-    val waterList: List<WaterWithDetails>,
+    val waterList: List<WaterEntityWithDetails>,
 
     @Relation(
         entity = WeatherEntity::class,
@@ -348,11 +350,11 @@ data class EventSummary(
     val trip: Trip,
 
     @Relation(
-        entity = Water::class,
+        entity = WaterEntity::class,
         parentColumn = "id",
         entityColumn = "eventId"
     )
-    val waterList: List<WaterWithDetails>,
+    val waterList: List<WaterEntityWithDetails>,
 
     val fishCaught: Int,
     val fishKept: Int,

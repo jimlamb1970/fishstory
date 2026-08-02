@@ -284,9 +284,9 @@ class EventViewModel(
         }
     }
 
-    fun deleteWater(waterId: String) {
+    fun deleteWater(id: String) {
         viewModelScope.launch {
-            envRepo.deleteWater(waterId = waterId)
+            envRepo.deleteWater(id = id)
         }
     }
 

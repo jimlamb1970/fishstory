@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toWaterWithDetailsDomainList
 import com.funjim.fishstory.database.toWeatherWithDetailsDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
@@ -170,7 +171,9 @@ fun EventDetailsScreen(
 
             // Sort water snapshots descending (most recent first)
             val sortedWaterList = remember(eventDetails.waterList) {
-                eventDetails.waterList.sortedByDescending { it.water.timestamp }
+                eventDetails.waterList.toWaterWithDetailsDomainList().sortedByDescending { it.water.timestamp }
+                // FIX LATER
+//                eventDetails.waterList.sortedByDescending { it.water.timestamp }
             }
             val sortedWeatherList = remember(eventDetails.weatherList) {
                 eventDetails.weatherList.toWeatherWithDetailsDomainList().sortedByDescending { it.weather.timestamp }

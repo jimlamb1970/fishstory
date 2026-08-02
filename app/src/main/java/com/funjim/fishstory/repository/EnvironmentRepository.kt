@@ -28,9 +28,10 @@ class EnvironmentRepository(
 ) {
     // Basic Data Streams
     val allBodiesOfWater: Flow<List<BodyOfWater>> = bodyOfWaterDao.getAllBodiesOfWater()
-    val allSkyConditions: Flow<List<SkyCondition>>  = weatherDao.getAllSkyConditions()
+    val allSkyConditions: Flow<List<SkyCondition>> = weatherDao.getAllSkyConditions()
         .map { list -> list.toDomainList() }
     val allWaterClarity: Flow<List<WaterClarity>> = waterDao.getAllWaterClarity()
+        .map { list -> list.toDomainList() }
 
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.insertBodyOfWater(bodyOfWater)
     suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater) = bodyOfWaterDao.upsertBodyOfWater(bodyOfWater)
@@ -86,14 +87,28 @@ class EnvironmentRepository(
     suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String) =
         bodyOfWaterDao.deleteEventBodyOfWater(eventId, bodyOfWaterId)
 
-    suspend fun addWater(water: Water) = waterDao.insertWater(water)
-    suspend fun upsertWater(water: Water) = waterDao.upsertWater(water)
-    suspend fun deleteWater(water: Water) = waterDao.deleteWater(water)
-    suspend fun deleteWater(waterId: String) = waterDao.deleteWater(waterId)
+    suspend fun addWater(water: Water) {
+        waterDao.insertWater(water.toEntity())
+    }
+    suspend fun upsertWater(water: Water) {
+        waterDao.upsertWater(water.toEntity())
+    }
+    suspend fun deleteWater(water: Water) {
+        waterDao.deleteWater(water.toEntity())
+    }
+    suspend fun deleteWater(id: String) {
+        waterDao.deleteWater(id)
+    }
 
-    suspend fun addWaterClarity(waterClarity: WaterClarity) = waterDao.insertWaterClarity(waterClarity)
-    suspend fun upsertWaterClarity(waterClarity: WaterClarity) = waterDao.upsertWaterClarity(waterClarity)
-    suspend fun deleteWaterClarity(waterClarity: WaterClarity) = waterDao.deleteWaterClarity(waterClarity)
+    suspend fun addWaterClarity(waterClarity: WaterClarity) {
+        waterDao.insertWaterClarity(waterClarity.toEntity())
+    }
+    suspend fun upsertWaterClarity(waterClarity: WaterClarity) {
+        waterDao.upsertWaterClarity(waterClarity.toEntity())
+    }
+    suspend fun deleteWaterClarity(waterClarity: WaterClarity) {
+        waterDao.deleteWaterClarity(waterClarity.toEntity())
+    }
 
     suspend fun addWeather(weather: Weather) {
         weatherDao.insertWeather(weather.toEntity())

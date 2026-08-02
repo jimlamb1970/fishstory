@@ -1,12 +1,12 @@
-package com.funjim.fishstory.model
+package com.funjim.fishstory.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlinx.serialization.Serializable
 import java.util.UUID
 
-@Serializable
-data class WaterClarity(
+@Entity(tableName = "water_clarity_table")
+data class WaterClarityEntity(
+    @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String
 )
