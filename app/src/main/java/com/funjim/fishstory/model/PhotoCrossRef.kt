@@ -3,6 +3,7 @@ package com.funjim.fishstory.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import com.funjim.fishstory.database.BaitEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,7 +19,7 @@ import kotlinx.serialization.Serializable
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Bait::class,
+            entity = BaitEntity::class,
             parentColumns = ["id"],
             childColumns = ["baitId"],
             onDelete = ForeignKey.CASCADE

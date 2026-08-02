@@ -1,6 +1,8 @@
 package com.funjim.fishstory.model
 
 import androidx.room.*
+import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.EventBaitEntity
 import com.funjim.fishstory.database.WaterEntity
 import com.funjim.fishstory.database.WaterEntityWithDetails
 import com.funjim.fishstory.database.WeatherEntity
@@ -108,16 +110,16 @@ data class EventWithDetails(
     val targetSpecies: List<Species>,
 
     @Relation(
-        entity = Bait::class,
+        entity = BaitEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventBait::class,
+            value = EventBaitEntity::class,
             parentColumn = "eventId",
             entityColumn = "baitId"
         )
     )
-    val baits: List<Bait>,
+    val baits: List<BaitEntity>,
 
     @Relation(
         entity = BodyOfWater::class,
@@ -162,16 +164,16 @@ data class EventWithInfo(
     val targetSpecies: List<Species>,
 
     @Relation(
-        entity = Bait::class,
+        entity = BaitEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventBait::class,
+            value = EventBaitEntity::class,
             parentColumn = "eventId",
             entityColumn = "baitId"
         )
     )
-    val baits: List<Bait>,
+    val baits: List<BaitEntity>,
 
     @Relation(
         entity = BodyOfWater::class,

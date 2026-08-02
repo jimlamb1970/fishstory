@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.funjim.fishstory.database.BaitEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -143,7 +144,7 @@ data class FishWithDetails(
     val lure: LureWithColors?,
 
     @Relation(
-        entity = Bait::class,
+        entity = BaitEntity::class,
         parentColumn = "baitId",
         entityColumn = "id"
     )
@@ -165,16 +166,6 @@ data class FishWithDetails(
             return lure.lure.name
         }
 }
-
-data class BaitSummary(
-    @Embedded val bait: Bait,
-    val fishCaught: Int,
-    val fishKept: Int,
-    val targetFishCaught: Int,
-    val targetFishKept: Int,
-    val largestFish: Double,
-    val smallestFish: Double
-)
 
 data class BodyOfWaterSummary(
     @Embedded val bodyOfWater: BodyOfWater,

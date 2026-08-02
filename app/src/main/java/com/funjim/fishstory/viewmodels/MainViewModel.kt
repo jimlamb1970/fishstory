@@ -24,9 +24,9 @@ import kotlin.collections.List
 data class DatabaseExportData(
     val trips: List<Trip>,
     val events: List<Event>,
-    val baits: List<Bait> = emptyList(),
-    val eventBait: List<EventBait> = emptyList(),
-    val tripBait: List<TripBait> = emptyList(),
+    val baits: List<BaitEntity> = emptyList(),
+    val eventBait: List<EventBaitEntity> = emptyList(),
+    val tripBait: List<TripBaitEntity> = emptyList(),
     val bodiesOfWater: List<BodyOfWater> = emptyList(),
     val eventBodyOfWater: List<EventBodyOfWater> = emptyList(),
     val tripBodyOfWater: List<TripBodyOfWater> = emptyList(),

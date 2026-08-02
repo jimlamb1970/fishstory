@@ -179,7 +179,7 @@ interface FishDao {
     LEFT JOIN fish_table AS f ON bait.id = f.baitId
     GROUP BY bait.id
 """)
-    fun getBaitSummaries(): Flow<List<BaitSummary>>
+    fun getBaitSummaries(): Flow<List<BaitSummaryEntity>>
 
     @Query("""
     SELECT 

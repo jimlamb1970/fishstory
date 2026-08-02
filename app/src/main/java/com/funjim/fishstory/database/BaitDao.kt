@@ -6,33 +6,30 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
-import com.funjim.fishstory.model.Bait
-import com.funjim.fishstory.model.EventBait
-import com.funjim.fishstory.model.TripBait
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BaitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBait(bait: Bait)
+    suspend fun insertBait(bait: BaitEntity)
 
     @Upsert
-    suspend fun upsertBait(bait: Bait)
+    suspend fun upsertBait(bait: BaitEntity)
 
     @Query("SELECT * FROM bait_table ORDER BY name ASC")
-    fun getAllBaits(): Flow<List<Bait>>
+    fun getAllBaits(): Flow<List<BaitEntity>>
 
     @Query("SELECT * FROM bait_table WHERE id = :id")
-    fun getBait (id: String): Flow<Bait?>
+    fun getBait (id: String): Flow<BaitEntity?>
 
     @Delete
-    suspend fun deleteBait(bait: Bait)
+    suspend fun deleteBait(bait: BaitEntity)
 
     @Query("DELETE FROM bait_table")
     suspend fun deleteAllBaits()
 
     @Query("SELECT * FROM trip_bait")
-    fun getAllTripBaits(): Flow<List<TripBait>>
+    fun getAllTripBaits(): Flow<List<TripBaitEntity>>
 
     @Query("""
         SELECT bait_table.* FROM bait_table
@@ -40,10 +37,10 @@ interface BaitDao {
         WHERE trip_bait.tripId = :tripId
         GROUP BY bait_table.id
         """)
-    fun getTripBaits(tripId: String): Flow<List<Bait>>
+    fun getTripBaits(tripId: String): Flow<List<BaitEntity>>
 
     @Upsert
-    suspend fun insertTripBait(crossRef: TripBait)
+    suspend fun insertTripBait(crossRef: TripBaitEntity)
 
     @Query("DELETE FROM trip_bait WHERE tripId = :tripId AND baitId = :baitId")
     suspend fun deleteTripBait(tripId: String, baitId: String)
@@ -52,7 +49,7 @@ interface BaitDao {
     suspend fun deleteAllTripBaits()
 
     @Query("SELECT * FROM event_bait")
-    fun getAllEventBaits(): Flow<List<EventBait>>
+    fun getAllEventBaits(): Flow<List<EventBaitEntity>>
 
     @Query("""
         SELECT bait_table.* FROM bait_table
@@ -60,13 +57,13 @@ interface BaitDao {
         WHERE event_bait.eventId = :eventId
         GROUP BY bait_table.id
         """)
-    fun getEventBaits(eventId: String): Flow<List<Bait>>
+    fun getEventBaits(eventId: String): Flow<List<BaitEntity>>
 
     @Upsert
-    suspend fun insertEventBait(crossRef: EventBait)
+    suspend fun insertEventBait(crossRef: EventBaitEntity)
 
     @Upsert
-    suspend fun insertBaitForEvents(crossRefs: List<EventBait>)
+    suspend fun insertBaitForEvents(crossRefs: List<EventBaitEntity>)
 
     @Query("DELETE FROM event_bait WHERE eventId = :eventId AND baitId = :baitId")
     suspend fun deleteEventBait(eventId: String, baitId: String)
@@ -90,5 +87,5 @@ interface BaitDao {
         eventId: String?,
         fishermanId: String?,
         lureId: String?,
-        tripId: String?): Flow<List<Bait>>
+        tripId: String?): Flow<List<BaitEntity>>
 }

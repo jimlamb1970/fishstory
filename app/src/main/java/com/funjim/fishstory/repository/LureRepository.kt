@@ -5,8 +5,9 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.toBaitDomainList
+import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.model.Bait
-import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColorCrossRef
@@ -19,6 +20,7 @@ import com.funjim.fishstory.model.LureWithPhotos
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class LureRepository(
     private val baitDao: BaitDao,
@@ -30,6 +32,7 @@ class LureRepository(
     // Data Streams
     val allLureColors: Flow<List<LureColor>> = lureDao.getAllLureColors()
     val allBaits: Flow<List<Bait>> = baitDao.getAllBaits()
+        .map { list -> list.toBaitDomainList() }
 
     fun getAllLures(): Flow<List<LureWithColors>> {
         return lureDao.getLuresWithColors()
@@ -83,9 +86,15 @@ class LureRepository(
     suspend fun upsertLureColor(lureColor: LureColor) = lureDao.upsertLureColor(lureColor)
     suspend fun deleteLureColor(lureColor: LureColor) = lureDao.deleteLureColor(lureColor)
 
-    suspend fun addBait(bait: Bait) = baitDao.insertBait(bait)
-    suspend fun upsertBait(bait: Bait) = baitDao.upsertBait(bait)
-    suspend fun deleteBait(bait: Bait) = baitDao.deleteBait(bait)
+    suspend fun addBait(bait: Bait) {
+        baitDao.insertBait(bait.toEntity())
+    }
+    suspend fun upsertBait(bait: Bait) {
+        baitDao.upsertBait(bait.toEntity())
+    }
+    suspend fun deleteBait(bait: Bait) {
+        baitDao.deleteBait(bait.toEntity())
+    }
 
     suspend fun getFishermanById(id: String) = fishermanDao.getFishermanById(id)
     fun getTackleBoxById(id: String) = tackleBoxDao.getTackleBoxById(id)

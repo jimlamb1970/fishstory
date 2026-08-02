@@ -7,6 +7,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -26,6 +27,7 @@ import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithCounts
 import com.funjim.fishstory.ui.utils.FishFilter
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class FishRepository(
     private val bodyOfWaterDao: BodyOfWaterDao,
@@ -39,6 +41,7 @@ class FishRepository(
     // Basic Data Streams
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
     val baitSummaries: Flow<List<BaitSummary>> = fishDao.getBaitSummaries()
+        .map { list -> list.toBaitSummaryDomainList() }
     val bodyOfWaterSummaries: Flow<List<BodyOfWaterSummary>> = fishDao.getBodyOfWaterSummaries()
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
 
