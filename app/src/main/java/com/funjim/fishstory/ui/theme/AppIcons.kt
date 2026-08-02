@@ -50,7 +50,7 @@ object AppIcons {
         val WeatherSet: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_weather_set)
         val Worm: ImageVector
-            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fishing_boat)
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_worm)
 
         // You can add more icons here
         // val StarIcon: ImageVector @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_star)
