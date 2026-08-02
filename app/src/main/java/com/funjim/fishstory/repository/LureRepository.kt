@@ -5,6 +5,7 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.TackleBoxLureEntity
 import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
@@ -21,7 +22,6 @@ import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -74,19 +74,12 @@ class LureRepository(
         }
     }
 
-    suspend fun getOrCreateTackleBox(fishermanId: String): TackleBox {
-        return tackleBoxDao.getExistingTackleBoxForFisherman(fishermanId)
-            ?: TackleBox(fishermanId = fishermanId).also {
-                tackleBoxDao.insertTackleBox(it)
-            }
-    }
-
     suspend fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
-        tackleBoxDao.insertLureToTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
+        tackleBoxDao.insertLureToTackleBox(TackleBoxLureEntity(tackleBoxId, lureId))
     }
 
     suspend fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
-        tackleBoxDao.removeLureFromTackleBox(TackleBoxLureCrossRef(tackleBoxId, lureId))
+        tackleBoxDao.removeLureFromTackleBox(TackleBoxLureEntity(tackleBoxId, lureId))
     }
 
     // Lure Operations
@@ -96,7 +89,6 @@ class LureRepository(
     suspend fun deleteLure(lure: Lure) {
         lureDao.deleteLure(lure.toEntity())
     }
-
     suspend fun insertLureColor(lureColor: LureColor) {
         lureDao.insertLureColor(lureColor.toEntity())
     }
@@ -118,7 +110,10 @@ class LureRepository(
     }
 
     suspend fun getFishermanById(id: String) = fishermanDao.getFishermanById(id)
-    fun getTackleBoxById(id: String) = tackleBoxDao.getTackleBoxById(id)
-
-    suspend fun updateTackleBox(tackleBox: TackleBox) = tackleBoxDao.updateTackleBox(tackleBox)
+    fun getTackleBoxById(id: String): Flow<TackleBox?> {
+        return tackleBoxDao.getTackleBoxById(id).map { entity -> entity?.toDomain() }
+    }
+    suspend fun updateTackleBox(tackleBox: TackleBox) {
+        tackleBoxDao.updateTackleBox(tackleBox.toEntity())
+    }
 }

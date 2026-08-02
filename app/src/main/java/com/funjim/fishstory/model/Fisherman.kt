@@ -8,6 +8,8 @@ import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.funjim.fishstory.database.TackleBoxEntity
+import com.funjim.fishstory.database.TackleBoxEntityWithLures
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -51,11 +53,11 @@ data class FishermanWithTrips(
 data class FishermanWithDetails(
     @Embedded val fisherman: Fisherman,
     @Relation(
-        entity = TackleBox::class,
+        entity = TackleBoxEntity::class,
         parentColumn = "id",
         entityColumn = "fishermanId"
     )
-    val tackleBoxWithLures: TackleBoxWithLures?,
+    val tackleBoxWithLures: TackleBoxEntityWithLures?,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
@@ -84,11 +86,11 @@ data class FishermanFullStatistics(
     @Embedded val fisherman: Fisherman,
 
     @Relation(
-        entity = TackleBox::class,
+        entity = TackleBoxEntity::class,
         parentColumn = "id",
         entityColumn = "fishermanId"
     )
-    val tackleBoxesWithLures: List<TackleBoxWithLures?>,
+    val tackleBoxesWithLures: List<TackleBoxEntityWithLures?>,
 
     // Fish Extremes
     val largestFishLength: Long?,
@@ -143,7 +145,7 @@ data class FishermanFullStatistics(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = TackleBox::class,
+            entity = TackleBoxEntity::class,
             parentColumns = ["id"],
             childColumns = ["tackleBoxId"],
             onDelete = ForeignKey.SET_NULL
@@ -178,7 +180,7 @@ data class EventFishermanCrossRef(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = TackleBox::class,
+            entity = TackleBoxEntity::class,
             parentColumns = ["id"],
             childColumns = ["tackleBoxId"],
             onDelete = ForeignKey.SET_NULL

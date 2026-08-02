@@ -1,39 +1,37 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table")
-    fun getAllTackleBoxes(): Flow<List<TackleBox>>
+    fun getAllTackleBoxes(): Flow<List<TackleBoxEntity>>
 
     @Query("DELETE FROM tackle_box_table")
     suspend fun deleteAllTackleBoxes()
 
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
-    fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureCrossRef>>
+    fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureEntity>>
 
     @Query("DELETE FROM tackle_box_lure_cross_ref")
     suspend fun deleteAllTackleBoxLureCrossRefs()
 
     // TODO -- need to rework this logic
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
-    suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBox?
+    suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBoxEntity?
 
     @Query("SELECT * FROM tackle_box_table WHERE name = :name AND fishermanId = :fishermanId LIMIT 1")
-    suspend fun getExistingTackleBoxForFishermanByName(name: String, fishermanId: String): TackleBox?
+    suspend fun getExistingTackleBoxForFishermanByName(name: String, fishermanId: String): TackleBoxEntity?
 
     @Query("SELECT * FROM tackle_box_table WHERE id = :id")
-    fun getTackleBoxById(id: String): Flow<TackleBox?>
+    fun getTackleBoxById(id: String): Flow<TackleBoxEntity?>
 
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
-    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>>
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBoxEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTackleBox(tackleBox: TackleBox)
+    suspend fun insertTackleBox(tackleBox: TackleBoxEntity)
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -43,25 +41,25 @@ interface TackleBoxDao {
             return existingTackleBox.id
         }
 
-        val newTackleBox = TackleBox(fishermanId = fishermanId, name = name)
+        val newTackleBox = TackleBoxEntity(fishermanId = fishermanId, name = name)
         upsertTackleBox(newTackleBox)
         return newTackleBox.id
     }
 
     @Delete
-    suspend fun deleteTackleBox(tackleBox: TackleBox)
+    suspend fun deleteTackleBox(tackleBox: TackleBoxEntity)
 
     @Upsert
-    suspend fun upsertTackleBox(tackleBox: TackleBox)
+    suspend fun upsertTackleBox(tackleBox: TackleBoxEntity)
 
     @Update
-    suspend fun updateTackleBox(tackleBox: TackleBox)
+    suspend fun updateTackleBox(tackleBox: TackleBoxEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLureToTackleBox(crossRef: TackleBoxLureCrossRef)
+    suspend fun insertLureToTackleBox(crossRef: TackleBoxLureEntity)
 
     @Delete
-    suspend fun removeLureFromTackleBox(crossRef: TackleBoxLureCrossRef)
+    suspend fun removeLureFromTackleBox(crossRef: TackleBoxLureEntity)
 
     @Transaction
     @Query("""

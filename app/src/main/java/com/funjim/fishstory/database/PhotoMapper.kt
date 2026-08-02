@@ -1,6 +1,5 @@
 package com.funjim.fishstory.database
 
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.Photo
 
 // Extension: Database Entity -> Domain Model
@@ -31,4 +30,3 @@ fun Photo.toEntity(): PhotoEntity {
         caption = caption
     )
 }
-

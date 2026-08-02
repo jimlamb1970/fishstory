@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.database.LureEntityWithColors
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureColor
@@ -246,7 +247,8 @@ fun FishermanDetailsScreen(
 
                                         if (tackleBox != null) {
                                             TackleBoxCard(
-                                                tackleBox,
+                                                // FIX LATER
+                                                tackleBox.toDomain(),
                                                 index = page,
                                                 totalItems = totalTackleBoxes,
                                                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -256,7 +258,8 @@ fun FishermanDetailsScreen(
                                                         tackleBox.tackleBox.id
                                                     )
                                                 },
-                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox }
+                                                // FIX LATER
+                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox.toDomain() }
                                             )
                                         }
                                     }
@@ -294,7 +297,8 @@ fun FishermanDetailsScreen(
                             itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
                                 tackleBoxWithLures?.let {
                                     TackleBoxCard(
-                                        tackleBoxWithLures,
+                                        // FIX LATER
+                                        tackleBoxWithLures.toDomain(),
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
@@ -308,7 +312,7 @@ fun FishermanDetailsScreen(
                                                 tackleBoxWithLures.tackleBox.id
                                             )
                                         },
-                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox }
+                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox.toDomain() }
                                     )
                                 }
                             }
@@ -723,11 +727,10 @@ fun TackleBoxCard(
             }
 
             tackleBoxWithLures.lures.sortedWith(
-                // FIX LATER
-                compareBy<LureEntityWithColors> { it.lure.name }
-                    .thenBy { getColorsSortingString(it.primaryColors.toLureColorDomainList()) }
-                    .thenBy { getColorsSortingString(it.secondaryColors.toLureColorDomainList()) }
-                    .thenBy { getColorsSortingString(it.glowColors.toLureColorDomainList()) }
+                compareBy<LureWithColors> { it.lure.name }
+                    .thenBy { getColorsSortingString(it.primaryColors) }
+                    .thenBy { getColorsSortingString(it.secondaryColors) }
+                    .thenBy { getColorsSortingString(it.glowColors) }
             )
         }
     }
@@ -825,10 +828,10 @@ fun TackleBoxCard(
                             // FIX LATER
                             LureCompositionWithColors(
                                 name = "• ${lure.lure.name}",
-                                lure.primaryColors.toLureColorDomainList(),
-                                lure.secondaryColors.toLureColorDomainList(),
+                                lure.primaryColors,
+                                lure.secondaryColors,
                                 lure.lure.glows,
-                                lure.glowColors.toLureColorDomainList(),
+                                lure.glowColors,
                                 style = MaterialTheme.typography.bodySmall,
                                 contentColor = secondaryContentColor,
                                 modifier = Modifier

@@ -2,7 +2,10 @@ package com.funjim.fishstory.repository
 
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.TackleBoxEntity
+import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toLureWithColorsDomainList
+import com.funjim.fishstory.database.toTackleBoxDomainList
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -59,7 +62,10 @@ class FishermanRepository(
         val existing = tackleBoxDao.getExistingTackleBoxForFisherman(fisherman.id)
         if (existing == null) {
             tackleBoxDao.insertTackleBox(
-                TackleBox(fishermanId = fisherman.id, name = "${fisherman.firstName}'s Tackle Box")
+                TackleBoxEntity(
+                    fishermanId = fisherman.id,
+                    name = "${fisherman.firstName}'s Tackle Box"
+                )
             )
         }
     }
@@ -89,18 +95,22 @@ class FishermanRepository(
         fishermanDao.getPastTripSummariesForFisherman(id, System.currentTimeMillis())
 
     // --- Tackle Box Logic ---
-    suspend fun createTackleBox(fishermanId: String, name: String) =
-        tackleBoxDao.insertTackleBox(TackleBox(fishermanId = fishermanId, name = name))
-
-    suspend fun insertTackleBox(tackleBox: TackleBox) = tackleBoxDao.insertTackleBox(tackleBox)
-
-    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> =
-        tackleBoxDao.getTackleBoxesForFisherman(fishermanId)
-
+    suspend fun createTackleBox(fishermanId: String, name: String) {
+        tackleBoxDao.insertTackleBox(TackleBoxEntity(fishermanId = fishermanId, name = name))
+    }
+    suspend fun insertTackleBox(tackleBox: TackleBox) {
+        tackleBoxDao.insertTackleBox(tackleBox.toEntity())
+    }
+    fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
+        return tackleBoxDao.getTackleBoxesForFisherman(fishermanId).map { list ->
+            list.toTackleBoxDomainList()
+        }
+    }
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {
         return tackleBoxDao.getLuresInTackleBox(tackleBoxId)
             .map { list -> list.toLureWithColorsDomainList() }
     }
-
-    suspend fun deleteTackleBox(tackleBox: TackleBox) = tackleBoxDao.deleteTackleBox(tackleBox)
+    suspend fun deleteTackleBox(tackleBox: TackleBox) {
+        tackleBoxDao.deleteTackleBox(tackleBox.toEntity())
+    }
 }

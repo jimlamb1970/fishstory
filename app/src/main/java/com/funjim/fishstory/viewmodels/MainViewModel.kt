@@ -39,8 +39,8 @@ data class DatabaseExportData(
     val lurePrimaryColors: List<LurePrimaryColorEntity> = emptyList(),
     val lureSecondaryColors: List<LureSecondaryColorEntity> = emptyList(),
     val lureGlowColors: List<LureGlowColorEntity> = emptyList(),
-    val tackleboxes: List<TackleBox>,
-    val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
+    val tackleboxes: List<TackleBoxEntity> = emptyList(),
+    val tackleBoxLures: List<TackleBoxLureEntity> = emptyList(),
     val species: List<SpeciesEntity> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpeciesEntity> = emptyList(),
     val tripTargetSpecies: List<TripTargetSpeciesEntity> = emptyList(),
@@ -122,7 +122,7 @@ class MainViewModel(
                     lureSecondaryColors = lureDao.getAllLureSecondaryColors().firstOrNull() ?: emptyList(),
                     lureGlowColors = lureDao.getAllLureGlowColors().firstOrNull() ?: emptyList(),
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
-                    tackleBoxLureCrossRef = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
+                    tackleBoxLures = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
                     species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
                     eventTargetSpecies = eventDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
@@ -203,7 +203,7 @@ class MainViewModel(
                     data.lurePrimaryColors.forEach { lureDao.upsertLurePrimaryColor(it) }
                     data.lureSecondaryColors.forEach { lureDao.upsertLureSecondaryColor(it) }
                     data.lureGlowColors.forEach { lureDao.upsertLureGlowColor(it) }
-                    data.tackleBoxLureCrossRef.forEach { tackleBoxDao.insertLureToTackleBox(it) }
+                    data.tackleBoxLures.forEach { tackleBoxDao.insertLureToTackleBox(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.eventTargetSpecies.forEach { eventDao.insertEventTargetSpecies(it) }
                     data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }

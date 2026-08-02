@@ -12,10 +12,8 @@ import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.EventFishermanCrossRef
 import com.funjim.fishstory.model.Species
-import com.funjim.fishstory.model.TackleBoxLureCrossRef
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import java.io.InputStream
 import java.time.LocalDateTime
