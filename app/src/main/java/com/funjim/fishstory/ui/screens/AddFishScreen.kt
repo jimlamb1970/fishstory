@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toPhotoDomainList
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.FishWithPhotos
@@ -103,11 +104,12 @@ fun AddFishScreen(
             if (fishId != null && state.fish != null) {
                 // Edit Mode Initialization
                 originalFish = state.fish
+                // FIX LATER
                 viewModel.initDraftFish(
                     state.fish.fish,
                     state.fish.fish.tripId,
                     state.fish.fish.eventId,
-                    state.fish.photos
+                    state.fish.photos.toPhotoDomainList()
                 )
                 viewModel.selectFisherman(state.fish.fish.fishermanId)
                 viewModel.selectTackleBox(state.tackleBoxMap[state.fish.fish.fishermanId])
@@ -618,7 +620,8 @@ fun AddFishScreen(
                                     }
 
                                     viewModel.addFishPhotos(fish.id, newPhotos)
-                                    viewModel.deleteFishPhotos(fish.id, deletedPhotos)
+                                    // FIX LATER
+                                    viewModel.deleteFishPhotos(fish.id, deletedPhotos.toPhotoDomainList())
 
                                     navigateBack()
                                 }

@@ -8,9 +8,11 @@ import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.BodyOfWaterEntity
 import com.funjim.fishstory.database.LureEntity
 import com.funjim.fishstory.database.LureEntityWithColors
-import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.PhotoEntity
+import com.funjim.fishstory.database.PhotoFishEntity
 import com.funjim.fishstory.database.SpeciesEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -94,12 +96,12 @@ data class FishWithPhotos(
         parentColumn = "id",        // Fish ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
-            value = PhotoFishCrossRef::class,
+            value = PhotoFishEntity::class,
             parentColumn = "fishId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>
+    val photos: List<PhotoEntity>
 )
 
 data class FishWithDetails(

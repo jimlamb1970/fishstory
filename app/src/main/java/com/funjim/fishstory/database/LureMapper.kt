@@ -155,7 +155,7 @@ fun LureEntityWithDetails.toDomain(): LureWithDetails {
         primaryColors = primaryColors.map { it.toDomain() },
         secondaryColors = secondaryColors.map { it.toDomain() },
         glowColors = glowColors.map { it.toDomain() },
-        photos = photos
+        photos = photos.map { it.toDomain() }
     )
 }
 
@@ -171,7 +171,7 @@ fun LureWithDetails.toEntity(): LureEntityWithDetails {
         primaryColors = primaryColors.map { it.toEntity() },
         secondaryColors = secondaryColors.map { it.toEntity() },
         glowColors = glowColors.map { it.toEntity() },
-        photos = photos
+        photos = photos.map { it.toEntity() }
     )
 }
 

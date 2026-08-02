@@ -52,10 +52,8 @@ class EnvironmentRepository(
         cascade: Boolean = true) {
         database.withTransaction {
             bodyOfWaterDao.insertTripBodyOfWater(crossRef.toEntity())
-
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
-
                 if (eventIds.isNotEmpty()) {
                     val crossRefs = eventIds.map { eventId ->
                         EventBodyOfWater(eventId = eventId, bodyOfWaterId = crossRef.bodyOfWaterId)
@@ -69,9 +67,7 @@ class EnvironmentRepository(
     suspend fun deleteTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
         database.withTransaction {
             bodyOfWaterDao.deleteTripBodyOfWater(tripId, bodyOfWaterId)
-
             val eventIds = eventDao.getEventIdsForTrip(tripId)
-
             bodyOfWaterDao.deleteBodyOfWaterForEvents(eventIds, bodyOfWaterId)
         }
     }
@@ -81,7 +77,6 @@ class EnvironmentRepository(
         cascade: Boolean = true) {
         database.withTransaction {
             bodyOfWaterDao.insertEventBodyOfWater(crossRef.toEntity())
-
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
                 bodyOfWaterDao.insertTripBodyOfWater(

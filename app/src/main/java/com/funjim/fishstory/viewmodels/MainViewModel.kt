@@ -45,15 +45,15 @@ data class DatabaseExportData(
     val eventTargetSpecies: List<EventTargetSpeciesEntity> = emptyList(),
     val tripTargetSpecies: List<TripTargetSpeciesEntity> = emptyList(),
     val fish: List<Fish>,
-    val photos: List<Photo>,
-    val photoBait: List<PhotoBaitCrossRef> = emptyList(),
-    val photoBodyOfWaterCrossRef: List<PhotoBodyOfWaterCrossRef> = emptyList(),
-    val photoEventsCrossRef: List<PhotoEventCrossRef>,
-    val photoFishCrossRef: List<PhotoFishCrossRef>,
-    val photoFishermanCrossRef: List<PhotoFishermanCrossRef>,
-    val photoLureCrossRef: List<PhotoLureCrossRef>,
-    val photoSpeciesCrossRef: List<PhotoSpeciesCrossRef>,
-    val photoTripCrossRef: List<PhotoTripCrossRef>
+    val photos: List<PhotoEntity> = emptyList(),
+    val photosBait: List<PhotoBaitEntity> = emptyList(),
+    val photosBodyOfWater: List<PhotoBodyOfWaterEntity> = emptyList(),
+    val photosEvent: List<PhotoEventEntity> = emptyList(),
+    val photosFish: List<PhotoFishEntity> = emptyList(),
+    val photosFisherman: List<PhotoFishermanEntity> = emptyList(),
+    val photosLure: List<PhotoLureEntity> = emptyList(),
+    val photosSpecies: List<PhotoSpeciesEntity> = emptyList(),
+    val photosTrip: List<PhotoTripEntity> = emptyList()
 )
 
 class MainViewModel(
@@ -128,14 +128,14 @@ class MainViewModel(
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
-                    photoBait = photoDao.getAllPhotoBaitCrossRefs().firstOrNull() ?: emptyList(),
-                    photoBodyOfWaterCrossRef = photoDao.getAllPhotoBodyOfWaterCrossRefs().firstOrNull() ?: emptyList(),
-                    photoEventsCrossRef = photoDao.getAllPhotoEventCrossRefs().firstOrNull() ?: emptyList(),
-                    photoFishCrossRef = photoDao.getAllPhotoFishCrossRefs().firstOrNull() ?: emptyList(),
-                    photoFishermanCrossRef = photoDao.getAllPhotoFishermanCrossRefs().firstOrNull() ?: emptyList(),
-                    photoLureCrossRef = photoDao.getAllPhotoLureCrossRefs().firstOrNull() ?: emptyList(),
-                    photoSpeciesCrossRef = photoDao.getAllPhotoSpeciesCrossRefs().firstOrNull() ?: emptyList(),
-                    photoTripCrossRef = photoDao.getAllPhotoTripCrossRefs().firstOrNull() ?: emptyList()
+                    photosBait = photoDao.getAllPhotosForBait().firstOrNull() ?: emptyList(),
+                    photosBodyOfWater = photoDao.getAllPhotosForBodiesOfWater().firstOrNull() ?: emptyList(),
+                    photosEvent = photoDao.getAllPhotosForEvents().firstOrNull() ?: emptyList(),
+                    photosFish = photoDao.getAllPhotosForFish().firstOrNull() ?: emptyList(),
+                    photosFisherman = photoDao.getAllPhotosForFishermen().firstOrNull() ?: emptyList(),
+                    photosLure = photoDao.getAllPhotosForLures().firstOrNull() ?: emptyList(),
+                    photosSpecies = photoDao.getAllPhotosForSpecies().firstOrNull() ?: emptyList(),
+                    photosTrip = photoDao.getAllPhotosForTrips().firstOrNull() ?: emptyList()
                 )
 
                 val jsonString = json.encodeToString(allData)
@@ -177,14 +177,14 @@ class MainViewModel(
                     eventDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
-                    photoDao.deleteAllPhotoBaitCrossRefs()
-                    photoDao.deleteAllPhotoBodyOfWaterCrossRefs()
-                    photoDao.deleteAllPhotoEventCrossRefs()
-                    photoDao.deleteAllPhotoFishCrossRefs()
-                    photoDao.deleteAllPhotoFishermanCrossRefs()
-                    photoDao.deleteAllPhotoLureCrossRefs()
-                    photoDao.deleteAllPhotoSpeciesCrossRefs()
-                    photoDao.deleteAllPhotoTripCrossRefs()
+                    photoDao.deleteAllPhotosForBait()
+                    photoDao.deleteAllPhotosForBodiesOfWater()
+                    photoDao.deleteAllPhotosForEvents()
+                    photoDao.deleteAllPhotosForFish()
+                    photoDao.deleteAllPhotosForFishermen()
+                    photoDao.deleteAllPhotosForLures()
+                    photoDao.deleteAllPhotosForSpecies()
+                    photoDao.deleteAllPhotosForTrips()
 
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
@@ -209,14 +209,14 @@ class MainViewModel(
                     data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
-                    data.photoBait.forEach { photoDao.addBaitPhoto(it) }
-                    data.photoBodyOfWaterCrossRef.forEach { photoDao.addBodyOfWaterPhoto(it) }
-                    data.photoEventsCrossRef.forEach { photoDao.addEventPhoto(it) }
-                    data.photoFishCrossRef.forEach { photoDao.addFishPhoto(it) }
-                    data.photoFishermanCrossRef.forEach { photoDao.addFishermanPhoto(it) }
-                    data.photoLureCrossRef.forEach { photoDao.addLurePhoto(it) }
-                    data.photoSpeciesCrossRef.forEach { photoDao.addSpeciesPhoto(it) }
-                    data.photoTripCrossRef.forEach { photoDao.addTripPhoto(it) }
+                    data.photosBait.forEach { photoDao.addBaitPhoto(it) }
+                    data.photosBodyOfWater.forEach { photoDao.addBodyOfWaterPhoto(it) }
+                    data.photosEvent.forEach { photoDao.addEventPhoto(it) }
+                    data.photosFish.forEach { photoDao.addFishPhoto(it) }
+                    data.photosFisherman.forEach { photoDao.addFishermanPhoto(it) }
+                    data.photosLure.forEach { photoDao.addLurePhoto(it) }
+                    data.photosSpecies.forEach { photoDao.addSpeciesPhoto(it) }
+                    data.photosTrip.forEach { photoDao.addTripPhoto(it) }
                 }
                 // For simplicity, assume success, but you should check deserialization status
                 true

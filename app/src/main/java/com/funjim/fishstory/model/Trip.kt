@@ -7,6 +7,8 @@ import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.PhotoEntity
+import com.funjim.fishstory.database.PhotoTripEntity
 import com.funjim.fishstory.database.SpeciesEntity
 import com.funjim.fishstory.database.TripTargetSpeciesEntity
 import com.funjim.fishstory.database.TripBodyOfWaterEntity
@@ -92,12 +94,12 @@ data class TripWithDetails(
         parentColumn = "id",        // Trip ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
-            value = PhotoTripCrossRef::class,
+            value = PhotoTripEntity::class,
             parentColumn = "tripId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>,
+    val photos: List<PhotoEntity>,
 
     @Relation(
         parentColumn = "id",

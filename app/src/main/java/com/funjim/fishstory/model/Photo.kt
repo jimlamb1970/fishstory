@@ -1,21 +1,10 @@
 package com.funjim.fishstory.model
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-@Entity(
-    tableName = "photo_table",
-    indices = [
-        Index(value = ["hashcode"], unique = true)
-    ]
-)
 data class Photo(
-    @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val uri: String,
     val hashcode: String,
@@ -50,3 +39,60 @@ data class Photo(
         return result
     }
 }
+
+@Serializable
+data class PhotoBait(
+    val photoId: String,
+    val baitId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoBodyOfWater(
+    val photoId: String,
+    val bodyOfWaterId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoEvent(
+    val photoId: String,
+    val eventId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoFish(
+    val photoId: String,
+    val fishId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoFisherman(
+    val photoId: String,
+    val fishermanId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoLure(
+    val photoId: String,
+    val lureId: String,
+    val isPrimary: Boolean = false
+)
+
+
+@Serializable
+data class PhotoSpecies(
+    val photoId: String,
+    val speciesId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoTrip(
+    val photoId: String,
+    val tripId: String,
+    val isPrimary: Boolean = false
+)

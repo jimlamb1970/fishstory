@@ -7,62 +7,53 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.PhotoBaitCrossRef
-import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
-import com.funjim.fishstory.model.PhotoEventCrossRef
-import com.funjim.fishstory.model.PhotoFishCrossRef
-import com.funjim.fishstory.model.PhotoFishermanCrossRef
-import com.funjim.fishstory.model.PhotoLureCrossRef
-import com.funjim.fishstory.model.PhotoSpeciesCrossRef
-import com.funjim.fishstory.model.PhotoTripCrossRef
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PhotoDao {
     @Query("SELECT * FROM photo_table")
-    fun getAllPhotos(): Flow<List<Photo>>
+    fun getAllPhotos(): Flow<List<PhotoEntity>>
 
     @Query("SELECT * FROM photo_bait_cross_ref")
-    fun getAllPhotoBaitCrossRefs(): Flow<List<PhotoBaitCrossRef>>
+    fun getAllPhotosForBait(): Flow<List<PhotoBaitEntity>>
     @Query("SELECT * FROM photo_body_of_water_cross_ref")
-    fun getAllPhotoBodyOfWaterCrossRefs(): Flow<List<PhotoBodyOfWaterCrossRef>>
+    fun getAllPhotosForBodiesOfWater(): Flow<List<PhotoBodyOfWaterEntity>>
     @Query("SELECT * FROM photo_event_cross_ref")
-    fun getAllPhotoEventCrossRefs(): Flow<List<PhotoEventCrossRef>>
+    fun getAllPhotosForEvents(): Flow<List<PhotoEventEntity>>
     @Query("SELECT * FROM photo_fish_cross_ref")
-    fun getAllPhotoFishCrossRefs(): Flow<List<PhotoFishCrossRef>>
+    fun getAllPhotosForFish(): Flow<List<PhotoFishEntity>>
     @Query("SELECT * FROM photo_fisherman_cross_ref")
-    fun getAllPhotoFishermanCrossRefs(): Flow<List<PhotoFishermanCrossRef>>
+    fun getAllPhotosForFishermen(): Flow<List<PhotoFishermanEntity>>
     @Query("SELECT * FROM photo_lure_cross_ref")
-    fun getAllPhotoLureCrossRefs(): Flow<List<PhotoLureCrossRef>>
+    fun getAllPhotosForLures(): Flow<List<PhotoLureEntity>>
     @Query("SELECT * FROM photo_species_cross_ref")
-    fun getAllPhotoSpeciesCrossRefs(): Flow<List<PhotoSpeciesCrossRef>>
+    fun getAllPhotosForSpecies(): Flow<List<PhotoSpeciesEntity>>
     @Query("SELECT * FROM photo_trip_cross_ref")
-    fun getAllPhotoTripCrossRefs(): Flow<List<PhotoTripCrossRef>>
+    fun getAllPhotosForTrips(): Flow<List<PhotoTripEntity>>
 
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()
 
     @Query("DELETE FROM photo_bait_cross_ref")
-    suspend fun deleteAllPhotoBaitCrossRefs()
+    suspend fun deleteAllPhotosForBait()
     @Query("DELETE FROM photo_body_of_water_cross_ref")
-    suspend fun deleteAllPhotoBodyOfWaterCrossRefs()
+    suspend fun deleteAllPhotosForBodiesOfWater()
     @Query("DELETE FROM photo_event_cross_ref")
-    suspend fun deleteAllPhotoEventCrossRefs()
+    suspend fun deleteAllPhotosForEvents()
     @Query("DELETE FROM photo_fish_cross_ref")
-    suspend fun deleteAllPhotoFishCrossRefs()
+    suspend fun deleteAllPhotosForFish()
     @Query("DELETE FROM photo_fisherman_cross_ref")
-    suspend fun deleteAllPhotoFishermanCrossRefs()
+    suspend fun deleteAllPhotosForFishermen()
     @Query("DELETE FROM photo_lure_cross_ref")
-    suspend fun deleteAllPhotoLureCrossRefs()
+    suspend fun deleteAllPhotosForLures()
     @Query("DELETE FROM photo_species_cross_ref")
-    suspend fun deleteAllPhotoSpeciesCrossRefs()
+    suspend fun deleteAllPhotosForSpecies()
     @Query("DELETE FROM photo_trip_cross_ref")
-    suspend fun deleteAllPhotoTripCrossRefs()
+    suspend fun deleteAllPhotosForTrips()
 
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertPhoto(photo: Photo): Long
+    suspend fun insertPhoto(photo: PhotoEntity): Long
 
     @Query("SELECT id FROM photo_table WHERE uri = :uri LIMIT 1")
     suspend fun getPhotoIdByUri(uri: String): String?
@@ -71,40 +62,40 @@ interface PhotoDao {
     suspend fun getPhotoIdByHash(hashcode: String): String?
 
     @Delete
-    suspend fun deletePhoto(photo: Photo)
+    suspend fun deletePhoto(photo: PhotoEntity)
 
     @Upsert
-    suspend fun addBaitPhoto(crossRef: PhotoBaitCrossRef)
+    suspend fun addBaitPhoto(crossRef: PhotoBaitEntity)
     @Delete
-    suspend fun deleteBaitPhoto(crossRef: PhotoBaitCrossRef)
+    suspend fun deleteBaitPhoto(crossRef: PhotoBaitEntity)
     @Upsert
-    suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterCrossRef)
+    suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
     @Delete
-    suspend fun deleteBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterCrossRef)
+    suspend fun deleteBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
     @Upsert
-    suspend fun addTripPhoto(crossRef: PhotoTripCrossRef)
+    suspend fun addTripPhoto(crossRef: PhotoTripEntity)
     @Delete
-    suspend fun deleteTripPhoto(crossRef: PhotoTripCrossRef)
+    suspend fun deleteTripPhoto(crossRef: PhotoTripEntity)
     @Upsert
-    suspend fun addEventPhoto(crossRef: PhotoEventCrossRef)
+    suspend fun addEventPhoto(crossRef: PhotoEventEntity)
     @Delete
-    suspend fun deleteEventPhoto(crossRef: PhotoEventCrossRef)
+    suspend fun deleteEventPhoto(crossRef: PhotoEventEntity)
     @Upsert
-    suspend fun addFishermanPhoto(crossRef: PhotoFishermanCrossRef)
+    suspend fun addFishermanPhoto(crossRef: PhotoFishermanEntity)
     @Delete
-    suspend fun deleteFishermanPhoto(crossRef: PhotoFishermanCrossRef)
+    suspend fun deleteFishermanPhoto(crossRef: PhotoFishermanEntity)
     @Upsert
-    suspend fun addLurePhoto(crossRef: PhotoLureCrossRef)
+    suspend fun addLurePhoto(crossRef: PhotoLureEntity)
     @Delete
-    suspend fun deleteLurePhoto(crossRef: PhotoLureCrossRef)
+    suspend fun deleteLurePhoto(crossRef: PhotoLureEntity)
     @Upsert
-    suspend fun addFishPhoto(crossRef: PhotoFishCrossRef)
+    suspend fun addFishPhoto(crossRef: PhotoFishEntity)
     @Delete
-    suspend fun deleteFishPhoto(crossRef: PhotoFishCrossRef)
+    suspend fun deleteFishPhoto(crossRef: PhotoFishEntity)
     @Upsert
-    suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesCrossRef)
+    suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesEntity)
     @Delete
-    suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesCrossRef)
+    suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesEntity)
 
 
     @Query("""
@@ -112,47 +103,47 @@ interface PhotoDao {
     INNER JOIN photo_trip_cross_ref ON photo_table.id = photo_trip_cross_ref.photoId
     WHERE photo_trip_cross_ref.tripId = :tripId
 """)
-    fun getPhotosForTrip(tripId: String): Flow<List<Photo>>
+    fun getPhotosForTrip(tripId: String): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table
     INNER JOIN photo_event_cross_ref ON photo_table.id = photo_event_cross_ref.photoId
     WHERE photo_event_cross_ref.eventId = :eventId
 """)
-    fun getPhotosForEvent(eventId: String): Flow<List<Photo>>
+    fun getPhotosForEvent(eventId: String): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table
     INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
     WHERE photo_lure_cross_ref.lureId = :lureId
 """)
-    fun getPhotosForLure(lureId: String): Flow<List<Photo>>
+    fun getPhotosForLure(lureId: String): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table 
     INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
 """)
-    fun getAllLurePhotos(): Flow<List<Photo>>
+    fun getAllLurePhotos(): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table
     INNER JOIN photo_fish_cross_ref ON photo_table.id = photo_fish_cross_ref.photoId
     WHERE photo_fish_cross_ref.fishId = :fishId
 """)
-    fun getPhotosForFish(fishId: String): Flow<List<Photo>>
+    fun getPhotosForFish(fishId: String): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table
     INNER JOIN photo_fish_cross_ref ON photo_table.id = photo_fish_cross_ref.photoId
 """)
-    fun getAllFishPhotos(): Flow<List<Photo>>
+    fun getAllFishPhotos(): Flow<List<PhotoEntity>>
 
     @Query("""
     SELECT photo_table.* FROM photo_table
     INNER JOIN photo_fisherman_cross_ref ON photo_table.id = photo_fisherman_cross_ref.photoId
     WHERE photo_fisherman_cross_ref.fishermanId = :fishermanId
 """)
-    fun getPhotosForFisherman(fishermanId: String): Flow<List<Photo>>
+    fun getPhotosForFisherman(fishermanId: String): Flow<List<PhotoEntity>>
 
     @Query("""
         SELECT photo_table.* FROM photo_table
@@ -160,7 +151,7 @@ interface PhotoDao {
         WHERE photo_bait_cross_ref.baitId = :id
         LIMIT 1
     """)
-    suspend fun getPhotoForBait(id: String): Photo?
+    suspend fun getPhotoForBait(id: String): PhotoEntity?
 
     @Query("""
         SELECT photo_table.* FROM photo_table
@@ -168,7 +159,7 @@ interface PhotoDao {
         WHERE photo_body_of_water_cross_ref.bodyOfWaterId = :id
         LIMIT 1
     """)
-    suspend fun getPhotoForBodyOfWater(id: String): Photo?
+    suspend fun getPhotoForBodyOfWater(id: String): PhotoEntity?
 
     @Query("""
         SELECT photo_table.* FROM photo_table
@@ -176,7 +167,7 @@ interface PhotoDao {
         WHERE photo_species_cross_ref.speciesId = :speciesId
         LIMIT 1
     """)
-    suspend fun getPhotoForSpecies(speciesId: String): Photo?
+    suspend fun getPhotoForSpecies(speciesId: String): PhotoEntity?
 
     @Query("""
     SELECT thumbnail FROM photo_table 

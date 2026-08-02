@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.toPhotoDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
@@ -366,7 +367,8 @@ fun TripDetailsScreen(
                             )
 
                             PhotoPickerRow(
-                                photos = details.photos,
+                                //FIX LATER
+                                photos = details.photos.toPhotoDomainList(),
                                 onPhotoSelected = { uri ->
                                     viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
                                 },

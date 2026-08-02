@@ -6,6 +6,8 @@ import com.funjim.fishstory.database.BodyOfWaterEntity
 import com.funjim.fishstory.database.EventBaitEntity
 import com.funjim.fishstory.database.EventBodyOfWaterEntity
 import com.funjim.fishstory.database.EventTargetSpeciesEntity
+import com.funjim.fishstory.database.PhotoEntity
+import com.funjim.fishstory.database.PhotoEventEntity
 import com.funjim.fishstory.database.SpeciesEntity
 import com.funjim.fishstory.database.WaterEntity
 import com.funjim.fishstory.database.WaterEntityWithDetails
@@ -66,12 +68,12 @@ data class EventWithDetails(
         parentColumn = "id",        // Event ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
-            value = PhotoEventCrossRef::class,
+            value = PhotoEventEntity::class,
             parentColumn = "eventId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>,
+    val photos: List<PhotoEntity>,
 
     @Relation(
         parentColumn = "id",

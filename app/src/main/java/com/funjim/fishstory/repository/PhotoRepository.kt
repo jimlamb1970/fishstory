@@ -13,12 +13,6 @@ import android.util.Log
 import android.util.Size
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.PhotoEventCrossRef
-import com.funjim.fishstory.model.PhotoFishCrossRef
-import com.funjim.fishstory.model.PhotoFishermanCrossRef
-import com.funjim.fishstory.model.PhotoLureCrossRef
-import com.funjim.fishstory.model.PhotoSpeciesCrossRef
-import com.funjim.fishstory.model.PhotoTripCrossRef
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -30,9 +24,19 @@ import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.room.withTransaction
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.model.PhotoBaitCrossRef
-import com.funjim.fishstory.model.PhotoBodyOfWaterCrossRef
+import com.funjim.fishstory.database.PhotoBaitEntity
+import com.funjim.fishstory.database.PhotoBodyOfWaterEntity
+import com.funjim.fishstory.database.PhotoEntity
+import com.funjim.fishstory.database.PhotoEventEntity
+import com.funjim.fishstory.database.PhotoFishEntity
+import com.funjim.fishstory.database.PhotoFishermanEntity
+import com.funjim.fishstory.database.PhotoLureEntity
+import com.funjim.fishstory.database.PhotoSpeciesEntity
+import com.funjim.fishstory.database.PhotoTripEntity
+import com.funjim.fishstory.database.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.toPhotoDomainList
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 data class PhotoMetadata(
     val hashcode: String,
@@ -238,11 +242,21 @@ class PhotoRepository(
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    fun getPhotosForTrip(id: String): Flow<List<Photo>> = photoDao.getPhotosForTrip(id)
-    fun getPhotosForEvent(id: String): Flow<List<Photo>> = photoDao.getPhotosForEvent(id)
-    fun getPhotosForFisherman(id: String): Flow<List<Photo>> = photoDao.getPhotosForFisherman(id)
-    fun getPhotosForFish(id: String): Flow<List<Photo>> = photoDao.getPhotosForFish(id)
-    fun getPhotosForLure(id: String): Flow<List<Photo>> = photoDao.getPhotosForLure(id)
+    fun getPhotosForTrip(id: String): Flow<List<Photo>> {
+        return photoDao.getPhotosForTrip(id).map { list -> list.toPhotoDomainList() }
+    }
+    fun getPhotosForEvent(id: String): Flow<List<Photo>> {
+        return photoDao.getPhotosForEvent(id).map { list -> list.toPhotoDomainList() }
+    }
+    fun getPhotosForFisherman(id: String): Flow<List<Photo>> {
+        return photoDao.getPhotosForFisherman(id).map { list -> list.toPhotoDomainList() }
+    }
+    fun getPhotosForFish(id: String): Flow<List<Photo>> {
+        return photoDao.getPhotosForFish(id).map { list -> list.toPhotoDomainList() }
+    }
+    fun getPhotosForLure(id: String): Flow<List<Photo>> {
+        return photoDao.getPhotosForLure(id).map { list -> list.toPhotoDomainList() }
+    }
 
     suspend fun addPhoto(
         uri: Uri,
@@ -263,7 +277,7 @@ class PhotoRepository(
                 val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
                     ?: throw IOException("Could not save scaled photo for URI: $uri")
 
-                val photo = Photo(
+                val photo = PhotoEntity(
                     uri = scaledPath,
                     hashcode = metadata.hashcode,
                     thumbnail = metadata.thumbnail
@@ -289,29 +303,29 @@ class PhotoRepository(
     }
     suspend fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addTripPhoto(PhotoTripCrossRef(photoId, tripId))
+            photoDao.addTripPhoto(PhotoTripEntity(photoId, tripId))
         }
 
     suspend fun setTripThumbnail(tripId: String, photoId: String) =
         photoDao.setPrimaryPhotoForTrip(tripId = tripId, photoId = photoId)
 
     suspend fun deleteTripPhoto(tripId: String, photoId: String) =
-        photoDao.deleteTripPhoto(PhotoTripCrossRef(photoId, tripId))
+        photoDao.deleteTripPhoto(PhotoTripEntity(photoId, tripId))
 
     suspend fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addEventPhoto(PhotoEventCrossRef(photoId, eventId))
+            photoDao.addEventPhoto(PhotoEventEntity(photoId, eventId))
         }
 
     suspend fun setEventThumbnail(eventId: String, photoId: String) =
         photoDao.setPrimaryPhotoForEvent(eventId = eventId, photoId = photoId)
 
     suspend fun deleteEventPhoto(eventId: String, photoId: String) =
-        photoDao.deleteEventPhoto(PhotoEventCrossRef(photoId, eventId))
+        photoDao.deleteEventPhoto(PhotoEventEntity(photoId, eventId))
 
     suspend fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addFishermanPhoto(PhotoFishermanCrossRef(photoId, fishermanId))
+            photoDao.addFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
         }
 
     suspend fun setFishermanThumbnail(fishermanId: String, photoId: String) =
@@ -319,19 +333,22 @@ class PhotoRepository(
 
 
     suspend fun deleteFishermanPhoto(fishermanId: String, photoId: String) =
-        photoDao.deleteFishermanPhoto(PhotoFishermanCrossRef(photoId, fishermanId))
+        photoDao.deleteFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
 
     suspend fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addLurePhoto(PhotoLureCrossRef(
-                photoId = photoId,
-                lureId = lureId))
+            photoDao.addLurePhoto(
+                PhotoLureEntity(
+                    photoId = photoId,
+                    lureId = lureId
+                )
+            )
         }
 
     suspend fun addLurePhotos(lureId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->
-                photoDao.addLurePhoto(PhotoLureCrossRef(photoId, lureId)).toString()
+                photoDao.addLurePhoto(PhotoLureEntity(photoId, lureId)).toString()
             }
                 .onSuccess { }
                 .onFailure { }
@@ -343,19 +360,19 @@ class PhotoRepository(
 
 
     suspend fun deleteLurePhoto(lureId: String, photo: Photo) {
-        photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))
+        photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
     }
 
     suspend fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
         photos.forEach { photo ->
-            photoDao.deleteLurePhoto(PhotoLureCrossRef(photo.id, lureId))
+            photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
         }
     }
 
     suspend fun addFishPhotos(fishId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->
-                photoDao.addFishPhoto(PhotoFishCrossRef(photoId, fishId)).toString()
+                photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId)).toString()
             }
                 .onSuccess { }
                 .onFailure { }
@@ -363,16 +380,16 @@ class PhotoRepository(
     }
     suspend fun deleteFishPhotos(fishId: String, photos: List<Photo>) {
         photos.forEach { photo ->
-            photoDao.deleteFishPhoto(PhotoFishCrossRef(photo.id, fishId))
+            photoDao.deleteFishPhoto(PhotoFishEntity(photo.id, fishId))
         }
     }
 
     suspend fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addFishPhoto(PhotoFishCrossRef(photoId, fishId))
+            photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId))
         }
     suspend fun deleteFishPhoto(fishId: String, photoId: String) =
-        photoDao.deleteFishPhoto(PhotoFishCrossRef(photoId, fishId))
+        photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
 
     fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
         return photoDao.getThumbnailForTrip(id)
@@ -459,7 +476,7 @@ class PhotoRepository(
             val metadata = getPhotoMetadata(uri)
 
             // 3) Create a new entry for the photo table
-            val photo = Photo(
+            val photo = PhotoEntity(
                 uri = "bait_thumb_${id}_${System.currentTimeMillis()}",
                 hashcode = metadata.hashcode,
                 thumbnail = metadata.thumbnail
@@ -467,7 +484,7 @@ class PhotoRepository(
             photoDao.insertPhoto(photo)
 
             // 4) Add the new photo species cross ref
-            photoDao.addBaitPhoto(PhotoBaitCrossRef(photo.id, id, true))
+            photoDao.addBaitPhoto(PhotoBaitEntity(photo.id, id, true))
         }
     }
 
@@ -484,7 +501,7 @@ class PhotoRepository(
             val metadata = getPhotoMetadata(uri)
 
             // 3) Create a new entry for the photo table
-            val photo = Photo(
+            val photo = PhotoEntity(
                 uri = "body_of_water_thumb_${id}_${System.currentTimeMillis()}",
                 hashcode = metadata.hashcode,
                 thumbnail = metadata.thumbnail
@@ -492,7 +509,7 @@ class PhotoRepository(
             photoDao.insertPhoto(photo)
 
             // 4) Add the new photo species cross ref
-            photoDao.addBodyOfWaterPhoto(PhotoBodyOfWaterCrossRef(photo.id, id, true))
+            photoDao.addBodyOfWaterPhoto(PhotoBodyOfWaterEntity(photo.id, id, true))
         }
     }
 
@@ -509,7 +526,7 @@ class PhotoRepository(
             val metadata = getPhotoMetadata(uri)
 
             // 3) Create a new entry for the photo table
-            val photo = Photo(
+            val photo = PhotoEntity(
                 uri = "species_thumb_${speciesId}_${System.currentTimeMillis()}",
                 hashcode = metadata.hashcode,
                 thumbnail = metadata.thumbnail
@@ -517,7 +534,7 @@ class PhotoRepository(
             photoDao.insertPhoto(photo)
 
             // 4) Add the new photo species cross ref
-            photoDao.addSpeciesPhoto(PhotoSpeciesCrossRef(photo.id, speciesId, true))
+            photoDao.addSpeciesPhoto(PhotoSpeciesEntity(photo.id, speciesId, true))
         }
     }
 

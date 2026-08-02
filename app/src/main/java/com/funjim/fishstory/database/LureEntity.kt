@@ -7,8 +7,6 @@ import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.PhotoLureCrossRef
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -127,12 +125,12 @@ data class LureEntityWithPhotos(
         parentColumn = "id",        // Lure ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
-            value = PhotoLureCrossRef::class,
+            value = PhotoLureEntity::class,
             parentColumn = "lureId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>
+    val photos: List<PhotoEntity>
 )
 
 data class LureEntityWithColors(
@@ -218,12 +216,12 @@ data class LureEntityWithDetails(
         parentColumn = "id",        // Lure ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
-            value = PhotoLureCrossRef::class,
+            value = PhotoLureEntity::class,
             parentColumn = "lureId",
             entityColumn = "photoId"
         )
     )
-    val photos: List<Photo>
+    val photos: List<PhotoEntity>
 )
 
 data class LureEntityWithColorsSummary(

@@ -6,6 +6,7 @@ import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.PhotoDao
+import com.funjim.fishstory.database.PhotoFishEntity
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
@@ -26,7 +27,6 @@ import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.PhotoFishCrossRef
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
@@ -199,7 +199,7 @@ class FishRepository(
     suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish)
 
     suspend fun addFishPhoto(fishId: String, photo: Photo) {
-        val result = photoDao.insertPhoto(photo)
+        val result = photoDao.insertPhoto(photo.toEntity())
 
         val photoId = if (result != -1L) {
             photo.id
@@ -208,11 +208,11 @@ class FishRepository(
         }
 
         if (photoId != null) {
-            photoDao.addFishPhoto(PhotoFishCrossRef(photoId, fishId))
+            photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId))
         }
     }
     suspend fun deleteFishPhoto(fishId: String, photoId: String) =
-        photoDao.deleteFishPhoto(PhotoFishCrossRef(photoId, fishId))
+        photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
 
     suspend fun updateFishBodyOfWater(
         newBodyOfWaterId: String?,
