@@ -11,7 +11,10 @@ import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.toDomain
+import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toLureWithColorsDomainList
+import com.funjim.fishstory.database.toSpeciesDomainList
+import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -44,11 +47,13 @@ class FishRepository(
 ) {
     // Basic Data Streams
     val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
+        .map { list -> list.toSpeciesDomainList() }
     val baitSummaries: Flow<List<BaitSummary>> = fishDao.getBaitSummaries()
         .map { list -> list.toBaitSummaryDomainList() }
     val bodyOfWaterSummaries: Flow<List<BodyOfWaterSummary>> = fishDao.getBodyOfWaterSummaries()
         .map { list -> list.toBodyOfWaterSummaryDomainList() }
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
+        .map { list -> list.toSpeciesSummaryDomainList() }
 
     fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {
         return bodyOfWaterDao.getBodiesOfWaterWithFish(
@@ -98,18 +103,19 @@ class FishRepository(
             eventId = filter.eventId,
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
-            tripId = filter.tripId)
+            tripId = filter.tripId).map { list -> list.toSpeciesDomainList() }
     }
 
     fun getBodyOfWater(id: String): Flow<BodyOfWater?> {
         return bodyOfWaterDao.getBodyOfWater(id)
             .map { entity -> entity?.toDomain() }
     }
-
     fun getEventById(id: String) = eventDao.getEventById(id)
     fun getFisherman(id: String) = fishermanDao.getFisherman(id)
-    fun getLure(id: String) = lureDao.getLure(id)
-    fun getSpecies(id: String) = fishDao.getSpecies(id)
+    fun getSpecies(id: String): Flow<Species?> {
+        return fishDao.getSpecies(id)
+            .map { entity -> entity?.toDomain() }
+    }
     fun getTrip(id: String) = tripDao.getTrip(id)
     fun getTripById(id: String) = tripDao.getTripById(id)
 
@@ -223,8 +229,13 @@ class FishRepository(
         )
     }
 
-    suspend fun addSpecies(species: Species) = fishDao.insertSpecies(species)
-    suspend fun upsertSpecies(species: Species) = fishDao.upsertSpecies(species)
-    suspend fun deleteSpecies(species: Species) = fishDao.deleteSpecies(species)
-
+    suspend fun addSpecies(species: Species) {
+        fishDao.insertSpecies(species.toEntity())
+    }
+    suspend fun upsertSpecies(species: Species) {
+        fishDao.upsertSpecies(species.toEntity())
+    }
+    suspend fun deleteSpecies(species: Species) {
+        fishDao.deleteSpecies(species.toEntity())
+    }
 }

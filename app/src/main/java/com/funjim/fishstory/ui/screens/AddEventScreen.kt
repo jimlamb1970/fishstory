@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
@@ -147,7 +148,8 @@ fun AddEventScreen(
                         longitude = null
                     )
                 }
-                viewModel.updateEventTargetSpecies(trip.targetSpecies)
+                // FIX LATER
+                viewModel.updateEventTargetSpecies(trip.targetSpecies.toSpeciesDomainList())
                 isDraftInitialized = true
             }
 

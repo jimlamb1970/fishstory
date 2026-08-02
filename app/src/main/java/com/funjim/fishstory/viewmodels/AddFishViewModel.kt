@@ -96,12 +96,6 @@ class AddFishViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedLure = _selectedLureId
-        .filterNotNull()
-        .flatMapLatest { id -> fishRepo.getLure(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
         .flatMapLatest { eventId ->
             if (eventId.isNullOrBlank()) {

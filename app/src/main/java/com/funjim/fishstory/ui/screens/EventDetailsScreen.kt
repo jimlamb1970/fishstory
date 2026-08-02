@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toWaterWithDetailsDomainList
 import com.funjim.fishstory.database.toWeatherWithDetailsDomainList
 import com.funjim.fishstory.model.BodyOfWater
@@ -517,7 +518,8 @@ fun EventDetailsScreen(
                             )
 
                             TargetSpeciesRow(
-                                items = eventDetails.targetSpecies,
+                                // FIX LATER
+                                items = eventDetails.targetSpecies.toSpeciesDomainList(),
                                 onAdd = { showSpeciesSelection = true },
                                 onDelete = { species ->
                                     viewModel.removeEventTargetSpecies(eventId, species.id)
@@ -860,9 +862,10 @@ fun EventDetailsScreen(
             }
 
             if (showSpeciesSelection) {
+                // FIX LATER
                 SpeciesSelection(
                     items = allSpecies,
-                    selectedItems = eventDetails.targetSpecies,
+                    selectedItems = eventDetails.targetSpecies.toSpeciesDomainList(),
                     onSelected = { selectedSpecies ->
                         viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
                     },

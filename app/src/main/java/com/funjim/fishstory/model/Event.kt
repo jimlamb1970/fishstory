@@ -5,6 +5,8 @@ import com.funjim.fishstory.database.BaitEntity
 import com.funjim.fishstory.database.BodyOfWaterEntity
 import com.funjim.fishstory.database.EventBaitEntity
 import com.funjim.fishstory.database.EventBodyOfWaterEntity
+import com.funjim.fishstory.database.EventTargetSpeciesEntity
+import com.funjim.fishstory.database.SpeciesEntity
 import com.funjim.fishstory.database.WaterEntity
 import com.funjim.fishstory.database.WaterEntityWithDetails
 import com.funjim.fishstory.database.WeatherEntity
@@ -104,12 +106,12 @@ data class EventWithDetails(
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventTargetSpecies::class,
+            value = EventTargetSpeciesEntity::class,
             parentColumn = "eventId",
             entityColumn = "speciesId"
         )
     )
-    val targetSpecies: List<Species>,
+    val targetSpecies: List<SpeciesEntity>,
 
     @Relation(
         entity = BaitEntity::class,
@@ -154,16 +156,16 @@ data class EventWithInfo(
     @Embedded val event: Event,
 
     @Relation(
-        entity = Species::class,
+        entity = SpeciesEntity::class,
         parentColumn = "id",
         entityColumn = "id",
         associateBy = Junction(
-            value = EventTargetSpecies::class,
+            value = EventTargetSpeciesEntity::class,
             parentColumn = "eventId",
             entityColumn = "speciesId"
         )
     )
-    val targetSpecies: List<Species>,
+    val targetSpecies: List<SpeciesEntity>,
 
     @Relation(
         entity = BaitEntity::class,

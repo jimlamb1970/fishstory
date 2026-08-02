@@ -238,7 +238,7 @@ ORDER BY s.startTime DESC"""
     ): Flow<List<Event>>
 
     @Query("SELECT * FROM event_target_species")
-    fun getAllEventTargetSpecies(): Flow<List<EventTargetSpecies>>
+    fun getAllEventTargetSpecies(): Flow<List<EventTargetSpeciesEntity>>
 
     @Query("""
         SELECT species_table.* FROM species_table
@@ -246,13 +246,13 @@ ORDER BY s.startTime DESC"""
         WHERE event_target_species.eventId = :eventId
         GROUP BY species_table.id
         """)
-    fun getEventTargetSpecies(eventId: String): Flow<List<Species>>
+    fun getEventTargetSpecies(eventId: String): Flow<List<SpeciesEntity>>
 
     @Upsert
-    suspend fun insertEventTargetSpecies(crossRef: EventTargetSpecies)
+    suspend fun insertEventTargetSpecies(crossRef: EventTargetSpeciesEntity)
 
     @Upsert
-    suspend fun insertTargetSpeciesForEvents(targets: List<EventTargetSpecies>)
+    suspend fun insertTargetSpeciesForEvents(targets: List<EventTargetSpeciesEntity>)
 
     @Query("DELETE FROM event_target_species WHERE eventId = :eventId AND speciesId = :speciesId")
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String)

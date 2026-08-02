@@ -10,14 +10,12 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFishermanCrossRef
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import kotlinx.coroutines.flow.Flow
 
@@ -219,7 +217,7 @@ ORDER BY t.startDate DESC
     ): Flow<List<Trip>>
 
     @Query("SELECT * FROM trip_target_species")
-    fun getAllTripTargetSpecies(): Flow<List<TripTargetSpecies>>
+    fun getAllTripTargetSpecies(): Flow<List<TripTargetSpeciesEntity>>
 
     @Query("""
         SELECT species_table.* FROM species_table
@@ -227,10 +225,10 @@ ORDER BY t.startDate DESC
         WHERE trip_target_species.tripId = :tripId
         GROUP BY species_table.id
         """)
-    fun getTripTargetSpecies(tripId: String): Flow<List<Species>>
+    fun getTripTargetSpecies(tripId: String): Flow<List<SpeciesEntity>>
 
     @Upsert
-    suspend fun insertTripTargetSpecies(crossRef: TripTargetSpecies)
+    suspend fun insertTripTargetSpecies(crossRef: TripTargetSpeciesEntity)
 
     @Query("DELETE FROM trip_target_species WHERE tripId = :tripId AND speciesId = :speciesId")
     suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String)

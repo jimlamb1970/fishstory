@@ -8,8 +8,6 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithCounts
-import com.funjim.fishstory.model.Species
-import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
 import com.funjim.fishstory.model.TripWithCounts
 import kotlinx.coroutines.flow.Flow
@@ -117,25 +115,25 @@ interface FishDao {
 
     @Transaction
     @Query("SELECT * FROM species_table WHERE id = :speciesId")
-    fun getSpecies(speciesId: String): Flow<Species?>
+    fun getSpecies(speciesId: String): Flow<SpeciesEntity?>
 
     @Query("SELECT * FROM species_table ORDER BY name ASC")
-    fun getAllSpecies(): Flow<List<Species>>
+    fun getAllSpecies(): Flow<List<SpeciesEntity>>
 
     @Query("SELECT * FROM species_table ORDER BY name ASC")
-    suspend fun getAllSpeciesList(): List<Species>
+    suspend fun getAllSpeciesList(): List<SpeciesEntity>
 
     @Query("DELETE FROM species_table")
     suspend fun deleteAllSpecies()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertSpecies(species: Species)
+    suspend fun insertSpecies(species: SpeciesEntity)
 
     @Upsert
-    suspend fun upsertSpecies(species: Species)
+    suspend fun upsertSpecies(species: SpeciesEntity)
 
     @Delete
-    suspend fun deleteSpecies(species: Species)
+    suspend fun deleteSpecies(species: SpeciesEntity)
 
     @Query("""
     SELECT 
@@ -243,7 +241,7 @@ interface FishDao {
         AND s.id = target.speciesId
     GROUP BY s.id
 """)
-    fun getSpeciesSummaries(): Flow<List<SpeciesSummary>>
+    fun getSpeciesSummaries(): Flow<List<SpeciesSummaryEntity>>
 
     @Query("""
     SELECT 
@@ -298,7 +296,7 @@ interface FishDao {
     FROM species_table AS s
     GROUP BY s.id
 """)
-    fun getSpeciesSummaries2(): Flow<List<SpeciesSummary>>
+    fun getSpeciesSummariesEx(): Flow<List<SpeciesSummaryEntity>>
 
     @Query("""
     SELECT 
@@ -499,5 +497,5 @@ interface FishDao {
         fishermanId: String? = null,
         lureId: String? = null,
         tripId: String? = null
-    ): Flow<List<Species>>
+    ): Flow<List<SpeciesEntity>>
 }

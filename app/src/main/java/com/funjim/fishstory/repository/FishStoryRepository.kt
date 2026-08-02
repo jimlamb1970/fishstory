@@ -9,6 +9,7 @@ import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.LureColorEntity
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
@@ -151,7 +152,7 @@ class FishStoryRepository(
                 } else {
                     speciesMap[speciesName] ?: run {
                         val newSpecies = Species(name = row[12])
-                        fishDao.insertSpecies(newSpecies)
+                        fishDao.insertSpecies(newSpecies.toEntity())
                         speciesMap[newSpecies.name] = newSpecies.id
                         newSpecies.id
                     }

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
@@ -436,7 +437,8 @@ fun TripDetailsScreen(
                             )
 
                             TargetSpeciesRow(
-                                items = details.targetSpecies,
+                                // FIX LATER
+                                items = details.targetSpecies.toSpeciesDomainList(),
                                 onAdd = { showSpeciesSelection = true },
                                 onDelete = { species ->
                                     viewModel.removeTripTargetSpecies(tripId, species.id)
@@ -698,7 +700,8 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             if (showSpeciesSelection) {
                 SpeciesSelection(
                     items = allSpecies,
-                    selectedItems = details.targetSpecies,
+                    // FIX LATER
+                    selectedItems = details.targetSpecies.toSpeciesDomainList(),
                     onSelected = { selectedSpecies ->
                         viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
                     },

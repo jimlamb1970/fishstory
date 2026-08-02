@@ -2,8 +2,11 @@ package com.funjim.fishstory.repository
 
 import androidx.room.withTransaction
 import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventFishermanCrossRef
@@ -148,13 +151,16 @@ class TripRepository(
         eventDao.removeFishermenNotInSet(segmentId, newSet)
 
     // Target Species
-    fun getEventTargetSpecies(eventId: String): Flow<List<Species>> =
-        eventDao.getEventTargetSpecies(eventId)
+    fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {
+        return eventDao.getEventTargetSpecies(eventId).map { speciesList ->
+            speciesList.toSpeciesDomainList()
+        }
+    }
     suspend fun insertEventTargetSpecies(
         crossRef: EventTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
-            eventDao.insertEventTargetSpecies(crossRef)
+            eventDao.insertEventTargetSpecies(crossRef.toEntity())
 
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
@@ -162,7 +168,7 @@ class TripRepository(
                     TripTargetSpecies(
                         tripId = tripId,
                         speciesId = crossRef.speciesId
-                    )
+                    ).toEntity()
                 )
             }
         }
@@ -170,21 +176,22 @@ class TripRepository(
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String) =
         eventDao.deleteEventTargetSpecies(eventId, speciesId)
 
-    fun getTripTargetSpecies(tripId: String): Flow<List<Species>> =
-        tripDao.getTripTargetSpecies(tripId)
+    fun getTripTargetSpecies(tripId: String): Flow<List<Species>> {
+        return tripDao.getTripTargetSpecies(tripId).map { speciesList ->
+            speciesList.toSpeciesDomainList()
+        }
+    }
 
     suspend fun insertTripTargetSpecies(
         crossRef: TripTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
-            tripDao.insertTripTargetSpecies(crossRef)
-
+            tripDao.insertTripTargetSpecies(crossRef.toEntity())
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
-
                 if (eventIds.isNotEmpty()) {
                     val eventTargets = eventIds.map { eventId ->
-                        EventTargetSpecies(eventId = eventId, speciesId = crossRef.speciesId)
+                        EventTargetSpeciesEntity(eventId = eventId, speciesId = crossRef.speciesId)
                     }
                     eventDao.insertTargetSpeciesForEvents(eventTargets)
                 }
@@ -194,9 +201,7 @@ class TripRepository(
     suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String) {
         database.withTransaction {
             tripDao.deleteTripTargetSpecies(tripId, speciesId)
-
             val eventIds = eventDao.getEventIdsForTrip(tripId)
-
             eventDao.deleteTargetSpeciesForEvents(eventIds, speciesId)
         }
     }

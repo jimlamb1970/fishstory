@@ -1,9 +1,25 @@
-package com.funjim.fishstory.model
+package com.funjim.fishstory.database
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.PrimaryKey
+import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.Trip
 import kotlinx.serialization.Serializable
+import java.util.UUID
+
+@Serializable
+@Entity(
+    tableName = "species_table",
+    indices = [Index(value = ["name"], unique = true)]
+)
+data class SpeciesEntity(
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val name: String
+)
 
 @Serializable
 @Entity(
@@ -21,14 +37,14 @@ import kotlinx.serialization.Serializable
             onDelete = ForeignKey.CASCADE // If event is deleted, targets wipe out cleanly
         ),
         ForeignKey(
-            entity = Species::class,
+            entity = SpeciesEntity::class,
             parentColumns = ["id"],
             childColumns = ["speciesId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class EventTargetSpecies(
+data class EventTargetSpeciesEntity(
     val eventId: String,
     val speciesId: String
 )
@@ -49,14 +65,24 @@ data class EventTargetSpecies(
             onDelete = ForeignKey.CASCADE // If trip is deleted, targets wipe out cleanly
         ),
         ForeignKey(
-            entity = Species::class,
+            entity = SpeciesEntity::class,
             parentColumns = ["id"],
             childColumns = ["speciesId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class TripTargetSpecies(
+data class TripTargetSpeciesEntity(
     val tripId: String,
     val speciesId: String
+)
+
+data class SpeciesSummaryEntity(
+    @Embedded val species: SpeciesEntity,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
+    val targetFishCaught: Int = 0,
+    val targetFishKept: Int = 0,
+    val largestFish: Double,
+    val smallestFish: Double
 )

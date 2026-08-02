@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.collections.List
@@ -40,9 +41,9 @@ data class DatabaseExportData(
     val lureGlowColors: List<LureGlowColorEntity> = emptyList(),
     val tackleboxes: List<TackleBox>,
     val tackleBoxLureCrossRef: List<TackleBoxLureCrossRef>,
-    val species: List<Species>,
-    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
-    val tripTargetSpecies: List<TripTargetSpecies> = emptyList(),
+    val species: List<SpeciesEntity> = emptyList(),
+    val eventTargetSpecies: List<EventTargetSpeciesEntity> = emptyList(),
+    val tripTargetSpecies: List<TripTargetSpeciesEntity> = emptyList(),
     val fish: List<Fish>,
     val photos: List<Photo>,
     val photoBait: List<PhotoBaitCrossRef> = emptyList(),
@@ -84,6 +85,7 @@ class MainViewModel(
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
 
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
+        .map { list -> list.toSpeciesDomainList() }
     val allFish: Flow<List<FishWithDetails>> =
         fishDao.getFishWithDetails(null, null, null, null, null)
 

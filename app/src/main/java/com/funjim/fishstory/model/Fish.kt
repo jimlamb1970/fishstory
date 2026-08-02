@@ -11,19 +11,9 @@ import com.funjim.fishstory.database.BaitEntity
 import com.funjim.fishstory.database.LureEntity
 import com.funjim.fishstory.database.LureEntityWithColors
 import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.SpeciesEntity
 import kotlinx.serialization.Serializable
 import java.util.UUID
-
-@Serializable
-@Entity(
-    tableName = "species_table",
-    indices = [Index(value = ["name"], unique = true)]
-)
-data class Species(
-    @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
-    val name: String
-)
 
 // TODO -- add the ability to add fish without a trip and/or event
 @Serializable
@@ -31,7 +21,7 @@ data class Species(
     tableName = "fish_table",
     foreignKeys = [
         ForeignKey(
-            entity = Species::class,
+            entity = SpeciesEntity::class,
             parentColumns = ["id"],
             childColumns = ["speciesId"],
             onDelete = ForeignKey.RESTRICT
@@ -119,7 +109,7 @@ data class FishWithDetails(
         parentColumn = "speciesId",
         entityColumn = "id"
     )
-    val species: Species,
+    val species: SpeciesEntity,
 
     @Relation(
         parentColumn = "fishermanId",
@@ -170,16 +160,6 @@ data class FishWithDetails(
         }
 }
 
-data class SpeciesSummary(
-    @Embedded val species: Species,
-    val fishCaught: Int = 0,
-    val fishKept: Int = 0,
-    val targetFishCaught: Int = 0,
-    val targetFishKept: Int = 0,
-    val largestFish: Double,
-    val smallestFish: Double
-)
-
 data class FishCounts(
     val totalCaught: Int = 0,
     val totalKept: Int = 0,
@@ -211,7 +191,7 @@ data class FishermanWithCounts(
 )
 
 data class SpeciesWithCounts(
-    @Embedded val species: Species,
+    @Embedded val species: SpeciesEntity,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
