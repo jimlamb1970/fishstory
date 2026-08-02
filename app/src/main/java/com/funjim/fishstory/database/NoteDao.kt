@@ -5,49 +5,45 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.funjim.fishstory.model.NoteFishCrossRef
-import com.funjim.fishstory.model.NoteEventCrossRef
-import com.funjim.fishstory.model.Note
-import com.funjim.fishstory.model.NoteTripCrossRef
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNote(note: Note)
+    suspend fun insertNote(note: NoteEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTripNoteCrossRef(crossRef: NoteTripCrossRef)
+    suspend fun insertTripNoteCrossRef(crossRef: NoteTripEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEventNoteCrossRef(crossRef: NoteEventCrossRef)
+    suspend fun insertEventNoteCrossRef(crossRef: NoteEventEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFishNoteCrossRef(crossRef: NoteFishCrossRef)
+    suspend fun insertFishNoteCrossRef(crossRef: NoteFishEntity)
 
     // Transaction to add a note to a specific Trip
     @Transaction
     suspend fun addNoteToTrip(tripId: String, noteText: String) {
-        val note = Note(text = noteText)
+        val note = NoteEntity(text = noteText)
         insertNote(note)
-        insertTripNoteCrossRef(NoteTripCrossRef(tripId = tripId, noteId = note.id))
+        insertTripNoteCrossRef(NoteTripEntity(tripId = tripId, noteId = note.id))
     }
 
     // Transaction to add a note to a specific Event
     @Transaction
     suspend fun addNoteToEvent(eventId: String, noteText: String) {
-        val note = Note(text = noteText)
+        val note = NoteEntity(text = noteText)
         insertNote(note)
-        insertEventNoteCrossRef(NoteEventCrossRef(eventId = eventId, noteId = note.id))
+        insertEventNoteCrossRef(NoteEventEntity(eventId = eventId, noteId = note.id))
     }
 
     // Transaction to add a note to a specific Fish Catch
     @Transaction
     suspend fun addNoteToFish(fishId: String, noteText: String) {
-        val note = Note(text = noteText)
+        val note = NoteEntity(text = noteText)
         insertNote(note)
-        insertFishNoteCrossRef(NoteFishCrossRef(fishId = fishId, noteId = note.id))
+        insertFishNoteCrossRef(NoteFishEntity(fishId = fishId, noteId = note.id))
     }
 
     // Fetch all notes for a specific Trip detail screen
@@ -58,7 +54,7 @@ interface NoteDao {
         WHERE xr.tripId = :tripId
         ORDER BY n.timestamp DESC
     """)
-    fun getNotesForTrip(tripId: String): Flow<List<Note>>
+    fun getNotesForTrip(tripId: String): Flow<List<NoteEntity>>
 
     // Fetch all notes for a specific Event detail screen
     @Transaction
@@ -68,7 +64,7 @@ interface NoteDao {
         WHERE xr.eventId = :eventId
         ORDER BY n.timestamp DESC
     """)
-    fun getNotesForEvent(eventId: String): Flow<List<Note>>
+    fun getNotesForEvent(eventId: String): Flow<List<NoteEntity>>
 
     // Fetch all notes for a specific Fish detail screen
     @Transaction
@@ -78,5 +74,5 @@ interface NoteDao {
         WHERE xr.fishId = :fishId
         ORDER BY n.timestamp DESC
     """)
-    fun getNotesForFish(fishId: String): Flow<List<Note>>
+    fun getNotesForFish(fishId: String): Flow<List<NoteEntity>>
 }
