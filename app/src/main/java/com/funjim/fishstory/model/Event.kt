@@ -1,6 +1,8 @@
 package com.funjim.fishstory.model
 
 import androidx.room.*
+import com.funjim.fishstory.database.WeatherEntity
+import com.funjim.fishstory.database.WeatherEntityWithDetails
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -132,7 +134,14 @@ data class EventWithDetails(
         parentColumn = "id",
         entityColumn = "eventId"
     )
-    val waterList: List<WaterWithDetails>
+    val waterList: List<WaterWithDetails>,
+
+    @Relation(
+        entity = WeatherEntity::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val weatherList: List<WeatherEntityWithDetails>,
 )
 
 data class EventWithInfo(

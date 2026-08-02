@@ -161,6 +161,13 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
+    val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -233,6 +240,10 @@ class EventViewModel(
             .flowOn(Dispatchers.IO)
     }
 
+    fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
@@ -279,6 +290,29 @@ class EventViewModel(
         }
     }
 
+    fun addWeather(weather: Weather) {
+        viewModelScope.launch {
+            envRepo.addWeather(weather)
+        }
+    }
+
+    fun addSkyCondition(skyCondition: SkyCondition) {
+        viewModelScope.launch {
+            envRepo.addSkyCondition(skyCondition)
+        }
+    }
+
+    fun deleteWeather(id: String) {
+        viewModelScope.launch {
+            envRepo.deleteWeather(id = id)
+        }
+    }
+
+    fun upsertWeather(weather: Weather) {
+        viewModelScope.launch {
+            envRepo.upsertWeather(weather)
+        }
+    }
 
     fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {

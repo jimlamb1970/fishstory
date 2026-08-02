@@ -19,5 +19,5 @@ data class Weather(
 
 data class WeatherWithDetails(
     val weather: Weather,
-    val skyCondition: SkyCondition
+    val skyCondition: SkyCondition? = null
 )

@@ -51,5 +51,5 @@ data class WeatherEntityWithDetails(
         parentColumn = "skyConditionId",
         entityColumn = "id"
     )
-    val skyCondition: SkyConditionEntity
+    val skyCondition: SkyConditionEntity? = null
 )
