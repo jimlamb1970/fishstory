@@ -174,14 +174,10 @@ fun EventDetailsScreen(
 
             // Sort water snapshots descending (most recent first)
             val sortedWaterList = remember(eventDetails.waterList) {
-                eventDetails.waterList.toWaterWithDetailsDomainList().sortedByDescending { it.water.timestamp }
-                // FIX LATER
-//                eventDetails.waterList.sortedByDescending { it.water.timestamp }
+                eventDetails.waterList.sortedByDescending { it.water.timestamp }
             }
             val sortedWeatherList = remember(eventDetails.weatherList) {
-                eventDetails.weatherList.toWeatherWithDetailsDomainList().sortedByDescending { it.weather.timestamp }
-                // FIX LATER
-//                eventDetails.weatherList.sortedByDescending { it.weather.timestamp }
+                eventDetails.weatherList.sortedByDescending { it.weather.timestamp }
             }
 
             Scaffold(
@@ -413,8 +409,7 @@ fun EventDetailsScreen(
                             )
 
                             PhotoPickerRow(
-                                // FIX LATER
-                                photos = eventDetails.photos.toPhotoDomainList(),
+                                photos = eventDetails.photos,
                                 onPhotoSelected = { uri ->
                                     viewModel.addEventPhoto(eventId = eventId, uri = uri, true)
                                 },
@@ -486,9 +481,7 @@ fun EventDetailsScreen(
                             )
 
                             BodiesOfWaterRow(
-//                                items = eventDetails.bodiesOfWater,
-                                // FIX LATER
-                                items = eventDetails.bodiesOfWater.toBodyOfWaterDomainList(),
+                                items = eventDetails.bodiesOfWater,
                                 onAdd = { showBodiesOfWaterSelection = true },
                                 onClick = { bodyOfWater ->
                                     bodyOfWaterToUpdateAll = bodyOfWater
@@ -520,8 +513,7 @@ fun EventDetailsScreen(
                             )
 
                             TargetSpeciesRow(
-                                // FIX LATER
-                                items = eventDetails.targetSpecies.toSpeciesDomainList(),
+                                items = eventDetails.targetSpecies,
                                 onAdd = { showSpeciesSelection = true },
                                 onDelete = { species ->
                                     viewModel.removeEventTargetSpecies(eventId, species.id)
@@ -864,10 +856,9 @@ fun EventDetailsScreen(
             }
 
             if (showSpeciesSelection) {
-                // FIX LATER
                 SpeciesSelection(
                     items = allSpecies,
-                    selectedItems = eventDetails.targetSpecies.toSpeciesDomainList(),
+                    selectedItems = eventDetails.targetSpecies,
                     onSelected = { selectedSpecies ->
                         viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
                     },
@@ -898,9 +889,7 @@ fun EventDetailsScreen(
             if (showBodiesOfWaterSelection) {
                 BodyOfWaterSelection(
                     items = allBodiesOfWater,
-                    // FIX LATER
-                    //selectedItems = eventDetails.bodiesOfWater,
-                    selectedItems = eventDetails.bodiesOfWater.toBodyOfWaterDomainList(),
+                    selectedItems = eventDetails.bodiesOfWater,
                     onSelected = { selectedBodyOfWater ->
                         viewModel.addEventBodyOfWater(eventId, selectedBodyOfWater.id)
                     },

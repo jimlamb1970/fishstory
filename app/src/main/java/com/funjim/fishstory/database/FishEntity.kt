@@ -25,19 +25,19 @@ import java.util.UUID
             onDelete = ForeignKey.RESTRICT
         ),
         ForeignKey(
-            entity = Fisherman::class,
+            entity = FishermanEntity::class,
             parentColumns = ["id"],
             childColumns = ["fishermanId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
@@ -111,17 +111,17 @@ data class FishEntityWithDetails(
         parentColumn = "fishermanId",
         entityColumn = "id"
     )
-    val fisherman: Fisherman,
+    val fisherman: FishermanEntity,
     @Relation(
         parentColumn = "tripId",
         entityColumn = "id"
     )
-    val trip: Trip,
+    val trip: TripEntity,
     @Relation(
         parentColumn = "eventId",
         entityColumn = "id"
     )
-    val event: Event,
+    val event: EventEntity,
     @Relation(
         entity = LureEntity::class,
         parentColumn = "lureId",
@@ -143,20 +143,32 @@ data class FishEntityWithDetails(
     val photoCount: Int = 0
 )
 
+data class FishCountsEntity(
+    val totalCaught: Int = 0,
+    val totalKept: Int = 0,
+    val totalTargetCaught: Int = 0,
+    val totalTargetKept: Int = 0,
+    val bodyOfWaterCount: Int = 0,
+    val eventCount: Int = 0,
+    val fishermanCount: Int = 0,
+    val lureCount: Int = 0,
+    val tripCount: Int = 0,
+)
+
 data class TripEntityWithCounts(
-    @Embedded val trip: Trip,
+    @Embedded val trip: TripEntity,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class EventEntityWithCounts(
-    @Embedded val event: Event,
+    @Embedded val event: EventEntity,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
 
 data class FishermanEntityWithCounts(
-    @Embedded val fisherman: Fisherman,
+    @Embedded val fisherman: FishermanEntity,
     val totalCaught: Int = 0,
     val totalKept: Int = 0
 )
@@ -174,7 +186,7 @@ data class LureEntityWithCounts(
 )
 
 data class FishSummaryEntity(
-    val counts: FishCounts = FishCounts(),
+    val counts: FishCountsEntity = FishCountsEntity(),
     val topTrip: TripEntityWithCounts? = null,
     val topEvent: EventEntityWithCounts? = null,
     val topFisherman: FishermanEntityWithCounts? = null,

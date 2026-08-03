@@ -2,6 +2,7 @@ package com.funjim.fishstory.database
 
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.FishermanWithCounts
@@ -62,10 +63,24 @@ fun Fish.toEntity(): FishEntity {
     )
 }
 
+fun FishCountsEntity.toDomain(): FishCounts {
+    return FishCounts(
+        totalCaught = totalCaught,
+        totalKept = totalKept,
+        totalTargetCaught = totalTargetCaught,
+        totalTargetKept = totalTargetKept,
+        bodyOfWaterCount = bodyOfWaterCount,
+        eventCount = eventCount,
+        fishermanCount = fishermanCount,
+        lureCount = lureCount,
+        tripCount = tripCount
+    )
+}
+
+
 fun TripEntityWithCounts.toDomain(): TripWithCounts {
     return TripWithCounts(
-        // FIX LATER
-        trip = trip,
+        trip = trip.toDomain(),
         totalCaught = totalCaught,
         totalKept = totalKept
     )
@@ -73,8 +88,7 @@ fun TripEntityWithCounts.toDomain(): TripWithCounts {
 
 fun EventEntityWithCounts.toDomain(): EventWithCounts {
     return EventWithCounts(
-        // FIX LATER
-        event = event,
+        event = event.toDomain(),
         totalCaught = totalCaught,
         totalKept = totalKept
     )
@@ -82,8 +96,7 @@ fun EventEntityWithCounts.toDomain(): EventWithCounts {
 
 fun FishermanEntityWithCounts.toDomain(): FishermanWithCounts {
     return FishermanWithCounts(
-        // FIX LATER
-        fisherman = fisherman,
+        fisherman = fisherman.toDomain(),
         totalCaught = totalCaught,
         totalKept = totalKept
     )
@@ -99,7 +112,6 @@ fun SpeciesEntityWithCounts.toDomain(): SpeciesWithCounts {
 
 fun LureEntityWithCounts.toDomain(): LureWithCounts {
     return LureWithCounts(
-        // FIX LATER
         lure = lure.toDomain(),
         totalCaught = totalCaught,
         totalKept = totalKept
@@ -108,12 +120,11 @@ fun LureEntityWithCounts.toDomain(): LureWithCounts {
 
 fun FishEntityWithDetails.toDomain(): FishWithDetails {
     return FishWithDetails(
-        // FIX LATER
         fish = fish.toDomain(),
         species = species.toDomain(),
-        fisherman = fisherman,
-        trip = trip,
-        event = event,
+        fisherman = fisherman.toDomain(),
+        trip = trip.toDomain(),
+        event = event.toDomain(),
         lure = lure?.toDomain(),
         bait = bait?.toDomain(),
         bodyOfWater = bodyOfWater?.toDomain(),

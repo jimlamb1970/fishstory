@@ -247,8 +247,7 @@ fun FishermanDetailsScreen(
 
                                         if (tackleBox != null) {
                                             TackleBoxCard(
-                                                // FIX LATER
-                                                tackleBox.toDomain(),
+                                                tackleBox,
                                                 index = page,
                                                 totalItems = totalTackleBoxes,
                                                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -258,8 +257,7 @@ fun FishermanDetailsScreen(
                                                         tackleBox.tackleBox.id
                                                     )
                                                 },
-                                                // FIX LATER
-                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox.toDomain() }
+                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox }
                                             )
                                         }
                                     }
@@ -297,8 +295,7 @@ fun FishermanDetailsScreen(
                             itemsIndexed(details.tackleBoxesWithLures) { index, tackleBoxWithLures ->
                                 tackleBoxWithLures?.let {
                                     TackleBoxCard(
-                                        // FIX LATER
-                                        tackleBoxWithLures.toDomain(),
+                                        tackleBoxWithLures,
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
@@ -312,7 +309,7 @@ fun FishermanDetailsScreen(
                                                 tackleBoxWithLures.tackleBox.id
                                             )
                                         },
-                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox.toDomain() }
+                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox }
                                     )
                                 }
                             }

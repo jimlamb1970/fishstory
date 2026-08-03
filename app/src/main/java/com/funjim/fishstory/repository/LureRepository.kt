@@ -12,6 +12,7 @@ import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toLureWithColorsSummaryDomainList
 import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor
@@ -107,7 +108,9 @@ class LureRepository(
         baitDao.deleteBait(bait.toEntity())
     }
 
-    suspend fun getFishermanById(id: String) = fishermanDao.getFishermanById(id)
+    suspend fun getFishermanById(id: String): Fisherman? {
+        return fishermanDao.getFishermanById(id)?.toDomain()
+    }
     fun getTackleBoxById(id: String): Flow<TackleBox?> {
         return tackleBoxDao.getTackleBoxById(id).map { entity -> entity?.toDomain() }
     }

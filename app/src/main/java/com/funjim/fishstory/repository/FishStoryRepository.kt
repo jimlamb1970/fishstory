@@ -6,16 +6,14 @@ import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.EventFishermanEntity
 import com.funjim.fishstory.database.FishEntity
 import com.funjim.fishstory.database.LureColorEntity
+import com.funjim.fishstory.database.LureEntity
+import com.funjim.fishstory.database.SpeciesEntity
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TripDao
-import com.funjim.fishstory.database.toEntity
-import com.funjim.fishstory.model.Fish
-import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.EventFishermanCrossRef
-import com.funjim.fishstory.model.Species
-import com.funjim.fishstory.model.TripFishermanCrossRef
+import com.funjim.fishstory.database.TripFishermanEntity
 import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -92,9 +90,15 @@ class FishStoryRepository(
                 val tackleBoxName = "LOTW ${row[0]}"
                 val tackleBoxId = tackleBoxDao.getOrCreate(fishermanId, tackleBoxName)
 
-                tripDao.upsertTripFishermanCrossRef(TripFishermanCrossRef(tripId, fishermanId, tackleBoxId))
-                eventDao.upsertEventFishermanCrossRef(
-                    EventFishermanCrossRef(
+                tripDao.upsertTripFisherman(
+                    TripFishermanEntity(
+                        tripId,
+                        fishermanId,
+                        tackleBoxId
+                    )
+                )
+                eventDao.upsertEventFisherman(
+                    EventFishermanEntity(
                         segmentId,
                         fishermanId,
                         tackleBoxId
@@ -150,15 +154,15 @@ class FishStoryRepository(
                     null
                 } else {
                     speciesMap[speciesName] ?: run {
-                        val newSpecies = Species(name = row[12])
-                        fishDao.insertSpecies(newSpecies.toEntity())
+                        val newSpecies = SpeciesEntity(name = row[12])
+                        fishDao.insertSpecies(newSpecies)
                         speciesMap[newSpecies.name] = newSpecies.id
                         newSpecies.id
                     }
                 }
 
                 // To do this, now have to look up the cross references as well as the lure
-                val lure = Lure(
+                val lure = LureEntity(
                     name = row[7],
 //                    primaryColorId = primaryId,
 //                    secondaryColorId = secondaryId,

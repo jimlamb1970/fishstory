@@ -367,8 +367,7 @@ fun TripDetailsScreen(
                             )
 
                             PhotoPickerRow(
-                                //FIX LATER
-                                photos = details.photos.toPhotoDomainList(),
+                                photos = details.photos,
                                 onPhotoSelected = { uri ->
                                     viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
                                 },
@@ -405,9 +404,7 @@ fun TripDetailsScreen(
                             )
 
                             BodiesOfWaterRow(
-                                // FIX LATER
-                                //items = details.bodiesOfWater,
-                                items = details.bodiesOfWater.toBodyOfWaterDomainList(),
+                                items = details.bodiesOfWater,
                                 onAdd = { showBodiesOfWaterSelection = true },
                                 onClick = { bodyOfWater ->
                                     bodyOfWaterToUpdateAll = bodyOfWater
@@ -439,8 +436,7 @@ fun TripDetailsScreen(
                             )
 
                             TargetSpeciesRow(
-                                // FIX LATER
-                                items = details.targetSpecies.toSpeciesDomainList(),
+                                items = details.targetSpecies,
                                 onAdd = { showSpeciesSelection = true },
                                 onDelete = { species ->
                                     viewModel.removeTripTargetSpecies(tripId, species.id)
@@ -702,8 +698,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             if (showSpeciesSelection) {
                 SpeciesSelection(
                     items = allSpecies,
-                    // FIX LATER
-                    selectedItems = details.targetSpecies.toSpeciesDomainList(),
+                    selectedItems = details.targetSpecies,
                     onSelected = { selectedSpecies ->
                         viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
                     },
@@ -736,9 +731,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             if (showBodiesOfWaterSelection) {
                 BodyOfWaterSelection(
                     items = allBodiesOfWater,
-                    // FIX LATER
-                    //selectedItems = details.bodiesOfWater,
-                    selectedItems = details.bodiesOfWater.toBodyOfWaterDomainList(),
+                    selectedItems = details.bodiesOfWater,
                     onSelected = { selectedBodyOfWater ->
                         viewModel.addTripBodyOfWater(tripId, selectedBodyOfWater.id)
                     },

@@ -29,7 +29,7 @@ data class NoteEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE
@@ -57,7 +57,7 @@ data class NoteTripEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE

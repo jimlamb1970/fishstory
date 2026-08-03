@@ -13,17 +13,22 @@ import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toEventDomainList
 import com.funjim.fishstory.database.toFishWithDetailsDomainList
+import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
+import com.funjim.fishstory.database.toTripDomainList
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
@@ -66,28 +71,34 @@ class FishRepository(
         ).map { list -> list.toBodyOfWaterDomainList() }
     }
 
-    fun getTrips(filter: FishFilter): Flow<List<Trip>> =
-        tripDao.getTripsWithFish(
+    fun getTrips(filter: FishFilter): Flow<List<Trip>> {
+        return tripDao.getTripsWithFish(
             bodyOfWaterId = filter.bodyOfWaterId,
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
-            speciesId = filter.speciesId)
+            speciesId = filter.speciesId
+        ).map { list -> list.toTripDomainList() }
+    }
 
-    fun getEvents(filter: FishFilter) =
-        eventDao.getEventsWithFish(
+    fun getEvents(filter: FishFilter): Flow<List<Event>> {
+        return eventDao.getEventsWithFish(
             bodyOfWaterId = filter.bodyOfWaterId,
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId
+        ).map { list -> list.toEventDomainList() }
+    }
 
-    fun getFishermen(filter: FishFilter) =
-        fishermanDao.getFishermenWithFish(
+    fun getFishermen(filter: FishFilter): Flow<List<Fisherman>> {
+        return fishermanDao.getFishermenWithFish(
             bodyOfWaterId = filter.bodyOfWaterId,
             eventId = filter.eventId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId
+        ).map { list -> list.toFishermanDomainList() }
+    }
 
     fun getLures(filter: FishFilter): Flow<List<LureWithColors>> {
         return lureDao.getLuresWithFish(
@@ -95,7 +106,8 @@ class FishRepository(
             eventId = filter.eventId,
             fishermanId = filter.fishermanId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId).map { list -> list.toLureWithColorsDomainList() }
+            tripId = filter.tripId
+        ).map { list -> list.toLureWithColorsDomainList() }
     }
 
     fun getSpecies(filter: FishFilter): Flow<List<Species>> {
@@ -111,14 +123,22 @@ class FishRepository(
         return bodyOfWaterDao.getBodyOfWater(id)
             .map { entity -> entity?.toDomain() }
     }
-    fun getEventById(id: String) = eventDao.getEventById(id)
-    fun getFisherman(id: String) = fishermanDao.getFisherman(id)
+    fun getEventById(id: String): Flow<Event?> {
+        return eventDao.getEventById(id)
+            .map { entity -> entity?.toDomain() }
+    }
+    fun getFisherman(id: String): Flow<Fisherman?> {
+        return fishermanDao.getFisherman(id)
+            .map { entity -> entity?.toDomain() }
+    }
     fun getSpecies(id: String): Flow<Species?> {
         return fishDao.getSpecies(id)
             .map { entity -> entity?.toDomain() }
     }
-    fun getTrip(id: String) = tripDao.getTrip(id)
-    fun getTripById(id: String) = tripDao.getTripById(id)
+    fun getTrip(id: String): Flow<Trip?> {
+        return tripDao.getTrip(id)
+            .map { entity -> entity?.toDomain() }
+    }
 
     fun getFishCounts(filter: FishFilter): Flow<FishCounts> {
         return fishDao.getFishCounts(
@@ -127,7 +147,8 @@ class FishRepository(
             fishermanId = filter.fishermanId,
             lureId = filter.lureId,
             speciesId = filter.speciesId,
-            tripId = filter.tripId)
+            tripId = filter.tripId
+        ).map { entity -> entity.toDomain() }
     }
 
     fun getTopTrip(filter: FishFilter) : Flow<TripWithCounts?> {

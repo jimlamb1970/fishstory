@@ -3,9 +3,12 @@ package com.funjim.fishstory.repository
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.TackleBoxDao
 import com.funjim.fishstory.database.TackleBoxEntity
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toTackleBoxDomainList
+import com.funjim.fishstory.database.toTripSummaryDomainList
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -21,10 +24,15 @@ class FishermanRepository(
     private val tackleBoxDao: TackleBoxDao
 ) {
     val allFishermen: Flow<List<Fisherman>> = fishermanDao.getAllFishermen()
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> =
-        fishermanDao.getFishermenForTrip(tripId)
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> =
-        fishermanDao.getFishermenForEvent(eventId)
+        .map { list -> list.toFishermanDomainList() }
+    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
+        return fishermanDao.getFishermenForTrip(tripId)
+            .map { list -> list.toFishermanDomainList() }
+    }
+    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
+        return fishermanDao.getFishermenForEvent(eventId)
+            .map { list -> list.toFishermanDomainList() }
+    }
 
     /**
      * Provides a sorted list of fishermen summaries.
@@ -42,7 +50,9 @@ class FishermanRepository(
                 FishermanSortOrder.MOST_KEPT -> summaries.sortedByDescending { it.fishKept }
                 FishermanSortOrder.MOST_TRIPS -> summaries.sortedByDescending { it.totalTrips }
             }
-            if (reversed) sorted.reversed() else sorted
+            val finalList = if (reversed) sorted.reversed() else sorted
+
+            finalList.map { it.toDomain() }
         }
     }
 
@@ -53,11 +63,11 @@ class FishermanRepository(
                 tackleBoxesWithLures = stats.tackleBoxesWithLures.sortedBy {
                     it?.tackleBox?.name?.lowercase()
                 }
-            )
+            ).toDomain()
         }
 
     suspend fun addFisherman(fisherman: Fisherman) {
-        fishermanDao.insert(fisherman)
+        fishermanDao.insert(fisherman.toEntity())
         // Automatic Tackle Box creation
         val existing = tackleBoxDao.getExistingTackleBoxForFisherman(fisherman.id)
         if (existing == null) {
@@ -74,25 +84,33 @@ class FishermanRepository(
         firstName: String,
         lastName: String,
         nickname: String): Fisherman? {
-        return fishermanDao.getFishermanByName(firstName, lastName, nickname)
+        return fishermanDao.getFishermanByName(firstName, lastName, nickname)?.toDomain()
     }
 
     suspend fun deleteFisherman(fisherman: Fisherman) {
-        fishermanDao.deleteFisherman(fisherman)
+        fishermanDao.deleteFisherman(fisherman.toEntity())
     }
 
     // TODO - change to upsert
-    suspend fun updateFisherman(fisherman: Fisherman) = fishermanDao.update(fisherman)
+    suspend fun updateFisherman(fisherman: Fisherman) = fishermanDao.update(fisherman.toEntity())
 
-    fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
-        fishermanDao.getTripSummariesForFisherman(id)
+    fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {
+        return fishermanDao.getTripSummariesForFisherman(id)
+            .map { list -> list.toTripSummaryDomainList() }
+    }
 
-    fun getUpcomingTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
-        fishermanDao.getUpcomingTripSummariesForFisherman(id, System.currentTimeMillis())
-    fun getActiveTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
-        fishermanDao.getActiveTripSummariesForFisherman(id, System.currentTimeMillis())
-    fun getPastTripSummariesForFisherman(id: String): Flow<List<TripSummary>> =
-        fishermanDao.getPastTripSummariesForFisherman(id, System.currentTimeMillis())
+    fun getUpcomingTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {
+        return fishermanDao.getUpcomingTripSummariesForFisherman(id, System.currentTimeMillis())
+            .map { list -> list.toTripSummaryDomainList() }
+    }
+    fun getActiveTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {
+        return fishermanDao.getActiveTripSummariesForFisherman(id, System.currentTimeMillis())
+            .map { list -> list.toTripSummaryDomainList() }
+    }
+    fun getPastTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {
+        return fishermanDao.getPastTripSummariesForFisherman(id, System.currentTimeMillis())
+            .map { list -> list.toTripSummaryDomainList() }
+    }
 
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(fishermanId: String, name: String) {

@@ -11,13 +11,13 @@ import com.funjim.fishstory.model.*
     entities = [
         BaitEntity::class,
         BodyOfWaterEntity::class,
-        Event::class,
+        EventEntity::class,
         EventBaitEntity::class,
         EventBodyOfWaterEntity::class,
-        EventFishermanCrossRef::class,
+        EventFishermanEntity::class,
         EventTargetSpeciesEntity::class,
         FishEntity::class,
-        Fisherman::class,
+        FishermanEntity::class,
         LureEntity::class,
         LureColorEntity::class,
         LureGlowColorEntity::class,
@@ -40,18 +40,18 @@ import com.funjim.fishstory.model.*
         SpeciesEntity::class,
         TackleBoxEntity::class,
         TackleBoxLureEntity::class,
-        Trip::class,
+        TripEntity::class,
         TripBaitEntity::class,
         TripBodyOfWaterEntity::class,
-        TripFishermanCrossRef::class,
+        TripFishermanEntity::class,
         TripTargetSpeciesEntity::class,
         WaterEntity::class,
         WaterClarityEntity::class,
         WeatherEntity::class
     ],
     views = [
-        EventDetailedSummary::class,
-        TripDetailedSummary::class
+        EventEntityDetailedSummary::class,
+        TripEntityDetailedSummary::class
     ],
     version = 10,
     exportSchema = false

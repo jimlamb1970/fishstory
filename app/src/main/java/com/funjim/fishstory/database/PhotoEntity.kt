@@ -119,7 +119,7 @@ data class PhotoBodyOfWaterEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
@@ -171,7 +171,7 @@ data class PhotoFishEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Fisherman::class,
+            entity = FishermanEntity::class,
             parentColumns = ["id"],
             childColumns = ["fishermanId"],
             onDelete = ForeignKey.CASCADE
@@ -250,7 +250,7 @@ data class PhotoSpeciesEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE

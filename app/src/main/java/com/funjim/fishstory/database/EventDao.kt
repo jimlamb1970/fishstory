@@ -1,23 +1,22 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventDao {
     @Query("SELECT * FROM event_table ORDER BY startTime DESC")
-    fun getAllEvents(): Flow<List<Event>>
+    fun getAllEvents(): Flow<List<EventEntity>>
 
     @Transaction
     @Query("SELECT * FROM event_table")
-    fun getAllEventsWithInfo(): Flow<List<EventWithInfo>>
+    fun getAllEventsWithInfo(): Flow<List<EventEntityWithInfo>>
 
     @Query("DELETE FROM event_table")
     suspend fun deleteAllEvents()
 
     @Query("SELECT * FROM event_table WHERE tripId = :tripId")
-    fun getEventsForTrip(tripId: String): Flow<List<Event>>
+    fun getEventsForTrip(tripId: String): Flow<List<EventEntity>>
 
     @Query("SELECT id FROM event_table WHERE tripId = :tripId")
     suspend fun getEventIdsForTrip(tripId: String): List<String>
@@ -31,7 +30,7 @@ interface EventDao {
     WHERE strftime('%s', 'now') BETWEEN t.startDate AND t.endDate
     ORDER BY s.startTime ASC
 """)
-    fun getEventsForActiveTrips(): Flow<List<Event>>
+    fun getEventsForActiveTrips(): Flow<List<EventEntity>>
 
     @Transaction
     @Query(
@@ -59,14 +58,14 @@ WHERE :currentTime BETWEEN t.startDate AND t.endDate
 ORDER BY s.startTime ASC
 """
     )
-    fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventSummary>>
+    fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventEntitySummary>>
 
     @Query("SELECT * FROM event_table WHERE id = :id")
-    fun getEventById(id: String): Flow<Event?>
+    fun getEventById(id: String): Flow<EventEntity?>
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE tripId = :tripId")
-    fun getEventsWithDetailsForTrip(tripId: String): Flow<List<EventWithDetails>>
+    fun getEventsWithDetailsForTrip(tripId: String): Flow<List<EventEntityWithDetails>>
 
     @Query("""
     SELECT * FROM event_table 
@@ -74,41 +73,41 @@ ORDER BY s.startTime ASC
     AND (endTime IS NULL OR endTime >= :currentTime) 
     ORDER BY startTime DESC
 """)
-    fun getActiveEvents(currentTime: Long = System.currentTimeMillis()): Flow<List<Event>>
+    fun getActiveEvents(currentTime: Long = System.currentTimeMillis()): Flow<List<EventEntity>>
 
     @Query("""
     SELECT DISTINCT f.* FROM fisherman_table AS f
     JOIN event_fisherman_cross_ref AS xr ON f.id = xr.fishermanId
     WHERE xr.eventId = :eventId
 """)
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>>
+    fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :eventId")
-    fun getEventWithDetails(eventId: String): Flow<EventWithDetails?>
+    fun getEventWithDetails(eventId: String): Flow<EventEntityWithDetails?>
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :eventId")
-    fun getEventWithInfo(eventId: String): Flow<EventWithInfo?>
+    fun getEventWithInfo(eventId: String): Flow<EventEntityWithInfo?>
 
     // TODO - convert these upsert
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEvent(event: Event)
+    suspend fun insertEvent(event: EventEntity)
 
     @Upsert
-    suspend fun upsertEvent(event: Event)
+    suspend fun upsertEvent(event: EventEntity)
 
     @Update
-    suspend fun updateEvent(event: Event)
+    suspend fun updateEvent(event: EventEntity)
 
     @Delete
-    suspend fun deleteEvent(event: Event)
+    suspend fun deleteEvent(event: EventEntity)
 
     @Query("DELETE FROM event_table WHERE id = :id")
     suspend fun deleteEventById(id: String)
 
     @Query("SELECT * FROM event_table WHERE tripId = :tripId AND name = :name")
-    suspend fun findEventByName(tripId: String, name: String): Event?
+    suspend fun findEventByName(tripId: String, name: String): EventEntity?
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -117,7 +116,7 @@ ORDER BY s.startTime ASC
         return if (foundEvent != null) {
             foundEvent.id
         } else {
-            val newEvent = Event(tripId = tripId, name = name)
+            val newEvent = EventEntity(tripId = tripId, name = name)
             upsertEvent(newEvent)
             newEvent.id
         }
@@ -147,7 +146,7 @@ FROM event_table s
 WHERE s.tripId = :tripId
 ORDER BY s.startTime DESC"""
     )
-    fun getTripEventSummaries(tripId: String): Flow<List<EventSummary>>
+    fun getTripEventSummaries(tripId: String): Flow<List<EventEntitySummary>>
 
     @Transaction
     @Query(
@@ -173,26 +172,23 @@ FROM event_table s
 WHERE s.id = :eventId
 ORDER BY s.startTime DESC"""
     )
-    fun getEventSummary(eventId: String): Flow<EventSummary?>
+    fun getEventSummary(eventId: String): Flow<EventEntitySummary?>
 
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
-    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?>
+    fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
     // TODO -- convert these to upsert
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertEventFishermanCrossRef(crossRef: EventFishermanCrossRef)
+    suspend fun insertEventFishermanCrossRef(crossRef: EventFishermanEntity)
 
     @Upsert
-    suspend fun upsertEventFishermanCrossRef(crossRef: EventFishermanCrossRef)
+    suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
 
     @Update
-    suspend fun updateEventFishermanCrossRef(crossRef: EventFishermanCrossRef)
+    suspend fun updateEventFishermanCrossRef(crossRef: EventFishermanEntity)
 
     @Query("SELECT * FROM event_fisherman_cross_ref")
-    fun getAllEventFishermanCrossRefs(): Flow<List<EventFishermanCrossRef>>
-
-    @Query("SELECT tackleBoxId FROM event_fisherman_cross_ref WHERE eventId = :eventId AND fishermanId = :fishermanId")
-    fun getTackleBoxIdForFisherman(eventId: String, fishermanId: String): Flow<String?>
+    fun getAllEventFishermanCrossRefs(): Flow<List<EventFishermanEntity>>
 
     @Query(
         """
@@ -206,11 +202,8 @@ ORDER BY s.startTime DESC"""
             @MapColumn(columnName = "tackleBoxId") String?
             >>
 
-    @Query("DELETE FROM event_fisherman_cross_ref WHERE eventId = :eventId AND fishermanId NOT IN (:fishermenIds)")
-    suspend fun removeFishermenNotInSet(eventId: String, fishermenIds: Set<String>)
-
     @Delete
-    suspend fun deleteEventFishermanCrossRef(crossRef: EventFishermanCrossRef)
+    suspend fun deleteEventFishermanCrossRef(crossRef: EventFishermanEntity)
 
     @Query("DELETE FROM event_fisherman_cross_ref")
     suspend fun deleteAllEventFishermanCrossRefs()
@@ -231,7 +224,7 @@ ORDER BY s.startTime DESC"""
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<List<Event>>
+    ): Flow<List<EventEntity>>
 
     @Query("SELECT * FROM event_target_species")
     fun getAllEventTargetSpecies(): Flow<List<EventTargetSpeciesEntity>>

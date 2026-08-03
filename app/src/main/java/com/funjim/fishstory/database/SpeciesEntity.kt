@@ -31,7 +31,7 @@ data class SpeciesEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE // If event is deleted, targets wipe out cleanly
@@ -59,7 +59,7 @@ data class EventTargetSpeciesEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE // If trip is deleted, targets wipe out cleanly

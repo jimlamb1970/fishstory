@@ -3,7 +3,7 @@ package com.funjim.fishstory.database
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BaitSummary
 
-// Extension: Database Entity -> Domain Model
+// BaitEntity <-> Bait
 fun BaitEntity.toDomain(): Bait {
     return Bait(
         id = id,
@@ -11,12 +11,10 @@ fun BaitEntity.toDomain(): Bait {
     )
 }
 
-// Extension: List of Entities -> List of Domain Models
 fun List<BaitEntity>.toBaitDomainList(): List<Bait> {
     return map { it.toDomain() }
 }
 
-// Extension: Domain Model -> Database Entity (for Inserts / Updates)
 fun Bait.toEntity(): BaitEntity {
     return BaitEntity(
         id = id,

@@ -9,35 +9,27 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Trip
-import com.funjim.fishstory.model.TripDetailedSummary
-import com.funjim.fishstory.model.TripFishermanCrossRef
-import com.funjim.fishstory.model.TripWithDetails
-import com.funjim.fishstory.model.TripWithFishermen
-import com.funjim.fishstory.model.TripSummary
-import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TripDao {
     @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
-    fun getAllTrips(): Flow<List<Trip>>
+    fun getAllTrips(): Flow<List<TripEntity>>
 
     @Query("DELETE FROM trip_table")
     suspend fun deleteAllTrips()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTrip(trip: Trip)
+    suspend fun insertTrip(trip: TripEntity)
 
     @Upsert
-    suspend fun upsertTrip(trip: Trip)
+    suspend fun upsertTrip(trip: TripEntity)
 
     @Update
-    suspend fun updateTrip(trip: Trip)
+    suspend fun updateTrip(trip: TripEntity)
 
     @Delete
-    suspend fun deleteTrip(trip: Trip)
+    suspend fun deleteTrip(trip: TripEntity)
 
     @Query("DELETE FROM trip_table WHERE id = :tripId")
     suspend fun deleteTripById(tripId: String)
@@ -49,7 +41,7 @@ interface TripDao {
         return if (existingTrip != null) {
             existingTrip.id
         } else {
-            val newTrip = Trip(name = name)
+            val newTrip = TripEntity(name = name)
             upsertTrip(newTrip)
             newTrip.id
         }
@@ -57,27 +49,27 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTrip(tripId: String): Flow<Trip?>
+    fun getTrip(tripId: String): Flow<TripEntity?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripById(tripId: String): Flow<Trip?>
+    fun getTripById(tripId: String): Flow<TripEntity?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE name = :name")
-    fun getTripByName(name: String): Trip?
+    fun getTripByName(name: String): TripEntity?
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?>
+    fun getTripWithFishermen(tripId: String): Flow<TripEntityWithFishermen?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?>
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripEntityWithFishermenAndSpecies?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithDetails(tripId: String): Flow<TripWithDetails?>
+    fun getTripWithDetails(tripId: String): Flow<TripEntityWithDetails?>
 
     @Transaction
     @Query("""
@@ -103,7 +95,7 @@ SELECT
 FROM trip_table t
 ORDER BY t.startDate DESC
 """)
-    fun getTripSummaries(): Flow<List<TripSummary>>
+    fun getTripSummaries(): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
@@ -130,36 +122,33 @@ FROM trip_table t
 WHERE t.id = :tripId
 ORDER BY t.startDate DESC
 """)
-    fun getTripSummary(tripId: String): Flow<TripSummary?>
+    fun getTripSummary(tripId: String): Flow<TripEntitySummary?>
 
     @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startDate DESC")
-    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?>
+    fun getTripDetailedSummary(tripId: String): Flow<TripEntityDetailedSummary?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
+    suspend fun insertCrossRef(crossRef: TripFishermanEntity)
 
     @Upsert
-    suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef)
+    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
 
     // TODO -- replace updateTripFishmanTackleBox with upsertTripFishermanCrossRef
     @Update
-    suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanCrossRef)
+    suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanEntity)
 
     @Query("SELECT * FROM trip_fisherman_cross_ref")
-    fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanCrossRef>>
+    fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanEntity>>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
-    fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanCrossRef>>
+    fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanEntity>>
 
     @Query("""
     SELECT DISTINCT f.* FROM fisherman_table AS f
     JOIN trip_fisherman_cross_ref AS xr ON f.id = xr.fishermanId
     WHERE xr.tripId = :tripId
 """)
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
-
-    @Query("SELECT tackleBoxId FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
-    fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?>
+    fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
 
     @Query("""
     SELECT fishermanId, tackleBoxId 
@@ -172,10 +161,7 @@ ORDER BY t.startDate DESC
             >>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId LIMIT 1")
-    suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanCrossRef?
-
-    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId NOT IN (:fishermenIds)")
-    suspend fun removeFishermenNotInSet(tripId: String, fishermenIds: Set<String>)
+    suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanEntity?
 
     @Query("DELETE FROM trip_fisherman_cross_ref")
     suspend fun deleteAllTripFishermanCrossRefs()
@@ -214,7 +200,7 @@ ORDER BY t.startDate DESC
         fishermanId: String? = null,
         lureId: String? = null,
         speciesId: String? = null
-    ): Flow<List<Trip>>
+    ): Flow<List<TripEntity>>
 
     @Query("SELECT * FROM trip_target_species")
     fun getAllTripTargetSpecies(): Flow<List<TripTargetSpeciesEntity>>

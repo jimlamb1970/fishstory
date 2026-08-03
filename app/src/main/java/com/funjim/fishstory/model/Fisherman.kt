@@ -1,25 +1,11 @@
 package com.funjim.fishstory.model
 
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Ignore
-import androidx.room.Index
-import androidx.room.Junction
-import androidx.room.PrimaryKey
-import androidx.room.Relation
-import com.funjim.fishstory.database.TackleBoxEntity
-import com.funjim.fishstory.database.TackleBoxEntityWithLures
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-@Entity(
-    tableName = "fisherman_table",
-    indices = [Index(value = ["firstName", "lastName", "nickname"], unique = true)]
-)
 data class Fisherman(
-    @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val firstName: String = "",
     val lastName: String = "",
@@ -37,41 +23,12 @@ data class Fisherman(
 }
 
 data class FishermanWithTrips(
-    @Embedded val fisherman: Fisherman,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(
-            value = TripFishermanCrossRef::class,
-            parentColumn = "fishermanId",
-            entityColumn = "tripId"
-        )
-    )
-    val trips: List<Trip>
-)
-
-data class FishermanWithDetails(
-    @Embedded val fisherman: Fisherman,
-    @Relation(
-        entity = TackleBoxEntity::class,
-        parentColumn = "id",
-        entityColumn = "fishermanId"
-    )
-    val tackleBoxWithLures: TackleBoxEntityWithLures?,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
-        associateBy = Junction(
-            value = TripFishermanCrossRef::class,
-            parentColumn = "fishermanId",
-            entityColumn = "tripId"
-        )
-    )
+    val fisherman: Fisherman,
     val trips: List<Trip>
 )
 
 data class FishermanSummary(
-    @Embedded val fisherman: Fisherman,
+    val fisherman: Fisherman,
     val fishCaught: Int,
     val fishKept: Int,
 
@@ -83,14 +40,8 @@ data class FishermanSummary(
 )
 
 data class FishermanFullStatistics(
-    @Embedded val fisherman: Fisherman,
-
-    @Relation(
-        entity = TackleBoxEntity::class,
-        parentColumn = "id",
-        entityColumn = "fishermanId"
-    )
-    val tackleBoxesWithLures: List<TackleBoxEntityWithLures?>,
+    val fisherman: Fisherman,
+    val tackleBoxesWithLures: List<TackleBoxWithLures?>,
 
     // Fish Extremes
     val largestFishLength: Long?,
@@ -124,70 +75,14 @@ data class FishermanFullStatistics(
 )
 
 @Serializable
-@Entity(
-    tableName = "event_fisherman_cross_ref",
-    primaryKeys = ["eventId", "fishermanId"],
-    indices = [
-        Index(value = ["fishermanId"]),
-        Index(value = ["tackleBoxId"])
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = Event::class,
-            parentColumns = ["id"],
-            childColumns = ["eventId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Fisherman::class,
-            parentColumns = ["id"],
-            childColumns = ["fishermanId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = TackleBoxEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["tackleBoxId"],
-            onDelete = ForeignKey.SET_NULL
-        )
-    ]
-)
-data class EventFishermanCrossRef(
+data class EventFisherman(
     val eventId: String,
     val fishermanId: String,
     val tackleBoxId: String? = null
 )
 
 @Serializable
-@Entity(
-    primaryKeys = ["tripId", "fishermanId"],
-    tableName = "trip_fisherman_cross_ref",
-    indices = [
-        Index(value = ["fishermanId"]),
-        Index(value = ["tackleBoxId"])
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = Trip::class,
-            parentColumns = ["id"],
-            childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Fisherman::class,
-            parentColumns = ["id"],
-            childColumns = ["fishermanId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = TackleBoxEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["tackleBoxId"],
-            onDelete = ForeignKey.SET_NULL
-        )
-    ]
-)
-data class TripFishermanCrossRef(
+data class TripFisherman(
     val tripId: String,
     val fishermanId: String,
     val tackleBoxId: String? = null

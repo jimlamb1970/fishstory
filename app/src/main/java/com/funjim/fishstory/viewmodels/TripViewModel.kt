@@ -249,8 +249,8 @@ class TripViewModel(
 
     fun upsertTripFishermanCrossRef(tripId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepo.upsertTripFishermanCrossRef(
-                TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
+            tripRepo.upsertTripFisherman(
+                TripFisherman(tripId, fishermanId, tackleBoxId)
             )
         }
     }
@@ -285,8 +285,8 @@ class TripViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertTripFishermanCrossRef(
-                TripFishermanCrossRef(
+            tripRepo.upsertTripFisherman(
+                TripFisherman(
                     tripId,
                     fishermanId,
                     tackleBox.id

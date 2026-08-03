@@ -1,7 +1,6 @@
 package com.funjim.fishstory.database
 
 import androidx.room.*
-import com.funjim.fishstory.model.FishCounts
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -332,7 +331,7 @@ interface FishDao {
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<FishCounts>
+    ): Flow<FishCountsEntity>
 
     @Query("""
     SELECT trip_table.*, 

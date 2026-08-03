@@ -5,11 +5,16 @@ import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toEventSummaryDomainList
+import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
+import com.funjim.fishstory.database.toTripDomainList
+import com.funjim.fishstory.database.toTripSummaryDomainList
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventDetailedSummary
-import com.funjim.fishstory.model.EventFishermanCrossRef
+import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Fisherman
@@ -18,7 +23,7 @@ import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
-import com.funjim.fishstory.model.TripFishermanCrossRef
+import com.funjim.fishstory.model.TripFisherman
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
@@ -34,16 +39,24 @@ class TripRepository(
 ) {
     // Trip Streams
     val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
+        .map { list -> list.toTripDomainList() }
     val allTripSummaries: Flow<List<TripSummary>> = tripDao.getTripSummaries()
+        .map { list -> list.toTripSummaryDomainList() }
     
-    fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> =
-        tripDao.getTripWithDetails(tripId)
+    fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
+        return tripDao.getTripWithDetails(tripId)
+            .map { it?.toDomain() }
+    }
 
-    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?> =
-        tripDao.getTripWithFishermenAndSpecies(tripId)
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?> {
+        return tripDao.getTripWithFishermenAndSpecies(tripId)
+            .map { it?.toDomain() }
+    }
 
-    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> =
-        tripDao.getTripWithFishermen(tripId)
+    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
+        return tripDao.getTripWithFishermen(tripId)
+            .map { it?.toDomain() }
+    }
 
     /**
      * An active trip is one where the current time is between start and end.
@@ -51,17 +64,20 @@ class TripRepository(
      */
     fun getActiveTrip(): Flow<Trip?> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
-        trips.firstOrNull { now in it.startDate..it.endDate }
+        trips.firstOrNull { now in it.startDate..it.endDate }?.toDomain()
     }
 
     fun getActiveTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
         trips.filter { now in it.startDate..it.endDate }
+            .toTripDomainList()
     }
 
     fun getActiveTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { now in it.trip.startDate..it.trip.endDate }.sortedByDescending { it.trip.startDate }
+        trips.filter { now in it.trip.startDate..it.trip.endDate }
+            .sortedByDescending { it.trip.startDate }
+            .toTripSummaryDomainList()
     }
 
     /**
@@ -69,12 +85,16 @@ class TripRepository(
      */
     fun getUpcomingTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.startDate > now }.sortedBy { it.startDate }
+        trips.filter { it.startDate > now }
+            .sortedBy { it.startDate }
+            .toTripDomainList()
     }
 
     fun getUpcomingTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.trip.startDate > now }.sortedBy { it.trip.startDate }
+        trips.filter { it.trip.startDate > now }
+            .sortedBy { it.trip.startDate }
+            .toTripSummaryDomainList()
     }
 
 
@@ -83,72 +103,105 @@ class TripRepository(
      */
     fun getPreviousTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.endDate < now }.sortedByDescending { it.endDate }
+        trips.filter { it.endDate < now }
+            .sortedByDescending { it.endDate }
+            .toTripDomainList()
     }
 
     fun getPreviousTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.trip.endDate < now}.sortedByDescending { it.trip.endDate }
+        trips.filter { it.trip.endDate < now}
+            .sortedByDescending { it.trip.endDate }
+            .toTripSummaryDomainList()
     }
 
-    fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> =
-        eventDao.getEventsForActiveTrips(currentTime)
-    fun getEventSummaries(tripId: String): Flow<List<EventSummary>> =
-        eventDao.getTripEventSummaries(tripId)
+    fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventSummary>> {
+        return eventDao.getEventsForActiveTrips(currentTime)
+            .map { list -> list.toEventSummaryDomainList() }
+    }
 
-    fun getTripSummary(tripId: String): Flow<TripSummary?> =
-        tripDao.getTripSummary(tripId)
-    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?> =
-        tripDao.getTripDetailedSummary(tripId)
+    fun getEventSummaries(tripId: String): Flow<List<EventSummary>> {
+        return eventDao.getTripEventSummaries(tripId)
+            .map { list -> list.toEventSummaryDomainList() }
+    }
 
-    fun getEventSummary(eventId: String): Flow<EventSummary?> =
-        eventDao.getEventSummary(eventId)
-    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?> =
-        eventDao.getEventDetailedSummary(eventId)
+    fun getTripSummary(tripId: String): Flow<TripSummary?> {
+        return tripDao.getTripSummary(tripId)
+            .map { it?.toDomain() }
+    }
 
-    fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> =
-        eventDao.getEventWithDetails(eventId)
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?> {
+        return tripDao.getTripDetailedSummary(tripId)
+            .map { it?.toDomain() }
+    }
 
-    fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> =
-        eventDao.getEventWithInfo(eventId)
+    fun getEventSummary(eventId: String): Flow<EventSummary?> {
+        return eventDao.getEventSummary(eventId)
+            .map { it?.toDomain() }
+    }
 
+    fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?> {
+        return eventDao.getEventDetailedSummary(eventId)
+            .map { it?.toDomain() }
+    }
+
+    fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> {
+        return eventDao.getEventWithDetails(eventId)
+            .map { it?.toDomain() }
+    }
+
+    fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> {
+        return eventDao.getEventWithInfo(eventId)
+            .map { it?.toDomain() }
+    }
 
     // Trip Operations
-    suspend fun upsertTrip(trip: Trip) = tripDao.upsertTrip(trip)
-    suspend fun deleteTripById(tripId: String) = tripDao.deleteTripById(tripId)
+    suspend fun upsertTrip(trip: Trip) {
+        tripDao.upsertTrip(trip.toEntity())
+    }
+    suspend fun deleteTripById(id: String) {
+        tripDao.deleteTripById(id)
+    }
 
     // Segment Operations
-    suspend fun upsertEvent(event: Event) = eventDao.upsertEvent(event)
-    suspend fun deleteEvent(event: Event) = eventDao.deleteEvent(event)
-    suspend fun deleteEventById(segmentId: String) = eventDao.deleteEventById(segmentId)
+    suspend fun upsertEvent(event: Event) {
+        eventDao.upsertEvent(event.toEntity())
+    }
+    suspend fun deleteEvent(event: Event) {
+        eventDao.deleteEvent(event.toEntity())
+    }
+    suspend fun deleteEventById(id: String) {
+        eventDao.deleteEventById(id)
+    }
 
     // Fishermen and TackleBox Operations
-    suspend fun upsertTripFishermanCrossRef(crossRef: TripFishermanCrossRef) =
-        tripDao.upsertTripFishermanCrossRef(crossRef)
-    suspend fun upsertEventFishermanCrossRef(crossRef: EventFishermanCrossRef) =
-        eventDao.upsertEventFishermanCrossRef(crossRef)
-    fun getTripFishermanTackleBoxId(tripId: String, fishermanId: String): Flow<String?> =
-        tripDao.getTripFishermanTackleBoxId(tripId, fishermanId)
-    fun getSegmentFishermanTackleBoxId(segmentId: String, fishermanId: String): Flow<String?> =
-        eventDao.getTackleBoxIdForFisherman(segmentId, fishermanId)
+    suspend fun upsertTripFisherman(crossRef: TripFisherman) {
+        tripDao.upsertTripFisherman(crossRef.toEntity())
+    }
+    suspend fun upsertEventFisherman(crossRef: EventFisherman) {
+        eventDao.upsertEventFisherman(crossRef.toEntity())
+    }
 
     fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> =
         tripDao.getTripFishermenTackleBoxIds(tripId)
     fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> =
         eventDao.getFishermanTackleBoxMapping(eventId)
 
-    fun getTripFishermen(tripId: String): Flow<List<Fisherman>> =
-        tripDao.getFishermenForTrip(tripId)
-    fun getEventFishermen(eventId: String): Flow<List<Fisherman>> =
-        eventDao.getFishermenForEvent(eventId)
+    fun getTripFishermen(tripId: String): Flow<List<Fisherman>> {
+        return tripDao.getFishermenForTrip(tripId)
+            .map { list -> list.toFishermanDomainList() }
+    }
+    fun getEventFishermen(eventId: String): Flow<List<Fisherman>> {
+        return eventDao.getFishermenForEvent(eventId)
+            .map { list -> list.toFishermanDomainList() }
+    }
 
-    suspend fun deleteEventFishermanCrossRef(crossRef: EventFishermanCrossRef) =
-        eventDao.deleteEventFishermanCrossRef(crossRef)
+    suspend fun deleteEventFishermanCrossRef(crossRef: EventFisherman) {
+        eventDao.deleteEventFishermanCrossRef(crossRef.toEntity())
+    }
 
     suspend fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) =
         tripDao.removeFishermanCrossRefFromTripAndAllEvents(tripId, fishermanId)
-    suspend fun removeFishermenNotInSet(segmentId: String, newSet: Set<String>) =
-        eventDao.removeFishermenNotInSet(segmentId, newSet)
 
     // Target Species
     fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {

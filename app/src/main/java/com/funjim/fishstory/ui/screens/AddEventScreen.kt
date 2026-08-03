@@ -148,8 +148,7 @@ fun AddEventScreen(
                         longitude = null
                     )
                 }
-                // FIX LATER
-                viewModel.updateEventTargetSpecies(trip.targetSpecies.toSpeciesDomainList())
+                viewModel.updateEventTargetSpecies(trip.targetSpecies)
                 isDraftInitialized = true
             }
 
@@ -482,7 +481,7 @@ fun AddEventScreen(
                                                         tripFishermenIds
                                                     )
                                                     tripFishermenIds.forEach { fishermanId ->
-                                                        viewModel.upsertEventFishermanCrossRef(
+                                                        viewModel.upsertEventFisherman(
                                                             eventId = eventDraft.id,
                                                             fishermanId = fishermanId,
                                                             tackleBoxId = tripTackleBoxMap[fishermanId]
@@ -492,7 +491,7 @@ fun AddEventScreen(
                                                 viewModel.updateEventWizardStep(EventWizardStep.EventCrew)
                                             } else {
                                                 eventFishermenIds.forEach { fishermanId ->
-                                                    viewModel.deleteEventFishermanCrossRef(
+                                                    viewModel.deleteEventFisherman(
                                                         eventId = eventDraft.id,
                                                         fishermanId = fishermanId
                                                     )
@@ -547,20 +546,20 @@ fun AddEventScreen(
                                 onSelectionChanged = { fishermanId, selected ->
                                     viewModel.toggleEventFisherman(fishermanId)
                                     if (selected) {
-                                        viewModel.upsertEventFishermanCrossRef(
+                                        viewModel.upsertEventFisherman(
                                             eventId = eventDraft.id,
                                             fishermanId = fishermanId,
                                             tackleBoxId = eventTackleBoxMap[fishermanId]
                                         )
                                     } else {
-                                        viewModel.deleteEventFishermanCrossRef(
+                                        viewModel.deleteEventFisherman(
                                             eventId = eventDraft.id,
                                             fishermanId = fishermanId
                                         )
                                     }
                                 },
                                 onTackleBoxChanged = { fishermanId, boxId ->
-                                    viewModel.upsertEventFishermanCrossRef(
+                                    viewModel.upsertEventFisherman(
                                         eventId = eventDraft.id,
                                         fishermanId = fishermanId,
                                         tackleBoxId = boxId

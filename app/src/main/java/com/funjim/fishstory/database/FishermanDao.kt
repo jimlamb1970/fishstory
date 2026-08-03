@@ -8,60 +8,52 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.FishermanFullStatistics
-import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.model.FishermanWithDetails
-import com.funjim.fishstory.model.FishermanWithTrips
-import com.funjim.fishstory.model.Trip
-import com.funjim.fishstory.model.TripFishermanCrossRef
-import com.funjim.fishstory.model.TripSummary
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishermanDao {
     @Query("SELECT * FROM fisherman_table")
-    fun getAllFishermen(): Flow<List<Fisherman>>
+    fun getAllFishermen(): Flow<List<FishermanEntity>>
 
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
-    suspend fun getFishermanById(id: String): Fisherman?
+    suspend fun getFishermanById(id: String): FishermanEntity?
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
-    fun getFisherman (id: String): Flow<Fisherman?>
+    fun getFisherman (id: String): Flow<FishermanEntity?>
 
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
             WHERE tref.tripId = :tripId 
             ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>>
+    fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
 
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
             WHERE sref.eventId = :eventId
             ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>>
+    fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
 
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(fisherman: Fisherman)
+    suspend fun insert(fisherman: FishermanEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertFisherman(fisherman: Fisherman)
+    suspend fun insertFisherman(fisherman: FishermanEntity)
 
     @Upsert
-    suspend fun upsert(fisherman: Fisherman)
+    suspend fun upsert(fisherman: FishermanEntity)
 
     @Update
-    suspend fun update(fisherman: Fisherman)
+    suspend fun update(fisherman: FishermanEntity)
 
     @Delete
-    suspend fun deleteFisherman(fisherman: Fisherman)
+    suspend fun deleteFisherman(fisherman: FishermanEntity)
 
     @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nick LIMIT 1")
-    suspend fun getFishermanByName(first: String, last: String, nick: String): Fisherman?
+    suspend fun getFishermanByName(first: String, last: String, nick: String): FishermanEntity?
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -71,7 +63,7 @@ interface FishermanDao {
             existingFisherman.id
         } else {
             val newFisherman =
-                Fisherman(firstName = firstName, lastName = lastName, nickname = nickname ?: "")
+                FishermanEntity(firstName = firstName, lastName = lastName, nickname = nickname ?: "")
             upsert(newFisherman)
             newFisherman.id
         }
@@ -79,11 +71,11 @@ interface FishermanDao {
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithTrips(fishermanId: String): Flow<FishermanWithTrips?>
+    fun getFishermanWithTrips(fishermanId: String): Flow<FishermanEntityWithTrips?>
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
-    fun getFishermanWithDetails(fishermanId: String): Flow<FishermanWithDetails?>
+    fun getFishermanWithDetails(fishermanId: String): Flow<FishermanEntityWithDetails?>
 
     @Transaction
     @Query("""
@@ -126,7 +118,7 @@ interface FishermanDao {
     FROM fisherman_table AS f
     GROUP BY f.id
 """)
-    fun getFishermanSummaries(): Flow<List<FishermanSummary>>
+    fun getFishermanSummaries(): Flow<List<FishermanEntitySummary>>
 
     @Transaction
     @Query(
@@ -216,7 +208,7 @@ FROM fisherman_table AS f
 WHERE f.id = :fId
 """
     )
-    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanFullStatistics>
+    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanEntityFullStatistics>
 
     @Transaction
     @Query("""
@@ -236,7 +228,7 @@ WHERE f.id = :fId
     GROUP BY t.id
     ORDER BY t.startDate DESC
 """)
-    fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripSummary>>
+    fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
@@ -277,7 +269,7 @@ WHERE f.id = :fId
     GROUP BY t.id
     ORDER BY t.startDate ASC
 """)
-    fun getUpcomingTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
+    fun getUpcomingTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
@@ -318,7 +310,7 @@ WHERE f.id = :fId
     GROUP BY t.id
     ORDER BY t.startDate DESC
 """)
-    fun getActiveTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
+    fun getActiveTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
@@ -359,10 +351,10 @@ WHERE f.id = :fId
     GROUP BY t.id
     ORDER BY t.startDate DESC
 """)
-    fun getPastTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripSummary>>
+    fun getPastTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
 
     @Insert
-    suspend fun insertCrossRef(crossRef: TripFishermanCrossRef)
+    suspend fun insertCrossRef(crossRef: TripFishermanEntity)
 
     @Query("""
         SELECT fisherman_table.* FROM fisherman_table 
@@ -380,5 +372,5 @@ WHERE f.id = :fId
         lureId: String? = null,
         speciesId: String? = null,
         tripId: String? = null
-    ): Flow<List<Fisherman>>
+    ): Flow<List<FishermanEntity>>
 }

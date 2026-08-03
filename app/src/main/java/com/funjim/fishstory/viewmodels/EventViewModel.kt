@@ -316,15 +316,15 @@ class EventViewModel(
 
     fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
+            tripRepo.upsertEventFisherman(
+                EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }
     }
 
     fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+            tripRepo.deleteEventFishermanCrossRef(EventFisherman(eventId, fishermanId))
         }
     }
 

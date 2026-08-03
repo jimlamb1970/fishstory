@@ -12,7 +12,7 @@ import java.util.UUID
 @Entity(tableName = "water_table",
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE

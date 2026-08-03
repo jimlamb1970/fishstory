@@ -8,12 +8,11 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.funjim.fishstory.model.WindDirection
 import java.util.UUID
-import com.funjim.fishstory.model.Event
 
 @Entity(tableName = "weather_table",
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE

@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
@@ -170,7 +171,6 @@ class LureViewModel(
 
     fun selectFisherman(id: String) {
         viewModelScope.launch {
-            // This is the 'suspend' call to the database
             val fisherman = repository.getFishermanById(id)
             _selectedFisherman.value = fisherman
         }

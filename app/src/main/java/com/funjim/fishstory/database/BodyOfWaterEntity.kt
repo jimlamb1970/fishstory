@@ -31,7 +31,7 @@ data class BodyOfWaterEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
@@ -59,7 +59,7 @@ data class EventBodyOfWaterEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE

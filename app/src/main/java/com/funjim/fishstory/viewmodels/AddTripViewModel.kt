@@ -301,8 +301,8 @@ class AddTripViewModel(
         fishermanId: String, tackleBoxId: String?
     ) {
         viewModelScope.launch {
-            tripRepo.upsertTripFishermanCrossRef(
-                TripFishermanCrossRef(tripId, fishermanId, tackleBoxId)
+            tripRepo.upsertTripFisherman(
+                TripFisherman(tripId, fishermanId, tackleBoxId)
             )
         }
     }
@@ -321,8 +321,8 @@ class AddTripViewModel(
         fishermanId: String, tackleBoxId: String?
     ) {
         viewModelScope.launch {
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
+            tripRepo.upsertEventFisherman(
+                EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }
     }
@@ -332,7 +332,7 @@ class AddTripViewModel(
         fishermanId: String
     ) {
         viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+            tripRepo.deleteEventFishermanCrossRef(EventFisherman(eventId, fishermanId))
         }
     }
 
@@ -354,8 +354,8 @@ class AddTripViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertTripFishermanCrossRef(
-                TripFishermanCrossRef(
+            tripRepo.upsertTripFisherman(
+                TripFisherman(
                     tripId,
                     fishermanId,
                     tackleBox.id
@@ -367,8 +367,8 @@ class AddTripViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(
+            tripRepo.upsertEventFisherman(
+                EventFisherman(
                     eventId,
                     fishermanId,
                     tackleBox.id

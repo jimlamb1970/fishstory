@@ -221,17 +221,17 @@ class AddEventViewModel(
         }
     }
 
-    fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
+    fun upsertEventFisherman(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(eventId, fishermanId, tackleBoxId)
+            tripRepo.upsertEventFisherman(
+                EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }
     }
 
-    fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
+    fun deleteEventFisherman(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFishermanCrossRef(eventId, fishermanId))
+            tripRepo.deleteEventFishermanCrossRef(EventFisherman(eventId, fishermanId))
         }
     }
 
@@ -239,8 +239,8 @@ class AddEventViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertEventFishermanCrossRef(
-                EventFishermanCrossRef(
+            tripRepo.upsertEventFisherman(
+                EventFisherman(
                     eventId,
                     fishermanId,
                     tackleBox.id

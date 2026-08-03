@@ -18,7 +18,7 @@ import java.util.UUID
     tableName = "tackle_box_table",
     foreignKeys = [
         ForeignKey(
-            entity = Fisherman::class,
+            entity = FishermanEntity::class,
             parentColumns = ["id"],
             childColumns = ["fishermanId"],
             onDelete = ForeignKey.CASCADE

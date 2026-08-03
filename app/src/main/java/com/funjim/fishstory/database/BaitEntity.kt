@@ -5,8 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Trip
 import java.util.UUID
 import kotlinx.serialization.Serializable
 
@@ -28,7 +26,7 @@ data class BaitEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Event::class,
+            entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
             onDelete = ForeignKey.CASCADE
@@ -56,7 +54,7 @@ data class EventBaitEntity(
     ],
     foreignKeys = [
         ForeignKey(
-            entity = Trip::class,
+            entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE

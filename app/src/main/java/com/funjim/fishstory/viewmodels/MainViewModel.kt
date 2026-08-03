@@ -23,17 +23,17 @@ import kotlin.collections.List
 // Placeholder data structure for serialization example. Replace with actual DB entities.
 @Serializable
 data class DatabaseExportData(
-    val trips: List<Trip>,
-    val events: List<Event>,
+    val trips: List<TripEntity> = emptyList(),
+    val events: List<EventEntity> = emptyList(),
     val baits: List<BaitEntity> = emptyList(),
     val eventBait: List<EventBaitEntity> = emptyList(),
     val tripBait: List<TripBaitEntity> = emptyList(),
     val bodiesOfWater: List<BodyOfWaterEntity> = emptyList(),
     val eventBodyOfWater: List<EventBodyOfWaterEntity> = emptyList(),
     val tripBodyOfWater: List<TripBodyOfWaterEntity> = emptyList(),
-    val fishermen: List<Fisherman>,
-    val tripFishermanCrossRef: List<TripFishermanCrossRef>,
-    val eventFishermanCrossRef: List<EventFishermanCrossRef>,
+    val fishermen: List<FishermanEntity> = emptyList(),
+    val tripFishermen: List<TripFishermanEntity> = emptyList(),
+    val eventFishermen: List<EventFishermanEntity> = emptyList(),
     val colors: List<LureColorEntity> = emptyList(),
     val lures: List<LureEntity> = emptyList(),
     val lurePrimaryColors: List<LurePrimaryColorEntity> = emptyList(),
@@ -83,6 +83,7 @@ class MainViewModel(
     val selectEvent = _selectEvent.asStateFlow()
 
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
+        .map { list -> list.toTripDomainList() }
 
     val species: Flow<List<Species>> = fishDao.getAllSpecies()
         .map { list -> list.toSpeciesDomainList() }
@@ -92,6 +93,7 @@ class MainViewModel(
 
     fun getSegmentsForTrip(tripId: String): Flow<List<Event>> {
         return eventDao.getEventsForTrip(tripId)
+            .map { list -> list.toEventDomainList() }
     }
 
     fun getFishForTrip(tripId: String): Flow<List<FishWithDetails>> {
@@ -117,8 +119,8 @@ class MainViewModel(
                     tripBodyOfWater = bodyOfWaterDao.getAllTripBodiesOfWater().firstOrNull() ?: emptyList(),
                     eventBodyOfWater = bodyOfWaterDao.getAllEventBodiesOfWater().firstOrNull() ?: emptyList(),
                     fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
-                    tripFishermanCrossRef = tripDao.getAllTripFishermanCrossRefs().firstOrNull() ?: emptyList(),
-                    eventFishermanCrossRef = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    tripFishermen = tripDao.getAllTripFishermanCrossRefs().firstOrNull() ?: emptyList(),
+                    eventFishermen = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
                     colors = lureDao.getAllLureColors().firstOrNull() ?: emptyList(),
                     lures = lureDao.getAllLures().firstOrNull() ?: emptyList(),
                     lurePrimaryColors = lureDao.getAllLurePrimaryColors().firstOrNull() ?: emptyList(),
@@ -199,8 +201,8 @@ class MainViewModel(
                     data.eventBodyOfWater.forEach { bodyOfWaterDao.insertEventBodyOfWater(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
-                    data.tripFishermanCrossRef.forEach { tripDao.insertCrossRef(it) }
-                    data.eventFishermanCrossRef.forEach { eventDao.insertEventFishermanCrossRef(it) }
+                    data.tripFishermen.forEach { tripDao.insertCrossRef(it) }
+                    data.eventFishermen.forEach { eventDao.insertEventFishermanCrossRef(it) }
                     data.colors.forEach { lureDao.insertLureColor(it) }
                     data.lures.forEach { lureDao.insertLure(it) }
                     data.lurePrimaryColors.forEach { lureDao.upsertLurePrimaryColor(it) }
