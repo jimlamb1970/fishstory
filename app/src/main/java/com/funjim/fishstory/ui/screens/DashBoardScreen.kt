@@ -85,11 +85,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -99,6 +101,7 @@ import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.WaterDialog
+import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -504,6 +507,10 @@ fun ActiveTripCard(
     var showAddWaterDialog by remember { mutableStateOf(false) }
     var addWaterClarity by remember { mutableStateOf(false) }
 
+    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
+    var showAddWeatherDialog by remember { mutableStateOf(false) }
+    var addSkyCondition by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
 
     Card(
@@ -839,16 +846,10 @@ fun ActiveTripCard(
             Spacer(Modifier.height(12.dp))
             ActiveTripGrid(
                 waterSet = currentEvent.waterList.isNotEmpty(),
-                weatherSet = false,
+                weatherSet = currentEvent.weatherList.isNotEmpty(),
                 onFishClick = { onLogFish(currentEvent.event.tripId, currentEvent.event.id) },
                 onWaterClick = { showAddWaterDialog = true },
-                onWeatherClick = {
-                    Toast.makeText(
-                        context,
-                        "Not yet implemented",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                },
+                onWeatherClick = { showAddWeatherDialog = true },
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
             )
@@ -898,7 +899,7 @@ fun ActiveTripCard(
 
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.WaterCup,
+                    imageVector = AppIcons.Default.Water,
                     modifier = Modifier.size(24.dp)
                 )
             },
@@ -945,6 +946,84 @@ fun ActiveTripCard(
             }
         )
     }
+
+    if (addSkyCondition) {
+        var skyConditionName by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { addSkyCondition = false },
+            title = { Text("Add New Sky Condition") },
+            text = {
+                TextField(
+                    value = skyConditionName,
+                    onValueChange = { skyConditionName = it },
+                    placeholder = { "Sky Condition (e.g. Clear)" }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (skyConditionName.isNotBlank()) {
+                            viewModel.addSkyCondition(SkyCondition(name = skyConditionName.trim()))
+                            addSkyCondition = false
+                            skyConditionName = ""
+                        }
+                    },
+                    enabled = skyConditionName.isNotBlank()
+                ) { Text("Add Sky Condition") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addSkyCondition = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showAddWeatherDialog) {
+        val sortedWeatherList = remember(currentEvent.weatherList) {
+            currentEvent.weatherList.sortedByDescending { it.weather.timestamp }
+        }
+
+        WeatherDialog(
+            initialTemp = sortedWeatherList.firstOrNull()?.weather?.temperature,
+            initialSkyCondition = sortedWeatherList.firstOrNull()?.weather?.skyConditionId,
+            initialWindDirection = sortedWeatherList.firstOrNull()?.weather?.windDirection,
+            initialWindSpeed = sortedWeatherList.firstOrNull()?.weather?.windSpeed,
+            initialAtmosphericPressure = sortedWeatherList.firstOrNull()?.weather?.atmosphericPressure,
+            initialAirVisibility = sortedWeatherList.firstOrNull()?.weather?.airVisibility,
+            initialAirHumidity = sortedWeatherList.firstOrNull()?.weather?.airHumidity,
+            allSkyConditions = allSkyConditions,
+            title = if (sortedWeatherList.isEmpty()) { "Set Weather Conditions" } else {"Update Weather Conditions"} ,
+            thumbnailProvider = { skyCondition ->
+                val thumbnailFlow = remember(skyCondition.id) {
+                    viewModel.skyConditionThumbnail(skyCondition.id)
+                }
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Weather,
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onDismiss = { showAddWeatherDialog = false },
+            onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
+                viewModel.addWeather(
+                    Weather(
+                        eventId = currentEvent.event.id,
+                        temperature = temp,
+                        skyConditionId = skyCondition,
+                        windDirection = windDirection,
+                        windSpeed = windSpeed,
+                        atmosphericPressure = atmosphericPressure,
+                        airVisibility = airVisibility,
+                        airHumidity = airHumidity)
+                )
+                showAddWeatherDialog = false
+            },
+            onAddSkyCondition = { addSkyCondition = true }
+        )
+    }
+
 }
 @Composable
 fun ActiveTripGrid(

@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
@@ -39,6 +42,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,17 +77,110 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.model.WeatherWithDetails
 import com.funjim.fishstory.model.WindDirection
 import com.funjim.fishstory.ui.theme.AppIcons
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** 1 km = 1,000,000 mm (EXACT) */
+fun Long.kmToDbValue(): Long = this * 1_000_000L
 
+/** 1 mile = 1,609,344 mm (EXACT) */
+fun Long.milesToDbValue(): Long = this * 1_609_344L
+
+/** Converts DB Millimeters to Kilometers */
+fun Long.toKm(): Long = this / 1_000_000L
+
+/** Converts DB Millimeters to Miles */
+fun Long.toMiles(): Long = this / 1_609_344L
+
+private val MM_PER_MILE = BigDecimal("1609344")
+private val MM_PER_KM = BigDecimal("1000000")
+
+private val BASE_PER_MPH = BigDecimal("0.44704")
+private val BASE_PER_KMH = BigDecimal("0.277778")
+
+/**
+ * Converts DB airVisibility (stored in Millimeters as Long) to UI string.
+ * @param isMetric If true, converts to Kilometers (KM). If false, converts to Miles (mi).
+ */
+fun Long?.airVisibilityDisplayString(isMetric: Boolean = false): String {
+    if (this == null) return ""
+    val divisor = if (isMetric) MM_PER_KM else MM_PER_MILE
+
+    return BigDecimal(this)
+        .divide(divisor, 1, RoundingMode.HALF_UP)
+        .stripTrailingZeros()
+        .toPlainString()
+}
+
+/**
+ * Converts UI input string to DB Millimeters (Long).
+ * @param isMetric If true, treats input as KM. If false, treats input as Miles.
+ */
+fun String.visibilityInputToDbValueOrNull(isMetric: Boolean = false): Long? {
+    val decimalInput = this.toBigDecimalOrNull() ?: return null
+    val multiplier = if (isMetric) MM_PER_KM else MM_PER_MILE
+
+    return decimalInput.multiply(multiplier)
+        .setScale(0, RoundingMode.HALF_UP)
+        .toLong()
+}
+
+/**
+ * Converts DB windSpeed (stored in base Long unit) to UI string.
+ * @param isMetric If true, converts to KM/H. If false, converts to MPH.
+ */
+fun Long?.windSpeedDisplayString(isMetric: Boolean = false): String {
+    if (this == null) return ""
+    val divisor = if (isMetric) BASE_PER_KMH else BASE_PER_MPH
+
+    return BigDecimal(this)
+        .divide(divisor, 1, RoundingMode.HALF_UP)
+        .stripTrailingZeros()
+        .toPlainString()
+}
+
+/**
+ * Converts UI input string to DB Wind Speed (Long).
+ * @param isMetric If true, treats input as KM/H. If false, treats input as MPH.
+ */
+fun String.windSpeedInputToDbValueOrNull(isMetric: Boolean = false): Long? {
+    val decimalInput = this.toBigDecimalOrNull() ?: return null
+    val multiplier = if (isMetric) BASE_PER_KMH else BASE_PER_MPH
+
+    return decimalInput.multiply(multiplier)
+        .setScale(0, RoundingMode.HALF_UP)
+        .toLong()
+}
+
+private fun Weather.airHumidityDisplayString(): String? {
+    val airHumidityDb = airHumidity ?: return null
+    return String.format(Locale.getDefault(), "${airHumidityDb}%%")
+}
+private fun Weather.airVisibilityDisplayString(useKM: Boolean = false): String? {
+    val visibilityDb = airVisibility ?: return null
+    return if (useKM) {
+        String.format(Locale.getDefault(), "%s km", visibilityDb.airVisibilityDisplayString())
+    } else {
+        String.format(Locale.getDefault(), "%s m", visibilityDb.airVisibilityDisplayString())
+    }
+}
 private fun Weather.tempDisplayString(useCelsius: Boolean = false): String? {
     val tempDb = temperature ?: return null
     return if (useCelsius) {
         String.format(Locale.getDefault(), "%.1f°C", tempDb.toCelsiusDouble())
     } else {
         String.format(Locale.getDefault(), "%.1f°F", tempDb.toFahrenheitDouble())
+    }
+}
+private fun Weather.windSpeedDisplayString(useKM: Boolean = false): String? {
+    val speedDb = windSpeed ?: return null
+    return if (useKM) {
+        String.format(Locale.getDefault(), "%s km/h", speedDb.windSpeedDisplayString())
+    } else {
+        String.format(Locale.getDefault(), "%s mph", speedDb.windSpeedDisplayString())
     }
 }
 
@@ -125,7 +223,7 @@ fun WeatherCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.WaterCup,
+                imageVector = AppIcons.Default.Weather,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
@@ -140,7 +238,6 @@ fun WeatherCard(
                     )
                 }
                 if (weather.weather.temperature != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -171,6 +268,74 @@ fun WeatherCard(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+                }
+                if (weather.weather.windDirection != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.windDirection?.let { direction ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Wind Direction: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = direction.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.windSpeed != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.windSpeedDisplayString()?.let { speed ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Wind Speed: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = speed,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.airVisibility != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.airVisibilityDisplayString()?.let { visibility ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Air Visibility: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = visibility,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.airHumidity != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.airHumidityDisplayString()?.let { humidity ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Air Humidity: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = humidity,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -219,6 +384,7 @@ fun WeatherCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherDialog(
     initialTemp: Long?,
@@ -231,10 +397,20 @@ fun WeatherDialog(
     allSkyConditions: List<SkyCondition>,
     title: String,
     thumbnailProvider: @Composable (SkyCondition) -> Unit,
+    isMetric: Boolean = false,
     onDismiss: () -> Unit,
-    onConfirm: (Long?, String?, WindDirection?, Long?, Long?, Long?, Long?) -> Unit,
+    onConfirm: (
+        temp: Long?,
+        skyConditionId: String?,
+        windDirection: WindDirection?,
+        windSpeed: Long?,
+        atmosphericPressure: Long?,
+        airVisibility: Long?,
+        airHumidity: Long?
+    ) -> Unit,
     onAddSkyCondition: () -> Unit
 ) {
+    // 1. Initial Values
     val originalTemp = remember(initialTemp) {
         initialTemp?.let {
             val fahrenheit = it.toFahrenheitDouble()
@@ -250,11 +426,42 @@ fun WeatherDialog(
         allSkyConditions.find { it.id == initialSkyCondition }
     }
 
+    val originalWindDirection = remember(initialWindDirection) { initialWindDirection }
+
+    // Wind Speed: Converts DB Long to MPH string for initial display
+    val originalPressure = remember(initialAtmosphericPressure) { initialAtmosphericPressure?.toString() ?: "" }
+
+    // Visibility: Converts DB Millimeters to Miles string for initial display
+    val originalHumidity = remember(initialAirHumidity) { initialAirHumidity?.toString() ?: "" }
+
+    // Parse Initial Values using unit preference
+    val originalWindSpeed = remember(initialWindSpeed, isMetric) {
+        initialWindSpeed.windSpeedDisplayString(isMetric = isMetric)
+    }
+
+    val originalVisibility = remember(initialAirVisibility, isMetric) {
+        initialAirVisibility.airVisibilityDisplayString(isMetric = isMetric)
+    }
+
+    // 2. Mutable State
     var temp by remember { mutableStateOf(originalTemp) }
     var skyCondition by remember { mutableStateOf(originalSkyCondition) }
+    var windDirection by remember { mutableStateOf(originalWindDirection) }
+    var windSpeed by remember { mutableStateOf(originalWindSpeed) }
+    var pressure by remember { mutableStateOf(originalPressure) }
+    var visibility by remember { mutableStateOf(originalVisibility) }
+    var humidity by remember { mutableStateOf(originalHumidity) }
 
+    var isWindDirectionExpanded by remember { mutableStateOf(false) }
+
+    // 3. Change Detection
     val isChanged = temp != originalTemp ||
-            skyCondition != originalSkyCondition
+            skyCondition != originalSkyCondition ||
+            windDirection != originalWindDirection ||
+            windSpeed != originalWindSpeed ||
+            pressure != originalPressure ||
+            visibility != originalVisibility ||
+            humidity != originalHumidity
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -262,9 +469,11 @@ fun WeatherDialog(
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
             ) {
-                // Temperature field with Fahrenheit suffix indication
+                // Temperature
                 OutlinedTextField(
                     value = temp,
                     onValueChange = { input ->
@@ -279,6 +488,7 @@ fun WeatherDialog(
                     singleLine = true
                 )
 
+                // Sky Condition
                 SkyConditionSelectionField(
                     items = allSkyConditions,
                     selectedItem = skyCondition,
@@ -288,6 +498,125 @@ fun WeatherDialog(
                     modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = thumbnailProvider
                 )
+
+                // Wind Direction Dropdown with Selected Item Highlight
+                ExposedDropdownMenuBox(
+                    expanded = isWindDirectionExpanded,
+                    onExpandedChange = { isWindDirectionExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = windDirection?.name ?: "Select Direction",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Wind Direction") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isWindDirectionExpanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = isWindDirectionExpanded,
+                        onDismissRequest = { isWindDirectionExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("None", style = MaterialTheme.typography.bodyMedium) },
+                            onClick = {
+                                windDirection = null
+                                isWindDirectionExpanded = false
+                            },
+                            modifier = Modifier.background(
+                                if (windDirection == null) MaterialTheme.colorScheme.primaryContainer
+                                else Color.Unspecified
+                            )
+                        )
+
+                        WindDirection.entries.forEach { direction ->
+                            val isSelected = direction == windDirection
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = direction.name,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    windDirection = direction
+                                    isWindDirectionExpanded = false
+                                },
+                                modifier = Modifier.background(
+                                    if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                    else Color.Unspecified
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // Wind Speed (Allows decimals e.g., "12" or "12.5")
+                OutlinedTextField(
+                    value = windSpeed,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
+                            windSpeed = input
+                        }
+                    },
+                    label = { Text("Wind Speed") },
+                    suffix = { Text(if (isMetric) "km/h" else "mph") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                // Atmospheric Pressure
+                OutlinedTextField(
+                    value = pressure,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.all { it.isDigit() }) {
+                            pressure = input
+                        }
+                    },
+                    label = { Text("Atmospheric Pressure") },
+                    suffix = { Text("inHg") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                // Air Visibility Text Field
+                OutlinedTextField(
+                    value = visibility,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
+                            visibility = input
+                        }
+                    },
+                    label = { Text("Air Visibility") },
+                    suffix = { Text(if (isMetric) "km" else "mi") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                // Air Humidity
+                OutlinedTextField(
+                    value = humidity,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.all { it.isDigit() }) {
+                            humidity = input
+                        }
+                    },
+                    label = { Text("Air Humidity") },
+                    suffix = { Text("%") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
             }
         },
         confirmButton = {
@@ -295,9 +624,23 @@ fun WeatherDialog(
                 onClick = {
                     val tempValue = temp.fahrenheitToDbValue()
 
-                    onConfirm(tempValue, skyCondition?.id, null, null, null, null, null)
+                    // Convert UI inputs back to DB Long values using unit preference
+                    val speedValue = windSpeed.windSpeedInputToDbValueOrNull(isMetric = isMetric)
+                    val pressureValue = pressure.toLongOrNull()
+                    val visibilityValue = visibility.visibilityInputToDbValueOrNull(isMetric = isMetric)
+                    val humidityValue = humidity.toLongOrNull()
+
+                    onConfirm(
+                        tempValue,
+                        skyCondition?.id,
+                        windDirection,
+                        speedValue,
+                        pressureValue,
+                        visibilityValue,
+                        humidityValue
+                    )
                 },
-                enabled = isChanged // Enabled only if user made a change
+                enabled = isChanged
             ) {
                 Text("Save")
             }
@@ -309,6 +652,7 @@ fun WeatherDialog(
         }
     )
 }
+
 @Composable
 fun WeatherRow(
     weatherList: List<WeatherWithDetails>,

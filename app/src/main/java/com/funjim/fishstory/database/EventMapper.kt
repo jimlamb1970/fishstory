@@ -112,6 +112,7 @@ fun EventEntitySummary.toDomain(): EventSummary {
         event = event.toDomain(),
         trip = trip.toDomain(),
         waterList = waterList.toWaterWithDetailsDomainList(),
+        weatherList = weatherList.toWeatherWithDetailsDomainList(),
         fishCaught = fishCaught,
         fishKept = fishKept,
         targetFishCaught = targetFishCaught,

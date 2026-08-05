@@ -73,6 +73,7 @@ data class EventSummary(
     val event: Event,
     val trip: Trip,
     val waterList: List<WaterWithDetails>,
+    val weatherList: List<WeatherWithDetails>,
 
     val fishCaught: Int,
     val fishKept: Int,

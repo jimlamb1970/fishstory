@@ -760,7 +760,7 @@ fun EventDetailsScreen(
 
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.WaterCup,
+                                    imageVector = AppIcons.Default.Water,
                                     modifier = Modifier.size(24.dp)
                                 )
                             },
@@ -836,18 +836,17 @@ fun EventDetailsScreen(
                     },
                     onDismiss = { showAddWeatherDialog = false },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
-                        val newWeather = Weather(
-                            eventId = eventId,
-                            temperature = temp,
-                            skyConditionId = skyCondition,
-                            windDirection = windDirection,
-                            windSpeed = windSpeed,
-                            atmosphericPressure = atmosphericPressure,
-                            airVisibility = airVisibility,
-                            airHumidity = airHumidity
+                        viewModel.addWeather(
+                            Weather(
+                                eventId = eventId,
+                                temperature = temp,
+                                skyConditionId = skyCondition,
+                                windDirection = windDirection,
+                                windSpeed = windSpeed,
+                                atmosphericPressure = atmosphericPressure,
+                                airVisibility = airVisibility,
+                                airHumidity = airHumidity)
                         )
-
-                        viewModel.addWeather(newWeather)
                         showAddWeatherDialog = false
 
                     },
@@ -985,12 +984,12 @@ fun EventDetailsScreen(
 
         AlertDialog(
             onDismissRequest = { addSkyCondition = false },
-            title = { Text("Add New Water Clarity") },
+            title = { Text("Add New Sky Condition") },
             text = {
                 TextField(
                     value = skyConditionName,
                     onValueChange = { skyConditionName = it },
-                    placeholder = { "Water Clarity (e.g. Clear)" }
+                    placeholder = { "Sky Condition (e.g. Clear)" }
                 )
             },
             confirmButton = {

@@ -161,7 +161,7 @@ fun WaterCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.WaterCup,
+                imageVector = AppIcons.Default.Water,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)

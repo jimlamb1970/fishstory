@@ -309,19 +309,23 @@ data class EventEntityDetailedSummary(
 
 data class EventEntitySummary(
     @Embedded val event: EventEntity,
-
     @Relation(
         parentColumn = "tripId",   // The field in your Event entity
         entityColumn = "id"        // The primary key in your Trip entity
     )
     val trip: TripEntity,
-
     @Relation(
         entity = WaterEntity::class,
         parentColumn = "id",
         entityColumn = "eventId"
     )
     val waterList: List<WaterEntityWithDetails>,
+    @Relation(
+        entity = WeatherEntity::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val weatherList: List<WeatherEntityWithDetails>,
 
     val fishCaught: Int,
     val fishKept: Int,

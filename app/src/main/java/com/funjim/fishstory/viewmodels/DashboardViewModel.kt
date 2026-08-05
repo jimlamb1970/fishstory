@@ -7,11 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
@@ -45,6 +47,13 @@ class DashboardViewModel(
             delay(60_000)
         }
     }
+
+    val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
         .stateIn(
@@ -171,9 +180,24 @@ class DashboardViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchSkyConditionThumbnail(id)
+            .flowOn(Dispatchers.IO)
+    }
+
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
+    fun addSkyCondition(skyCondition: SkyCondition) {
+        viewModelScope.launch {
+            envRepo.addSkyCondition(skyCondition)
+        }
     }
 
     fun addWater(water: Water) {
@@ -188,8 +212,10 @@ class DashboardViewModel(
         }
     }
 
-    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
-        return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    fun addWeather(weather: Weather) {
+        viewModelScope.launch {
+            envRepo.addWeather(weather)
+        }
     }
 
     fun saveTrip(trip: Trip) {
