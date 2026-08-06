@@ -3,9 +3,12 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,11 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.database.toBodyOfWaterDomainList
-import com.funjim.fishstory.database.toPhotoDomainList
-import com.funjim.fishstory.database.toSpeciesDomainList
-import com.funjim.fishstory.database.toWaterWithDetailsDomainList
-import com.funjim.fishstory.database.toWeatherWithDetailsDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.SkyCondition
@@ -54,6 +52,11 @@ import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterRow
 import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.WeatherRow
+import com.funjim.fishstory.ui.utils.getChipColor
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnChipColor
+import com.funjim.fishstory.ui.utils.getOnChipSecondaryColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -63,6 +66,20 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+enum class EventDetailCategory(val label: String) {
+    WATER("Water"),
+    WEATHER("Weather"),
+    TARGET_SPECIES("Target Species"),
+    BODIES_OF_WATER("Bodies of Water"),
+    FISHERMEN("Fishermen")
+}
+
+data class EventCategoryChipConfig(
+    val category: EventDetailCategory,
+    val icon: @Composable () -> Unit,
+    val count: Int? = null // Null if you don't want to display a badge count
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,6 +195,62 @@ fun EventDetailsScreen(
             }
             val sortedWeatherList = remember(eventDetails.weatherList) {
                 eventDetails.weatherList.sortedByDescending { it.weather.timestamp }
+            }
+
+            val categoryConfigs = remember(
+                sortedWaterList,
+                sortedWeatherList,
+                eventDetails.targetSpecies,
+                eventDetails.bodiesOfWater,
+                eventSummary.fishermanCount
+            ) {
+                listOf(
+                    EventCategoryChipConfig(
+                        category = EventDetailCategory.WEATHER,
+                        icon = { Icon(
+                            AppIcons.Default.Weather,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = sortedWeatherList.size
+                    ),
+                    EventCategoryChipConfig(
+                        category = EventDetailCategory.TARGET_SPECIES,
+                        icon = { Icon(
+                            AppIcons.Default.TargetFish,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventDetails.targetSpecies.size
+                    ),
+                    EventCategoryChipConfig(
+                        category = EventDetailCategory.WATER,
+                        icon = { Icon(
+                            AppIcons.Default.Water,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = sortedWaterList.size
+                    ),
+                    EventCategoryChipConfig(
+                        category = EventDetailCategory.FISHERMEN,
+                        icon = { Icon(
+                            AppIcons.Default.Fisherman,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventSummary.fishermanCount
+                    ),
+                    EventCategoryChipConfig(
+                        category = EventDetailCategory.BODIES_OF_WATER,
+                        icon = { Icon(
+                            AppIcons.Default.BodyOfWater,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventDetails.bodiesOfWater.size
+                    )
+                )
             }
 
             Scaffold(
@@ -341,6 +414,8 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
+                    var selectedCategory by remember { mutableStateOf(EventDetailCategory.WEATHER) }
+
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
                             Row(
@@ -454,11 +529,11 @@ fun EventDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            WaterRow(
-                                waterList = sortedWaterList,
-                                onAddWater = { showAddWaterDialog = true },
-                                onEdit = { waterToEdit = it },
-                                onDelete = { waterToDelete = it }
+
+                            EventDetailsCategoryCarousel(
+                                categories = categoryConfigs,
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = { selectedCategory = it }
                             )
 
                             HorizontalDivider(
@@ -467,85 +542,108 @@ fun EventDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            WeatherRow(
-                                weatherList = sortedWeatherList,
-                                onAddWeather = { showAddWeatherDialog = true },
-                                onEdit = { weatherToEdit = it },
-                                onDelete = { weatherToDelete = it }
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
-
-                            BodiesOfWaterRow(
-                                items = eventDetails.bodiesOfWater,
-                                onAdd = { showBodiesOfWaterSelection = true },
-                                onClick = { bodyOfWater ->
-                                    bodyOfWaterToUpdateAll = bodyOfWater
-                                    showUpdateAllCatchesDialog = true
-                                },
-                                onDelete = { bodyOfWater ->
-                                    viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
-                                },
-                                thumbnailProvider = { bodyOfWater ->
-                                    val thumbnailFlow = remember(bodyOfWater.id) {
-                                        viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                            Crossfade(
+                                targetState = selectedCategory,
+                                label = "CategoryTransition",
+                                modifier = Modifier.fillMaxWidth()
+                            ) { category ->
+                                when (category) {
+                                    EventDetailCategory.WATER -> {
+                                        WaterRow(
+                                            waterList = sortedWaterList,
+                                            onAddWater = { showAddWaterDialog = true },
+                                            onEdit = { waterToEdit = it },
+                                            onDelete = { waterToDelete = it }
+                                        )
                                     }
 
-                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                    ThumbnailBox(
-                                        thumbnail = thumbnail,
-                                        imageVector = AppIcons.Default.BodyOfWater,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
-
-                            TargetSpeciesRow(
-                                items = eventDetails.targetSpecies,
-                                onAdd = { showSpeciesSelection = true },
-                                onDelete = { species ->
-                                    viewModel.removeEventTargetSpecies(eventId, species.id)
-                                },
-                                thumbnailProvider = { species ->
-                                    val thumbnailFlow = remember(species.id) {
-                                        viewModel.speciesThumbnail(species.id)
+                                    EventDetailCategory.WEATHER -> {
+                                        WeatherRow(
+                                            weatherList = sortedWeatherList,
+                                            onAddWeather = { showAddWeatherDialog = true },
+                                            onEdit = { weatherToEdit = it },
+                                            onDelete = { weatherToDelete = it }
+                                        )
                                     }
 
-                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                    EventDetailCategory.TARGET_SPECIES -> {
+                                        TargetSpeciesRow(
+                                            items = eventDetails.targetSpecies,
+                                            onAdd = { showSpeciesSelection = true },
+                                            onDelete = { species ->
+                                                viewModel.removeEventTargetSpecies(
+                                                    eventId,
+                                                    species.id
+                                                )
+                                            },
+                                            thumbnailProvider = { species ->
+                                                val thumbnailFlow = remember(species.id) {
+                                                    viewModel.speciesThumbnail(species.id)
+                                                }
 
-                                    ThumbnailBox(
-                                        thumbnail = thumbnail,
-                                        imageVector = AppIcons.Default.TargetFish,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
-                            )
+                                                val thumbnail by thumbnailFlow.collectAsState(
+                                                    initial = null
+                                                )
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
+                                                ThumbnailBox(
+                                                    thumbnail = thumbnail,
+                                                    imageVector = AppIcons.Default.TargetFish,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
 
-                            FishermanSummary(
-                                fishermanCount = eventSummary.fishermanCount,
-                                tackleBoxCount = eventSummary.tackleBoxCount,
-                                allowOverride = true,
-                                onClick = { navigateToSelectEventCrew() }
-                            )
+                                    EventDetailCategory.BODIES_OF_WATER -> {
+                                        BodiesOfWaterRow(
+                                            items = eventDetails.bodiesOfWater,
+                                            onAdd = { showBodiesOfWaterSelection = true },
+                                            onClick = { bodyOfWater ->
+                                                bodyOfWaterToUpdateAll = bodyOfWater
+                                                showUpdateAllCatchesDialog = true
+                                            },
+                                            onDelete = { bodyOfWater ->
+                                                viewModel.removeEventBodyOfWater(
+                                                    eventId,
+                                                    bodyOfWater.id
+                                                )
+                                            },
+                                            thumbnailProvider = { bodyOfWater ->
+                                                val thumbnailFlow = remember(bodyOfWater.id) {
+                                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                                }
+
+                                                val thumbnail by thumbnailFlow.collectAsState(
+                                                    initial = null
+                                                )
+
+                                                ThumbnailBox(
+                                                    thumbnail = thumbnail,
+                                                    imageVector = AppIcons.Default.BodyOfWater,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
+
+                                    EventDetailCategory.FISHERMEN -> {
+                                        FishermanSummary(
+                                            fishermanCount = eventSummary.fishermanCount,
+                                            tackleBoxCount = eventSummary.tackleBoxCount,
+                                            allowOverride = true,
+                                            onClick = { navigateToSelectEventCrew() }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -1054,5 +1152,82 @@ fun EventDetailsScreen(
                 }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EventDetailsCategoryCarousel(
+    categories: List<EventCategoryChipConfig>,
+    selectedCategory: EventDetailCategory,
+    onCategorySelected: (EventDetailCategory) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyRow(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items(categories) { config ->
+            val isSelected = config.category == selectedCategory
+
+            FilterChip(
+                selected = isSelected,
+                onClick = { onCategorySelected(config.category) },
+                label = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = config.category.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+
+                        // Badge Count Indicator
+                        config.count?.let { count ->
+                            if (count > 0) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = getMainButtonColor(),
+                                    modifier = Modifier.padding(start = 2.dp)
+                                ) {
+                                    Text(
+                                        text = count.toString(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = getOnMainButtonColor(),
+                                        modifier = Modifier.padding(
+                                            horizontal = 6.dp,
+                                            vertical = 2.dp
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    selectedBorderColor = getChipColor(true),
+                    selectedBorderWidth = 2.dp,
+                    borderColor = getOnChipColor(),
+                    borderWidth = 1.dp
+                ),
+                leadingIcon = {
+                    Box(modifier = Modifier.size(18.dp)) {
+                        config.icon()
+                    }
+                 },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
+                    selectedLabelColor = getOnChipSecondaryColor(),
+                    labelColor = getOnChipColor()
+                )
+            )
+        }
     }
 }

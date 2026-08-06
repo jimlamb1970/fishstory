@@ -662,110 +662,112 @@ fun WeatherRow(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Column() {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (weatherList.size > 1) {
-                IconButton(
-                    onClick = {
-                        isExpanded = !isExpanded
-                    },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector =
-                            if (isExpanded) Icons.Default.ExpandLess
-                            else Icons.Default.ExpandMore,
-                        contentDescription = null
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (weatherList.size > 1) {
+                    IconButton(
+                        onClick = {
+                            isExpanded = !isExpanded
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isExpanded) Icons.Default.ExpandLess
+                                else Icons.Default.ExpandMore,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Weather Conditions",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+
+                if (weatherList.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${weatherList.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
                     )
                 }
             }
 
-            Text(
-                text = "Weather Conditions",
-                style = MaterialTheme.typography.titleMedium,
-                color = getOnMainColor()
-            )
+            Spacer(modifier = Modifier.weight(1f))
 
-            if (weatherList.size > 1) {
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "(${weatherList.size})",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = getOnMainColor()
+            IconButton(
+                onClick = onAddWeather,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Sky Condition"
                 )
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        if (weatherList.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                WeatherCard(
+                    weather = weatherList.first(),
+                    index = 0,
+                    totalItems = weatherList.size,
+                    onEdit = onEdit,
+                    onDelete = onDelete
+                )
 
-        IconButton(
-            onClick = onAddWeather,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            modifier = Modifier.size(24.dp)
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "Add Sky Condition"
-            )
-        }
-    }
-
-    if (weatherList.isNotEmpty()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            WeatherCard(
-                weather = weatherList.first(),
-                index = 0,
-                totalItems = weatherList.size,
-                onEdit = onEdit,
-                onDelete = onDelete
-            )
-
-            AnimatedVisibility(visible = isExpanded && weatherList.size > 1) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    weatherList.drop(1).forEachIndexed { index, weather ->
-                        WeatherCard(
-                            weather = weather,
-                            index = index + 1,
-                            totalItems = weatherList.size,
-                            onEdit = onEdit,
-                            onDelete = onDelete
-                        )
+                AnimatedVisibility(visible = isExpanded && weatherList.size > 1) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        weatherList.drop(1).forEachIndexed { index, weather ->
+                            WeatherCard(
+                                weather = weather,
+                                index = index + 1,
+                                totalItems = weatherList.size,
+                                onEdit = onEdit,
+                                onDelete = onDelete
+                            )
+                        }
                     }
                 }
             }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "No weather conditions are set.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
         }
-    } else {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "No weather conditions are set.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
-    Spacer(modifier = Modifier.height(8.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -410,110 +410,112 @@ fun WaterRow(
 ) {
     var isWaterSectionExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Column() {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (waterList.size > 1) {
-                IconButton(
-                    onClick = {
-                        isWaterSectionExpanded = !isWaterSectionExpanded
-                    },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector =
-                            if (isWaterSectionExpanded) Icons.Default.ExpandLess
-                            else Icons.Default.ExpandMore,
-                        contentDescription = null
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (waterList.size > 1) {
+                    IconButton(
+                        onClick = {
+                            isWaterSectionExpanded = !isWaterSectionExpanded
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isWaterSectionExpanded) Icons.Default.ExpandLess
+                                else Icons.Default.ExpandMore,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Water Conditions",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+
+                if (waterList.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${waterList.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
                     )
                 }
             }
 
-            Text(
-                text = "Water Conditions",
-                style = MaterialTheme.typography.titleMedium,
-                color = getOnMainColor()
-            )
+            Spacer(modifier = Modifier.weight(1f))
 
-            if (waterList.size > 1) {
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "(${waterList.size})",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = getOnMainColor()
+            IconButton(
+                onClick = onAddWater,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Water Condition"
                 )
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        if (waterList.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                WaterCard(
+                    water = waterList.first(),
+                    index = 0,
+                    totalItems = waterList.size,
+                    onEdit = onEdit,
+                    onDelete = onDelete
+                )
 
-        IconButton(
-            onClick = onAddWater,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            modifier = Modifier.size(24.dp)
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "Add Water Condition"
-            )
-        }
-    }
-
-    if (waterList.isNotEmpty()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            WaterCard(
-                water = waterList.first(),
-                index = 0,
-                totalItems = waterList.size,
-                onEdit = onEdit,
-                onDelete = onDelete
-            )
-
-            AnimatedVisibility(visible = isWaterSectionExpanded && waterList.size > 1) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    waterList.drop(1).forEachIndexed { index, water ->
-                        WaterCard(
-                            water = water,
-                            index = index + 1,
-                            totalItems = waterList.size,
-                            onEdit = onEdit,
-                            onDelete = onDelete
-                        )
+                AnimatedVisibility(visible = isWaterSectionExpanded && waterList.size > 1) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        waterList.drop(1).forEachIndexed { index, water ->
+                            WaterCard(
+                                water = water,
+                                index = index + 1,
+                                totalItems = waterList.size,
+                                onEdit = onEdit,
+                                onDelete = onDelete
+                            )
+                        }
                     }
                 }
             }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "No water conditions are set.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
         }
-    } else {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "No water conditions are set.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
-    Spacer(modifier = Modifier.height(8.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
