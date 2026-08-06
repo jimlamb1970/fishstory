@@ -40,6 +40,9 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.CategoryCarousel
+import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventHighlightCard
@@ -66,20 +69,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-enum class EventDetailCategory(val label: String) {
-    WATER("Water"),
-    WEATHER("Weather"),
-    TARGET_SPECIES("Target Species"),
-    BODIES_OF_WATER("Bodies of Water"),
-    FISHERMEN("Fishermen")
-}
-
-data class EventCategoryChipConfig(
-    val category: EventDetailCategory,
-    val icon: @Composable () -> Unit,
-    val count: Int? = null // Null if you don't want to display a badge count
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,17 +194,19 @@ fun EventDetailsScreen(
                 eventSummary.fishermanCount
             ) {
                 listOf(
-                    EventCategoryChipConfig(
-                        category = EventDetailCategory.WEATHER,
-                        icon = { Icon(
-                            AppIcons.Default.Weather,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
+                    CategoryChipConfig(
+                        category = CategoryType.WEATHER,
+                        icon = {
+                            Icon(
+                                AppIcons.Default.Weather,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
                         count = sortedWeatherList.size
                     ),
-                    EventCategoryChipConfig(
-                        category = EventDetailCategory.TARGET_SPECIES,
+                    CategoryChipConfig(
+                        category = CategoryType.TARGET_SPECIES,
                         icon = { Icon(
                             AppIcons.Default.TargetFish,
                             contentDescription = null,
@@ -223,8 +214,8 @@ fun EventDetailsScreen(
                         ) },
                         count = eventDetails.targetSpecies.size
                     ),
-                    EventCategoryChipConfig(
-                        category = EventDetailCategory.WATER,
+                    CategoryChipConfig(
+                        category = CategoryType.WATER,
                         icon = { Icon(
                             AppIcons.Default.Water,
                             contentDescription = null,
@@ -232,8 +223,8 @@ fun EventDetailsScreen(
                         ) },
                         count = sortedWaterList.size
                     ),
-                    EventCategoryChipConfig(
-                        category = EventDetailCategory.FISHERMEN,
+                    CategoryChipConfig(
+                        category = CategoryType.FISHERMEN,
                         icon = { Icon(
                             AppIcons.Default.Fisherman,
                             contentDescription = null,
@@ -241,8 +232,8 @@ fun EventDetailsScreen(
                         ) },
                         count = eventSummary.fishermanCount
                     ),
-                    EventCategoryChipConfig(
-                        category = EventDetailCategory.BODIES_OF_WATER,
+                    CategoryChipConfig(
+                        category = CategoryType.BODIES_OF_WATER,
                         icon = { Icon(
                             AppIcons.Default.BodyOfWater,
                             contentDescription = null,
@@ -414,7 +405,7 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    var selectedCategory by remember { mutableStateOf(EventDetailCategory.WEATHER) }
+                    var selectedCategory by remember { mutableStateOf(CategoryType.WEATHER) }
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
@@ -529,8 +520,7 @@ fun EventDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-
-                            EventDetailsCategoryCarousel(
+                            CategoryCarousel(
                                 categories = categoryConfigs,
                                 selectedCategory = selectedCategory,
                                 onCategorySelected = { selectedCategory = it }
@@ -548,7 +538,7 @@ fun EventDetailsScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) { category ->
                                 when (category) {
-                                    EventDetailCategory.WATER -> {
+                                    CategoryType.WATER -> {
                                         WaterRow(
                                             waterList = sortedWaterList,
                                             onAddWater = { showAddWaterDialog = true },
@@ -557,7 +547,7 @@ fun EventDetailsScreen(
                                         )
                                     }
 
-                                    EventDetailCategory.WEATHER -> {
+                                    CategoryType.WEATHER -> {
                                         WeatherRow(
                                             weatherList = sortedWeatherList,
                                             onAddWeather = { showAddWeatherDialog = true },
@@ -566,7 +556,7 @@ fun EventDetailsScreen(
                                         )
                                     }
 
-                                    EventDetailCategory.TARGET_SPECIES -> {
+                                    CategoryType.TARGET_SPECIES -> {
                                         TargetSpeciesRow(
                                             items = eventDetails.targetSpecies,
                                             onAdd = { showSpeciesSelection = true },
@@ -598,7 +588,7 @@ fun EventDetailsScreen(
                                         )
                                     }
 
-                                    EventDetailCategory.BODIES_OF_WATER -> {
+                                    CategoryType.BODIES_OF_WATER -> {
                                         BodiesOfWaterRow(
                                             items = eventDetails.bodiesOfWater,
                                             onAdd = { showBodiesOfWaterSelection = true },
@@ -634,13 +624,17 @@ fun EventDetailsScreen(
                                         )
                                     }
 
-                                    EventDetailCategory.FISHERMEN -> {
+                                    CategoryType.FISHERMEN -> {
                                         FishermanSummary(
                                             fishermanCount = eventSummary.fishermanCount,
                                             tackleBoxCount = eventSummary.tackleBoxCount,
                                             allowOverride = true,
                                             onClick = { navigateToSelectEventCrew() }
                                         )
+                                    }
+
+                                    else -> {
+                                        // DO NOTHING FOR NOW
                                     }
                                 }
                             }
@@ -1152,82 +1146,5 @@ fun EventDetailsScreen(
                 }
             }
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EventDetailsCategoryCarousel(
-    categories: List<EventCategoryChipConfig>,
-    selectedCategory: EventDetailCategory,
-    onCategorySelected: (EventDetailCategory) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        items(categories) { config ->
-            val isSelected = config.category == selectedCategory
-
-            FilterChip(
-                selected = isSelected,
-                onClick = { onCategorySelected(config.category) },
-                label = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = config.category.label,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
-
-                        // Badge Count Indicator
-                        config.count?.let { count ->
-                            if (count > 0) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = getMainButtonColor(),
-                                    modifier = Modifier.padding(start = 2.dp)
-                                ) {
-                                    Text(
-                                        text = count.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = getOnMainButtonColor(),
-                                        modifier = Modifier.padding(
-                                            horizontal = 6.dp,
-                                            vertical = 2.dp
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    selectedBorderColor = getChipColor(true),
-                    selectedBorderWidth = 2.dp,
-                    borderColor = getOnChipColor(),
-                    borderWidth = 1.dp
-                ),
-                leadingIcon = {
-                    Box(modifier = Modifier.size(18.dp)) {
-                        config.icon()
-                    }
-                 },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
-                    selectedLabelColor = getOnChipSecondaryColor(),
-                    labelColor = getOnChipColor()
-                )
-            )
-        }
     }
 }

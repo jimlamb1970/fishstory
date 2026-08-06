@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,9 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.database.toBodyOfWaterDomainList
-import com.funjim.fishstory.database.toPhotoDomainList
-import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
@@ -39,6 +37,9 @@ import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.CategoryCarousel
+import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -159,17 +160,64 @@ fun TripDetailsScreen(
             val summary = state.summary
             val eventSummaries = state.eventSummaries
 
-            val activeEvents: List<EventWithInfo> = details.events
+            val events: List<EventWithInfo> = details.events
 
-            val speciesUsageMap: Map<String, Int> = activeEvents
+            val speciesUsageMap: Map<String, Int> = events
                 .flatMap { it.targetSpecies }
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = speciesId, Value = count
 
-            val bodyOfWaterUsageMap: Map<String, Int> = activeEvents
+            val bodyOfWaterUsageMap: Map<String, Int> = events
                 .flatMap { it.bodiesOfWater }
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = bodyOfWaterId, Value = count
+
+            val categoryConfigs = remember(
+                details.targetSpecies.size,
+                details.bodiesOfWater.size,
+                summary.fishermanCount,
+                eventSummaries.size
+            ) {
+                listOf(
+                    CategoryChipConfig(
+                        category = CategoryType.TARGET_SPECIES,
+                        icon = { Icon(
+                            AppIcons.Default.TargetFish,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = details.targetSpecies.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.FISHERMEN,
+                        icon = { Icon(
+                            AppIcons.Default.Fisherman,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = summary.fishermanCount
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.BODIES_OF_WATER,
+                        icon = { Icon(
+                            AppIcons.Default.BodyOfWater,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = details.bodiesOfWater.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.EVENTS,
+                        icon = { Icon(
+                            AppIcons.Default.Canoe,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventSummaries.size
+                    )
+                )
+            }
+
 
             Scaffold(
                 topBar = {
@@ -307,6 +355,9 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
+                    var selectedCategory by remember { mutableStateOf(CategoryType.TARGET_SPECIES) }
+                    var showEvents by remember { mutableStateOf(false) }
+
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
                             Row(
@@ -403,30 +454,10 @@ fun TripDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            BodiesOfWaterRow(
-                                items = details.bodiesOfWater,
-                                onAdd = { showBodiesOfWaterSelection = true },
-                                onClick = { bodyOfWater ->
-                                    bodyOfWaterToUpdateAll = bodyOfWater
-                                    showUpdateAllCatchesDialog = true
-                                },
-                                onDelete = { bodyOfWater ->
-                                    viewModel.removeTripBodyOfWater(tripId, bodyOfWater.id)
-                                },
-                                thumbnailProvider = { bodyOfWater ->
-                                    val thumbnailFlow = remember(bodyOfWater.id) {
-                                        viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
-                                    }
-
-                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                    ThumbnailBox(
-                                        thumbnail = thumbnail,
-                                        imageVector = AppIcons.Default.BodyOfWater,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                            CategoryCarousel(
+                                categories = categoryConfigs,
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = { selectedCategory = it }
                             )
 
                             HorizontalDivider(
@@ -435,156 +466,329 @@ fun TripDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            TargetSpeciesRow(
-                                items = details.targetSpecies,
-                                onAdd = { showSpeciesSelection = true },
-                                onDelete = { species ->
-                                    viewModel.removeTripTargetSpecies(tripId, species.id)
-                                },
-                                thumbnailProvider = { species ->
-                                    val thumbnailFlow = remember(species.id) {
-                                        viewModel.speciesThumbnail(species.id)
-                                    }
-
-                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                    ThumbnailBox(
-                                        thumbnail = thumbnail,
-                                        imageVector = AppIcons.Default.TargetFish,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
-
-                            // The Boat Concept
-                            FishermanSummary(
-                                fishermanCount = summary.fishermanCount,
-                                tackleBoxCount = summary.tackleBoxCount,
-                                onClick = { navigateToSelectTripCrew(tripId) }
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
-
-                            Row(
+                            Crossfade(
+                                targetState = selectedCategory,
+                                label = "CategoryTransition",
                                 modifier = Modifier.fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = "Events",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        text = "(${eventSummaries.size})",
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                }
+                            ) { category ->
+                                when (category) {
+                                    CategoryType.TARGET_SPECIES -> {
+                                        showEvents = false
+                                        TargetSpeciesRow(
+                                            items = details.targetSpecies,
+                                            onAdd = { showSpeciesSelection = true },
+                                            onDelete = { species ->
+                                                viewModel.removeTripTargetSpecies(
+                                                    tripId,
+                                                    species.id
+                                                )
+                                            },
+                                            thumbnailProvider = { species ->
+                                                val thumbnailFlow = remember(species.id) {
+                                                    viewModel.speciesThumbnail(species.id)
+                                                }
 
-                                IconButton(
-                                    onClick = {
-                                        navigateToAddEvent(tripId)
-                                    },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = getMainButtonColor(),
-                                        contentColor = getOnMainButtonColor()
-                                    ),
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add Event")
+                                                val thumbnail by thumbnailFlow.collectAsState(
+                                                    initial = null
+                                                )
+
+                                                ThumbnailBox(
+                                                    thumbnail = thumbnail,
+                                                    imageVector = AppIcons.Default.TargetFish,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
+
+                                    CategoryType.FISHERMEN -> {
+                                        showEvents = false
+                                        FishermanSummary(
+                                            fishermanCount = summary.fishermanCount,
+                                            tackleBoxCount = summary.tackleBoxCount,
+                                            onClick = { navigateToSelectTripCrew(tripId) }
+                                        )
+                                    }
+
+                                    CategoryType.BODIES_OF_WATER -> {
+                                        showEvents = false
+                                        BodiesOfWaterRow(
+                                            items = details.bodiesOfWater,
+                                            onAdd = { showBodiesOfWaterSelection = true },
+                                            onClick = { bodyOfWater ->
+                                                bodyOfWaterToUpdateAll = bodyOfWater
+                                                showUpdateAllCatchesDialog = true
+                                            },
+                                            onDelete = { bodyOfWater ->
+                                                viewModel.removeTripBodyOfWater(
+                                                    tripId,
+                                                    bodyOfWater.id
+                                                )
+                                            },
+                                            thumbnailProvider = { bodyOfWater ->
+                                                val thumbnailFlow = remember(bodyOfWater.id) {
+                                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                                }
+
+                                                val thumbnail by thumbnailFlow.collectAsState(
+                                                    initial = null
+                                                )
+
+                                                ThumbnailBox(
+                                                    thumbnail = thumbnail,
+                                                    imageVector = AppIcons.Default.BodyOfWater,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
+
+                                    CategoryType.EVENTS -> {
+                                        //showEvents = true
+                                        Column() {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    Text(
+                                                        text = "Events",
+                                                        style = MaterialTheme.typography.titleMedium
+                                                    )
+                                                    Spacer(Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "(${eventSummaries.size})",
+                                                        style = MaterialTheme.typography.titleSmall
+                                                    )
+                                                }
+
+                                                IconButton(
+                                                    onClick = {
+                                                        navigateToAddEvent(tripId)
+                                                    },
+                                                    colors = IconButtonDefaults.iconButtonColors(
+                                                        containerColor = getMainButtonColor(),
+                                                        contentColor = getOnMainButtonColor()
+                                                    ),
+                                                    modifier = Modifier.size(24.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Add,
+                                                        contentDescription = "Add Event"
+                                                    )
+                                                }
+                                            }
+                                            val totalItems = eventSummaries.size
+                                            eventSummaries.forEachIndexed { index, eventSummary ->
+                                                EventItem(
+                                                    item = eventSummary,
+                                                    modifier = Modifier.padding(
+                                                        horizontal = 16.dp,
+                                                        vertical = 4.dp
+                                                    ),
+                                                    index = index,
+                                                    totalItems = totalItems,
+                                                    thumbnailFlow = viewModel.eventThumbnail(
+                                                        eventSummary.event.id
+                                                    ),
+                                                    photosFlow = viewModel.eventPhotos(eventSummary.event.id),
+                                                    showPhotoPicker = true,
+                                                    onClick = { navigateToEventDetails(eventSummary.event.id) },
+                                                    onFishClick = { _, _, targetOnly ->
+                                                        navigateToFishList(
+                                                            tripId,
+                                                            eventSummary.event.id,
+                                                            targetOnly
+                                                        )
+                                                    },
+                                                    onPhotoAdded = {
+                                                        viewModel.addEventPhoto(
+                                                            eventSummary.event.id,
+                                                            it,
+                                                            true
+                                                        )
+                                                    },
+                                                    onPhotoTaken = {
+                                                        viewModel.addEventPhoto(
+                                                            eventSummary.event.id,
+                                                            it,
+                                                            false
+                                                        )
+                                                    },
+                                                    onSetThumbnail = { photo ->
+                                                        viewModel.setEventThumbnail(
+                                                            eventSummary.event.id,
+                                                            photo.id
+                                                        )
+                                                    },
+                                                    onPhotoDeleted = { photo ->
+                                                        viewModel.deleteEventPhoto(
+                                                            eventSummary.event.id,
+                                                            photo.id
+                                                        )
+                                                    },
+                                                    onDelete = { eventToDelete = eventSummary },
+                                                    onSetLocation = if (hasLocationPermission) {
+                                                        {
+                                                            scope.launch {
+                                                                val location =
+                                                                    viewModel.fetchLocation()
+                                                                if (location != null) {
+                                                                    viewModel.upsertEvent(
+                                                                        eventSummary.event.copy(
+                                                                            latitude = location.latitude,
+                                                                            longitude = location.longitude
+                                                                        )
+                                                                    )
+                                                                    Toast.makeText(
+                                                                        context,
+                                                                        "Location updated",
+                                                                        Toast.LENGTH_SHORT
+                                                                    ).show()
+                                                                }
+                                                            }
+                                                        }
+                                                    } else null,
+                                                    onSelectLocation = {
+                                                        eventToUpdateLocation = eventSummary
+                                                        locationPickerEvent.openPicker()
+                                                    },
+                                                    onUseTripLocation = if (details.trip.latitude != null) {
+                                                        {
+                                                            scope.launch {
+                                                                viewModel.upsertEvent(
+                                                                    eventSummary.event.copy(
+                                                                        latitude = details.trip.latitude,
+                                                                        longitude = details.trip.longitude
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    } else null,
+                                                    onClearLocation = {
+                                                        scope.launch {
+                                                            viewModel.upsertEvent(
+                                                                eventSummary.event.copy(
+                                                                    latitude = null,
+                                                                    longitude = null
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        // DO NOTHING FOR NOW
+                                    }
                                 }
                             }
                         }
 
-                        val totalItems = eventSummaries.size
-                        itemsIndexed(eventSummaries) { index, eventSummary ->
-                            EventItem(
-                                item = eventSummary,
-                                modifier = Modifier.padding(
-                                    horizontal = 16.dp,
-                                    vertical = 4.dp
-                                ),
-                                index = index,
-                                totalItems = totalItems,
-                                thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
-                                photosFlow = viewModel.eventPhotos(eventSummary.event.id),
-                                showPhotoPicker = true,
-                                onClick = { navigateToEventDetails(eventSummary.event.id) },
-                                onFishClick = { _, _, targetOnly ->
-                                    navigateToFishList(tripId, eventSummary.event.id, targetOnly)
-                                },
-                                onPhotoAdded = {
-                                    viewModel.addEventPhoto(eventSummary.event.id, it, true)
-                                },
-                                onPhotoTaken = {
-                                    viewModel.addEventPhoto(eventSummary.event.id, it, false)
-                                },
-                                onSetThumbnail = { photo -> viewModel.setEventThumbnail(eventSummary.event.id, photo.id) },
-                                onPhotoDeleted = { photo -> viewModel.deleteEventPhoto(eventSummary.event.id, photo.id) },
-                                onDelete = { eventToDelete = eventSummary },
-                                onSetLocation = if (hasLocationPermission) {
-                                    {
-                                        scope.launch {
-                                            val location = viewModel.fetchLocation()
-                                            if (location != null) {
-                                                viewModel.upsertEvent(
-                                                    eventSummary.event.copy(
-                                                        latitude = location.latitude,
-                                                        longitude = location.longitude
+                        if (showEvents) {
+                            val totalItems = eventSummaries.size
+                            itemsIndexed(eventSummaries) { index, eventSummary ->
+                                EventItem(
+                                    item = eventSummary,
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 4.dp
+                                    ),
+                                    index = index,
+                                    totalItems = totalItems,
+                                    thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
+                                    photosFlow = viewModel.eventPhotos(eventSummary.event.id),
+                                    showPhotoPicker = true,
+                                    onClick = { navigateToEventDetails(eventSummary.event.id) },
+                                    onFishClick = { _, _, targetOnly ->
+                                        navigateToFishList(
+                                            tripId,
+                                            eventSummary.event.id,
+                                            targetOnly
+                                        )
+                                    },
+                                    onPhotoAdded = {
+                                        viewModel.addEventPhoto(eventSummary.event.id, it, true)
+                                    },
+                                    onPhotoTaken = {
+                                        viewModel.addEventPhoto(eventSummary.event.id, it, false)
+                                    },
+                                    onSetThumbnail = { photo ->
+                                        viewModel.setEventThumbnail(
+                                            eventSummary.event.id,
+                                            photo.id
+                                        )
+                                    },
+                                    onPhotoDeleted = { photo ->
+                                        viewModel.deleteEventPhoto(
+                                            eventSummary.event.id,
+                                            photo.id
+                                        )
+                                    },
+                                    onDelete = { eventToDelete = eventSummary },
+                                    onSetLocation = if (hasLocationPermission) {
+                                        {
+                                            scope.launch {
+                                                val location = viewModel.fetchLocation()
+                                                if (location != null) {
+                                                    viewModel.upsertEvent(
+                                                        eventSummary.event.copy(
+                                                            latitude = location.latitude,
+                                                            longitude = location.longitude
+                                                        )
                                                     )
-                                                )
-                                                Toast.makeText(
-                                                    context,
-                                                    "Location updated",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Location updated",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
                                             }
                                         }
-                                    }
-                                } else null,
-                                onSelectLocation = {
-                                    eventToUpdateLocation = eventSummary
-                                    locationPickerEvent.openPicker()
-                                },
-                                onUseTripLocation = if (details.trip.latitude != null) {
-                                    {
+                                    } else null,
+                                    onSelectLocation = {
+                                        eventToUpdateLocation = eventSummary
+                                        locationPickerEvent.openPicker()
+                                    },
+                                    onUseTripLocation = if (details.trip.latitude != null) {
+                                        {
+                                            scope.launch {
+                                                viewModel.upsertEvent(
+                                                    eventSummary.event.copy(
+                                                        latitude = details.trip.latitude,
+                                                        longitude = details.trip.longitude
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    } else null,
+                                    onClearLocation = {
                                         scope.launch {
                                             viewModel.upsertEvent(
                                                 eventSummary.event.copy(
-                                                    latitude = details.trip.latitude,
-                                                    longitude = details.trip.longitude
+                                                    latitude = null,
+                                                    longitude = null
                                                 )
                                             )
                                         }
                                     }
-                                } else null,
-                                onClearLocation = {
-                                    scope.launch {
-                                        viewModel.upsertEvent(
-                                            eventSummary.event.copy(
-                                                latitude = null,
-                                                longitude = null
-                                            )
-                                        )
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
 
