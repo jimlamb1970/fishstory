@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -110,11 +112,14 @@ import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalLocale
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 
 private data class GridParams(
     val text: String,
     val icon: ImageVector,
-    val iconOverlay: ImageVector?,
+    val iconOverlay: ImageVector? = null,
+    val count: Int = 0,
     val onClink: () -> Unit
 )
 
@@ -845,8 +850,8 @@ fun ActiveTripCard(
 
             Spacer(Modifier.height(12.dp))
             ActiveTripGrid(
-                waterSet = currentEvent.waterList.isNotEmpty(),
-                weatherSet = currentEvent.weatherList.isNotEmpty(),
+                waterCount = currentEvent.waterList.size,
+                weatherCount = currentEvent.weatherList.size,
                 onFishClick = { onLogFish(currentEvent.event.tripId, currentEvent.event.id) },
                 onWaterClick = { showAddWaterDialog = true },
                 onWeatherClick = { showAddWeatherDialog = true },
@@ -1027,8 +1032,8 @@ fun ActiveTripCard(
 }
 @Composable
 fun ActiveTripGrid(
-    waterSet: Boolean = false,
-    weatherSet: Boolean = false,
+    waterCount: Int = 0,
+    weatherCount: Int = 0,
     onFishClick: () -> Unit,
     onWaterClick: () -> Unit,
     onWeatherClick: () -> Unit,
@@ -1040,17 +1045,19 @@ fun ActiveTripGrid(
             "Fish",
             AppIcons.Default.LeapingFishWithFins,
             Icons.Default.Add,
-            onFishClick),
+            onClink = onFishClick),
         GridParams(
             "Water",
-            if (waterSet) AppIcons.Default.WaterSet else AppIcons.Default.Water,
+            if (waterCount > 0) AppIcons.Default.WaterSet else AppIcons.Default.Water,
             Icons.Default.Add,
-            onWaterClick),
+            count = waterCount,
+            onClink = onWaterClick),
         GridParams(
             "Weather",
-            if (weatherSet) AppIcons.Default.WeatherSet else AppIcons.Default.Weather,
+            if (weatherCount > 0) AppIcons.Default.WeatherSet else AppIcons.Default.Weather,
             Icons.Default.Add,
-            onWeatherClick)
+            count = weatherCount,
+            onClink = onWeatherClick)
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1075,15 +1082,15 @@ fun DashboardGrid(
     onTripsClick: () -> Unit
 ) {
     val items = listOf(
-        GridParams("Trips", AppIcons.Default.Boat, null, onTripsClick),
-        GridParams("Fish", AppIcons.Default.LeapingFishWithFins, null, onFishClick),
-        GridParams("Fishermen", AppIcons.Default.Fisherman, null, onFishermenClick),
-        GridParams("Bodies of Water", AppIcons.Default.BodyOfWater, null, onBodiesOfWaterClick),
-        GridParams("Species", AppIcons.Default.Species, null, onSpeciesClick),
-        GridParams("Lures", AppIcons.Default.Lure, null, onLuresClick),
-        GridParams("Baits", AppIcons.Default.Worm, null, onBaitsClick),
-        GridParams("Reports", Icons.Default.AutoGraph, null, onReportsClick),
-        GridParams("Settings", AppIcons.Default.Settings, null, onSettingsClick)
+        GridParams("Trips", AppIcons.Default.Boat, onClink = onTripsClick),
+        GridParams("Fish", AppIcons.Default.LeapingFishWithFins, onClink = onFishClick),
+        GridParams("Fishermen", AppIcons.Default.Fisherman, onClink = onFishermenClick),
+        GridParams("Bodies of Water", AppIcons.Default.BodyOfWater, onClink = onBodiesOfWaterClick),
+        GridParams("Species", AppIcons.Default.Species, onClink = onSpeciesClick),
+        GridParams("Lures", AppIcons.Default.Lure, onClink = onLuresClick),
+        GridParams("Baits", AppIcons.Default.Worm, onClink = onBaitsClick),
+        GridParams("Reports", Icons.Default.AutoGraph, onClink = onReportsClick),
+        GridParams("Settings", AppIcons.Default.Settings, onClink = onSettingsClick)
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1118,7 +1125,8 @@ private fun GridItem(
         modifier = modifier.height(100.dp),
         colors = CardDefaults.outlinedCardColors(
             containerColor = containerColor,
-            contentColor = contentColor),
+            contentColor = contentColor
+        ),
         border = BorderStroke(1.dp, color = borderColor),
     ) {
         Column(
@@ -1130,7 +1138,35 @@ private fun GridItem(
                 Icon(
                     item.icon,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp))
+                    modifier = Modifier.size(32.dp)
+                )
+
+                if (item.count > 0) {
+                    Surface(
+                        shape = CircleShape,
+                        color = contentColor,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(
+                                x = (12).dp,
+                                y = (-4).dp
+                            ) // Changed y offset so it sits properly on the top-right corner
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .defaultMinSize(minWidth = 18.dp, minHeight = 18.dp)
+                                .padding(horizontal = 4.dp), // Extra horizontal padding for double-digit counts (e.g., "12")
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = item.count.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Normal,
+                                color = containerColor,
+                            )
+                        }
+                    }
+                }
 
                 if (item.iconOverlay != null) {
                     Surface(
@@ -1141,7 +1177,7 @@ private fun GridItem(
                             .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = item.iconOverlay,
                             contentDescription = null,
                             tint = contentColor,
                             modifier = Modifier.size(12.dp)
@@ -1196,7 +1232,7 @@ fun UpcomingTripChip(
     trip: Trip,
     onTripClick: (String) -> Unit
 ) {
-    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
+    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", LocalLocale.current.platformLocale)
         .format(java.util.Date(trip.startDate))
 
     Surface(
@@ -1230,7 +1266,7 @@ fun UpcomingEventChip(
     eventTime: Long,
     onEventClick: () -> Unit
 ) {
-    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault())
+    val dateString = java.text.SimpleDateFormat("MMM dd, HH:mm", LocalLocale.current.platformLocale)
         .format(java.util.Date(eventTime))
 
     Surface(
@@ -1267,7 +1303,7 @@ fun UpcomingEventChip(
 
 @Composable
 fun TripHistoryRow(trip: Trip) {
-    val dateRange = java.text.SimpleDateFormat("MM/dd/yy", java.util.Locale.getDefault())
+    val dateRange = java.text.SimpleDateFormat("MM/dd/yy", LocalLocale.current.platformLocale)
         .format(java.util.Date(trip.startDate))
 
     OutlinedCard(
