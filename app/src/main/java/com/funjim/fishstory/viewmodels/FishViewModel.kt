@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -18,9 +19,11 @@ import com.funjim.fishstory.ui.utils.sortLures
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -44,6 +47,9 @@ class FishViewModel(
 ) : ViewModel(), LocationProvider by locationProvider {
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
 
     // UI State flows
     private val _filter = MutableStateFlow(FishFilter())
@@ -363,9 +369,20 @@ class FishViewModel(
         }
     }
 
-    fun addSpecies(species: Species) {
+    fun addSpecies(
+        species: Species,
+        onSuccess: (Species) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.addSpecies(species)
+            try {
+                fishRepo.addSpecies(species)
+                onSuccess(species)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Species '${species.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add species.")
+            }
         }
     }
 

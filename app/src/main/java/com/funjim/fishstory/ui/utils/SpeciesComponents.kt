@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +45,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -667,4 +670,38 @@ fun TargetSpeciesRow(
             }
         }
     }
+}
+
+@Composable
+fun AddSpeciesDialog(
+    onDismiss: () -> Unit,
+    onAdd: (name: String) -> Unit
+) {
+    var addSpeciesName by remember { mutableStateOf("") }
+    val isValid = addSpeciesName.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add New Species") },
+        text = {
+            TextField(
+                value = addSpeciesName,
+                onValueChange = { addSpeciesName = it },
+                placeholder = { Text("Species Name (e.g. Walleye)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (addSpeciesName.isNotBlank()) {
+                        onAdd(addSpeciesName.trim())
+                    }
+                },
+                enabled = isValid
+            ) { Text("Add Species") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }

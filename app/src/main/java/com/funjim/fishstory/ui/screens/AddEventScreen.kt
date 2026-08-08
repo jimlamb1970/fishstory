@@ -17,9 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -96,6 +96,12 @@ fun AddEventScreen(
             viewModel.updateEventDraft { it.copy(latitude = lat, longitude = lng) }
         }
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Helper: delete the event if user cancels mid-wizard
     fun cancelAndExit() {
@@ -619,33 +625,11 @@ fun AddEventScreen(
     }
 
     if (addNewSpecies) {
-        var addSpeciesName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addNewSpecies = false },
-            title = { Text("Add New Species") },
-            text = {
-                TextField(
-                    value = addSpeciesName,
-                    onValueChange = { addSpeciesName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addSpeciesName.isNotBlank()) {
-                        scope.launch {
-                            val species = Species(name = addSpeciesName)
-                            viewModel.addSpecies(species)
-                            viewModel.updateEventTargetSpecies(targetSpecies + species)
-                            addNewSpecies = false
-                            addSpeciesName = ""
-                        }
-                    }
-                }) { Text("Add Species") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+        AddSpeciesDialog(
+            onDismiss = { addNewSpecies = false },
+            onAdd = { speciesName ->
+                viewModel.updateEventTargetSpecies(Species(name = speciesName))
+                addNewSpecies = false
             }
         )
     }

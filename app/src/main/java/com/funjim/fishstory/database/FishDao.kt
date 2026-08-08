@@ -117,7 +117,7 @@ interface FishDao {
     @Query("DELETE FROM species_table")
     suspend fun deleteAllSpecies()
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSpecies(species: SpeciesEntity)
 
     @Upsert

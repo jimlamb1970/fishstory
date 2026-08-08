@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -14,9 +15,11 @@ import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -41,6 +44,9 @@ class TripViewModel(
     private val _selectedTripId = MutableStateFlow<String?>(null)
     val selectedTripId = _selectedTripId.asStateFlow()
     private val _selectedEventId = MutableStateFlow<String?>(null)
+
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
 
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
@@ -327,15 +333,34 @@ class TripViewModel(
         viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }
 
-    fun addSpecies(species: Species) {
+    fun addSpecies(
+        species: Species,
+        onSuccess: (Species) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.addSpecies(species)
+            try {
+                fishRepo.addSpecies(species)
+                onSuccess(species)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Species '${species.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add species.")
+            }
+        }
+    }
+
+    fun addTripTargetSpecies(tripId: String, species: Species) {
+        addSpecies(species) { addedSpecies ->
+            addTripTargetSpecies(tripId, addedSpecies.id)
         }
     }
 
     fun addTripTargetSpecies(tripId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.insertTripTargetSpecies(TripTargetSpecies(tripId = tripId, speciesId = speciesId))
+            tripRepo.insertTripTargetSpecies(
+                TripTargetSpecies(tripId = tripId, speciesId = speciesId)
+            )
         }
     }
 

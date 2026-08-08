@@ -47,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,6 +85,12 @@ fun ManageSpeciesScreen(
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
 
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -135,7 +142,9 @@ fun ManageSpeciesScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addSpecies(Species(name = searchQuery.trim()))
+                            viewModel.addSpecies(Species(name = searchQuery.trim())) {
+                                // Nothing to do on success
+                            }
                             searchQuery = ""
                         }) {
                             Icon(

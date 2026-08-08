@@ -38,6 +38,7 @@ import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.CategoryCarousel
@@ -81,11 +82,20 @@ fun EventDetailsScreen(
     navigateToFishList: (String?, String?, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
     LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
         viewModel.selectEvent(eventId)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     var showSpeciesSelection by remember { mutableStateOf(false) }
@@ -120,8 +130,6 @@ fun EventDetailsScreen(
     var showEditEventDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
@@ -1012,31 +1020,11 @@ fun EventDetailsScreen(
     }
 
     if (addNewSpecies) {
-        AlertDialog(
-            onDismissRequest = { addNewSpecies = false },
-            title = { Text("Add New Species") },
-            text = {
-                TextField(
-                    value = addSpeciesName,
-                    onValueChange = { addSpeciesName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addSpeciesName.isNotBlank()) {
-                        scope.launch {
-                            val species = Species(name = addSpeciesName)
-                            viewModel.addSpecies(species)
-                            viewModel.addEventTargetSpecies(eventId, species.id)
-                            addNewSpecies = false
-                            addSpeciesName = ""
-                        }
-                    }
-                }) { Text("Add Species") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+        AddSpeciesDialog(
+            onDismiss = { addNewSpecies = false },
+            onAdd = { speciesName ->
+                viewModel.addEventTargetSpecies(eventId, Species(name = speciesName))
+                addNewSpecies = false
             }
         )
     }

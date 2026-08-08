@@ -35,6 +35,7 @@ import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.CategoryCarousel
@@ -72,10 +73,18 @@ fun TripDetailsScreen(
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     var showEditTripDialog by remember { mutableStateOf(false) }
@@ -95,8 +104,6 @@ fun TripDetailsScreen(
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
@@ -968,29 +975,11 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
     }
 
     if (addNewSpecies) {
-        AlertDialog(
-            onDismissRequest = { addNewSpecies = false },
-            title = { Text("Add New Species") },
-            text = {
-                TextField(
-                    value = addSpeciesName,
-                    onValueChange = { addSpeciesName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addSpeciesName.isNotBlank()) {
-                        val species = Species(name = addSpeciesName)
-                        viewModel.addSpecies(species)
-                        viewModel.addTripTargetSpecies(tripId, species.id)
-                        addNewSpecies = false
-                        addSpeciesName = ""
-                    }
-                }) { Text("Add Species") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+        AddSpeciesDialog(
+            onDismiss = { addNewSpecies = false },
+            onAdd = { speciesName ->
+                viewModel.addTripTargetSpecies(tripId, Species(name = speciesName))
+                addNewSpecies = false
             }
         )
     }

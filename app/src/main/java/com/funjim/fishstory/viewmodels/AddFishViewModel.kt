@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,9 +18,11 @@ import com.funjim.fishstory.ui.utils.inchesToStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -31,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.collections.plus
 
 class AddFishViewModel(
     private val locationProvider: LocationProvider,
@@ -41,6 +45,9 @@ class AddFishViewModel(
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     // UI State flows
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishId = MutableStateFlow<String?>(null)
@@ -266,9 +273,20 @@ class AddFishViewModel(
         }
     }
 
-    fun addSpecies(species: Species) {
+    fun addSpecies(
+        species: Species,
+        onSuccess: (Species) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.addSpecies(species)
+            try {
+                fishRepo.addSpecies(species)
+                onSuccess(species)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Species '${species.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add species.")
+            }
         }
     }
 
@@ -389,6 +407,10 @@ class AddFishViewModel(
         _draftFish.update { current ->
             current?.copy(keptCount = kept)
         }
+    }
+
+    fun addAndUpdateSpecies(species: Species) {
+        addSpecies(species) { addedSpecies -> updateSpecies(addedSpecies) }
     }
 
     fun updateSpecies(species: Species) {

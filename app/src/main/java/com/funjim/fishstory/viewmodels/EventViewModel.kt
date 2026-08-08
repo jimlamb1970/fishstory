@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -14,9 +15,11 @@ import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -37,6 +40,9 @@ class EventViewModel(
 ) : ViewModel(), LocationProvider by locationProvider {
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
 
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
@@ -215,6 +221,12 @@ class EventViewModel(
         }
     }
 
+    fun addEventTargetSpecies(eventId: String, species: Species) {
+        addSpecies(species) { addedSpecies ->
+            addEventTargetSpecies(eventId, addedSpecies.id)
+        }
+    }
+
     fun addEventTargetSpecies(eventId: String, speciesId: String) {
         viewModelScope.launch {
             tripRepo.insertEventTargetSpecies(
@@ -253,9 +265,20 @@ class EventViewModel(
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }
 
-    fun addSpecies(species: Species) {
+    fun addSpecies(
+        species: Species,
+        onSuccess: (Species) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.addSpecies(species)
+            try {
+                fishRepo.addSpecies(species)
+                onSuccess(species)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Species '${species.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add species.")
+            }
         }
     }
 

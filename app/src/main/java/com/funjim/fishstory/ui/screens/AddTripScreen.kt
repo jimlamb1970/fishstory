@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -82,6 +83,12 @@ fun AddTripScreen(
     LaunchedEffect(tripDraft.id) {
         tripViewModel.selectTrip(tripDraft.id)
         tripViewModel.selectEvent(eventDraft.id)
+    }
+
+    LaunchedEffect(Unit) {
+        tripViewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     val eventSummaries by tripViewModel.eventSummaries.collectAsStateWithLifecycle()
@@ -991,34 +998,15 @@ fun AddTripScreen(
     }
 
     if (addNewSpecies) {
-        var addSpeciesName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addNewSpecies = false },
-            title = { Text("Add New Species") },
-            text = {
-                TextField(
-                    value = addSpeciesName,
-                    onValueChange = { addSpeciesName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addSpeciesName.isNotBlank()) {
-                        val species = Species(name = addSpeciesName)
-                        tripViewModel.addSpecies(species)
-                        if (currentStep == WizardStep.TripInfo)
-                            tripViewModel.addTripTargetSpecies(species)
-                        else
-                            tripViewModel.addEventTargetSpecies(eventDraft.id, species)
-                        addNewSpecies = false
-                        addSpeciesName = ""
-                    }
-                }) { Text("Add Species") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewSpecies = false }) { Text("Cancel") }
+        AddSpeciesDialog(
+            onDismiss = { addNewSpecies = false },
+            onAdd = { speciesName ->
+                val species = Species(name = speciesName)
+                if (currentStep == WizardStep.TripInfo)
+                    tripViewModel.addAndUpdateTripTargetSpecies(species)
+                else
+                    tripViewModel.addAndUpdateEventTargetSpecies(eventDraft.id, species)
+                addNewSpecies = false
             }
         )
     }
