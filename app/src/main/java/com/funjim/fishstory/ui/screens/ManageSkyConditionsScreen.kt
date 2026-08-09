@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
+import com.funjim.fishstory.ui.utils.EditSkyConditionDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -67,16 +70,21 @@ fun ManageSkyConditionsScreen(
     viewModel: SkyConditionViewModel,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val allItems by viewModel.allSkyConditions.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<SkyCondition?>(null) }
     var itemToEdit by remember { mutableStateOf<SkyCondition?>(null) }
-    var editName by remember { mutableStateOf("") }
 
     var currentItemForPhoto by remember { mutableStateOf<SkyCondition?>(null) }
-
-    val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -127,7 +135,9 @@ fun ManageSkyConditionsScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addSkyCondition(SkyCondition(name = searchQuery.trim()))
+                            viewModel.addSkyCondition(SkyCondition(name = searchQuery.trim())) {
+                                // Do nothing on success
+                            }
                             searchQuery = ""
                         }) {
                             Icon(
@@ -269,7 +279,6 @@ fun ManageSkyConditionsScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item
-                                            editName = item.name
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -369,25 +378,14 @@ This cannot be undone."""
 
     // EDIT DIALOG
     itemToEdit?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToEdit = null },
-            title = { Text("Rename Sky Condition") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Sky Condition") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertSkyCondition(item.copy(name = editName.trim()))
-                    itemToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToEdit = null }) { Text("Cancel") }
+        EditSkyConditionDialog(
+            item = item,
+            onDismiss = { itemToEdit = null },
+            onConfirm = { confirmedItem ->
+                viewModel.updateSkyCondition(confirmedItem) {
+                    // Do nothing on success
+                }
+                itemToEdit = null
             }
         )
     }

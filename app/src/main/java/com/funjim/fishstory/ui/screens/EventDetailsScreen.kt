@@ -39,6 +39,7 @@ import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
@@ -1041,29 +1042,13 @@ fun EventDetailsScreen(
     }
 
     if (addSkyCondition) {
-        var skyConditionName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addSkyCondition = false },
-            title = { Text("Add New Sky Condition") },
-            text = {
-                TextField(
-                    value = skyConditionName,
-                    onValueChange = { skyConditionName = it },
-                    placeholder = { "Sky Condition (e.g. Clear)" }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (skyConditionName.isNotBlank()) {
-                        viewModel.addSkyCondition(SkyCondition(name = skyConditionName.trim()))
-                        addSkyCondition = false
-                        skyConditionName = ""
-                    }
-                }) { Text("Add Sky Condition") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addSkyCondition = false }) { Text("Cancel") }
+        AddSkyConditionDialog(
+            onDismiss = { addSkyCondition = false },
+            onConfirm = { name ->
+                viewModel.addSkyCondition(SkyCondition(name = name)) {
+                    // Do nothing on success
+                }
+                addSkyCondition = false
             }
         )
     }

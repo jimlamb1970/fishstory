@@ -208,18 +208,18 @@ class EventViewModel(
     )
 
     fun addBodyOfWater(
-        bodyOfWater: BodyOfWater,
+        item: BodyOfWater,
         onSuccess: (BodyOfWater) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                envRepo.addBodyOfWater(bodyOfWater)
-                onSuccess(bodyOfWater)
+                envRepo.addBodyOfWater(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Body of water '${bodyOfWater.name}' already exists.")
+                _toastMessage.emit("Body of water '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add body of water.")
+                _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
     }
@@ -283,18 +283,18 @@ class EventViewModel(
     }
 
     fun addSpecies(
-        species: Species,
+        item: Species,
         onSuccess: (Species) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                fishRepo.addSpecies(species)
-                onSuccess(species)
+                fishRepo.addSpecies(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Species '${species.name}' already exists.")
+                _toastMessage.emit("Species '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add species.")
+                _toastMessage.emit("An error occurred while adding species.")
             }
         }
     }
@@ -323,7 +323,7 @@ class EventViewModel(
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
     }
@@ -346,9 +346,19 @@ class EventViewModel(
         }
     }
 
-    fun addSkyCondition(skyCondition: SkyCondition) {
+    fun addSkyCondition(
+        item: SkyCondition,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            envRepo.addSkyCondition(skyCondition)
+            try {
+                envRepo.addSkyCondition(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Sky Condition '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding sky condition.")
+            }
         }
     }
 

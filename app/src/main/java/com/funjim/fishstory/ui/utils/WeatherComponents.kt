@@ -57,6 +57,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -182,6 +183,54 @@ private fun Weather.windSpeedDisplayString(useKM: Boolean = false): String? {
     } else {
         String.format(Locale.getDefault(), "%s mph", speedDb.windSpeedDisplayString())
     }
+}
+
+@Composable
+fun AddSkyConditionDialog(
+    onConfirm: (name: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    EditSkyConditionDialog(
+        item = SkyCondition(name = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditSkyConditionDialog(
+    item: SkyCondition,
+    title: String = "Rename",
+    onConfirm: (SkyCondition) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val origName = remember(item) { item.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Sky Condition") },
+        text = {
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true,
+                placeholder = { Text("Sky Condition (e.g. Clear)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(item.copy(name = name.trim())) },
+                enabled = isValid
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable

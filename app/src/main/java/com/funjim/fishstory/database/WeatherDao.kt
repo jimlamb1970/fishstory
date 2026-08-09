@@ -5,16 +5,17 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WeatherDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSkyCondition(skyConditionEntity: SkyConditionEntity)
 
-    @Upsert
-    suspend fun upsertSkyCondition(skyConditionEntity: SkyConditionEntity)
+    @Update
+    suspend fun updateSkyCondition(skyConditionEntity: SkyConditionEntity)
 
     @Query("SELECT * FROM sky_condition_table ORDER BY name ASC")
     fun getAllSkyConditions(): Flow<List<SkyConditionEntity>>

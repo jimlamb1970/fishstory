@@ -114,6 +114,7 @@ import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
+import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 
 private data class GridParams(
@@ -944,32 +945,13 @@ fun ActiveTripCard(
     }
 
     if (addSkyCondition) {
-        var skyConditionName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addSkyCondition = false },
-            title = { Text("Add New Sky Condition") },
-            text = {
-                TextField(
-                    value = skyConditionName,
-                    onValueChange = { skyConditionName = it },
-                    placeholder = { "Sky Condition (e.g. Clear)" }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (skyConditionName.isNotBlank()) {
-                            viewModel.addSkyCondition(SkyCondition(name = skyConditionName.trim()))
-                            addSkyCondition = false
-                            skyConditionName = ""
-                        }
-                    },
-                    enabled = skyConditionName.isNotBlank()
-                ) { Text("Add Sky Condition") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addSkyCondition = false }) { Text("Cancel") }
+        AddSkyConditionDialog(
+            onDismiss = { addSkyCondition = false },
+            onConfirm = { name ->
+                viewModel.addSkyCondition(SkyCondition(name = name)) {
+                    // Do nothing on success
+                }
+                addSkyCondition = false
             }
         )
     }

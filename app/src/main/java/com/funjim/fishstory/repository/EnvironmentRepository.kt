@@ -131,8 +131,8 @@ class EnvironmentRepository(
     suspend fun addSkyCondition(skyCondition: SkyCondition) {
         weatherDao.insertSkyCondition(skyCondition.toEntity())
     }
-    suspend fun upsertSkyCondition(skyCondition: SkyCondition) {
-        weatherDao.upsertSkyCondition(skyCondition.toEntity())
+    suspend fun updateSkyCondition(skyCondition: SkyCondition) {
+        weatherDao.updateSkyCondition(skyCondition.toEntity())
     }
     suspend fun deleteSkyCondition(skyCondition: SkyCondition) {
         weatherDao.deleteSkyCondition(skyCondition.toEntity())

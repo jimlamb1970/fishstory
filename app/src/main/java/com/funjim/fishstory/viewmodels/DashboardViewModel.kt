@@ -200,9 +200,19 @@ class DashboardViewModel(
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }
 
-    fun addSkyCondition(skyCondition: SkyCondition) {
+    fun addSkyCondition(
+        item: SkyCondition,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            envRepo.addSkyCondition(skyCondition)
+            try {
+                envRepo.addSkyCondition(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Sky Condition '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding sky condition.")
+            }
         }
     }
 
@@ -223,7 +233,7 @@ class DashboardViewModel(
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
     }
