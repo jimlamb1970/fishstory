@@ -734,7 +734,7 @@ fun WaterClaritySelectionField(
 
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add new water clarity ...",
+                                    title = "Add water clarity ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -793,7 +793,7 @@ fun WaterClaritySelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add new water clarity ...",
+                                    title = "Add water clarity ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -973,7 +973,7 @@ fun WaterClaritySelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add new water clarity ...",
+                                title = "Add water clarity ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -1057,7 +1057,7 @@ fun WaterClaritySelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add new water clarity ...",
+                                title = "Add water clarity ...",
                                 onAdd = { onAdd() }
                             )
                         }

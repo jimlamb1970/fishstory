@@ -231,7 +231,7 @@ fun SpeciesSelection(
 
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add new species ...",
+                                    title = "Add species ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -290,7 +290,7 @@ fun SpeciesSelection(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add new species ...",
+                                    title = "Add species ...",
                                     onAdd = { showSheet = false; onAdd() }
                                 )
                             }
@@ -470,7 +470,7 @@ fun SpeciesSelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add new species ...",
+                                title = "Add species ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -554,7 +554,7 @@ fun SpeciesSelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add new species ...",
+                                title = "Add species ...",
                                 onAdd = { onAdd() }
                             )
                         }
