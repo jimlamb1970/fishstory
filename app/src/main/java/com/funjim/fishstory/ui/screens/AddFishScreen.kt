@@ -299,7 +299,7 @@ fun AddFishScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text(if (fishId == null) "Log Fish" else "Edit Fish") },
+                        title = { Text(if (fishId == null) "Add Fish" else "Edit Fish") },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             titleContentColor = MaterialTheme.colorScheme.onPrimary,

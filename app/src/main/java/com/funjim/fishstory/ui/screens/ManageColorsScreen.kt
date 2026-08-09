@@ -262,14 +262,14 @@ fun ManageColorsScreen(
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = { Text("Rename") },
                                         onClick = {
                                             menuExpanded = false
                                             colorToEdit = item
                                             editName = item.name
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                            Icon(Icons.Default.Edit, contentDescription = "Rename")
                                         }
                                     )
                                     DropdownMenuItem(

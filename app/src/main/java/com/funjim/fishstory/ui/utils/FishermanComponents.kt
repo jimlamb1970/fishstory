@@ -73,7 +73,7 @@ fun AddFishermanDialog(
 @Composable
 fun EditFishermanDialog(
     fisherman: Fisherman,
-    title: String = "Edit",
+    title: String = "Rename",
     onDismiss: () -> Unit,
     onConfirm: (Fisherman) -> Unit
 ) {

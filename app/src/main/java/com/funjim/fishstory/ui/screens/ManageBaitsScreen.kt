@@ -274,7 +274,7 @@ fun ManageBaitsScreen(
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = { Text("Rename") },
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item.bait

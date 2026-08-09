@@ -121,7 +121,7 @@ fun FishermanDetailsScreen(
                     },
                     actions = {
                         IconButton(onClick = { showEditFishermanDialog = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit Fisherman")
+                            Icon(Icons.Default.Edit, contentDescription = "Rename Fisherman")
                         }
                     }
                 )
@@ -723,7 +723,7 @@ fun TackleBoxCard(
                         onDismissRequest = { menuExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Edit") },
+                            text = { Text("Rename") },
                             leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                             onClick = {
                                 menuExpanded = false

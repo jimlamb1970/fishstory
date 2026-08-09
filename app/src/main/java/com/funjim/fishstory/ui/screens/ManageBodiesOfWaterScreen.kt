@@ -268,7 +268,7 @@ fun ManageBodiesOfWaterScreen(
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = { Text("RenameEdit") },
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item.bodyOfWater

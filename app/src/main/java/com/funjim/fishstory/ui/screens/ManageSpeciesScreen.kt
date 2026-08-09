@@ -288,7 +288,7 @@ fun ManageSpeciesScreen(
                                     onDismissRequest = { menuExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = { Text("Rename") },
                                         onClick = {
                                             menuExpanded = false
                                             speciesToEdit = species
