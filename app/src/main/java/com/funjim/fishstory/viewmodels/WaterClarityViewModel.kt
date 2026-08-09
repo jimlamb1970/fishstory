@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,8 +10,10 @@ import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,6 +22,9 @@ class WaterClarityViewModel(
     private val envRepo: EnvironmentRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
     val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
         .stateIn(
             scope = viewModelScope,
@@ -26,21 +32,41 @@ class WaterClarityViewModel(
             initialValue = emptyList()
         )
 
-    fun addWaterClarity(waterClarity: WaterClarity) {
+    fun addWaterClarity(
+        item: WaterClarity,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            envRepo.addWaterClarity(waterClarity)
+            try {
+                envRepo.addWaterClarity(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Water Clarity '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 
-    fun upsertWaterClarity(bait: WaterClarity) {
+    fun updateWaterClarity(
+        item: WaterClarity,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            envRepo.upsertWaterClarity(bait)
+            try {
+                envRepo.updateWaterClarity(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Water Clarity '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 
-    fun deleteWaterClarity(bait: WaterClarity) {
+    fun deleteWaterClarity(item: WaterClarity) {
         viewModelScope.launch {
-            envRepo.deleteWaterClarity(bait)
+            envRepo.deleteWaterClarity(item)
         }
     }
 

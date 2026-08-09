@@ -312,9 +312,19 @@ class EventViewModel(
         }
     }
 
-    fun addWaterClarity(waterClarity: WaterClarity) {
+    fun addWaterClarity(
+        item: WaterClarity,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            envRepo.addWaterClarity(waterClarity)
+            try {
+                envRepo.addWaterClarity(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Water Clarity '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 

@@ -108,8 +108,8 @@ class EnvironmentRepository(
     suspend fun addWaterClarity(waterClarity: WaterClarity) {
         waterDao.insertWaterClarity(waterClarity.toEntity())
     }
-    suspend fun upsertWaterClarity(waterClarity: WaterClarity) {
-        waterDao.upsertWaterClarity(waterClarity.toEntity())
+    suspend fun updateWaterClarity(waterClarity: WaterClarity) {
+        waterDao.updateWaterClarity(waterClarity.toEntity())
     }
     suspend fun deleteWaterClarity(waterClarity: WaterClarity) {
         waterDao.deleteWaterClarity(waterClarity.toEntity())

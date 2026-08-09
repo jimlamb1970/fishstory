@@ -66,6 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -113,7 +114,7 @@ import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
-import com.funjim.fishstory.ui.utils.getOnMainButtonColor
+import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 
 private data class GridParams(
     val text: String,
@@ -517,6 +518,12 @@ fun ActiveTripCard(
     var addSkyCondition by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -925,29 +932,13 @@ fun ActiveTripCard(
     }
 
     if (addWaterClarity) {
-        var waterClarityName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addWaterClarity = false },
-            title = { Text("Add New Water Clarity") },
-            text = {
-                TextField(
-                    value = waterClarityName,
-                    onValueChange = { waterClarityName = it },
-                    placeholder = { "Water Clarity (e.g. Clear)" }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (waterClarityName.isNotBlank()) {
-                        viewModel.addWaterClarity(WaterClarity(name = waterClarityName.trim()))
-                        addWaterClarity = false
-                        waterClarityName = ""
-                    }
-                }) { Text("Add Water Clarity") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addWaterClarity = false }) { Text("Cancel") }
+        AddWaterClarityDialog(
+            onDismiss = { addWaterClarity = false },
+            onConfirm = { name ->
+                viewModel.addWaterClarity(WaterClarity(name = name)) {
+                    // Do nothing on success
+                }
+                addWaterClarity = false
             }
         )
     }

@@ -38,9 +38,9 @@ import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddBaitDialog
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.CategoryCarousel
@@ -1069,29 +1069,13 @@ fun EventDetailsScreen(
     }
 
     if (addWaterClarity) {
-        var waterClarityName by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { addWaterClarity = false },
-            title = { Text("Add New Water Clarity") },
-            text = {
-                TextField(
-                    value = waterClarityName,
-                    onValueChange = { waterClarityName = it },
-                    placeholder = { "Water Clarity (e.g. Clear)" }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (waterClarityName.isNotBlank()) {
-                        viewModel.addWaterClarity(WaterClarity(name = waterClarityName.trim()))
-                        addWaterClarity = false
-                        waterClarityName = ""
-                    }
-                }) { Text("Add Water Clarity") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addWaterClarity = false }) { Text("Cancel") }
+        AddWaterClarityDialog(
+            onDismiss = { addWaterClarity = false },
+            onConfirm = { name ->
+                viewModel.addWaterClarity(WaterClarity(name = name)) {
+                    // Do nothing on success
+                }
+                addWaterClarity = false
             }
         )
     }

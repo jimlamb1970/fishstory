@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.EditWaterClarityDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -67,16 +69,20 @@ fun ManageWaterClarityScreen(
     viewModel: WaterClarityViewModel,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
     val allItems by viewModel.allWaterClarity.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<WaterClarity?>(null) }
     var itemToEdit by remember { mutableStateOf<WaterClarity?>(null) }
-    var editName by remember { mutableStateOf("") }
 
     var currentItemForPhoto by remember { mutableStateOf<WaterClarity?>(null) }
-
-    val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -127,7 +133,9 @@ fun ManageWaterClarityScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addWaterClarity(WaterClarity(name = searchQuery.trim()))
+                            viewModel.addWaterClarity(WaterClarity(name = searchQuery.trim())) {
+                                // Do nothing on success
+                            }
                             searchQuery = ""
                         }) {
                             Icon(
@@ -269,7 +277,6 @@ fun ManageWaterClarityScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item
-                                            editName = item.name
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -369,25 +376,14 @@ This cannot be undone."""
 
     // EDIT DIALOG
     itemToEdit?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToEdit = null },
-            title = { Text("Rename Water Clarity") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Water Clarity") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertWaterClarity(item.copy(name = editName.trim()))
-                    itemToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToEdit = null }) { Text("Cancel") }
+        EditWaterClarityDialog(
+            item = item,
+            onDismiss = { itemToEdit = null },
+            onConfirm = { confirmedItem ->
+                viewModel.updateWaterClarity(confirmedItem) {
+                    // Do nothing on success
+                }
+                itemToEdit  = null
             }
         )
     }
