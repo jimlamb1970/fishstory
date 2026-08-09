@@ -47,6 +47,7 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddTackleBoxDialog
 import com.funjim.fishstory.ui.utils.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
@@ -511,35 +512,11 @@ fun FishermanDetailsScreen(
             }
             // Create new tackle box dialog
             if (showAddTackleBoxDialog) {
-                AlertDialog(
-                    onDismissRequest = { showAddTackleBoxDialog = false },
-                    title = { Text("New Tackle Box") },
-                    text = {
-                        OutlinedTextField(
-                            value = newTackleBoxName,
-                            onValueChange = { newTackleBoxName = it },
-                            label = { Text("Name") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                if (newTackleBoxName.isNotBlank()) {
-                                    viewModel.createTackleBox(fishermanId, newTackleBoxName.trim())
-                                    showAddTackleBoxDialog = false
-                                }
-                            },
-                            enabled = newTackleBoxName.isNotBlank()
-                        ) {
-                            Text("Create")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showAddTackleBoxDialog = false }) {
-                            Text("Cancel")
-                        }
+                AddTackleBoxDialog(
+                    onDismiss = { showAddTackleBoxDialog = false },
+                    onConfirm = { tackleBoxName ->
+                        viewModel.createTackleBox(fishermanId, tackleBoxName)
+                        showAddTackleBoxDialog = false
                     }
                 )
             }

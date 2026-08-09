@@ -379,7 +379,7 @@ This cannot be undone."""
     // EDIT DIALOG
     itemToEdit?.let { item ->
         EditBaitDialog(
-            bait = item,
+            item = item,
             onDismiss = { itemToEdit = null },
             onConfirm = { bait ->
                 viewModel.updateBait(bait) {

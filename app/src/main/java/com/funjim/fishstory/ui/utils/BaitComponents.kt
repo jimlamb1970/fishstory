@@ -67,7 +67,7 @@ fun AddBaitDialog(
     onDismiss: () -> Unit,
 ) {
     EditBaitDialog(
-        bait = Bait(name = ""),
+        item = Bait(name = ""),
         title = "Add",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
@@ -76,12 +76,12 @@ fun AddBaitDialog(
 
 @Composable
 fun EditBaitDialog(
-    bait: Bait,
+    item: Bait,
     title: String = "Rename",
     onConfirm: (Bait) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val origName = remember(Bait) { bait.name }
+    val origName = remember(Bait) { item.name }
     var name by remember { mutableStateOf(origName) }
 
     val isValid = name.isNotBlank() && (origName != name)
@@ -99,7 +99,7 @@ fun EditBaitDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(bait.copy(name = name.trim())) },
+                onClick = { onConfirm(item.copy(name = name.trim())) },
                 enabled = isValid
             ) { Text("OK") }
         },

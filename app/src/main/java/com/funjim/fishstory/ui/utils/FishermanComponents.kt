@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,13 +45,135 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+
+@Composable
+fun AddFishermanDialog(
+    onDismiss: () -> Unit,
+    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
+) {
+    EditFishermanDialog(
+        fisherman = Fisherman(firstName = "", lastName = "", nickname = ""),
+        title = "Add",
+        onDismiss = onDismiss,
+        onConfirm = { fisherman ->
+            onAdd(fisherman.firstName, fisherman.lastName, fisherman.nickname)
+        }
+    )
+}
+
+@Composable
+fun EditFishermanDialog(
+    fisherman: Fisherman,
+    title: String = "Edit",
+    onDismiss: () -> Unit,
+    onConfirm: (Fisherman) -> Unit
+) {
+    val origFirstName = remember(fisherman) { fisherman.firstName }
+    val origLastName = remember(fisherman) { fisherman.lastName }
+    val origNickName = remember(fisherman) { fisherman.nickname }
+    var firstName by remember { mutableStateOf(origFirstName) }
+    var lastName by remember { mutableStateOf(origLastName) }
+    var nickname by remember { mutableStateOf(origNickName) }
+
+    val isChanged = firstName != origFirstName ||
+            lastName != origLastName ||
+            nickname != origNickName
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Fisherman") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = firstName, onValueChange = { firstName = it },
+                    label = { Text("First Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = lastName, onValueChange = { lastName = it },
+                    label = { Text("Last Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = nickname, onValueChange = { nickname = it },
+                    label = { Text("Nickname (optional)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(fisherman.copy(
+                    firstName = firstName,
+                    lastName = lastName,
+                    nickname = nickname))
+                },
+                enabled = (firstName.isNotBlank() || lastName.isNotBlank()) && isChanged
+            ) { Text("OK") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@Composable
+fun AddTackleBoxDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    EditTackleBoxDialog(
+        item = TackleBox(name = "", fishermanId = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditTackleBoxDialog(
+    item: TackleBox,
+    title: String = "Rename",
+    onConfirm: (TackleBox) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val origName = remember(Bait) { item.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Tackle Box") },
+        text = {
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true,
+                placeholder = { Text("Tackle Box Name (e.g. Jim's Tackle Box)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(item.copy(name = name.trim())) },
+                enabled = isValid
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -623,77 +746,4 @@ fun FishermanItemPreview() {
             onDelete = {},
         )
     }
-}
-
-@Composable
-fun AddFishermanDialog(
-    onDismiss: () -> Unit,
-    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
-) {
-    EditFishermanDialog(
-        fisherman = Fisherman(firstName = "", lastName = "", nickname = ""),
-        title = "Add",
-        onDismiss = onDismiss,
-        onConfirm = { fisherman ->
-            onAdd(fisherman.firstName, fisherman.lastName, fisherman.nickname)
-        }
-    )
-}
-
-
-@Composable
-fun EditFishermanDialog(
-    fisherman: Fisherman,
-    title: String = "Edit",
-    onDismiss: () -> Unit,
-    onConfirm: (Fisherman) -> Unit
-) {
-    val origFirstName = remember(fisherman) { fisherman.firstName }
-    val origLastName = remember(fisherman) { fisherman.lastName }
-    val origNickName = remember(fisherman) { fisherman.nickname }
-    var firstName by remember { mutableStateOf(origFirstName) }
-    var lastName by remember { mutableStateOf(origLastName) }
-    var nickname by remember { mutableStateOf(origNickName) }
-
-    val isChanged = firstName != origFirstName ||
-            lastName != origLastName ||
-            nickname != origNickName
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("$title Fisherman") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = firstName, onValueChange = { firstName = it },
-                    label = { Text("First Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = lastName, onValueChange = { lastName = it },
-                    label = { Text("Last Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = nickname, onValueChange = { nickname = it },
-                    label = { Text("Nickname (optional)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(fisherman.copy(
-                    firstName = firstName,
-                    lastName = lastName,
-                    nickname = nickname))
-                },
-                enabled = (firstName.isNotBlank() || lastName.isNotBlank()) && isChanged
-            ) { Text("OK") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
 }

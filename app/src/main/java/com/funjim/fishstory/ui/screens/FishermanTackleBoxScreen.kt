@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.EditTackleBoxDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -62,7 +63,6 @@ fun FishermanTackleBoxScreen(
     val scope = rememberCoroutineScope()
 
     var showRenameDialog by remember { mutableStateOf(false) }
-    var editedName by remember { mutableStateOf("") }
 
     // Build a set of IDs in the tackle box for 'inBox'' lookup
     val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.lure.id }.toSet() }
@@ -100,7 +100,6 @@ fun FishermanTackleBoxScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        editedName = tackleBox?.name ?: ""
                         showRenameDialog = true
                     }) {
                         Icon(Icons.Default.Edit, contentDescription = "Rename Tackle Box")
@@ -258,39 +257,12 @@ fun FishermanTackleBoxScreen(
             }
         }
     }
-    if (showRenameDialog) {
-        AlertDialog(
-            onDismissRequest = { showRenameDialog = false },
-            title = { Text("Rename Tackle Box") },
-            text = {
-                OutlinedTextField(
-                    value = editedName,
-                    onValueChange = { editedName = it },
-                    label = { Text("Tackle Box Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        tackleBox?.let {
-                            scope.launch {
-                                viewModel.updateTackleBox(it.copy(name = editedName.trim()))
-                                showRenameDialog = false
-                            }
-                        }
-                    },
-                    enabled = editedName.isNotBlank()
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+
+    if (showRenameDialog && (tackleBox != null)) {
+        EditTackleBoxDialog(
+            item = tackleBox!!,
+            onConfirm = { viewModel.updateTackleBox(it) },
+            onDismiss = { showRenameDialog = false }
         )
     }
 }
