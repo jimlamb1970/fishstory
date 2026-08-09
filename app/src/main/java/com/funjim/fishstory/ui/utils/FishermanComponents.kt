@@ -80,6 +80,7 @@ fun EditFishermanDialog(
     val origFirstName = remember(fisherman) { fisherman.firstName }
     val origLastName = remember(fisherman) { fisherman.lastName }
     val origNickName = remember(fisherman) { fisherman.nickname }
+
     var firstName by remember { mutableStateOf(origFirstName) }
     var lastName by remember { mutableStateOf(origLastName) }
     var nickname by remember { mutableStateOf(origNickName) }
@@ -93,19 +94,19 @@ fun EditFishermanDialog(
         title = { Text("$title Fisherman") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                TextField(
                     value = firstName, onValueChange = { firstName = it },
                     label = { Text("First Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                TextField(
                     value = lastName, onValueChange = { lastName = it },
                     label = { Text("Last Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                TextField(
                     value = nickname, onValueChange = { nickname = it },
                     label = { Text("Nickname (optional)") },
                     singleLine = true,

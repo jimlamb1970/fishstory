@@ -27,8 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -37,6 +35,7 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,11 +48,117 @@ import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+@Composable
+fun EditEventDialog(
+    event: Event,
+    trip: Trip,
+    onConfirm: (Event) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    var origName by remember { mutableStateOf(event.name) }
+    var origStart by remember { mutableLongStateOf(event.startTime) }
+    var origEnd by remember { mutableLongStateOf(event.endTime) }
+    var tripStart by remember { mutableLongStateOf(trip.startDate) }
+    var tripEnd by remember { mutableLongStateOf(trip.endDate) }
+
+    var name by remember { mutableStateOf(origName) }
+    var startTime by remember { mutableStateOf(origStart) }
+    var endTime by remember { mutableStateOf(origEnd) }
+
+    val isChanged = name != origName ||
+            startTime != origStart ||
+            endTime != origEnd
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Event") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Text("Start", style = MaterialTheme.typography.labelLarge)
+                DateTimePickerButton(
+                    label = "Start",
+                    millis = startTime,
+                    modifier = Modifier.fillMaxWidth()
+                ) { newTime ->
+                    if (newTime < tripStart) {
+                        Toast.makeText(
+                            context,
+                            "Start date and time cannot be before trip start date and time",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    } else if (newTime > tripEnd) {
+                        Toast.makeText(
+                            context,
+                            "Start date and time cannot be after trip end date and time",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    } else {
+                        startTime = newTime
+                        if (startTime > endTime)
+                            endTime = startTime
+                    }
+                }
+
+                Text("End", style = MaterialTheme.typography.labelLarge)
+                DateTimePickerButton(
+                    label = "End",
+                    millis = endTime,
+                    modifier = Modifier.fillMaxWidth()
+                ) { newTime ->
+                    if (newTime < startTime) {
+                        Toast.makeText(
+                            context,
+                            "End date and time must be after start date and time",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else if (newTime > tripEnd) {
+                        Toast.makeText(
+                            context,
+                            "End date and time cannot be after trip end date and time",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        endTime = newTime
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm(event.copy(
+                        name = name,
+                        startTime = startTime,
+                        endTime = endTime)
+                    )
+                },
+                enabled = name.isNotBlank() && isChanged
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @Composable
 fun EventItem(

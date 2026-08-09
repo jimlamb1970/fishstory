@@ -7,8 +7,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -49,6 +47,7 @@ import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
+import com.funjim.fishstory.ui.utils.EditEventDialog
 import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -59,11 +58,6 @@ import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterRow
 import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.WeatherRow
-import com.funjim.fishstory.ui.utils.getChipColor
-import com.funjim.fishstory.ui.utils.getMainButtonColor
-import com.funjim.fishstory.ui.utils.getOnChipColor
-import com.funjim.fishstory.ui.utils.getOnChipSecondaryColor
-import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -104,7 +98,6 @@ fun EventDetailsScreen(
     var showSpeciesSelection by remember { mutableStateOf(false) }
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     var addNewSpecies by remember { mutableStateOf(false) }
-    var addSpeciesName by remember { mutableStateOf("") }
 
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
@@ -135,9 +128,7 @@ fun EventDetailsScreen(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
-    val timeOnlyFormatter = remember {
-        SimpleDateFormat("HH:mm", Locale.getDefault())
-    }
+
     val now = System.currentTimeMillis()
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
@@ -652,96 +643,13 @@ fun EventDetailsScreen(
                     }
 
                     if (showEditEventDialog) {
-                        var eventName by remember { mutableStateOf(event.name) }
-                        var startDateMillis by remember { mutableLongStateOf(event.startTime) }
-                        var endDateMillis by remember { mutableLongStateOf(event.endTime) }
-
-                        var tripStartDateMillis by remember { mutableLongStateOf(trip.startDate?: 0L) }
-                        var tripEndDateMillis by remember { mutableLongStateOf(trip.endDate?: 0L) }
-
-                        AlertDialog(
-                            onDismissRequest = { showEditEventDialog = false },
-                            title = { Text("Edit Event Details") },
-                            text = {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedTextField(
-                                        value = eventName,
-                                        onValueChange = { eventName = it },
-                                        label = { Text("Event Name") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        singleLine = true
-                                    )
-
-                                    Text("Start", style = MaterialTheme.typography.labelLarge)
-                                    DateTimePickerButton(
-                                        label = "start",
-                                        millis = startDateMillis,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { newMillis ->
-                                        if (newMillis < tripStartDateMillis) {
-                                            Toast.makeText(
-                                                context,
-                                                "Start cannot be before trip start",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                                .show()
-                                        } else if (newMillis > tripEndDateMillis) {
-                                            Toast.makeText(
-                                                context,
-                                                "Start cannot be after trip end",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                                .show()
-                                        } else {
-                                            startDateMillis = newMillis
-                                            if (startDateMillis > endDateMillis) endDateMillis =
-                                                startDateMillis
-                                        }
-                                    }
-
-                                    Text("End", style = MaterialTheme.typography.labelLarge)
-                                    DateTimePickerButton(
-                                        label = "end",
-                                        millis = endDateMillis,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { newMillis ->
-                                        if (newMillis < startDateMillis) {
-                                            Toast.makeText(
-                                                context,
-                                                "End must be after start",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else if (newMillis > tripEndDateMillis) {
-                                            Toast.makeText(
-                                                context,
-                                                "End cannot be after trip end",
-                                                Toast.LENGTH_SHORT
-                                            )
-                                                .show()
-                                        } else {
-                                            endDateMillis = newMillis
-                                        }
-                                    }
-                                }
-                            },
-                            confirmButton = {
-                                Button(onClick = {
-                                    scope.launch {
-                                        viewModel.upsertEvent(event.copy(
-                                            name = eventName,
-                                            startTime = startDateMillis,
-                                            endTime = endDateMillis
-                                        ))
-                                        showEditEventDialog = false
-                                    }
-                                }) {
-                                    Text("Save")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showEditEventDialog = false }) {
-                                    Text("Cancel")
-                                }
+                        EditEventDialog(
+                            event = event,
+                            trip = trip,
+                            onDismiss = { showEditEventDialog = false },
+                            onConfirm = { confirmedItem ->
+                                viewModel.upsertEvent(confirmedItem)
+                                showEditEventDialog = false
                             }
                         )
                     }

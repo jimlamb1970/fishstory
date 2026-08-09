@@ -44,6 +44,7 @@ import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
+import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -800,73 +801,12 @@ fun TripDetailsScreen(
                     }
 
                     if (showEditTripDialog) {
-                        var tripName by remember { mutableStateOf(details.trip.name) }
-                        var startDateMillis by remember { mutableLongStateOf(details.trip.startDate) }
-                        var endDateMillis by remember { mutableLongStateOf(details.trip.endDate) }
-
-                        AlertDialog(
-                            onDismissRequest = { showEditTripDialog = false },
-                            title = { Text("Edit Trip Details") },
-                            text = {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    // TODO - put limit on number of characters
-                                    OutlinedTextField(
-                                        value = tripName,
-                                        onValueChange = { tripName = it },
-                                        label = { Text("Trip Name") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        singleLine = true
-                                    )
-
-                                    Text("Start", style = MaterialTheme.typography.labelLarge)
-                                    DateTimePickerButton(
-                                        label = "start",
-                                        millis = startDateMillis,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { newMillis ->
-                                        startDateMillis = newMillis
-                                        if (startDateMillis > endDateMillis) endDateMillis =
-                                            startDateMillis
-                                    }
-
-                                    Text("End", style = MaterialTheme.typography.labelLarge)
-                                    DateTimePickerButton(
-                                        label = "end",
-                                        millis = endDateMillis,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { newMillis ->
-                                        if (newMillis < startDateMillis) {
-                                            Toast.makeText(
-                                                context,
-                                                "End must be after start",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else {
-                                            endDateMillis = newMillis
-                                        }
-                                    }
-                                }
-                            },
-                            confirmButton = {
-                                Button(onClick = {
-                                    scope.launch {
-                                        viewModel.saveTrip(
-                                            details.trip.copy(
-                                                name = tripName,
-                                                startDate = startDateMillis,
-                                                endDate = endDateMillis
-                                            )
-                                        )
-                                        showEditTripDialog = false
-                                    }
-                                }) {
-                                    Text("Save")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showEditTripDialog = false }) {
-                                    Text("Cancel")
-                                }
+                        EditTripDialog(
+                            item = details.trip,
+                            onDismiss = { showEditTripDialog = false },
+                            onConfirm = { confirmedItem ->
+                                viewModel.saveTrip(confirmedItem)
+                                showEditTripDialog = false
                             }
                         )
                     }
