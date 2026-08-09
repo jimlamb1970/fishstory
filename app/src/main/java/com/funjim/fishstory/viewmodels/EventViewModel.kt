@@ -207,9 +207,20 @@ class EventViewModel(
         initialValue = EventDetailsUiState.Loading
     )
 
-    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+    fun addBodyOfWater(
+        bodyOfWater: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
         viewModelScope.launch {
-            envRepo.addBodyOfWater(bodyOfWater)
+            try {
+                envRepo.addBodyOfWater(bodyOfWater)
+                onSuccess(bodyOfWater)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Body of water '${bodyOfWater.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add body of water.")
+            }
         }
     }
 
@@ -218,6 +229,12 @@ class EventViewModel(
             envRepo.insertEventBodyOfWater(
                 EventBodyOfWater(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
             )
+        }
+    }
+
+    fun addEventBodyOfWater(eventId: String, bodyOfWater: BodyOfWater) {
+        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
+            addEventBodyOfWater(eventId, addedBodyOfWater.id)
         }
     }
 

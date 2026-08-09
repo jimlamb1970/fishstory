@@ -56,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddBaitDialog
+import com.funjim.fishstory.ui.utils.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -368,27 +370,13 @@ This cannot be undone."""
         )
     }
 
-    // EDIT DIALOG
     itemToEdit?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToEdit = null },
-            title = { Text("Rename Body of Water") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Species Name") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertBodyOfWater(item.copy(name = editName.trim()))
-                    itemToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToEdit = null }) { Text("Cancel") }
+        EditBodyOfWaterDialog(
+            item = item,
+            onDismiss = { itemToEdit = null },
+            onConfirm = { item ->
+                viewModel.updateBodyOfWater(item)
+                itemToEdit = null
             }
         )
     }

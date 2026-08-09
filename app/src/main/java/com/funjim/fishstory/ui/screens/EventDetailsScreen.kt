@@ -38,6 +38,8 @@ import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddBaitDialog
+import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
@@ -106,7 +108,6 @@ fun EventDetailsScreen(
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     var addNewBodyOfWater by remember { mutableStateOf(false) }
-    var addBodyOfWaterName by remember { mutableStateOf("") }
 
     // Water snapshot state
     var showAddWaterDialog by remember { mutableStateOf(false) }
@@ -1022,39 +1023,19 @@ fun EventDetailsScreen(
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onAdd = { speciesName ->
-                viewModel.addEventTargetSpecies(eventId, Species(name = speciesName))
+            onAdd = { name ->
+                viewModel.addEventTargetSpecies(eventId, Species(name = name))
                 addNewSpecies = false
             }
         )
     }
 
     if (addNewBodyOfWater) {
-        AlertDialog(
-            onDismissRequest = { addNewBodyOfWater = false },
-            title = { Text("Add New Body of Water") },
-            text = {
-                TextField(
-                    value = addBodyOfWaterName,
-                    onValueChange = { addBodyOfWaterName = it },
-                    placeholder = { Text("Species Name (e.g. Walleye)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addBodyOfWaterName.isNotBlank()) {
-                        scope.launch {
-                            val bodyOfWater = BodyOfWater(name = addBodyOfWaterName)
-                            viewModel.addBodyOfWater(bodyOfWater)
-                            viewModel.addEventBodyOfWater(eventId, bodyOfWater.id)
-                            addNewBodyOfWater = false
-                            addBodyOfWaterName = ""
-                        }
-                    }
-                }) { Text("Add Body of Water") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
+        AddBodyOfWaterDialog(
+            onDismiss = { addNewBodyOfWater = false },
+            onConfirm = { name ->
+                viewModel.addEventBodyOfWater(eventId, BodyOfWater(name = name))
+                addNewBodyOfWater = false
             }
         )
     }

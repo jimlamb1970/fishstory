@@ -669,33 +669,12 @@ fun AddFishScreen(
         )
     }
 
-    // New Body of Water Dialog
     if (addNewBodyOfWater) {
-        AlertDialog(
-            onDismissRequest = { addNewBodyOfWater = false },
-            title = { Text("Add New Body of Water") },
-            text = {
-                TextField(
-                    value = addBodyOfWaterName,
-                    onValueChange = { addBodyOfWaterName = it },
-                    placeholder = { Text("Body of Water Name (e.g. Lake of the Woods)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addBodyOfWaterName.isNotBlank()) {
-                        scope.launch {
-                            val bodyOfWater = BodyOfWater(name = addBodyOfWaterName)
-                            viewModel.addBodyOfWater(bodyOfWater)
-                            viewModel.updateBodyOfWater(bodyOfWater)
-                            addNewBodyOfWater = false
-                            addBodyOfWaterName = ""
-                        }
-                    }
-                }) { Text("Add Body of Water") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewBodyOfWater = false }) { Text("Cancel") }
+        AddBaitDialog(
+            onDismiss = { addNewBodyOfWater = false },
+            onConfirm = { bodyOfWaterName ->
+                viewModel.addAndUpdateBodyOfWater(BodyOfWater(name = bodyOfWaterName))
+                addNewBodyOfWater = false
             }
         )
     }

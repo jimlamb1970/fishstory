@@ -5,17 +5,18 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BodyOfWaterDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
-    @Upsert
-    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
+    @Update
+    suspend fun updateBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>

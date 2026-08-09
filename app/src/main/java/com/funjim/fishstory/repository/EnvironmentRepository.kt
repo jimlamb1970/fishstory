@@ -40,8 +40,8 @@ class EnvironmentRepository(
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) {
         bodyOfWaterDao.insertBodyOfWater(bodyOfWater.toEntity())
     }
-    suspend fun upsertBodyOfWater(bodyOfWater: BodyOfWater) {
-        bodyOfWaterDao.upsertBodyOfWater(bodyOfWater.toEntity())
+    suspend fun updateBodyOfWater(bodyOfWater: BodyOfWater) {
+        bodyOfWaterDao.updateBodyOfWater(bodyOfWater.toEntity())
     }
     suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWater) {
         bodyOfWaterDao.deleteBodyOfWater(bodyOfWater.toEntity())

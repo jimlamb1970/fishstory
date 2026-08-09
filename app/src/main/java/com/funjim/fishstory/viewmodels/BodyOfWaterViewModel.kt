@@ -41,9 +41,9 @@ class BodyOfWaterViewModel(
         }
     }
 
-    fun upsertBodyOfWater(bodyOfWater: BodyOfWater) {
+    fun updateBodyOfWater(bodyOfWater: BodyOfWater) {
         viewModelScope.launch {
-            envRepo.upsertBodyOfWater(bodyOfWater)
+            envRepo.updateBodyOfWater(bodyOfWater)
         }
     }
 

@@ -278,9 +278,20 @@ class AddFishViewModel(
         }
     }
 
-    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+    fun addBodyOfWater(
+        bodyOfWater: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
         viewModelScope.launch {
-            envRepo.addBodyOfWater(bodyOfWater)
+            try {
+                envRepo.addBodyOfWater(bodyOfWater)
+                onSuccess(bodyOfWater)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Body of Water '${bodyOfWater.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add body of water.")
+            }
         }
     }
 
@@ -381,6 +392,10 @@ class AddFishViewModel(
         _draftFish.update { current ->
             current?.copy(baitId = bait.id)
         }
+    }
+
+    fun addAndUpdateBodyOfWater(bodyOfWater: BodyOfWater) {
+        addBodyOfWater(bodyOfWater) { addedBodyOfWater -> updateBodyOfWater(addedBodyOfWater) }
     }
 
     fun updateBodyOfWater(bodyOfWater: BodyOfWater) {
