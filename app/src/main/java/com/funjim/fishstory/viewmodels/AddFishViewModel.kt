@@ -262,52 +262,52 @@ class AddFishViewModel(
     }
 
     fun addBait(
-        bait: Bait,
+        item: Bait,
         onSuccess: (Bait) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                lureRepo.addBait(bait)
-                onSuccess(bait)
+                lureRepo.addBait(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Bait '${bait.name}' already exists.")
+                _toastMessage.emit("Bait '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add bait.")
+                _toastMessage.emit("An error occurred while adding bait.")
             }
         }
     }
 
     fun addBodyOfWater(
-        bodyOfWater: BodyOfWater,
+        item: BodyOfWater,
         onSuccess: (BodyOfWater) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                envRepo.addBodyOfWater(bodyOfWater)
-                onSuccess(bodyOfWater)
+                envRepo.addBodyOfWater(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Body of Water '${bodyOfWater.name}' already exists.")
+                _toastMessage.emit("Body of Water '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add body of water.")
+                _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
     }
 
     fun addSpecies(
-        species: Species,
+        item: Species,
         onSuccess: (Species) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                fishRepo.addSpecies(species)
-                onSuccess(species)
+                fishRepo.addSpecies(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Species '${species.name}' already exists.")
+                _toastMessage.emit("Species '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add species.")
+                _toastMessage.emit("An error occurred while adding species.")
             }
         }
     }

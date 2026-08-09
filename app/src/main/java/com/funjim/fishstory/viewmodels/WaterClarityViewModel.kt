@@ -43,7 +43,7 @@ class WaterClarityViewModel(
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
     }
@@ -59,7 +59,7 @@ class WaterClarityViewModel(
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while updating water clarity.")
             }
         }
     }

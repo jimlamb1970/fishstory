@@ -62,7 +62,7 @@ class FishermanListViewModel(
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while adding fisherman.")
             }
         }
     }

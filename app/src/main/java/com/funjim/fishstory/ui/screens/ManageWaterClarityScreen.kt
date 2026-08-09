@@ -76,6 +76,7 @@ fun ManageWaterClarityScreen(
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
     val allItems by viewModel.allWaterClarity.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }

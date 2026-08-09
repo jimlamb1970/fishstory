@@ -285,7 +285,7 @@ class TripViewModel(
                 } catch (e: SQLiteConstraintException) {
                     _toastMessage.emit("Fisherman already exists.")
                 } catch (e: Exception) {
-                    _toastMessage.emit("An error occurred while saving.")
+                    _toastMessage.emit("An error occurred while adding fisherman.")
                 }
             } else {
                 _toastMessage.emit("Fisherman already exists.")
@@ -346,18 +346,18 @@ class TripViewModel(
     }
 
     fun addSpecies(
-        species: Species,
+        item: Species,
         onSuccess: (Species) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                fishRepo.addSpecies(species)
-                onSuccess(species)
+                fishRepo.addSpecies(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Species '${species.name}' already exists.")
+                _toastMessage.emit("Species '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add species.")
+                _toastMessage.emit("An error occurred while adding species.")
             }
         }
     }
@@ -384,18 +384,18 @@ class TripViewModel(
 
     // Functions for Body of Water manipulation
     fun addBodyOfWater(
-        bodyOfWater: BodyOfWater,
+        item: BodyOfWater,
         onSuccess: (BodyOfWater) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                envRepo.addBodyOfWater(bodyOfWater)
-                onSuccess(bodyOfWater)
+                envRepo.addBodyOfWater(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Body of water '${bodyOfWater.name}' already exists.")
+                _toastMessage.emit("Body of water '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add body of water.")
+                _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
     }

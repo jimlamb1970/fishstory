@@ -215,18 +215,18 @@ class AddEventViewModel(
     }
 
     fun addSpecies(
-        species: Species,
+        item: Species,
         onSuccess: (Species) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                fishRepo.addSpecies(species)
-                onSuccess(species)
+                fishRepo.addSpecies(item)
+                onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
-                _toastMessage.emit("Species '${species.name}' already exists.")
+                _toastMessage.emit("Species '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("Failed to add species.")
+                _toastMessage.emit("An error occurred while adding species.")
             }
         }
     }

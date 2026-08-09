@@ -43,33 +43,33 @@ class BaitViewModel(
         )
 
     fun addBait(
-        bait: Bait,
+        item: Bait,
         onSuccess: () -> Unit,
     ) {
         viewModelScope.launch {
             try {
-                lureRepo.addBait(bait)
+                lureRepo.addBait(item)
                 onSuccess()
             } catch (e: SQLiteConstraintException) {
-                _toastMessage.emit("Bait already exists.")
+                _toastMessage.emit("Bait '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while adding bait.")
             }
         }
     }
 
     fun updateBait(
-        bait: Bait,
+        item: Bait,
         onSuccess: () -> Unit,
     ) {
         viewModelScope.launch {
             try {
-                lureRepo.updateBait(bait)
+                lureRepo.updateBait(item)
                 onSuccess()
             } catch (e: SQLiteConstraintException) {
-                _toastMessage.emit("Bait already exists.")
+                _toastMessage.emit("Bait '${item.name}' already exists.")
             } catch (e: Exception) {
-                _toastMessage.emit("An error occurred while saving.")
+                _toastMessage.emit("An error occurred while updating bait.")
             }
         }
     }
