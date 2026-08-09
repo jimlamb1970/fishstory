@@ -9,7 +9,10 @@ import java.util.UUID
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Entity(tableName = "bait_table")
+@Entity(
+    tableName = "bait_table",
+    indices = [Index(value = ["name"], unique = true)]
+)
 data class BaitEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),

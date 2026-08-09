@@ -261,9 +261,20 @@ class AddFishViewModel(
         }
     }
 
-    fun addBait(bait: Bait) {
+    fun addBait(
+        bait: Bait,
+        onSuccess: (Bait) -> Unit
+    ) {
         viewModelScope.launch {
-            lureRepo.addBait(bait)
+            try {
+                lureRepo.addBait(bait)
+                onSuccess(bait)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Bait '${bait.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("Failed to add bait.")
+            }
         }
     }
 
@@ -360,6 +371,10 @@ class AddFishViewModel(
             holeNumber = 1
         )
         _fishPhotos.value = photos
+    }
+
+    fun addAndUpdateBait(bait: Bait) {
+        addBait(bait) { addedBait -> updateBait(addedBait) }
     }
 
     fun updateBait(bait: Bait) {

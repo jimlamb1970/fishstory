@@ -5,16 +5,21 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BaitDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertBait(bait: BaitEntity)
 
     @Upsert
     suspend fun upsertBait(bait: BaitEntity)
+
+    @Update
+    suspend fun updateBait(bait: BaitEntity)
+
 
     @Query("SELECT * FROM bait_table ORDER BY name ASC")
     fun getAllBaits(): Flow<List<BaitEntity>>

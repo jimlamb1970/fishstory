@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +44,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,6 +60,53 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Bait
+
+@Composable
+fun AddBaitDialog(
+    onConfirm: (name: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    EditBaitDialog(
+        bait = Bait(name = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditBaitDialog(
+    bait: Bait,
+    title: String = "Rename",
+    onConfirm: (Bait) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val origName = remember(Bait) { bait.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Bait") },
+        text = {
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("Bait Name (e.g. Minnow)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(bait.copy(name = name.trim())) },
+                enabled = isValid
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

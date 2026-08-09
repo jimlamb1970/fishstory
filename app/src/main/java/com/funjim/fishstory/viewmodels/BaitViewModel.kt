@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -11,8 +12,10 @@ import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -22,6 +25,9 @@ class BaitViewModel(
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
     val allBaits: StateFlow<List<Bait>> = lureRepo.allBaits
         .stateIn(
             scope = viewModelScope,
@@ -36,15 +42,35 @@ class BaitViewModel(
             initialValue = emptyList()
         )
 
-    fun addBait(bait: Bait) {
+    fun addBait(
+        bait: Bait,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            lureRepo.addBait(bait)
+            try {
+                lureRepo.addBait(bait)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Bait already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 
-    fun upsertBait(bait: Bait) {
+    fun updateBait(
+        bait: Bait,
+        onSuccess: () -> Unit,
+    ) {
         viewModelScope.launch {
-            lureRepo.upsertBait(bait)
+            try {
+                lureRepo.updateBait(bait)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Bait already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 

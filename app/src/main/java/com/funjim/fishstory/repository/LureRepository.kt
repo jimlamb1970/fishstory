@@ -101,8 +101,8 @@ class LureRepository(
     suspend fun addBait(bait: Bait) {
         baitDao.insertBait(bait.toEntity())
     }
-    suspend fun upsertBait(bait: Bait) {
-        baitDao.upsertBait(bait.toEntity())
+    suspend fun updateBait(bait: Bait) {
+        baitDao.updateBait(bait.toEntity())
     }
     suspend fun deleteBait(bait: Bait) {
         baitDao.deleteBait(bait.toEntity())

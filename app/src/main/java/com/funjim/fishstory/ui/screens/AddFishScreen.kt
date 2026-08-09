@@ -48,6 +48,7 @@ import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddBaitDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BaitSelectionField
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelectionField
@@ -659,31 +660,11 @@ fun AddFishScreen(
     }
 
     if (addNewBait) {
-        AlertDialog(
-            onDismissRequest = { addNewBait = false },
-            title = { Text("Add New Bait") },
-            text = {
-                TextField(
-                    value = addBaitName,
-                    onValueChange = { addBaitName = it },
-                    placeholder = { Text("Bait Name (e.g. Worm)") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (addBaitName.isNotBlank()) {
-                        scope.launch {
-                            val bait = Bait(name = addBaitName)
-                            viewModel.addBait(bait)
-                            viewModel.updateBait(bait)
-                            addNewBait = false
-                            addBaitName = ""
-                        }
-                    }
-                }) { Text("Add Bait") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addNewBait = false }) { Text("Cancel") }
+        AddBaitDialog(
+            onDismiss = { addNewBait = false },
+            onConfirm = { baitName ->
+                viewModel.addAndUpdateBait(Bait(name = baitName))
+                addNewBait = false
             }
         )
     }

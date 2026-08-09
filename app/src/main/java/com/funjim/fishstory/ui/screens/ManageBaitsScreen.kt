@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddBaitDialog
+import com.funjim.fishstory.ui.utils.EditBaitDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -69,6 +72,13 @@ fun ManageBaitsScreen(
     viewModel: BaitViewModel,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
     val allItems by viewModel.baitSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
@@ -77,8 +87,6 @@ fun ManageBaitsScreen(
     var editName by remember { mutableStateOf("") }
 
     var currentItemForPhoto by remember { mutableStateOf<Bait?>(null) }
-
-    val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -130,7 +138,9 @@ fun ManageBaitsScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addBait(Bait(name = searchQuery.trim()))
+                            viewModel.addBait(Bait(name = searchQuery.trim())) {
+                                // Do nothing on success
+                            }
                             searchQuery = ""
                         }) {
                             Icon(
@@ -368,25 +378,14 @@ This cannot be undone."""
 
     // EDIT DIALOG
     itemToEdit?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToEdit = null },
-            title = { Text("Rename Bait") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Bait") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertBait(item.copy(name = editName.trim()))
-                    itemToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToEdit = null }) { Text("Cancel") }
+        EditBaitDialog(
+            bait = item,
+            onDismiss = { itemToEdit = null },
+            onConfirm = { bait ->
+                viewModel.updateBait(bait) {
+                    // Do nothing on success
+                }
+                itemToEdit = null
             }
         )
     }
