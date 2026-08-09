@@ -13,7 +13,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.EventViewModel
-import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.component1
 import kotlin.collections.component2

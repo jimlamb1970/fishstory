@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +20,8 @@ class FishermanListViewModel(
     private val fishermanRepo: FishermanRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
 
     private val _sortOrder = MutableStateFlow(FishermanSortOrder.NAME_AZ)
     val sortOrder = _sortOrder.asStateFlow()
@@ -48,9 +51,19 @@ class FishermanListViewModel(
         _sortOrder.value = newOrder
     }
 
-    fun addFisherman(fisherman: Fisherman) {
+    fun addFisherman(
+        fisherman: Fisherman,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
-            fishermanRepo.addFisherman(fisherman)
+            try {
+                fishermanRepo.addFisherman(fisherman)
+                onSuccess() // ONLY runs if addFisherman completes without throwing
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Fisherman already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving.")
+            }
         }
     }
 

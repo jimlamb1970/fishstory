@@ -37,10 +37,10 @@ interface FishermanDao {
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(fisherman: FishermanEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertFisherman(fisherman: FishermanEntity)
 
     @Upsert

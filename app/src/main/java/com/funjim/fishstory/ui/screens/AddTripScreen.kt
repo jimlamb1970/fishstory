@@ -1,12 +1,8 @@
 package com.funjim.fishstory.ui.screens
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -515,7 +511,9 @@ fun AddTripScreen(
                                 else WizardStep.EventInfo)
                         },
                         onAddFisherman = { first, last, nick ->
-                             tripViewModel.addFisherman(first, last, nick)
+                             tripViewModel.addFisherman(first, last, nick) {
+                                 // Don nothing on success
+                             }
                         },
                         onAddTackleBox = { tackleBoxName, fishermanId ->
                             tripViewModel.createAndAssignTackleBox(

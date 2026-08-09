@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -20,11 +21,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -42,6 +45,8 @@ fun FishermanListScreen(
     navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     var fishermanToDelete by remember { mutableStateOf<FishermanSummary?>(null) }
 
@@ -49,10 +54,13 @@ fun FishermanListScreen(
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
     var showAddDialog by remember { mutableStateOf(false) }
-    var newFirstName by remember { mutableStateOf("") }
-    var newLastName by remember { mutableStateOf("") }
-    var newNickname by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -195,60 +203,25 @@ fun FishermanListScreen(
         }
 
         if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                title = { Text("New Fisherman") },
-                text = {
-                    Column {
-                        TextField(
-                            value = newFirstName,
-                            onValueChange = { newFirstName = it },
-                            label = { Text("First Name") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextField(
-                            value = newNickname,
-                            onValueChange = { newNickname = it },
-                            label = { Text("Nickname") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextField(
-                            value = newLastName,
-                            onValueChange = { newLastName = it },
-                            label = { Text("Last Name") }
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        if (newFirstName.isNotBlank() && newLastName.isNotBlank()) {
-                            scope.launch {
-                                val fisherman = Fisherman(
-                                    firstName = newFirstName.trim(),
-                                    lastName = newLastName.trim(),
-                                    nickname = newNickname.trim()
-                                )
+            AddFishermanDialog(
+                onDismiss = { showAddDialog = false },
+                onAdd = { first, last, nick ->
+                    val fisherman = Fisherman(
+                        firstName = first.trim(),
+                        lastName = last.trim(),
+                        nickname = nick.trim()
+                    )
 
-                                viewModel.addFisherman(fisherman)
+                    viewModel.addFisherman(fisherman) {
+                        // Do nothing on Success
+                    }
 
-                                newFirstName = ""
-                                newLastName = ""
-                                newNickname = ""
-                                showAddDialog = false
-                            }
-                        }
-                    }) {
-                        Text("Create")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) {
-                        Text("Cancel")
-                    }
+                    showAddDialog = false
                 }
             )
         }
     }
+
     // DELETE CONFIRMATION
     fishermanToDelete?.let { item ->
         AlertDialog(

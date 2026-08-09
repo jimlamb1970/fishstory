@@ -619,3 +619,44 @@ fun FishermanItemPreview() {
         )
     }
 }
+
+@Composable
+fun AddFishermanDialog(
+    onDismiss: () -> Unit,
+    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
+) {
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var nickname by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Fisherman") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = firstName, onValueChange = { firstName = it },
+                    label = { Text("First Name") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = lastName, onValueChange = { lastName = it },
+                    label = { Text("Last Name") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = nickname, onValueChange = { nickname = it },
+                    label = { Text("Nickname (optional)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onAdd(firstName.trim(), lastName.trim(), nickname.trim()) },
+                enabled = firstName.isNotBlank() || lastName.isNotBlank()
+            ) { Text("Add") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}

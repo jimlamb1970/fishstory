@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -7,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fisherman
@@ -27,14 +29,22 @@ fun SelectTripCrewScreen(
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     val sortedFishermen = remember(eligibleFishermen) { eligibleFishermen.sortedBy { it.fullName } }
     var initialSet by remember(initialCrew) { mutableStateOf<Set<String>>(initialCrew.map { it.id }.toSet()) }
     var addSet by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeSet by remember { mutableStateOf<Set<String>>(emptySet()) }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(tripId) {
         tripViewModel.selectTrip(tripId)
+    }
+
+    LaunchedEffect(Unit) {
+        tripViewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     // TODO -- change this to get the selected trip summary directly
@@ -149,7 +159,9 @@ fun SelectTripCrewScreen(
                     navigateBack()
                 },
                 onAddFisherman = { first, last, nick ->
-                    tripViewModel.addFisherman(first, last, nick)
+                    tripViewModel.addFisherman(first, last, nick) {
+                        // Do nothing on success
+                    }
                 },
                 onAddTackleBox = { tackleBoxName, fishermanId ->
                     val boxId = UUID.randomUUID().toString()

@@ -401,51 +401,6 @@ private fun FishermanCrewRow(
 }
 
 // ---------------------------------------------------------------------------
-// AddFishermanDialog
-// ---------------------------------------------------------------------------
-
-@Composable
-fun AddFishermanDialog(
-    onDismiss: () -> Unit,
-    onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
-) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add Fisherman") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = firstName, onValueChange = { firstName = it },
-                    label = { Text("First Name") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = lastName, onValueChange = { lastName = it },
-                    label = { Text("Last Name") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = nickname, onValueChange = { nickname = it },
-                    label = { Text("Nickname (optional)") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onAdd(firstName, lastName, nickname) },
-                enabled = firstName.isNotBlank() || lastName.isNotBlank()
-            ) { Text("Add") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
-
-// ---------------------------------------------------------------------------
 // Helper: build CrewEntries from raw state
 //
 // Call this to derive the list that CrewAndTackleBoxPicker expects, given
@@ -529,7 +484,6 @@ fun EventViewModelCrewPickerBridge(
     confirmLabel: String,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    onAddFisherman: ((String, String, String) -> Unit)? = null,
     onAddTackleBox: ((String, String) -> Unit)
 ) {
     val crewEntries by remember(eligibleFishermen, selectedIds, key3 = tackleBoxSelections) {
@@ -550,7 +504,7 @@ fun EventViewModelCrewPickerBridge(
         confirmLabel = confirmLabel,
         onConfirm = onConfirm,
         modifier = modifier,
-        onAddFisherman = onAddFisherman,
+        onAddFisherman = null,
         onAddTackleBox = onAddTackleBox
     )
 }

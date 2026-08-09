@@ -267,16 +267,28 @@ class TripViewModel(
         }
     }
 
-    fun addFisherman(firstName: String, lastName: String, nickname: String) {
+    fun addFisherman(
+        firstName: String,
+        lastName: String,
+        nickname: String,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
-            // Check if the fisherman already exists
             val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
-
-            // If the fisherman does not exist, add the fisherman (this will also create a tackle box)
             if (fisherman == null) {
                 val fisherman =
                     Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-                fishermanRepo.addFisherman(fisherman)
+
+                try {
+                    fishermanRepo.addFisherman(fisherman)
+                    onSuccess() // ONLY runs if addFisherman completes without throwing
+                } catch (e: SQLiteConstraintException) {
+                    _toastMessage.emit("Fisherman already exists.")
+                } catch (e: Exception) {
+                    _toastMessage.emit("An error occurred while saving.")
+                }
+            } else {
+                _toastMessage.emit("Fisherman already exists.")
             }
         }
     }
