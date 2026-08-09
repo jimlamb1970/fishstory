@@ -93,6 +93,7 @@ fun EditBaitDialog(
             TextField(
                 value = name,
                 onValueChange = { name = it },
+                singleLine = true,
                 placeholder = { Text("Bait Name (e.g. Minnow)") }
             )
         },

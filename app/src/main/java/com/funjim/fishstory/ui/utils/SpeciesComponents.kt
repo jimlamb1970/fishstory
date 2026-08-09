@@ -687,6 +687,7 @@ fun AddSpeciesDialog(
             TextField(
                 value = addSpeciesName,
                 onValueChange = { addSpeciesName = it },
+                singleLine = true,
                 placeholder = { Text("Species Name (e.g. Walleye)") }
             )
         },
