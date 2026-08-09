@@ -666,17 +666,20 @@ fun EditFishermanDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = firstName, onValueChange = { firstName = it },
-                    label = { Text("First Name") }, singleLine = true,
+                    label = { Text("First Name") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = lastName, onValueChange = { lastName = it },
-                    label = { Text("Last Name") }, singleLine = true,
+                    label = { Text("Last Name") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = nickname, onValueChange = { nickname = it },
-                    label = { Text("Nickname (optional)") }, singleLine = true,
+                    label = { Text("Nickname (optional)") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
