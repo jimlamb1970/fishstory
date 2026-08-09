@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ import com.funjim.fishstory.model.LurePrimaryColor
 import com.funjim.fishstory.model.LureSecondaryColor
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.ui.utils.AddColorDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -56,6 +58,13 @@ fun AddLureScreen(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val scope = rememberCoroutineScope()
     val colors by viewModel.lureColors.collectAsState(initial = emptyList())
     val sortedColors = remember(colors) { colors.sortedBy { it.name } }
@@ -340,32 +349,14 @@ fun AddLureScreen(
 
     // Step 1: Name dialog — collect the color name, then advance to hex picker
     if (showAddColorDialog != null && !showColorPickerForNew) {
-        AlertDialog(
-            onDismissRequest = {
-                showAddColorDialog = null
+        AddColorDialog(
+            onConfirm = {
+                newColorName = it
+                showColorPickerForNew = true
+            },
+            onDismiss = {
                 newColorName = ""
-            },
-            title = { Text("Add New Color") },
-            text = {
-                TextField(
-                    value = newColorName,
-                    onValueChange = { newColorName = it },
-                    placeholder = { Text("Color Name") }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showColorPickerForNew = true },
-                    enabled = newColorName.isNotBlank()
-                ) { Text("Next") }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showAddColorDialog = null
-                    newColorName = ""
-                }) {
-                    Text("Cancel")
-                }
+                showAddColorDialog = null
             }
         )
     }
@@ -377,24 +368,26 @@ fun AddLureScreen(
             onDismiss = {
                 showColorPickerForNew = false
                 showAddColorDialog = null
+
                 newColorName = ""
                 newColorHex = null
             },
             onSave = { hexCode ->
-                scope.launch {
-                    val newColor = LureColor(name = newColorName, hexCode = hexCode)
-                    viewModel.addLureColor(newColor)
+                val newColor = LureColor(name = newColorName, hexCode = hexCode)
+                viewModel.addLureColor(newColor) { color ->
                     when (showAddColorDialog) {
-                        ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + newColor
-                        ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + newColor
-                        ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + newColor
+                        ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + color
+                        ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + color
+                        ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + color
                         null -> {}
                     }
-                    showColorPickerForNew = false
-                    showAddColorDialog = null
-                    newColorName = ""
-                    newColorHex = null
                 }
+
+                showColorPickerForNew = false
+                showAddColorDialog = null
+
+                newColorName = ""
+                newColorHex = null
             }
         )
     }
@@ -655,7 +648,7 @@ private fun AddColorButton(onAdd: () -> Unit) {
     ListItem(
         headlineContent = {
             Text(
-                "Add color...",
+                "Add color ...",
                 color = getOnCardColor(),
                 fontWeight = FontWeight.SemiBold
             )

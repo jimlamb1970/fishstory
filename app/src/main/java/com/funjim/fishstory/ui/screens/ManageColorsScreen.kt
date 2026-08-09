@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
@@ -50,6 +50,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,10 +67,9 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
+import com.funjim.fishstory.ui.utils.EditColorDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
-import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +77,14 @@ fun ManageColorsScreen(
     viewModel: LureViewModel,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val colorsList by viewModel.lureColors.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
@@ -363,25 +372,14 @@ Lures that were using this color may not have a color assigned to them.
 
     // EDIT DIALOG
     colorToEdit?.let { item ->
-        AlertDialog(
-            onDismissRequest = { colorToEdit = null },
-            title = { Text("Rename Color") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Color Name") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertLureColor(item.copy(name = editName.trim()))
-                    colorToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { colorToEdit = null }) { Text("Cancel") }
+        EditColorDialog(
+            item = item,
+            onDismiss = { colorToEdit = null },
+            onConfirm = {
+                viewModel.updateLureColor(it) {
+                    // Do nothing on success
+                }
+                colorToEdit = null
             }
         )
     }
@@ -393,8 +391,10 @@ Lures that were using this color may not have a color assigned to them.
             onDismiss = {
                 colorToPickFor = null
             },
-            onSave = { finalizedCommaSeparatedString ->
-                viewModel.upsertLureColor(item.copy(hexCode = finalizedCommaSeparatedString))
+            onConfirm = { finalizedCommaSeparatedString ->
+                viewModel.updateLureColor(item.copy(hexCode = finalizedCommaSeparatedString)) {
+                    // Do nothing on success
+                }
                 colorToPickFor = null
             }
         )
@@ -407,8 +407,10 @@ Lures that were using this color may not have a color assigned to them.
             onDismiss = {
                 pendingNewColorName = null
             },
-            onSave = { hexCode ->
-                viewModel.addLureColor(LureColor(name = name, hexCode = hexCode))
+            onConfirm = { hexCode ->
+                viewModel.addLureColor(LureColor(name = name, hexCode = hexCode)) {
+                    // Do nothing on success
+                }
                 pendingNewColorName = null
                 searchQuery = ""
             }
@@ -464,7 +466,7 @@ fun AdvancedColorPickerDialog(
     initialColor: String?, // Now could be something like "#FF0000,#00FF00" or null
     maxAllowedColors: Int, // Governs if we cap at 1 or 4 selections
     onDismiss: () -> Unit,
-    onSave: (String) -> Unit
+    onConfirm: (String) -> Unit
 ) {
     val predefinedColors = listOf(
         // --- High-Visibility & Attractors ---
@@ -667,11 +669,11 @@ fun AdvancedColorPickerDialog(
                     val databaseOutputString = selectedHexList.joinToString(",") { hex ->
                         "#${hex.uppercase().padEnd(6, '0')}"
                     }
-                    onSave(databaseOutputString)
+                    onConfirm(databaseOutputString)
                 },
                 enabled = selectedHexList.all { it.length == 6 }
             ) {
-                Text("Save")
+                Text("OK")
             }
         },
         dismissButton = {

@@ -1,10 +1,10 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
@@ -13,9 +13,11 @@ import com.funjim.fishstory.ui.utils.sortLures
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -28,6 +30,9 @@ class LureViewModel(
     private val repository: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
     private val _sortOrder = MutableStateFlow(LureSortOrder.NAME)
     val sortOrder = _sortOrder.asStateFlow()
 
@@ -88,15 +93,35 @@ class LureViewModel(
         }
     }
 
-    fun addLureColor(color: LureColor) {
+    fun addLureColor(
+        item: LureColor,
+        onSuccess: (LureColor) -> Unit
+    ) {
         viewModelScope.launch {
-            repository.insertLureColor(color)
+            try {
+                repository.insertLureColor(item)
+                onSuccess(item)
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Color '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding color.")
+            }
         }
     }
 
-    fun upsertLureColor(color: LureColor) {
+    fun updateLureColor(
+        item: LureColor,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
-            repository.upsertLureColor(color)
+            try {
+                repository.updateLureColor(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Color '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while updating color.")
+            }
         }
     }
 

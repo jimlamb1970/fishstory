@@ -91,8 +91,8 @@ class LureRepository(
     suspend fun insertLureColor(lureColor: LureColor) {
         lureDao.insertLureColor(lureColor.toEntity())
     }
-    suspend fun upsertLureColor(lureColor: LureColor) {
-        lureDao.upsertLureColor(lureColor.toEntity())
+    suspend fun updateLureColor(lureColor: LureColor) {
+        lureDao.updateLureColor(lureColor.toEntity())
     }
     suspend fun deleteLureColor(lureColor: LureColor) {
         lureDao.deleteLureColor(lureColor.toEntity())

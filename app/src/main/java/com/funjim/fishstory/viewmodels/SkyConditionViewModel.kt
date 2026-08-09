@@ -34,7 +34,7 @@ class SkyConditionViewModel(
 
     fun addSkyCondition(
         item: SkyCondition,
-        onSuccess: () -> Unit,
+        onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             try {

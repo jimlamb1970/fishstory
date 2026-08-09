@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -59,6 +60,54 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
 import com.funjim.fishstory.viewmodels.LureSortOrder
+
+@Composable
+fun AddColorDialog(
+    onConfirm: (name: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    EditColorDialog(
+        item = LureColor(name = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditColorDialog(
+    item: LureColor,
+    title: String = "Rename",
+    onConfirm: (LureColor) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val origName = remember(item) { item.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Color") },
+        text = {
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true,
+                placeholder = { Text("Color (e.g. Blue)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(item.copy(name = name.trim())) },
+                enabled = isValid
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

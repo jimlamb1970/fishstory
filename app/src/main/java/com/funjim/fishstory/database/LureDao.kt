@@ -71,11 +71,11 @@ interface LureDao {
     @Query("SELECT * FROM lure_color_table")
     suspend fun getAllLureColorsList(): List<LureColorEntity>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertLureColor(color: LureColorEntity)
 
-    @Upsert
-    suspend fun upsertLureColor(color: LureColorEntity)
+    @Update
+    suspend fun updateLureColor(color: LureColorEntity)
 
     @Delete
     suspend fun deleteLureColor(color: LureColorEntity)
