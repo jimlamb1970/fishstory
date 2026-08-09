@@ -51,7 +51,7 @@ import com.funjim.fishstory.ui.utils.EditEventDialog
 import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
-import com.funjim.fishstory.ui.utils.TargetSpeciesRow
+import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
@@ -76,7 +76,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: (String?, String?, Boolean) -> Unit,
+    navigateToFishList: (String, String, String?, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -504,13 +504,13 @@ fun EventDetailsScreen(
                                 EventHighlightCard(
                                     summary = eventSummary,
                                     onClick = {
-                                        navigateToFishList(trip.id, event.id, false)
+                                        navigateToFishList(trip.id, event.id, null, false)
                                     },
                                     onFishClick = {
-                                        navigateToFishList(trip.id, event.id, false)
+                                        navigateToFishList(trip.id, event.id, null, false)
                                     },
                                     onTargetFishClick = {
-                                        navigateToFishList(trip.id, event.id, true)
+                                        navigateToFishList(trip.id, event.id, null, true)
                                     }
                                 )
                             }
@@ -558,7 +558,7 @@ fun EventDetailsScreen(
                                     }
 
                                     CategoryType.TARGET_SPECIES -> {
-                                        TargetSpeciesRow(
+                                        TargetSpeciesColumn(
                                             items = eventDetails.targetSpecies,
                                             onAdd = { showSpeciesSelection = true },
                                             onDelete = { species ->
@@ -567,20 +567,21 @@ fun EventDetailsScreen(
                                                     species.id
                                                 )
                                             },
-                                            thumbnailProvider = { species ->
-                                                val thumbnailFlow = remember(species.id) {
-                                                    viewModel.speciesThumbnail(species.id)
-                                                }
-
-                                                val thumbnail by thumbnailFlow.collectAsState(
-                                                    initial = null
+                                            onClick = { species ->
+                                                navigateToFishList(
+                                                    trip.id,
+                                                    event.id,
+                                                    species.id,
+                                                    true
                                                 )
-
-                                                ThumbnailBox(
-                                                    thumbnail = thumbnail,
-                                                    imageVector = AppIcons.Default.TargetFish,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
+                                            },
+                                            summaryProvider = { species ->
+                                                viewModel.speciesSummary(
+                                                    eventId = eventId,
+                                                    speciesId = species.id)
+                                            },
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
                                             },
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,

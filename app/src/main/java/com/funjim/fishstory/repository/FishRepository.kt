@@ -140,6 +140,11 @@ class FishRepository(
             .map { entity -> entity?.toDomain() }
     }
 
+    fun getSpeciesSummary(eventId: String, speciedId: String): Flow<SpeciesSummary?> {
+        return fishDao.getSpeciesSummary(eventId, speciedId)
+            .map { entity -> entity?.toDomain() }
+    }
+
     fun getFishCounts(filter: FishFilter): Flow<FishCounts> {
         return fishDao.getFishCounts(
             bodyOfWaterId = filter.bodyOfWaterId,

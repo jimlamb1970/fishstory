@@ -237,6 +237,36 @@ interface FishDao {
     @Query("""
     SELECT 
         s.*, 
+        COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(f.keptCount), 0) AS fishKept,
+        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        COALESCE(SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN f.caughtCount 
+                ELSE 0 
+            END
+        ), 0) AS targetFishCaught,
+        COALESCE(SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN f.keptCount 
+                ELSE 0 
+            END
+        ), 0) AS targetFishKept
+    FROM species_table AS s
+    LEFT JOIN fish_table AS f 
+        ON s.id = f.speciesId 
+        AND f.eventId = :eventId
+    LEFT JOIN event_target_species AS target 
+        ON f.eventId = target.eventId 
+        AND s.id = target.speciesId
+    WHERE s.id = :speciesId
+""")
+    fun getSpeciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummaryEntity?>
+
+    @Query("""
+    SELECT 
+        s.*, 
         -- Total Caught
         (
             SELECT COALESCE(SUM(ft.caughtCount), 0) 

@@ -273,6 +273,10 @@ class EventViewModel(
         return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
 
+    fun speciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummary?> {
+        return fishRepo.getSpeciesSummary(eventId = eventId, speciedId = speciesId)
+    }
+
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)

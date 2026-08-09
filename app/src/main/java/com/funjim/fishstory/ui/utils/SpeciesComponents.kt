@@ -1,5 +1,7 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -41,6 +44,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -48,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +67,58 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.SpeciesSummary
+import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+
+@Composable
+fun AddSpeciesDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (name: String) -> Unit
+) {
+    EditSpeciesDialog(
+        item = Species(name = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditSpeciesDialog(
+    item: Species,
+    title: String = "Rename",
+    onDismiss: () -> Unit,
+    onConfirm: (Species) -> Unit
+) {
+    val origName = remember(BodyOfWater) { item.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$title Species") },
+        text = {
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true,
+                placeholder = { Text("Species Name (e.g. Walleye)") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(item.copy(name = name.trim())) },
+                enabled = isValid
+            ) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -572,6 +629,8 @@ fun TargetSpeciesRow(
     onDelete: (Species) -> Unit,
     thumbnailProvider: @Composable (Species) -> Unit,
     modifier: Modifier = Modifier,
+    summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
+    thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
@@ -674,49 +733,170 @@ fun TargetSpeciesRow(
 }
 
 @Composable
-fun AddSpeciesDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String) -> Unit
+fun TargetSpeciesColumn(
+    items: List<Species>,
+    onAdd: () -> Unit,
+    onDelete: (Species) -> Unit,
+    onClick: (Species) -> Unit,
+    modifier: Modifier = Modifier,
+    summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
+    thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) }
 ) {
-    EditSpeciesDialog(
-        item = Species(name = ""),
-        title = "Add",
-        onConfirm = { onConfirm(it.name) },
-        onDismiss = onDismiss
-    )
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Target Species",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+                if (items.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${items.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = { onAdd() },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = getMainButtonColor(),
+                    contentColor = getOnMainButtonColor()
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Target Species"
+                )
+            }
+        }
+
+        if (items.isEmpty()) {
+            Text(
+                text = "No target species are set.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = getOnSecondaryColor(),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        } else {
+            items.forEachIndexed { index, item ->
+                TargetSpeciesItem(
+                    summary = summaryProvider(item),
+                    thumbnailFlow = thumbnailFlow(item),
+                    index = index,
+                    totalItems = items.size,
+                    onClick = { species -> onClick(species) },
+                    onFishClick = { species -> onClick(species) },
+                    onDelete = { species -> onDelete(species) }
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun EditSpeciesDialog(
-    item: Species,
-    title: String = "Rename",
-    onDismiss: () -> Unit,
-    onConfirm: (Species) -> Unit
+fun TargetSpeciesItem(
+    summary: Flow<SpeciesSummary?>,
+    modifier: Modifier = Modifier,
+    thumbnailFlow: Flow<ByteArray?>,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onClick: (Species) -> Unit,
+    onFishClick: (Species) -> Unit,
+    onDelete: (Species) -> Unit
 ) {
-    val origName = remember(BodyOfWater) { item.name }
-    var name by remember { mutableStateOf(origName) }
+    val item by summary.collectAsState(initial = null)
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-    val isValid = name.isNotBlank() && (origName != name)
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("$title Species") },
-        text = {
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                placeholder = { Text("Species Name (e.g. Walleye)") }
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(item.copy(name = name.trim())) },
-                enabled = isValid
-            ) { Text("OK") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+    item?.let { summary ->
+        val species = summary.species
+
+        OutlinedCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .animateContentSize()
+                .clickable(
+                    onClick = { onClick(species) }
+                ),
+            colors = CardDefaults.cardColors(
+                containerColor = backgroundColor,
+                contentColor = contentColor,
+            ),
+            border = BorderStroke(1.dp, color = borderColor)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        modifier = Modifier.size(48.dp),
+                        imageVector = AppIcons.Default.Species
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                species.name,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (summary.targetFishCaught != 0) {
+                            Spacer(Modifier.height(4.dp))
+                            FishCaughtItem(
+                                icon = AppIcons.Default.TargetFish,
+                                caughtCount = summary.targetFishCaught,
+                                keptCount = summary.targetFishKept,
+                                onFishClick = {
+                                    onFishClick(species)
+                                },
+                                contentColor = secondaryContentColor
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = { onDelete(species) },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Remove",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
         }
-    )
+    }
 }
