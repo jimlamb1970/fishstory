@@ -1023,7 +1023,7 @@ fun EventDetailsScreen(
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onAdd = { name ->
+            onConfirm = { name ->
                 viewModel.addEventTargetSpecies(eventId, Species(name = name))
                 addNewSpecies = false
             }

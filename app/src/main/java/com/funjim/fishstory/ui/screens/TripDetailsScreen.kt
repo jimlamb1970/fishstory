@@ -977,7 +977,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onAdd = { name ->
+            onConfirm = { name ->
                 viewModel.addTripTargetSpecies(tripId, Species(name = name))
                 addNewSpecies = false
             }

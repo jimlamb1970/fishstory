@@ -58,8 +58,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -75,6 +78,14 @@ fun ManageSpeciesScreen(
     navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
@@ -83,8 +94,6 @@ fun ManageSpeciesScreen(
     var editName by remember { mutableStateOf("") }
 
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
-
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -383,25 +392,12 @@ This cannot be undone."""
 
     // EDIT DIALOG
     speciesToEdit?.let { species ->
-        AlertDialog(
-            onDismissRequest = { speciesToEdit = null },
-            title = { Text("Rename Species") },
-            text = {
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = { editName = it },
-                    singleLine = true,
-                    label = { Text("Species Name") }
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.upsertSpecies(species.copy(name = editName.trim()))
-                    speciesToEdit = null
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { speciesToEdit = null }) { Text("Cancel") }
+        EditSpeciesDialog(
+            item = species,
+            onDismiss = { speciesToEdit = null },
+            onConfirm = { item ->
+                viewModel.updateSpecies(item) {}
+                speciesToEdit = null
             }
         )
     }

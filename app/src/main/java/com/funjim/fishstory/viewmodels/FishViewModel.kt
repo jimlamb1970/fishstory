@@ -386,9 +386,22 @@ class FishViewModel(
         }
     }
 
-    fun upsertSpecies(species: Species) {
+    fun updateSpecies(
+        species: Species,
+        onSuccess: (Species) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.upsertSpecies(species)
+            viewModelScope.launch {
+                try {
+                    fishRepo.updateSpecies(species)
+                    onSuccess(species)
+                } catch (e: SQLiteConstraintException) {
+                    // Catches duplicate UNIQUE constraint failures
+                    _toastMessage.emit("Species '${species.name}' already exists.")
+                } catch (e: Exception) {
+                    _toastMessage.emit("Failed to add species.")
+                }
+            }
         }
     }
 

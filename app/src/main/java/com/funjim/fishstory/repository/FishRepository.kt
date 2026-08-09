@@ -254,8 +254,8 @@ class FishRepository(
     suspend fun addSpecies(species: Species) {
         fishDao.insertSpecies(species.toEntity())
     }
-    suspend fun upsertSpecies(species: Species) {
-        fishDao.upsertSpecies(species.toEntity())
+    suspend fun updateSpecies(species: Species) {
+        fishDao.updateSpecies(species.toEntity())
     }
     suspend fun deleteSpecies(species: Species) {
         fishDao.deleteSpecies(species.toEntity())

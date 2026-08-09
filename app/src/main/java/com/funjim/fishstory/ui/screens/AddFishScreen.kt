@@ -64,6 +64,7 @@ import com.funjim.fishstory.viewmodels.AddFishUiState
 import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 import kotlin.math.floor
+import androidx.compose.ui.platform.LocalLocale
 
 fun Long.toUtcMidnight(): Long =
     Instant.ofEpochMilli(this)
@@ -501,7 +502,7 @@ fun AddFishScreen(
                                 Text(
                                     SimpleDateFormat(
                                         "MMM dd",
-                                        Locale.getDefault()
+                                        LocalLocale.current.platformLocale
                                     ).format(Date(timestamp))
                                 )
                             }
@@ -514,7 +515,7 @@ fun AddFishScreen(
                                 Text(
                                     SimpleDateFormat(
                                         "hh:mm a",
-                                        Locale.getDefault()
+                                        LocalLocale.current.platformLocale
                                     ).format(Date(timestamp))
                                 )
                             }
@@ -652,7 +653,7 @@ fun AddFishScreen(
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onAdd = { speciesName ->
+            onConfirm = { speciesName ->
                 viewModel.addAndUpdateSpecies(Species(name = speciesName))
                 addNewSpecies = false
             }

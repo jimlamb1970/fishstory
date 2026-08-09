@@ -998,7 +998,7 @@ fun AddTripScreen(
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onAdd = { speciesName ->
+            onConfirm = { speciesName ->
                 val species = Species(name = speciesName)
                 if (currentStep == WizardStep.TripInfo)
                     tripViewModel.addAndUpdateTripTargetSpecies(species)

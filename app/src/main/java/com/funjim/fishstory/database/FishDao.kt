@@ -120,8 +120,8 @@ interface FishDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSpecies(species: SpeciesEntity)
 
-    @Upsert
-    suspend fun upsertSpecies(species: SpeciesEntity)
+    @Update
+    suspend fun updateSpecies(species: SpeciesEntity)
 
     @Delete
     suspend fun deleteSpecies(species: SpeciesEntity)

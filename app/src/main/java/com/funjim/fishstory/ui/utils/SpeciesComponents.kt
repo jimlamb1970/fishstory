@@ -60,6 +60,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -675,31 +676,44 @@ fun TargetSpeciesRow(
 @Composable
 fun AddSpeciesDialog(
     onDismiss: () -> Unit,
-    onAdd: (name: String) -> Unit
+    onConfirm: (name: String) -> Unit
 ) {
-    var addSpeciesName by remember { mutableStateOf("") }
-    val isValid = addSpeciesName.isNotBlank()
+    EditSpeciesDialog(
+        item = Species(name = ""),
+        title = "Add",
+        onConfirm = { onConfirm(it.name) },
+        onDismiss = onDismiss
+    )
+}
+
+@Composable
+fun EditSpeciesDialog(
+    item: Species,
+    title: String = "Rename",
+    onDismiss: () -> Unit,
+    onConfirm: (Species) -> Unit
+) {
+    val origName = remember(BodyOfWater) { item.name }
+    var name by remember { mutableStateOf(origName) }
+
+    val isValid = name.isNotBlank() && (origName != name)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add New Species") },
+        title = { Text("$title Species") },
         text = {
             TextField(
-                value = addSpeciesName,
-                onValueChange = { addSpeciesName = it },
+                value = name,
+                onValueChange = { name = it },
                 singleLine = true,
                 placeholder = { Text("Species Name (e.g. Walleye)") }
             )
         },
         confirmButton = {
             Button(
-                onClick = {
-                    if (addSpeciesName.isNotBlank()) {
-                        onAdd(addSpeciesName.trim())
-                    }
-                },
+                onClick = { onConfirm(item.copy(name = name.trim())) },
                 enabled = isValid
-            ) { Text("Add Species") }
+            ) { Text("OK") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
