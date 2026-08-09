@@ -47,6 +47,7 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -71,11 +72,18 @@ fun FishermanDetailsScreen(
     navigateToSelectLures: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(fishermanId) {
         viewModel.selectFisherman(fishermanId)
     }
 
-    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
     // Expansion States for Accordion
@@ -540,10 +548,12 @@ fun FishermanDetailsScreen(
             stats?.let { details ->
                 if (showEditFishermanDialog) {
                     EditFishermanDialog(
-                        initialFisherman = details.fisherman,
+                        fisherman = details.fisherman,
                         onDismiss = { showEditFishermanDialog = false },
-                        onConfirm = { updatedFisherman ->
-                            viewModel.updateFisherman(updatedFisherman)
+                        onConfirm = { fisherman ->
+                            viewModel.updateFisherman(fisherman) {
+                                // Do nothing on success
+                            }
                             showEditFishermanDialog = false
                         }
                     )
@@ -584,57 +594,6 @@ If you delete a tackle box, you may not be able to select a lure when logging a 
             }
         )
     }
-}
-
-@Composable
-fun EditFishermanDialog(
-    initialFisherman: Fisherman,
-    onDismiss: () -> Unit,
-    onConfirm: (Fisherman) -> Unit
-) {
-    var firstName by remember { mutableStateOf(initialFisherman.firstName) }
-    var lastName by remember { mutableStateOf(initialFisherman.lastName) }
-    var nickname by remember { mutableStateOf(initialFisherman.nickname) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Fisherman") },
-        text = {
-            Column {
-                TextField(
-                    value = firstName,
-                    onValueChange = { firstName = it },
-                    label = { Text("First Name") }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = nickname,
-                    onValueChange = { nickname = it },
-                    label = { Text("Nickname") }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = lastName,
-                    onValueChange = { lastName = it },
-                    label = { Text("Last Name") }
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = {
-                if (firstName.isNotBlank() && lastName.isNotBlank()) {
-                    onConfirm(initialFisherman.copy(firstName = firstName, lastName = lastName, nickname = nickname))
-                }
-            }) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Composable

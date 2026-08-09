@@ -314,7 +314,10 @@ fun FishermanSummary(
     allowOverride: Boolean = false,
     onClick: () -> Unit) {
     OutlinedCard(
-        modifier = modifier.fillMaxWidth().padding(16.dp).clickable { onClick() },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(),
             contentColor = getOnCardColor()
@@ -322,7 +325,9 @@ fun FishermanSummary(
         border = BorderStroke(1.dp, color = getCardBorderColor())
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -625,13 +630,38 @@ fun AddFishermanDialog(
     onDismiss: () -> Unit,
     onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
 ) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf("") }
+    EditFishermanDialog(
+        fisherman = Fisherman(firstName = "", lastName = "", nickname = ""),
+        title = "Add",
+        onDismiss = onDismiss,
+        onConfirm = { fisherman ->
+            onAdd(fisherman.firstName, fisherman.lastName, fisherman.nickname)
+        }
+    )
+}
+
+
+@Composable
+fun EditFishermanDialog(
+    fisherman: Fisherman,
+    title: String = "Edit",
+    onDismiss: () -> Unit,
+    onConfirm: (Fisherman) -> Unit
+) {
+    val origFirstName = remember(fisherman) { fisherman.firstName }
+    val origLastName = remember(fisherman) { fisherman.lastName }
+    val origNickName = remember(fisherman) { fisherman.nickname }
+    var firstName by remember { mutableStateOf(origFirstName) }
+    var lastName by remember { mutableStateOf(origLastName) }
+    var nickname by remember { mutableStateOf(origNickName) }
+
+    val isChanged = firstName != origFirstName ||
+            lastName != origLastName ||
+            nickname != origNickName
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Fisherman") },
+        title = { Text("$title Fisherman") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -653,9 +683,13 @@ fun AddFishermanDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onAdd(firstName.trim(), lastName.trim(), nickname.trim()) },
-                enabled = firstName.isNotBlank() || lastName.isNotBlank()
-            ) { Text("Add") }
+                onClick = { onConfirm(fisherman.copy(
+                    firstName = firstName,
+                    lastName = lastName,
+                    nickname = nickname))
+                },
+                enabled = (firstName.isNotBlank() || lastName.isNotBlank()) && isChanged
+            ) { Text("OK") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )

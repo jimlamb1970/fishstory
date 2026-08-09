@@ -91,8 +91,9 @@ class FishermanRepository(
         fishermanDao.deleteFisherman(fisherman.toEntity())
     }
 
-    // TODO - change to upsert
-    suspend fun updateFisherman(fisherman: Fisherman) = fishermanDao.update(fisherman.toEntity())
+    suspend fun updateFisherman(fisherman: Fisherman) {
+        fishermanDao.update(fisherman.toEntity())
+    }
 
     fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {
         return fishermanDao.getTripSummariesForFisherman(id)
