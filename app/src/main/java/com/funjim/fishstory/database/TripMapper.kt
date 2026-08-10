@@ -15,7 +15,9 @@ fun TripEntity.toDomain(): Trip {
         startDate = startDate,
         endDate = endDate,
         isLocked = isLocked,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        latitude = latitude,
+        longitude = longitude
     )
 }
 
@@ -30,7 +32,9 @@ fun Trip.toEntity(): TripEntity {
         startDate = startDate,
         endDate = endDate,
         isLocked = isLocked,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        latitude = latitude,
+        longitude = longitude
     )
 }
 
