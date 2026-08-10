@@ -41,6 +41,7 @@ import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.CategoryCarousel
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
@@ -48,6 +49,7 @@ import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
@@ -70,7 +72,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: (String?, String?, Boolean) -> Unit,
+    navigateToFishList: (String?, String?, String?, Boolean) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
@@ -188,24 +190,6 @@ fun TripDetailsScreen(
             ) {
                 listOf(
                     CategoryChipConfig(
-                        category = CategoryType.TARGET_SPECIES,
-                        icon = { Icon(
-                            AppIcons.Default.TargetFish,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
-                        count = details.targetSpecies.size
-                    ),
-                    CategoryChipConfig(
-                        category = CategoryType.FISHERMEN,
-                        icon = { Icon(
-                            AppIcons.Default.Fisherman,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
-                        count = summary.fishermanCount
-                    ),
-                    CategoryChipConfig(
                         category = CategoryType.BODIES_OF_WATER,
                         icon = { Icon(
                             AppIcons.Default.BodyOfWater,
@@ -222,6 +206,24 @@ fun TripDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         ) },
                         count = eventSummaries.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.FISHERMEN,
+                        icon = { Icon(
+                            AppIcons.Default.Fisherman,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = summary.fishermanCount
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.TARGET_SPECIES,
+                        icon = { Icon(
+                            AppIcons.Default.TargetFish,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = details.targetSpecies.size
                     )
                 )
             }
@@ -450,9 +452,9 @@ fun TripDetailsScreen(
 
                                 TripHighlightCard(
                                     summary = summary,
-                                    onClick = { navigateToFishList(tripId, null, false) },
-                                    onFishClick = { navigateToFishList(tripId, null, false) },
-                                    onTargetFishClick = { navigateToFishList(tripId, null, true) }
+                                    onClick = { navigateToFishList(tripId, null, null, false) },
+                                    onFishClick = { navigateToFishList(tripId, null, null, false) },
+                                    onTargetFishClick = { navigateToFishList(tripId, null, null, true) }
                                 )
                             }
 
@@ -462,7 +464,7 @@ fun TripDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            CategoryCarousel(
+                            CategoryRow(
                                 categories = categoryConfigs,
                                 selectedCategory = selectedCategory,
                                 onCategorySelected = { selectedCategory = it }
@@ -482,7 +484,7 @@ fun TripDetailsScreen(
                                 when (category) {
                                     CategoryType.TARGET_SPECIES -> {
                                         showEvents = false
-                                        TargetSpeciesRow(
+                                        TargetSpeciesColumn(
                                             items = details.targetSpecies,
                                             onAdd = { showSpeciesSelection = true },
                                             onDelete = { species ->
@@ -491,20 +493,21 @@ fun TripDetailsScreen(
                                                     species.id
                                                 )
                                             },
-                                            thumbnailProvider = { species ->
-                                                val thumbnailFlow = remember(species.id) {
-                                                    viewModel.speciesThumbnail(species.id)
-                                                }
-
-                                                val thumbnail by thumbnailFlow.collectAsState(
-                                                    initial = null
+                                            onClick = { species ->
+                                                navigateToFishList(
+                                                    tripId,
+                                                    null,
+                                                    species.id,
+                                                    true
                                                 )
-
-                                                ThumbnailBox(
-                                                    thumbnail = thumbnail,
-                                                    imageVector = AppIcons.Default.TargetFish,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
+                                            },
+                                            summaryProvider = { species ->
+                                                viewModel.speciesSummary(
+                                                    tripId = tripId,
+                                                    speciesId = species.id)
+                                            },
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
                                             },
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -619,6 +622,7 @@ fun TripDetailsScreen(
                                                         navigateToFishList(
                                                             tripId,
                                                             eventSummary.event.id,
+                                                            null,
                                                             targetOnly
                                                         )
                                                     },
@@ -727,6 +731,7 @@ fun TripDetailsScreen(
                                         navigateToFishList(
                                             tripId,
                                             eventSummary.event.id,
+                                            null,
                                             targetOnly
                                         )
                                     },

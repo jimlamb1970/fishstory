@@ -274,7 +274,7 @@ class EventViewModel(
     }
 
     fun speciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummary?> {
-        return fishRepo.getSpeciesSummary(eventId = eventId, speciedId = speciesId)
+        return fishRepo.getSpeciesSummary(eventId = eventId, speciesId = speciesId)
     }
 
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {

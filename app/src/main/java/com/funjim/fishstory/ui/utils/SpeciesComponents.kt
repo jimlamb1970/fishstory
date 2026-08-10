@@ -795,7 +795,9 @@ fun TargetSpeciesColumn(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {
-            items.forEachIndexed { index, item ->
+            val species = items.sortedBy { it.name }
+
+            species.forEachIndexed { index, item ->
                 TargetSpeciesItem(
                     summary = summaryProvider(item),
                     thumbnailFlow = thumbnailFlow(item),

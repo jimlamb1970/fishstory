@@ -225,6 +225,10 @@ class TripViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun speciesSummary(tripId: String, speciesId: String): Flow<SpeciesSummary?> {
+        return fishRepo.getSpeciesSummary(tripId = tripId, speciesId = speciesId)
+    }
+
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)

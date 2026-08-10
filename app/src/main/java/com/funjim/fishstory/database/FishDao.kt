@@ -256,13 +256,17 @@ interface FishDao {
     FROM species_table AS s
     LEFT JOIN fish_table AS f 
         ON s.id = f.speciesId 
-        AND f.eventId = :eventId
+        AND (:eventId IS NULL OR f.eventId = :eventId)
+        AND (:tripId IS NULL OR f.tripId = :tripId)
     LEFT JOIN event_target_species AS target 
         ON f.eventId = target.eventId 
         AND s.id = target.speciesId
     WHERE s.id = :speciesId
 """)
-    fun getSpeciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummaryEntity?>
+    fun getSpeciesSummary(
+        tripId: String? = null,
+        eventId: String? = null,
+        speciesId: String): Flow<SpeciesSummaryEntity?>
 
     @Query("""
     SELECT 

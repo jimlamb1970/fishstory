@@ -42,11 +42,10 @@ import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
-import com.funjim.fishstory.ui.utils.CategoryCarousel
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
-import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EditEventDialog
 import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -196,15 +195,22 @@ fun EventDetailsScreen(
             ) {
                 listOf(
                     CategoryChipConfig(
-                        category = CategoryType.WEATHER,
-                        icon = {
-                            Icon(
-                                AppIcons.Default.Weather,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        count = sortedWeatherList.size
+                        category = CategoryType.BODIES_OF_WATER,
+                        icon = { Icon(
+                            AppIcons.Default.BodyOfWater,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventDetails.bodiesOfWater.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.FISHERMEN,
+                        icon = { Icon(
+                            AppIcons.Default.Fisherman,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = eventSummary.fishermanCount
                     ),
                     CategoryChipConfig(
                         category = CategoryType.TARGET_SPECIES,
@@ -225,22 +231,15 @@ fun EventDetailsScreen(
                         count = sortedWaterList.size
                     ),
                     CategoryChipConfig(
-                        category = CategoryType.FISHERMEN,
-                        icon = { Icon(
-                            AppIcons.Default.Fisherman,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
-                        count = eventSummary.fishermanCount
-                    ),
-                    CategoryChipConfig(
-                        category = CategoryType.BODIES_OF_WATER,
-                        icon = { Icon(
-                            AppIcons.Default.BodyOfWater,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
-                        count = eventDetails.bodiesOfWater.size
+                        category = CategoryType.WEATHER,
+                        icon = {
+                            Icon(
+                                AppIcons.Default.Weather,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        count = sortedWeatherList.size
                     )
                 )
             }
@@ -406,7 +405,7 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    var selectedCategory by remember { mutableStateOf(CategoryType.WEATHER) }
+                    var selectedCategory by remember { mutableStateOf(CategoryType.TARGET_SPECIES) }
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
@@ -521,7 +520,7 @@ fun EventDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            CategoryCarousel(
+                            CategoryRow(
                                 categories = categoryConfigs,
                                 selectedCategory = selectedCategory,
                                 onCategorySelected = { selectedCategory = it }

@@ -2,6 +2,8 @@ package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,11 +48,87 @@ fun CategoryCarousel(
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         items(categories) { config ->
+            val isSelected = config.category == selectedCategory
+
+            FilterChip(
+                selected = isSelected,
+                onClick = { onCategorySelected(config.category) },
+                label = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = config.category.label,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+
+                        // Badge Count Indicator
+                        config.count?.let { count ->
+                            if (count > 0) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = getMainButtonColor(),
+                                    modifier = Modifier.padding(start = 2.dp)
+                                ) {
+                                    Text(
+                                        text = count.toString(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = getOnMainButtonColor(),
+                                        modifier = Modifier.padding(
+                                            horizontal = 6.dp,
+                                            vertical = 2.dp
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    selectedBorderColor = getChipColor(true),
+                    selectedBorderWidth = 2.dp,
+                    borderColor = getOnChipColor(),
+                    borderWidth = 1.dp
+                ),
+                leadingIcon = {
+                    Box(modifier = Modifier.size(18.dp)) {
+                        config.icon()
+                    }
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
+                    selectedLabelColor = getOnChipSecondaryColor(),
+                    labelColor = getOnChipColor()
+                )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun CategoryRow(
+    categories: List<CategoryChipConfig>,
+    selectedCategory: CategoryType,
+    onCategorySelected: (CategoryType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categories.forEach { config ->
             val isSelected = config.category == selectedCategory
 
             FilterChip(
