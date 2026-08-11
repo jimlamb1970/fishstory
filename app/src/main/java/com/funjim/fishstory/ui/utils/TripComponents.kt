@@ -416,7 +416,7 @@ fun TripItem(
                         ) {
                             if (eventCount != 0) {
                                 CardItemWithValue(
-                                    icon = AppIcons.Default.Boat,
+                                    icon = AppIcons.Default.CanoeEmpty,
                                     value = eventCount.toString(),
                                     contentColor = secondaryContentColor
                                 )

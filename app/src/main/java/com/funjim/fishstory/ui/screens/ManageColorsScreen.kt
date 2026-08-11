@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -45,6 +47,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -67,6 +70,7 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
+import com.funjim.fishstory.ui.utils.AddColorDialog
 import com.funjim.fishstory.ui.utils.EditColorDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -86,6 +90,7 @@ fun ManageColorsScreen(
     }
 
     val colorsList by viewModel.lureColors.collectAsStateWithLifecycle(initialValue = emptyList())
+    var addItem by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var colorToDelete by remember { mutableStateOf<LureColor?>(null) }
@@ -109,7 +114,16 @@ fun ManageColorsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Colors") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Colors")
+                        val total = colorsList.size
+                        Text(
+                            text = " ($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
@@ -122,7 +136,32 @@ fun ManageColorsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { addItem = true }) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.Palette,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp))
+
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
@@ -366,6 +405,19 @@ Lures that were using this color may not have a color assigned to them.
                 TextButton(onClick = { colorToDelete = null }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (addItem) {
+        AddColorDialog(
+            onConfirm = {
+                pendingNewColorName = it
+                addItem = false
+            },
+            onDismiss = {
+                pendingNewColorName = ""
+                addItem = false
             }
         )
     }

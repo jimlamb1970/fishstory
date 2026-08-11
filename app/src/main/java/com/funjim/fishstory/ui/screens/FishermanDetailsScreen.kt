@@ -120,6 +120,29 @@ fun FishermanDetailsScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = { showAddTackleBoxDialog = true }) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    AppIcons.Default.TackleBox,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp))
+
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            }
+                        }
                         IconButton(onClick = { showEditFishermanDialog = true }) {
                             Icon(Icons.Default.Edit, contentDescription = "Rename Fisherman")
                         }

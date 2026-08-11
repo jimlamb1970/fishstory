@@ -521,7 +521,7 @@ private fun FishDetailContent(
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 ThumbnailBox(
                     thumbnail = eventThumbnail,
-                    imageVector = AppIcons.Default.Boat,
+                    imageVector = AppIcons.Default.CanoeEmpty,
                     modifier = Modifier.size(40.dp)
                 )
                 Text(

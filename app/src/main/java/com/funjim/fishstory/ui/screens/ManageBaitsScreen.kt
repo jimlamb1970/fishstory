@@ -10,15 +10,19 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
@@ -39,6 +43,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -49,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -80,11 +86,11 @@ fun ManageBaitsScreen(
         }
     }
     val allItems by viewModel.baitSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
+    var addItem by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<Bait?>(null) }
     var itemToEdit by remember { mutableStateOf<Bait?>(null) }
-    var editName by remember { mutableStateOf("") }
 
     var currentItemForPhoto by remember { mutableStateOf<Bait?>(null) }
 
@@ -111,7 +117,16 @@ fun ManageBaitsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Baits") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Baits")
+                        val total = allItems.size
+                        Text(
+                            text = " ($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
@@ -124,7 +139,32 @@ fun ManageBaitsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { addItem = true }) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                AppIcons.Default.Bait,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp))
+
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
@@ -278,7 +318,6 @@ fun ManageBaitsScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item.bait
-                                            editName = item.bait.name
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -372,6 +411,16 @@ This cannot be undone."""
                 TextButton(onClick = { itemToDelete = null }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (addItem) {
+        AddBaitDialog(
+            onDismiss = { addItem = false },
+            onConfirm = { baitName ->
+                viewModel.addBait(Bait(name = baitName)) {}
+                addItem = false
             }
         )
     }

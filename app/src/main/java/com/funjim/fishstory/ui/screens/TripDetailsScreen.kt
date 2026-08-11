@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -97,7 +98,6 @@ fun TripDetailsScreen(
     var showSpeciesSelection by remember { mutableStateOf(false) }
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     var addNewSpecies by remember { mutableStateOf(false) }
-    var addSpeciesName by remember { mutableStateOf("") }
 
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
@@ -112,12 +112,10 @@ fun TripDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
-    var selectedEvent by remember { mutableStateOf<Event?>(null) }
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
 
     var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
-    var updateTripLocation by remember { mutableStateOf(false) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -248,6 +246,29 @@ fun TripDetailsScreen(
                             }
                         },
                         actions = {
+                            IconButton(onClick = { navigateToAddEvent(tripId) }) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Default.CanoeEmpty,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp))
+
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                            }
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = "More")

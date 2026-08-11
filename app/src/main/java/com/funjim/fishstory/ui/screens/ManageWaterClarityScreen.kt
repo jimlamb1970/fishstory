@@ -10,15 +10,19 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
@@ -39,6 +43,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -49,13 +54,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.EditWaterClarityDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -78,6 +87,7 @@ fun ManageWaterClarityScreen(
     }
 
     val allItems by viewModel.allWaterClarity.collectAsStateWithLifecycle(initialValue = emptyList())
+    var addItem by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<WaterClarity?>(null) }
@@ -107,7 +117,16 @@ fun ManageWaterClarityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Water Clarity") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Water Clarity")
+                        val total = allItems.size
+                        Text(
+                            text = " ($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
@@ -120,7 +139,31 @@ fun ManageWaterClarityScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { addItem = true }) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                AppIcons.Default.Water,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp))
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
@@ -371,6 +414,16 @@ This cannot be undone."""
                 TextButton(onClick = { itemToDelete = null }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (addItem) {
+        AddWaterClarityDialog(
+            onDismiss = { addItem = false },
+            onConfirm = { name ->
+                viewModel.addWaterClarity(WaterClarity(name = name)) {}
+                addItem = false
             }
         )
     }

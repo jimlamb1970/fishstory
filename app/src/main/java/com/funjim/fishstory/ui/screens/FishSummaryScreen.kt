@@ -253,7 +253,7 @@ fun FishSummaryScreen(
 
                             ThumbnailBox(
                                 thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Boat,
+                                imageVector = AppIcons.Default.CanoeEmpty,
                                 modifier = Modifier.size(48.dp)
                             )
                         }

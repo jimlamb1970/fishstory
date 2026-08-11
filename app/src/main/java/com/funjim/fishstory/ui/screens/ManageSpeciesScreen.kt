@@ -11,16 +11,20 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
@@ -42,6 +46,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -59,9 +64,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
+import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -87,6 +95,7 @@ fun ManageSpeciesScreen(
     }
 
     val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
+    var addItem by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
@@ -124,7 +133,16 @@ fun ManageSpeciesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Species") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Species")
+                        val total = speciesSummaries.size
+                        Text(
+                            text = " ($total)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
@@ -137,7 +155,31 @@ fun ManageSpeciesScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { addItem = true }) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                AppIcons.Default.Species,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp))
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
@@ -386,6 +428,16 @@ This cannot be undone."""
                 TextButton(onClick = { speciesToDelete = null }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (addItem) {
+        AddSpeciesDialog(
+            onDismiss = { addItem = false },
+            onConfirm = { name ->
+                viewModel.addSpecies(Species(name = name)) {}
+                addItem = false
             }
         )
     }
