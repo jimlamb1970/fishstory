@@ -143,14 +143,11 @@ fun AddFishScreen(
 
     val allBaits by viewModel.allBaits.collectAsStateWithLifecycle()
     var addNewBait by remember { mutableStateOf(false) }
-    var addBaitName by remember { mutableStateOf("") }
 
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     var addNewBodyOfWater by remember { mutableStateOf(false) }
-    var addBodyOfWaterName by remember { mutableStateOf("") }
 
     var addNewSpecies by remember { mutableStateOf(false) }
-    var addSpeciesName by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
