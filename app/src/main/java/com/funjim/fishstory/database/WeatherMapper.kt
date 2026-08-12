@@ -7,6 +7,7 @@ import com.funjim.fishstory.model.WeatherWithDetails
 fun WeatherEntity.toDomain(): Weather {
     return Weather(
         id = id,
+        tripId = tripId,
         eventId = eventId,
         temperature = temperature,
         skyConditionId = skyConditionId,
@@ -28,6 +29,7 @@ fun List<WeatherEntity>.toWeatherDomainList(): List<Weather> {
 fun Weather.toEntity(): WeatherEntity {
     return WeatherEntity(
         id = id,
+        tripId = tripId,
         eventId = eventId,
         temperature = temperature,
         skyConditionId = skyConditionId,

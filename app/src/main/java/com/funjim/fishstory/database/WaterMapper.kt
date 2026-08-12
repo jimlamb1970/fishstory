@@ -7,6 +7,7 @@ import com.funjim.fishstory.model.WaterWithDetails
 fun WaterEntity.toDomain(): Water {
     return Water(
         id = id,
+        tripId = tripId,
         eventId = eventId,
         depth = depth,
         temperature = temperature,
@@ -24,6 +25,7 @@ fun List<WaterEntity>.toWaterDomainList(): List<Water> {
 fun Water.toEntity(): WaterEntity {
     return WaterEntity(
         id = id,
+        tripId = tripId,
         eventId = eventId,
         depth = depth,
         temperature = temperature,

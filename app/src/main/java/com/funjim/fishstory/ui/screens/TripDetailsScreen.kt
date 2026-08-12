@@ -199,7 +199,7 @@ fun TripDetailsScreen(
                     CategoryChipConfig(
                         category = CategoryType.EVENTS,
                         icon = { Icon(
-                            AppIcons.Default.Canoe,
+                            AppIcons.Default.CanoeEmpty,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },

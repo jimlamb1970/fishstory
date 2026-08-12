@@ -274,7 +274,7 @@ fun EventItem(
             ) {
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.Canoe,
+                    imageVector = AppIcons.Default.CanoeEmpty,
                     modifier = Modifier.size(64.dp),
                     onClick =
                         if (showPhotoPicker) { { isExpanded = !isExpanded } }

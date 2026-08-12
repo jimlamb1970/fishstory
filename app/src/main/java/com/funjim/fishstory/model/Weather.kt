@@ -6,6 +6,7 @@ import java.util.UUID
 @Serializable
 data class Weather(
     val id: String = UUID.randomUUID().toString(),
+    val tripId: String,
     val eventId: String,
     val temperature: Long? = null,
     val skyConditionId: String? = null,

@@ -53,6 +53,18 @@ import java.util.UUID
             parentColumns = ["id"],
             childColumns = ["bodyOfWaterId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = WaterEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["waterId"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = WeatherEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["weatherId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
@@ -61,7 +73,9 @@ import java.util.UUID
         Index(value = ["tripId"]),
         Index(value = ["eventId"]),
         Index(value = ["lureId"]),
-        Index(value = ["bodyOfWaterId"])
+        Index(value = ["bodyOfWaterId"]),
+        Index(value = ["waterId"]),
+        Index(value = ["weatherId"])
     ]
 )
 data class FishEntity(
@@ -81,6 +95,7 @@ data class FishEntity(
     val longitude: Double? = null,
     val bodyOfWaterId: String? = null,
     val waterId: String? = null,
+    val weatherId: String? = null,
     val holeNumber: Int? = null,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
@@ -140,6 +155,18 @@ data class FishEntityWithDetails(
         entityColumn = "id"
     )
     val bodyOfWater: BodyOfWaterEntity?,
+    @Relation(
+        entity = WaterEntity::class,
+        parentColumn = "waterId",
+        entityColumn = "id"
+    )
+    val water: WaterEntityWithDetails?,
+    @Relation(
+        entity = WeatherEntity::class,
+        parentColumn = "weatherId",
+        entityColumn = "id"
+    )
+    val weather: WeatherEntityWithDetails?,
     val photoCount: Int = 0
 )
 

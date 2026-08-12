@@ -676,6 +676,7 @@ fun EventDetailsScreen(
                             onDismiss = { showAddWaterDialog = false },
                             onConfirm = { temp, depth, clarity ->
                                 val newWater = Water(
+                                    tripId = tripId,
                                     eventId = eventId,
                                     temperature = temp,
                                     depth = depth,
@@ -848,6 +849,7 @@ fun EventDetailsScreen(
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                         viewModel.addWeather(
                             Weather(
+                                tripId = tripId,
                                 eventId = eventId,
                                 temperature = temp,
                                 skyConditionId = skyCondition,

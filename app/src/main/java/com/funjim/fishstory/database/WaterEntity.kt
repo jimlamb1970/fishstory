@@ -12,6 +12,12 @@ import java.util.UUID
 @Entity(tableName = "water_table",
     foreignKeys = [
         ForeignKey(
+            entity = TripEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["tripId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
             entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
@@ -32,6 +38,7 @@ import java.util.UUID
 data class WaterEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
+    val tripId: String,
     val eventId: String,
     val depth: Long? = null,
     val temperature: Long? = null,

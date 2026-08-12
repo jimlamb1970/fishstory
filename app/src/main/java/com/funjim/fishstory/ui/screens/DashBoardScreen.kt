@@ -919,6 +919,7 @@ fun ActiveTripCard(
             onDismiss = { showAddWaterDialog = false },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(
+                    tripId = currentEvent.event.tripId,
                     eventId = currentEvent.event.id,
                     temperature = temp,
                     depth = depth,
@@ -987,6 +988,7 @@ fun ActiveTripCard(
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
                     Weather(
+                        tripId = currentEvent.event.tripId,
                         eventId = currentEvent.event.id,
                         temperature = temp,
                         skyConditionId = skyCondition,
