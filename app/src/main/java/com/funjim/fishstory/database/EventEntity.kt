@@ -150,7 +150,21 @@ data class EventEntityWithInfo(
             entityColumn = "bodyOfWaterId"
         )
     )
-    val bodiesOfWater: List<BodyOfWaterEntity>
+    val bodiesOfWater: List<BodyOfWaterEntity>,
+
+    @Relation(
+        entity = WaterEntity::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val waterList: List<WaterEntityWithDetails>,
+
+    @Relation(
+        entity = WeatherEntity::class,
+        parentColumn = "id",
+        entityColumn = "eventId"
+    )
+    val weatherList: List<WeatherEntityWithDetails>
 )
 
 @DatabaseView(

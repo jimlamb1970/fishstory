@@ -112,13 +112,24 @@ fun AddFishScreen(
                     state.fish.fish,
                     state.fish.fish.tripId,
                     state.fish.fish.eventId,
+                    state.fish.fish.waterId,
+                    state.fish.fish.weatherId,
                     state.fish.photos
                 )
                 viewModel.selectFisherman(state.fish.fish.fishermanId)
                 viewModel.selectTackleBox(state.tackleBoxMap[state.fish.fish.fishermanId])
             } else if (fishId == null) {
                 // New Fish Mode Initialization
-                viewModel.initDraftFish(null, tripId, eventId)
+                val waterId = state.event.waterList
+                    .maxByOrNull { it.water.timestamp }
+                    ?.water
+                    ?.id
+                val weatherId = state.event.weatherList
+                    .maxByOrNull { it.weather.timestamp }
+                    ?.weather
+                    ?.id
+
+                viewModel.initDraftFish(null, tripId, eventId, waterId, weatherId)
                 viewModel.selectFisherman(null)
                 viewModel.selectTackleBox(null)
 
@@ -207,11 +218,15 @@ fun AddFishScreen(
                 baits.contains(item.id)
             }
             val selectedBait = remember(draftFish, sortedBaits) {
+                // TODO - revisit the auto selection
+                /*
                 if ((sortedBaits.size == 1) && (fishId == null)) {
                     viewModel.updateBait(sortedBaits.first())
                     sortedBaits.first()
                 }
                 else sortedBaits.find { it.id == draftFish?.baitId }
+                */
+                sortedBaits.find { it.id == draftFish?.baitId }
             }
 
             val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
@@ -219,11 +234,15 @@ fun AddFishScreen(
                 bodiesOfWater.contains(item.id)
             }
             val selectedBodyOfWater = remember(draftFish, sortedBodiesOfWater) {
+                // TODO - revisit the auto selection
+                /*
                 if ((sortedBodiesOfWater.size == 1) && (fishId == null)) {
                     viewModel.updateBodyOfWater(sortedBodiesOfWater.first())
                     sortedBodiesOfWater.first()
                 }
                 else sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
+                */
+                sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
             }
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)

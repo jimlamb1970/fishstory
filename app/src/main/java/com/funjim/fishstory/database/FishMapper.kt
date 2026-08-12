@@ -28,6 +28,7 @@ fun FishEntity.toDomain(): Fish {
         longitude = longitude,
         bodyOfWaterId = bodyOfWaterId,
         waterId = waterId,
+        weatherId = weatherId,
         holeNumber = holeNumber,
         isLocked = isLocked,
         isFavorite = isFavorite
@@ -57,6 +58,7 @@ fun Fish.toEntity(): FishEntity {
         longitude = longitude,
         bodyOfWaterId = bodyOfWaterId,
         waterId = waterId,
+        weatherId = weatherId,
         holeNumber = holeNumber,
         isLocked = isLocked,
         isFavorite = isFavorite

@@ -55,3 +55,13 @@ data class WaterEntityWithDetails(
     )
     val clarity: WaterClarityEntity? = null
 )
+
+data class WaterSummaryEntity(
+    @Embedded val water: WaterEntity,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
+    val targetFishCaught: Int = 0,
+    val targetFishKept: Int = 0,
+    val largestFish: Long,
+    val smallestFish: Long
+)

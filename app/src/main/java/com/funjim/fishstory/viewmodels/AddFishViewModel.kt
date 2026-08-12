@@ -367,6 +367,8 @@ class AddFishViewModel(
         fish: Fish?,
         tripId: String,
         eventId: String,
+        waterId: String?,
+        weatherId: String?,
         photos: List<Photo> = emptyList()
     ) {
         // If fish is null, create a default "new" fish
@@ -379,6 +381,8 @@ class AddFishViewModel(
             caughtCount = 1,
             length = (10.0).inchesToStorage(),
             timestamp = System.currentTimeMillis(),
+            waterId = waterId,
+            weatherId = weatherId,
             holeNumber = 1
         )
         _fishPhotos.value = photos

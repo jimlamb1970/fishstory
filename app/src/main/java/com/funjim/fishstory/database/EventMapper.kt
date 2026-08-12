@@ -65,6 +65,8 @@ fun EventEntityWithInfo.toDomain(): EventWithInfo {
         targetSpecies = targetSpecies.toSpeciesDomainList(),
         baits = baits.toBaitDomainList(),
         bodiesOfWater = bodiesOfWater.toBodyOfWaterDomainList(),
+        waterList = waterList.toWaterWithDetailsDomainList(),
+        weatherList = weatherList.toWeatherWithDetailsDomainList()
     )
 }
 

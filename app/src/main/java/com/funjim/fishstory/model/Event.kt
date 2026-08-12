@@ -25,14 +25,16 @@ data class EventWithDetails(
     val baits: List<Bait>,
     val bodiesOfWater: List<BodyOfWater>,
     val waterList: List<WaterWithDetails>,
-    val weatherList: List<WeatherWithDetails>,
+    val weatherList: List<WeatherWithDetails>
 )
 
 data class EventWithInfo(
     val event: Event,
     val targetSpecies: List<Species>,
     val baits: List<Bait>,
-    val bodiesOfWater: List<BodyOfWater>
+    val bodiesOfWater: List<BodyOfWater>,
+    val waterList: List<WaterWithDetails>,
+    val weatherList: List<WeatherWithDetails>
 )
 
 data class EventDetailedSummary(
