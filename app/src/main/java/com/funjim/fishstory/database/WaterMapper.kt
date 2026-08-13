@@ -1,6 +1,7 @@
 package com.funjim.fishstory.database
 
 import com.funjim.fishstory.model.Water
+import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WaterWithDetails
 
 // Extension: Database Entity -> Domain Model
@@ -42,5 +43,22 @@ fun WaterEntityWithDetails.toDomain(): WaterWithDetails {
 }
 
 fun List<WaterEntityWithDetails>.toWaterWithDetailsDomainList(): List<WaterWithDetails> {
+    return map { it.toDomain() }
+}
+
+fun WaterSummaryEntity.toDomain(): WaterSummary {
+    return WaterSummary(
+        water = water.toDomain(),
+        clarity = clarity?.toDomain(),
+        fishCaught = fishCaught,
+        fishKept = fishKept,
+        targetFishCaught = targetFishCaught,
+        targetFishKept = targetFishKept,
+        largestFish = largestFish,
+        smallestFish = smallestFish
+    )
+}
+
+fun List<WaterSummaryEntity>.toWaterSummaryDomainList(): List<WaterSummary> {
     return map { it.toDomain() }
 }

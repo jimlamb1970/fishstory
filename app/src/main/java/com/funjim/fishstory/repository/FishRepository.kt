@@ -20,6 +20,7 @@ import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.toTripDomainList
+import com.funjim.fishstory.database.toWaterSummaryDomainList
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -38,6 +39,7 @@ import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripWithCounts
+import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.ui.utils.FishFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -149,6 +151,22 @@ class FishRepository(
             eventId = eventId,
             speciesId = speciesId)
             .map { entity -> entity?.toDomain() }
+    }
+
+    fun getWaterSummary(waterId: String): Flow<WaterSummary?> {
+        return fishDao.getWaterSummary(
+            waterId = waterId)
+            .map { entity -> entity?.toDomain() }
+    }
+
+    fun getWaterSummaries(
+        tripId: String? = null,
+        eventId: String? = null
+    ): Flow<List<WaterSummary>> {
+        return fishDao.getWaterSummaries(
+            tripId = tripId,
+            eventId = eventId)
+            .map { list -> list.toWaterSummaryDomainList() }
     }
 
     fun getFishCounts(filter: FishFilter): Flow<FishCounts> {

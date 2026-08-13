@@ -1,6 +1,5 @@
 package com.funjim.fishstory.model
 
-import android.app.appsearch.AppSearchSchema
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -18,4 +17,15 @@ data class Water(
 data class WaterWithDetails(
     val water: Water,
     val clarity: WaterClarity? = null
+)
+
+data class WaterSummary(
+    val water: Water,
+    val clarity: WaterClarity? = null,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
+    val targetFishCaught: Int = 0,
+    val targetFishKept: Int = 0,
+    val largestFish: Long,
+    val smallestFish: Long
 )

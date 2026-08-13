@@ -359,9 +359,53 @@ interface FishDao {
         ) as targetFishKept
     FROM water_table AS water
     LEFT JOIN fish_table AS f ON water.id = f.waterId
+        AND (:eventId IS NULL OR water.eventId = :eventId)
+        AND (:tripId IS NULL OR water.tripId = :tripId)
     GROUP BY water.id
 """)
-    fun getWaterSummaries(): Flow<List<WaterSummaryEntity>>
+    fun getWaterSummaries(
+        tripId: String? = null,
+        eventId: String? = null): Flow<List<WaterSummaryEntity>>
+
+    @Query("""
+    SELECT 
+        water.*, 
+        SUM(f.caughtCount) AS fishCaught,
+        SUM(f.keptCount) AS fishKept,
+        MAX(f.length) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            -- Join inside the subquery to calculate 'isTarget' dynamic flag
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.waterId = water.id
+        ) as targetFishCaught,
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.waterId = water.id
+        ) as targetFishKept
+    FROM water_table AS water
+    LEFT JOIN fish_table AS f ON water.id = f.waterId
+    WHERE water.id = :waterId
+""")
+    fun getWaterSummary(waterId: String): Flow<WaterSummaryEntity?>
 
     @Query("""
     SELECT 

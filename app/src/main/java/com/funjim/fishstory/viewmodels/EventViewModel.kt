@@ -188,15 +188,23 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val waterSummaries: Flow<List<WaterSummary>> = _selectedEventId
+        .flatMapLatest { eventId ->
+            fishRepo.getWaterSummaries(eventId = eventId)
+        }
+
     val uiState: StateFlow<EventDetailsUiState> = combine(
         selectedEventWithDetails,
-        selectedEventDetailedSummary
-    ) { event, summary ->
+        selectedEventDetailedSummary,
+        waterSummaries
+    ) { event, summary, waterSummaries ->
         // Guard clause: Ensure the database has returned valid data for everything
         if (event != null && summary != null) {
             EventDetailsUiState.Success(
                 details = event,
-                summary = summary
+                summary = summary,
+                waterSummaries = waterSummaries
             )
         } else {
             EventDetailsUiState.Loading
@@ -273,10 +281,6 @@ class EventViewModel(
         return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
 
-    fun speciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummary?> {
-        return fishRepo.getSpeciesSummary(eventId = eventId, speciesId = speciesId)
-    }
-
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
@@ -284,6 +288,10 @@ class EventViewModel(
 
     fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
+    fun speciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummary?> {
+        return fishRepo.getSpeciesSummary(eventId = eventId, speciesId = speciesId)
     }
 
     fun addSpecies(
@@ -447,6 +455,7 @@ sealed interface EventDetailsUiState {
     data class Success(
         val details: EventWithDetails,
         val summary: EventDetailedSummary,
+        val waterSummaries: List<WaterSummary>
     ) : EventDetailsUiState
 }
 

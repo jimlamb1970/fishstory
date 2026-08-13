@@ -58,6 +58,11 @@ data class WaterEntityWithDetails(
 
 data class WaterSummaryEntity(
     @Embedded val water: WaterEntity,
+    @Relation(
+        parentColumn = "clarityId",
+        entityColumn = "id"
+    )
+    val clarity: WaterClarityEntity? = null,
     val fishCaught: Int = 0,
     val fishKept: Int = 0,
     val targetFishCaught: Int = 0,

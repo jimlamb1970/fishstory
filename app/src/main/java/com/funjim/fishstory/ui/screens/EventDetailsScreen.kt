@@ -54,7 +54,7 @@ import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
-import com.funjim.fishstory.ui.utils.WaterRow
+import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.WeatherRow
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -167,6 +167,7 @@ fun EventDetailsScreen(
         is EventDetailsUiState.Success -> {
             val eventDetails = state.details
             val eventSummary = state.summary
+            val waterSummaries = state.waterSummaries
 
             val event = eventDetails.event
             selectedEvent = event
@@ -179,15 +180,15 @@ fun EventDetailsScreen(
             val activeLat = eventLat ?: tripLat
 
             // Sort water snapshots descending (most recent first)
-            val sortedWaterList = remember(eventDetails.waterList) {
-                eventDetails.waterList.sortedByDescending { it.water.timestamp }
+            val sortedWaterSummaryList = remember(waterSummaries) {
+                waterSummaries.sortedByDescending { it.water.timestamp }
             }
             val sortedWeatherList = remember(eventDetails.weatherList) {
                 eventDetails.weatherList.sortedByDescending { it.weather.timestamp }
             }
 
             val categoryConfigs = remember(
-                sortedWaterList,
+                sortedWaterSummaryList,
                 sortedWeatherList,
                 eventDetails.targetSpecies,
                 eventDetails.bodiesOfWater,
@@ -228,7 +229,7 @@ fun EventDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = sortedWaterList.size
+                        count = sortedWaterSummaryList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.WEATHER,
@@ -539,10 +540,11 @@ fun EventDetailsScreen(
                             ) { category ->
                                 when (category) {
                                     CategoryType.WATER -> {
-                                        WaterRow(
-                                            waterList = sortedWaterList,
+                                        WaterSummaryRow(
+                                            waterList = sortedWaterSummaryList,
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
+                                            onFishClick = { water, target -> },
                                             onDelete = { waterToDelete = it }
                                         )
                                     }

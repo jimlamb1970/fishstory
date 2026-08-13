@@ -70,6 +70,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WaterWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
@@ -270,6 +271,177 @@ fun WaterCard(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                }
+            }
+
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Water Snapshot Options"
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit(water.water)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete(water.water)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WaterSummaryCard(
+    water: WaterSummary,
+    modifier: Modifier = Modifier,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onEdit: (Water) -> Unit,
+    onFishClick: (Water, Boolean) -> Unit,
+    onDelete: (Water) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+    }
+
+    val dateTime = dateTimeFormatter.format(Date(water.water.timestamp))
+
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
+
+    OutlinedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = AppIcons.Default.Water,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = dateTime,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                if (water.water.temperature != null || water.water.depth != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        water.water.tempDisplayString()?.let { temp ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Temperature: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = temp,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        water.water.depthDisplayString()?.let { depth ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Depth: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = depth,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (water.clarity != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Clarity: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = water.clarity.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                if (water.fishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.LeapingFishWithFins,
+                        caughtCount = water.fishCaught,
+                        keptCount = water.fishKept,
+                        onFishClick = {
+                            onFishClick(water.water, false)
+                        },
+                        contentColor = secondaryContentColor
+                    )
+                }
+                if (water.targetFishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.TargetFish,
+                        caughtCount = water.targetFishCaught,
+                        keptCount = water.targetFishKept,
+                        onFishClick = {
+                            onFishClick(water.water, true)
+                        },
+                        contentColor = secondaryContentColor
+                    )
                 }
             }
 
@@ -545,6 +717,126 @@ fun WaterRow(
                                 index = index + 1,
                                 totalItems = waterList.size,
                                 onEdit = onEdit,
+                                onDelete = onDelete
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "No water conditions are set.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun WaterSummaryRow(
+    waterList: List<WaterSummary>,
+    onAddWater: () -> Unit,
+    onEdit: (Water) -> Unit,
+    onFishClick: (Water, Boolean) -> Unit,
+    onDelete: (Water) -> Unit
+) {
+    var isWaterSectionExpanded by remember { mutableStateOf(false) }
+
+    Column() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (waterList.size > 1) {
+                    IconButton(
+                        onClick = {
+                            isWaterSectionExpanded = !isWaterSectionExpanded
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isWaterSectionExpanded) Icons.Default.ExpandLess
+                                else Icons.Default.ExpandMore,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Water Conditions",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+
+                if (waterList.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${waterList.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = onAddWater,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Water Condition"
+                )
+            }
+        }
+
+        if (waterList.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                WaterSummaryCard(
+                    water = waterList.first(),
+                    index = 0,
+                    totalItems = waterList.size,
+                    onEdit = onEdit,
+                    onFishClick= onFishClick,
+                    onDelete = onDelete
+                )
+
+                AnimatedVisibility(visible = isWaterSectionExpanded && waterList.size > 1) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        waterList.drop(1).forEachIndexed { index, water ->
+                            WaterSummaryCard(
+                                water = water,
+                                index = index,
+                                totalItems = waterList.size,
+                                onEdit = onEdit,
+                                onFishClick= onFishClick,
                                 onDelete = onDelete
                             )
                         }
