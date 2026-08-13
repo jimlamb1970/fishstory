@@ -330,10 +330,10 @@ interface FishDao {
     @Query("""
     SELECT 
         water.*, 
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        MAX(f.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
+        COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(f.keptCount), 0) AS fishKept,
+        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -342,11 +342,12 @@ interface FishDao {
                 END
             ), 0)
             FROM fish_table AS ft_sub
-            -- Join inside the subquery to calculate 'isTarget' dynamic flag
             LEFT JOIN event_target_species AS target 
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
             WHERE ft_sub.waterId = water.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+                AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishCaught,
         (
             SELECT COALESCE(SUM(
@@ -360,24 +361,29 @@ interface FishDao {
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
             WHERE ft_sub.waterId = water.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+                AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishKept
     FROM water_table AS water
     LEFT JOIN fish_table AS f ON water.id = f.waterId
-        AND (:eventId IS NULL OR water.eventId = :eventId)
-        AND (:tripId IS NULL OR water.tripId = :tripId)
+        AND (:eventId IS NULL OR f.eventId = :eventId)
+        AND (:tripId IS NULL OR f.tripId = :tripId)
+    WHERE (:eventId IS NULL OR water.eventId = :eventId)
+      AND (:tripId IS NULL OR water.tripId = :tripId)
     GROUP BY water.id
 """)
     fun getWaterSummaries(
         tripId: String? = null,
-        eventId: String? = null): Flow<List<WaterSummaryEntity>>
+        eventId: String? = null
+    ): Flow<List<WaterSummaryEntity>>
 
     @Query("""
     SELECT 
         weather.*, 
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        MAX(f.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
+        COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(f.keptCount), 0) AS fishKept,
+        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -386,11 +392,12 @@ interface FishDao {
                 END
             ), 0)
             FROM fish_table AS ft_sub
-            -- Join inside the subquery to calculate 'isTarget' dynamic flag
             LEFT JOIN event_target_species AS target 
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
-            WHERE ft_sub.waterId = weather.id
+            WHERE ft_sub.weatherId = weather.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+                AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishCaught,
         (
             SELECT COALESCE(SUM(
@@ -403,17 +410,20 @@ interface FishDao {
             LEFT JOIN event_target_species AS target 
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
-            WHERE ft_sub.waterId = weather.id
+            WHERE ft_sub.weatherId = weather.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+                AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishKept
     FROM weather_table AS weather
     LEFT JOIN fish_table AS f ON weather.id = f.weatherId
-        AND (:eventId IS NULL OR weather.eventId = :eventId)
-        AND (:tripId IS NULL OR weather.tripId = :tripId)
+    WHERE (:eventId IS NULL OR weather.eventId = :eventId)
+      AND (:tripId IS NULL OR weather.tripId = :tripId)
     GROUP BY weather.id
 """)
     fun getWeatherSummaries(
         tripId: String? = null,
-        eventId: String? = null): Flow<List<WeatherSummaryEntity>>
+        eventId: String? = null
+    ): Flow<List<WeatherSummaryEntity>>
 
     @Query("""
     SELECT 

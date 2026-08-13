@@ -373,7 +373,6 @@ fun WaterSummaryCard(
                     )
                 }
                 if (water.water.temperature != null || water.water.depth != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
