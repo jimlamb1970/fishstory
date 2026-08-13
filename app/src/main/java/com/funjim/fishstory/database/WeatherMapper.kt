@@ -1,6 +1,7 @@
 package com.funjim.fishstory.database
 
 import com.funjim.fishstory.model.Weather
+import com.funjim.fishstory.model.WeatherSummary
 import com.funjim.fishstory.model.WeatherWithDetails
 
 // Extension: Database Entity -> Domain Model
@@ -50,5 +51,22 @@ fun WeatherEntityWithDetails.toDomain(): WeatherWithDetails {
 }
 
 fun List<WeatherEntityWithDetails>.toWeatherWithDetailsDomainList(): List<WeatherWithDetails> {
+    return map { it.toDomain() }
+}
+
+fun WeatherSummaryEntity.toDomain(): WeatherSummary {
+    return WeatherSummary(
+        weather = weather.toDomain(),
+        skyCondition = skyCondition?.toDomain(),
+        fishCaught = fishCaught,
+        fishKept = fishKept,
+        targetFishCaught = targetFishCaught,
+        targetFishKept = targetFishKept,
+        largestFish = largestFish,
+        smallestFish = smallestFish
+    )
+}
+
+fun List<WeatherSummaryEntity>.toWeatherSummaryDomainList(): List<WeatherSummary> {
     return map { it.toDomain() }
 }

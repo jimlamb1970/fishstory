@@ -696,12 +696,14 @@ fun AppNavigation(
                 navigateToSelectEventCrew = {  ->
                     navController.navigate("select_event_crew/$eventId/$tripId")
                 },
-                navigateToFishList = { tripId, eventId, speciesId, targetOnly ->
+                navigateToFishList = { tripId, eventId, speciesId, waterId, weatherId, targetOnly ->
                     navController.navigate(
                         FishListRoute(
                             eventId = eventId,
                             tripId = tripId,
                             speciesId = speciesId,
+                            waterId = waterId,
+                            weatherId = weatherId,
                             targetOnly = targetOnly
                         )
                     )

@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Weather
+import com.funjim.fishstory.model.WeatherSummary
 import com.funjim.fishstory.model.WeatherWithDetails
 import com.funjim.fishstory.model.WindDirection
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -386,6 +387,231 @@ fun WeatherCard(
                             }
                         }
                     }
+                }
+            }
+
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Weather Snapshot Options"
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit(weather.weather)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete(weather.weather)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherSummaryCard(
+    weather: WeatherSummary,
+    modifier: Modifier = Modifier,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onEdit: (Weather) -> Unit,
+    onFishClick: (Weather, Boolean) -> Unit,
+    onDelete: (Weather) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+    }
+
+    val dateTime = dateTimeFormatter.format(Date(weather.weather.timestamp))
+
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
+
+    OutlinedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = AppIcons.Default.Weather,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = dateTime,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                if (weather.weather.temperature != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        weather.weather.tempDisplayString()?.let { temp ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Temperature: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = temp,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.skyCondition != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Sky Condition: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = weather.skyCondition.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                if (weather.weather.windDirection != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.windDirection?.let { direction ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Wind Direction: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = direction.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.windSpeed != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.windSpeedDisplayString()?.let { speed ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Wind Speed: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = speed,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.airVisibility != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.airVisibilityDisplayString()?.let { visibility ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Air Visibility: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = visibility,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.weather.airHumidity != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        weather.weather.airHumidityDisplayString()?.let { humidity ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Air Humidity: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = humidity,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                if (weather.fishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.LeapingFishWithFins,
+                        caughtCount = weather.fishCaught,
+                        keptCount = weather.fishKept,
+                        onFishClick = {
+                            onFishClick(weather.weather, false)
+                        },
+                        contentColor = secondaryContentColor
+                    )
+                }
+                if (weather.targetFishCaught != 0) {
+                    Spacer(Modifier.height(4.dp))
+                    FishCaughtItem(
+                        icon = AppIcons.Default.TargetFish,
+                        caughtCount = weather.targetFishCaught,
+                        keptCount = weather.targetFishKept,
+                        onFishClick = {
+                            onFishClick(weather.weather, true)
+                        },
+                        contentColor = secondaryContentColor
+                    )
                 }
             }
 
@@ -797,6 +1023,126 @@ fun WeatherRow(
                                 index = index + 1,
                                 totalItems = weatherList.size,
                                 onEdit = onEdit,
+                                onDelete = onDelete
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "No weather conditions are set.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun WeatherSummaryRow(
+    list: List<WeatherSummary>,
+    onAdd: () -> Unit,
+    onEdit: (Weather) -> Unit,
+    onFishClick: (Weather, Boolean) -> Unit,
+    onDelete: (Weather) -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (list.size > 1) {
+                    IconButton(
+                        onClick = {
+                            isExpanded = !isExpanded
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isExpanded) Icons.Default.ExpandLess
+                                else Icons.Default.ExpandMore,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Weather Conditions",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+
+                if (list.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${list.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = onAdd,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Weather"
+                )
+            }
+        }
+
+        if (list.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                WeatherSummaryCard(
+                    weather = list.first(),
+                    index = 0,
+                    totalItems = list.size,
+                    onEdit = onEdit,
+                    onFishClick= onFishClick,
+                    onDelete = onDelete
+                )
+
+                AnimatedVisibility(visible = isExpanded && list.size > 1) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        list.drop(1).forEachIndexed { index, item ->
+                            WeatherSummaryCard(
+                                weather = item,
+                                index = index,
+                                totalItems = list.size,
+                                onEdit = onEdit,
+                                onFishClick= onFishClick,
                                 onDelete = onDelete
                             )
                         }

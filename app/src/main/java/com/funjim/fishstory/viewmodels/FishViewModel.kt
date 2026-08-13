@@ -330,6 +330,12 @@ class FishViewModel(
     fun selectTrip(tripId: String?, eventId: String? = null) {
         _filter.update { it.copy(tripId = tripId, eventId = eventId) }
     }
+    fun selectWater(id: String?) {
+        _filter.update { it.copy(waterId = id) }
+    }
+    fun selectWeather(id: String?) {
+        _filter.update { it.copy(weatherId = id) }
+    }
 
     fun selectTargetOnly(targetOnly: Boolean) {
         _filter.update { it.copy(targetOnly = targetOnly) }
@@ -345,6 +351,8 @@ class FishViewModel(
         val lureId: String?,
         val speciesId: String?,
         val tripId: String?,
+        val waterId: String?,
+        val weatherId: String?,
         val targetOnly: Boolean
     )
 

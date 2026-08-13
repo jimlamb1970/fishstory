@@ -10,6 +10,8 @@ data class FishListRoute(
     val lureId: String? = null,
     val speciesId: String? = null,
     val tripId: String? = null,
+    val waterId: String? = null,
+    val weatherId: String? = null,
     val targetOnly: Boolean = false
 )
 
@@ -20,6 +22,8 @@ data class FishFilter(
     val lureId: String? = null,
     val speciesId: String? = null,
     val tripId: String? = null,
+    val waterId: String? = null,
+    val weatherId: String? = null,
     val targetOnly: Boolean = false
 ) {
     // Convenient extension to map route to domain filter
@@ -31,6 +35,8 @@ data class FishFilter(
             lureId = route.lureId,
             speciesId = route.speciesId,
             tripId = route.tripId,
+            waterId = route.waterId,
+            weatherId = route.weatherId,
             targetOnly = route.targetOnly
         )
     }

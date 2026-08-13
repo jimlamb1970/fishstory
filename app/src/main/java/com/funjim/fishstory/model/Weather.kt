@@ -22,3 +22,14 @@ data class WeatherWithDetails(
     val weather: Weather,
     val skyCondition: SkyCondition? = null
 )
+
+data class WeatherSummary(
+    val weather: Weather,
+    val skyCondition: SkyCondition? = null,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
+    val targetFishCaught: Int = 0,
+    val targetFishKept: Int = 0,
+    val largestFish: Long,
+    val smallestFish: Long
+)

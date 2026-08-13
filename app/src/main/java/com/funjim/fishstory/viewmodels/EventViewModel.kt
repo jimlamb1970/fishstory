@@ -189,22 +189,36 @@ class EventViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val waterSummaries: Flow<List<WaterSummary>> = _selectedEventId
+    val waterSummaries: StateFlow<List<WaterSummary>> = _selectedEventId
         .flatMapLatest { eventId ->
             fishRepo.getWaterSummaries(eventId = eventId)
         }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val weatherSummaries: StateFlow<List<WeatherSummary>> = _selectedEventId
+        .flatMapLatest { eventId ->
+            fishRepo.getWeatherSummaries(eventId = eventId)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val uiState: StateFlow<EventDetailsUiState> = combine(
         selectedEventWithDetails,
-        selectedEventDetailedSummary,
-        waterSummaries
-    ) { event, summary, waterSummaries ->
+        selectedEventDetailedSummary
+    ) { event, summary ->
         // Guard clause: Ensure the database has returned valid data for everything
         if (event != null && summary != null) {
             EventDetailsUiState.Success(
                 details = event,
-                summary = summary,
-                waterSummaries = waterSummaries
+                summary = summary
             )
         } else {
             EventDetailsUiState.Loading
@@ -454,8 +468,7 @@ sealed interface EventDetailsUiState {
 
     data class Success(
         val details: EventWithDetails,
-        val summary: EventDetailedSummary,
-        val waterSummaries: List<WaterSummary>
+        val summary: EventDetailedSummary
     ) : EventDetailsUiState
 }
 

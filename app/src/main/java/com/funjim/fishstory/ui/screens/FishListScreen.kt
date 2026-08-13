@@ -56,6 +56,8 @@ fun FishListScreen(
         viewModel.selectSpecies(filter.speciesId)
         viewModel.selectTargetOnly(filter.targetOnly)
         viewModel.selectTrip(filter.tripId, filter.eventId)
+        viewModel.selectWater(filter.waterId)
+        viewModel.selectWeather(filter.weatherId)
     }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()

@@ -62,6 +62,12 @@ data class WeatherEntityWithDetails(
 
 data class WeatherSummaryEntity(
     @Embedded val weather: WeatherEntity,
+    @Relation(
+        parentColumn = "skyConditionId",
+        entityColumn = "id"
+    )
+    val skyCondition: SkyConditionEntity? = null,
+
     val fishCaught: Int = 0,
     val fishKept: Int = 0,
     val targetFishCaught: Int = 0,

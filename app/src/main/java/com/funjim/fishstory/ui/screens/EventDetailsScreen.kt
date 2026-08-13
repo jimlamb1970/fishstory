@@ -56,7 +56,7 @@ import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.WeatherDialog
-import com.funjim.fishstory.ui.utils.WeatherRow
+import com.funjim.fishstory.ui.utils.WeatherSummaryRow
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -75,7 +75,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: (String, String, String?, Boolean) -> Unit,
+    navigateToFishList: (String, String, String?, String?, String?, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -153,6 +153,8 @@ fun EventDetailsScreen(
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
+    val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
         is EventDetailsUiState.Loading -> {
@@ -167,7 +169,6 @@ fun EventDetailsScreen(
         is EventDetailsUiState.Success -> {
             val eventDetails = state.details
             val eventSummary = state.summary
-            val waterSummaries = state.waterSummaries
 
             val event = eventDetails.event
             selectedEvent = event
@@ -180,15 +181,15 @@ fun EventDetailsScreen(
             val activeLat = eventLat ?: tripLat
 
             // Sort water snapshots descending (most recent first)
-            val sortedWaterSummaryList = remember(waterSummaries) {
+            val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
             val sortedWeatherList = remember(eventDetails.weatherList) {
-                eventDetails.weatherList.sortedByDescending { it.weather.timestamp }
+                weatherSummaries.sortedByDescending { it.weather.timestamp }
             }
 
             val categoryConfigs = remember(
-                sortedWaterSummaryList,
+                sortedWaterList,
                 sortedWeatherList,
                 eventDetails.targetSpecies,
                 eventDetails.bodiesOfWater,
@@ -229,7 +230,7 @@ fun EventDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = sortedWaterSummaryList.size
+                        count = sortedWaterList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.WEATHER,
@@ -504,13 +505,13 @@ fun EventDetailsScreen(
                                 EventHighlightCard(
                                     summary = eventSummary,
                                     onClick = {
-                                        navigateToFishList(trip.id, event.id, null, false)
+                                        navigateToFishList(trip.id, event.id, null, null, null, false)
                                     },
                                     onFishClick = {
-                                        navigateToFishList(trip.id, event.id, null, false)
+                                        navigateToFishList(trip.id, event.id, null, null, null, false)
                                     },
                                     onTargetFishClick = {
-                                        navigateToFishList(trip.id, event.id, null, true)
+                                        navigateToFishList(trip.id, event.id, null, null, null, true)
                                     }
                                 )
                             }
@@ -541,19 +542,40 @@ fun EventDetailsScreen(
                                 when (category) {
                                     CategoryType.WATER -> {
                                         WaterSummaryRow(
-                                            waterList = sortedWaterSummaryList,
+                                            waterList = sortedWaterList,
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
-                                            onFishClick = { water, target -> },
+                                            onFishClick = { water, target ->
+                                                navigateToFishList(
+                                                    trip.id,
+                                                    event.id,
+                                                    null,
+                                                    water.id,
+                                                    null,
+                                                    target
+                                                )
+
+                                            },
                                             onDelete = { waterToDelete = it }
                                         )
                                     }
 
                                     CategoryType.WEATHER -> {
-                                        WeatherRow(
-                                            weatherList = sortedWeatherList,
-                                            onAddWeather = { showAddWeatherDialog = true },
+                                        WeatherSummaryRow(
+                                            list = sortedWeatherList,
+                                            onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
+                                            onFishClick = { weather, target ->
+                                                navigateToFishList(
+                                                    trip.id,
+                                                    event.id,
+                                                    null,
+                                                    null,
+                                                    weather.id,
+                                                    target
+                                                )
+
+                                            },
                                             onDelete = { weatherToDelete = it }
                                         )
                                     }
@@ -573,6 +595,8 @@ fun EventDetailsScreen(
                                                     trip.id,
                                                     event.id,
                                                     species.id,
+                                                    null,
+                                                    null,
                                                     true
                                                 )
                                             },
