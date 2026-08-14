@@ -40,8 +40,8 @@ import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
-import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
@@ -153,6 +153,7 @@ fun EventDetailsScreen(
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
@@ -181,14 +182,18 @@ fun EventDetailsScreen(
             val activeLat = eventLat ?: tripLat
 
             // Sort water snapshots descending (most recent first)
+            val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
+                bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
+            }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
-            val sortedWeatherList = remember(eventDetails.weatherList) {
+            val sortedWeatherList = remember(weatherSummaries) {
                 weatherSummaries.sortedByDescending { it.weather.timestamp }
             }
 
             val categoryConfigs = remember(
+                sortedBodyOfWaterList,
                 sortedWaterList,
                 sortedWeatherList,
                 eventDetails.targetSpecies,
@@ -574,7 +579,6 @@ fun EventDetailsScreen(
                                                     weather.id,
                                                     target
                                                 )
-
                                             },
                                             onDelete = { weatherToDelete = it }
                                         )
@@ -616,38 +620,32 @@ fun EventDetailsScreen(
                                     }
 
                                     CategoryType.BODIES_OF_WATER -> {
-                                        BodiesOfWaterRow(
-                                            items = eventDetails.bodiesOfWater,
+                                        BodyOfWaterSummaries(
+                                            list = sortedBodyOfWaterList,
+                                            thumbnailFlow = { bodyOfWater ->
+                                                viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                            },
                                             onAdd = { showBodiesOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
                                                 showUpdateAllCatchesDialog = true
+                                            },
+                                            onFishClick = { bodyOfWater, target ->
+                                                navigateToFishList(
+                                                    trip.id,
+                                                    event.id,
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    target
+                                                )
                                             },
                                             onDelete = { bodyOfWater ->
                                                 viewModel.removeEventBodyOfWater(
                                                     eventId,
                                                     bodyOfWater.id
                                                 )
-                                            },
-                                            thumbnailProvider = { bodyOfWater ->
-                                                val thumbnailFlow = remember(bodyOfWater.id) {
-                                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
-                                                }
-
-                                                val thumbnail by thumbnailFlow.collectAsState(
-                                                    initial = null
-                                                )
-
-                                                ThumbnailBox(
-                                                    thumbnail = thumbnail,
-                                                    imageVector = AppIcons.Default.BodyOfWater,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
+                                            }
                                         )
                                     }
 

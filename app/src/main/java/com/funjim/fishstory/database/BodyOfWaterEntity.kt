@@ -79,6 +79,7 @@ data class TripBodyOfWaterEntity(
 
 data class BodyOfWaterSummaryEntity(
     @Embedded val bodyOfWater: BodyOfWaterEntity,
+
     val fishCaught: Int,
     val fishKept: Int,
     val targetFishCaught: Int,

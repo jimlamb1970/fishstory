@@ -161,6 +161,14 @@ class FishRepository(
             .map { entity -> entity?.toDomain() }
     }
 
+    fun getEventBodyOfWaterSummaries(
+        eventId: String
+    ): Flow<List<BodyOfWaterSummary>> {
+        return fishDao.getEventBodyOfWaterSummaries(
+            eventId = eventId)
+            .map { list -> list.toBodyOfWaterSummaryDomainList() }
+    }
+
     fun getWaterSummaries(
         tripId: String? = null,
         eventId: String? = null

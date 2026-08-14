@@ -1,5 +1,7 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -41,6 +44,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -48,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +66,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BodyOfWater
+import com.funjim.fishstory.model.BodyOfWaterSummary
+import com.funjim.fishstory.ui.theme.AppIcons
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun AddBodyOfWaterDialog(
@@ -717,6 +726,193 @@ fun BodiesOfWaterRow(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun BodyOfWaterSummaryCard(
+    item: BodyOfWaterSummary,
+    modifier: Modifier = Modifier,
+    thumbnailFlow: Flow<ByteArray?>,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onClick: (BodyOfWater) -> Unit,
+    onFishClick: (BodyOfWater, Boolean) -> Unit,
+    onDelete: (BodyOfWater) -> Unit
+) {
+    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
+
+    OutlinedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable(
+                onClick = { onClick(item.bodyOfWater) }
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    modifier = Modifier.size(48.dp),
+                    imageVector = AppIcons.Default.BodyOfWater
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            item.bodyOfWater.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    if (item.fishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        FishCaughtItem(
+                            icon = AppIcons.Default.LeapingFishWithFins,
+                            caughtCount = item.fishCaught,
+                            keptCount = item.fishKept,
+                            onFishClick = {
+                                onFishClick(item.bodyOfWater, false)
+                            },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+                    if (item.targetFishCaught != 0) {
+                        Spacer(Modifier.height(4.dp))
+                        FishCaughtItem(
+                            icon = AppIcons.Default.TargetFish,
+                            caughtCount = item.targetFishCaught,
+                            keptCount = item.targetFishKept,
+                            onFishClick = {
+                                onFishClick(item.bodyOfWater, true)
+                            },
+                            contentColor = secondaryContentColor
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = { onDelete(item.bodyOfWater) },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BodyOfWaterSummaries(
+    list: List<BodyOfWaterSummary>,
+    thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
+    onAdd: () -> Unit,
+    onClick: (BodyOfWater) -> Unit,
+    onFishClick: (BodyOfWater, Boolean) -> Unit,
+    onDelete: (BodyOfWater) -> Unit
+) {
+    Column() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Bodies of Water",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+
+                if (list.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${list.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = onAdd,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Body of Water"
+                )
+            }
+        }
+
+        if (list.isNotEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                list.forEachIndexed { index, item ->
+                    BodyOfWaterSummaryCard(
+                        item = item,
+                        thumbnailFlow = thumbnailFlow(item.bodyOfWater),
+                        index = index,
+                        totalItems = list.size,
+                        onClick = onClick,
+                        onFishClick= onFishClick,
+                        onDelete = onDelete
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "No bodies of water are set.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

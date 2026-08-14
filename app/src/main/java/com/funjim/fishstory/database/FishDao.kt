@@ -212,6 +212,52 @@ interface FishDao {
 
     @Query("""
     SELECT 
+        bow.*, 
+        COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(f.keptCount), 0) AS fishKept,
+        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.bodyOfWaterId = bow.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+        ) as targetFishCaught,
+        (
+            SELECT COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                    ELSE 0 
+                END
+            ), 0)
+            FROM fish_table AS ft_sub
+            LEFT JOIN event_target_species AS target 
+                ON ft_sub.eventId = target.eventId 
+                AND ft_sub.speciesId = target.speciesId
+            WHERE ft_sub.bodyOfWaterId = bow.id
+                AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+        ) as targetFishKept
+    FROM body_of_water_table AS bow
+    INNER JOIN event_body_of_water AS ebw 
+            ON bow.id = ebw.bodyOfWaterId AND ebw.eventId = :eventId
+    LEFT JOIN fish_table AS f ON bow.id = f.bodyOfWaterId
+        AND (:eventId IS NULL OR f.eventId = :eventId)
+    GROUP BY bow.id
+""")
+    fun getEventBodyOfWaterSummaries(
+        eventId: String
+    ): Flow<List<BodyOfWaterSummaryEntity>>
+
+    @Query("""
+    SELECT 
         s.*, 
         SUM(f.caughtCount) AS fishCaught,
         SUM(f.keptCount) AS fishKept,

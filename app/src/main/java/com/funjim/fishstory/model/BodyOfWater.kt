@@ -25,6 +25,7 @@ data class TripBodyOfWater(
 
 data class BodyOfWaterSummary(
     val bodyOfWater: BodyOfWater,
+
     val fishCaught: Int,
     val fishKept: Int,
     val targetFishCaught: Int,
