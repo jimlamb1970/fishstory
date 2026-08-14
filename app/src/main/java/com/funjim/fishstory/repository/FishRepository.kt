@@ -16,6 +16,7 @@ import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toEventDomainList
 import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
+import com.funjim.fishstory.database.toFishermanSummaryDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
@@ -31,6 +32,7 @@ import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
@@ -167,6 +169,16 @@ class FishRepository(
         return fishDao.getEventBodyOfWaterSummaries(
             eventId = eventId)
             .map { list -> list.toBodyOfWaterSummaryDomainList() }
+    }
+
+    fun getEventFishermanSummaries(
+        tripId: String,
+        eventId: String
+    ): Flow<List<FishermanSummary>> {
+        return fishermanDao.getEventFishermanSummaries(
+            tripId = tripId,
+            eventId = eventId)
+            .map { list -> list.toFishermanSummaryDomainList() }
     }
 
     fun getWaterSummaries(

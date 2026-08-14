@@ -77,10 +77,12 @@ data class TripBaitEntity(
 
 data class BaitSummaryEntity(
     @Embedded val bait: BaitEntity,
+
     val fishCaught: Int,
     val fishKept: Int,
     val targetFishCaught: Int,
     val targetFishKept: Int,
+
     val largestFish: Double,
     val smallestFish: Double
 )

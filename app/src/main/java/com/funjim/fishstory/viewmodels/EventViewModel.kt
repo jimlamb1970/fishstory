@@ -204,6 +204,24 @@ class EventViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val fishermanSummaries: StateFlow<List<FishermanSummary>> = combine(
+        _selectedEventId,
+        _selectedTripId
+    ) { eventId, tripId ->
+        Pair(eventId, tripId) // Group them together to feed into flatMapLatest
+    }.flatMapLatest { (eventId, tripId) ->
+        if (eventId == null || tripId == null) {
+            flowOf(emptyList()) // Clear if either ID is missing
+        } else {
+            fishRepo.getEventFishermanSummaries(eventId = eventId, tripId = tripId)
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val waterSummaries: StateFlow<List<WaterSummary>> = _selectedEventId
         .flatMapLatest { eventId ->
             fishRepo.getWaterSummaries(eventId = eventId)
@@ -304,6 +322,11 @@ class EventViewModel(
     fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
         return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
             .flowOn(Dispatchers.IO)
+    }
+
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun skyConditionThumbnail(id: String): Flow<ByteArray?> {

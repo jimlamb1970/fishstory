@@ -74,14 +74,17 @@ data class FishermanEntityWithDetails(
 
 data class FishermanEntitySummary(
     @Embedded val fisherman: FishermanEntity,
+
+    val totalTrips: Int,
+    val totalTackleBoxes: Int,
+
     val fishCaught: Int,
     val fishKept: Int,
-
     val targetFishCaught: Int,
     val targetFishKept: Int,
 
-    val totalTrips: Int,
-    val totalTackleBoxes: Int
+    val largestFish: Long,
+    val smallestFish: Long
 )
 
 data class FishermanEntityFullStatistics(

@@ -29,15 +29,26 @@ data class FishermanWithTrips(
 
 data class FishermanSummary(
     val fisherman: Fisherman,
+    val totalTrips: Int,
+    val totalTackleBoxes: Int,
+
     val fishCaught: Int,
     val fishKept: Int,
-
     val targetFishCaught: Int,
     val targetFishKept: Int,
 
-    val totalTrips: Int,
-    val totalTackleBoxes: Int
-)
+    val largestFish: Long,
+    val smallestFish: Long
+) {
+    @get:Ignore
+    val fullName: String
+        get() = if (fisherman.nickname.isNotBlank()) {
+            "$fisherman.firstName \"$fisherman.nickname\" $fisherman.lastName".trim()
+        } else {
+            "$fisherman.firstName $fisherman.lastName".trim()
+        }
+
+}
 
 data class FishermanFullStatistics(
     val fisherman: Fisherman,

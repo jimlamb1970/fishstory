@@ -77,13 +77,14 @@ interface FishermanDao {
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanEntityWithDetails?>
 
-    @Transaction
     @Query("""
     SELECT 
         f.*, 
-        (SELECT COALESCE(SUM(ft.caughtCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as fishCaught,
-        (SELECT COALESCE(SUM(ft.keptCount), 0) FROM fish_table ft WHERE ft.fishermanId = f.id) as fishKept,
 
+        SUM(fish.caughtCount) AS fishCaught,
+        SUM(fish.keptCount) AS fishKept,
+        MAX(fish.length) AS largestFish,
+        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0.0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -92,13 +93,11 @@ interface FishermanDao {
                 END
             ), 0)
             FROM fish_table AS ft_sub
-            -- Join inside the subquery to calculate 'isTarget' dynamic flag
             LEFT JOIN event_target_species AS target 
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
             WHERE ft_sub.fishermanId = f.id
         ) as targetFishCaught,
-
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -116,9 +115,74 @@ interface FishermanDao {
         (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
         (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
     FROM fisherman_table AS f
+    LEFT JOIN fish_table AS fish ON f.id = fish.fishermanId
     GROUP BY f.id
 """)
     fun getFishermanSummaries(): Flow<List<FishermanEntitySummary>>
+
+    @Query("""
+    SELECT 
+        f.*, 
+        COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(fish.keptCount), 0) AS fishKept,
+        COALESCE(MAX(fish.length), 0.0) AS largestFish,
+        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0.0) AS smallestFish,
+        
+        -- Target species catches strictly evaluated against eventId
+        COALESCE(SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN fish.caughtCount 
+                ELSE 0 
+            END
+        ), 0) AS targetFishCaught,
+        
+        COALESCE(SUM(
+            CASE 
+                WHEN target.eventId IS NOT NULL THEN fish.keptCount 
+                ELSE 0 
+            END
+        ), 0) AS targetFishKept,
+
+        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
+        (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
+    FROM fisherman_table AS f
+    
+    -- 1. Check Event cross ref
+    LEFT JOIN event_fisherman_cross_ref AS ef 
+        ON ef.fishermanId = f.id AND ef.eventId = :eventId
+        
+    -- 2. Check Trip cross ref
+    LEFT JOIN trip_fisherman_cross_ref AS tf 
+        ON tf.fishermanId = f.id AND tf.tripId = :tripId
+        
+    -- 3. Always pull fish records strictly for this eventId
+    LEFT JOIN fish_table AS fish 
+        ON f.id = fish.fishermanId 
+        AND fish.eventId = :eventId
+        
+    -- 4. Target species JOIN strictly linked to eventId
+    LEFT JOIN event_target_species AS target 
+        ON target.eventId = :eventId 
+        AND target.speciesId = fish.speciesId
+        
+    WHERE 
+        -- Priority 1: Pull event fishermen if any exist for this event
+        (
+            EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
+            AND ef.eventId = :eventId
+        )
+        OR
+        -- Priority 2: Fall back to trip fishermen if event has no registered fishermen
+        (
+            NOT EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
+            AND tf.tripId = :tripId
+        )
+    GROUP BY f.id
+""")
+    fun getEventFishermanSummaries(
+        eventId: String,
+        tripId: String
+    ): Flow<List<FishermanEntitySummary>>
 
     @Transaction
     @Query(

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Water
@@ -48,6 +49,7 @@ import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.EditEventDialog
 import com.funjim.fishstory.ui.utils.EventHighlightCard
+import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
@@ -66,6 +68,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.collections.sortedWith
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,6 +157,7 @@ fun EventDetailsScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
+    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
@@ -185,6 +189,13 @@ fun EventDetailsScreen(
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
+            val sortedFishermanList = remember(fishermanSummaries) {
+                fishermanSummaries.sortedWith(
+                    compareBy<FishermanSummary> { it.fisherman.lastName }
+                        .thenBy { it.fisherman.firstName }
+                        .thenBy { it.fisherman.nickname }
+                )
+            }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
@@ -194,6 +205,7 @@ fun EventDetailsScreen(
 
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
+                sortedFishermanList,
                 sortedWaterList,
                 sortedWeatherList,
                 eventDetails.targetSpecies,
@@ -208,7 +220,7 @@ fun EventDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = eventDetails.bodiesOfWater.size
+                        count = sortedBodyOfWaterList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.FISHERMEN,
@@ -650,12 +662,51 @@ fun EventDetailsScreen(
                                     }
 
                                     CategoryType.FISHERMEN -> {
-                                        FishermanSummary(
-                                            fishermanCount = eventSummary.fishermanCount,
-                                            tackleBoxCount = eventSummary.tackleBoxCount,
-                                            allowOverride = true,
-                                            onClick = { navigateToSelectEventCrew() }
-                                        )
+                                        Column() {
+                                            FishermanSummary(
+                                                fishermanCount = eventSummary.fishermanCount,
+                                                tackleBoxCount = eventSummary.tackleBoxCount,
+                                                allowOverride = true,
+                                                onClick = { navigateToSelectEventCrew() }
+                                            )
+                                            FishermanSummaries(
+                                                list = sortedFishermanList,
+                                                thumbnailFlow = { fisherman ->
+                                                    viewModel.fishermanThumbnail(fisherman.id)
+                                                },
+                                                onAdd = {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Not yet implemented",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                },
+                                                onClick = { fisherman ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Not yet implemented",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                },
+                                                onFishClick = { fisherman, target ->
+                                                    navigateToFishList(
+                                                        trip.id,
+                                                        event.id,
+                                                        null,
+                                                        null,
+                                                        null,
+                                                        target
+                                                    )
+                                                },
+                                                onDelete = { fisherman ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Not yet implemented",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            )
+                                        }
                                     }
 
                                     else -> {

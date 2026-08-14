@@ -247,7 +247,7 @@ interface FishDao {
         ) as targetFishKept
     FROM body_of_water_table AS bow
     INNER JOIN event_body_of_water AS ebw 
-            ON bow.id = ebw.bodyOfWaterId AND ebw.eventId = :eventId
+        ON bow.id = ebw.bodyOfWaterId AND ebw.eventId = :eventId
     LEFT JOIN fish_table AS f ON bow.id = f.bodyOfWaterId
         AND (:eventId IS NULL OR f.eventId = :eventId)
     GROUP BY bow.id

@@ -37,12 +37,14 @@ fun Fisherman.toEntity(): FishermanEntity {
 fun FishermanEntitySummary.toDomain(): FishermanSummary {
     return FishermanSummary(
         fisherman = fisherman.toDomain(),
+        totalTrips = totalTrips,
+        totalTackleBoxes = totalTackleBoxes,
         fishCaught = fishCaught,
         fishKept = fishKept,
         targetFishCaught = targetFishCaught,
         targetFishKept = targetFishKept,
-        totalTrips = totalTrips,
-        totalTackleBoxes = totalTackleBoxes
+        largestFish = largestFish,
+        smallestFish = smallestFish
     )
 }
 
