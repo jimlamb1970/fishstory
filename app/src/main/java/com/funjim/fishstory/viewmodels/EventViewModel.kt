@@ -402,7 +402,7 @@ class EventViewModel(
         }
     }
 
-    fun upsertWater(water: Water) {
+    fun updateWater(water: Water) {
         viewModelScope.launch {
             envRepo.upsertWater(water)
         }

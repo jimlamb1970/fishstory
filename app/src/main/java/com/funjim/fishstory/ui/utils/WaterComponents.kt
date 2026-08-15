@@ -741,7 +741,7 @@ fun WaterRow(
 @Composable
 fun WaterSummaryRow(
     waterList: List<WaterSummary>,
-    onAddWater: () -> Unit,
+    onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
     onDelete: (Water) -> Unit
@@ -794,18 +794,20 @@ fun WaterSummaryRow(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            IconButton(
-                onClick = onAddWater,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add Water Condition"
-                )
+            if (onAddWater != null) {
+                IconButton(
+                    onClick = onAddWater,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Water Condition"
+                    )
+                }
             }
         }
 

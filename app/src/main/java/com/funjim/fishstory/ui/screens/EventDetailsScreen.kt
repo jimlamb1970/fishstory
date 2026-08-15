@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import DeleteConfirmationDialog
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -725,7 +726,6 @@ fun EventDetailsScreen(
                         )
                     }
 
-
                     waterToEdit?.let { water ->
                         WaterDialog(
                             initialTemp = water.temperature,
@@ -741,13 +741,13 @@ fun EventDetailsScreen(
 
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    imageVector = AppIcons.Default.Water,
                                     modifier = Modifier.size(24.dp)
                                 )
                             },
                             onDismiss = { waterToEdit = null },
                             onConfirm = { temp, depth, clarity ->
-                                viewModel.upsertWater(
+                                viewModel.updateWater(
                                     water.copy(
                                         temperature = temp,
                                         depth = depth,
@@ -762,28 +762,14 @@ fun EventDetailsScreen(
 
                     // Delete Water Confirmation Dialog
                     waterToDelete?.let { water ->
-                        AlertDialog(
-                            onDismissRequest = { waterToDelete = null },
-                            title = { Text("Delete Water Conditions") },
-                            text = { Text("Are you sure you want to delete these water conditions?") },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                            viewModel.deleteWater(water.id)
-                                            waterToDelete = null
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    )
-                                ) {
-                                    Text("Delete")
-                                }
+                        DeleteConfirmationDialog(
+                            title = "Delete Water Conditions",
+                            message = "Are you sure you want to delete these water conditions?",
+                            onConfirm = {
+                                viewModel.deleteWater(water.id)
+                                waterToDelete = null
                             },
-                            dismissButton = {
-                                TextButton(onClick = { waterToDelete = null }) {
-                                    Text("Cancel")
-                                }
-                            }
+                            onDismiss = { waterToDelete = null }
                         )
                     }
 
@@ -872,7 +858,7 @@ fun EventDetailsScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.BodyOfWater,
+                            imageVector = AppIcons.Default.Water,
                             modifier = Modifier.size(24.dp)
                         )
                     },

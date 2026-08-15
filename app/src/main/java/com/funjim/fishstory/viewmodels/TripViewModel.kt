@@ -48,6 +48,13 @@ class TripViewModel(
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -55,7 +62,7 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+    val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -134,6 +141,17 @@ class TripViewModel(
         .map { list ->
             // Sort by whatever property makes sense for your events
             list.sortedBy { it.event.startTime }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val waterSummaries: StateFlow<List<WaterSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            fishRepo.getWaterSummaries(tripId = id)
         }
         .stateIn(
             scope = viewModelScope,
@@ -248,6 +266,10 @@ class TripViewModel(
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
+    }
+
+    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }
 
     fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
@@ -446,6 +468,34 @@ class TripViewModel(
                 newBodyOfWaterId = newBodyOfWaterId,
                 tripId = tripId
             )
+        }
+    }
+
+    fun addWaterClarity(
+        item: WaterClarity,
+        onSuccess: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                envRepo.addWaterClarity(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Water Clarity '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding water clarity.")
+            }
+        }
+    }
+
+    fun updateWater(water: Water) {
+        viewModelScope.launch {
+            envRepo.upsertWater(water)
+        }
+    }
+
+    fun deleteWater(id: String) {
+        viewModelScope.launch {
+            envRepo.deleteWater(id = id)
         }
     }
 

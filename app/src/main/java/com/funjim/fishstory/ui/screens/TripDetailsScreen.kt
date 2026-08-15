@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import DeleteConfirmationDialog
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -35,9 +36,12 @@ import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.Water
+import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
@@ -57,6 +61,8 @@ import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
+import com.funjim.fishstory.ui.utils.WaterDialog
+import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -119,6 +125,11 @@ fun TripDetailsScreen(
     var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
+    var waterToEdit by remember { mutableStateOf<Water?>(null) }
+    var waterToDelete by remember { mutableStateOf<Water?>(null) }
+    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
+    var addWaterClarityDialog by remember { mutableStateOf(false) }
+
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
@@ -153,7 +164,7 @@ fun TripDetailsScreen(
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
 
 //    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
-//    val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
+    val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
 //    val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
     val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
@@ -192,9 +203,13 @@ fun TripDetailsScreen(
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
+            val sortedWaterList = remember(waterSummaries) {
+                waterSummaries.sortedByDescending { it.water.timestamp }
+            }
 
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
+                sortedWaterList,
                 details.targetSpecies,
                 details.bodiesOfWater,
                 summary.fishermanCount,
@@ -236,10 +251,18 @@ fun TripDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         ) },
                         count = details.targetSpecies.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.WATER,
+                        icon = { Icon(
+                            AppIcons.Default.Water,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = sortedWaterList.size
                     )
                 )
             }
-
 
             Scaffold(
                 topBar = {
@@ -530,48 +553,6 @@ fun TripDetailsScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) { category ->
                                 when (category) {
-                                    CategoryType.TARGET_SPECIES -> {
-                                        showEvents = false
-                                        TargetSpeciesColumn(
-                                            items = details.targetSpecies,
-                                            onAdd = { showSpeciesSelection = true },
-                                            onDelete = { species ->
-                                                viewModel.removeTripTargetSpecies(
-                                                    tripId,
-                                                    species.id
-                                                )
-                                            },
-                                            onClick = { species ->
-                                                navigateToFishList(FishFilter(
-                                                    tripId = trip.id,
-                                                    speciesId = species.id,
-                                                    targetOnly = true)
-                                                )
-                                            },
-                                            summaryProvider = { species ->
-                                                viewModel.speciesSummary(
-                                                    tripId = tripId,
-                                                    speciesId = species.id)
-                                            },
-                                            thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
-                                            },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
-                                        )
-                                    }
-
-                                    CategoryType.FISHERMEN -> {
-                                        showEvents = false
-                                        FishermanSummary(
-                                            fishermanCount = summary.fishermanCount,
-                                            tackleBoxCount = summary.tackleBoxCount,
-                                            onClick = { navigateToSelectTripCrew(tripId) }
-                                        )
-                                    }
-
                                     CategoryType.BODIES_OF_WATER -> {
                                         showEvents = false
                                         BodyOfWaterSummaries(
@@ -742,6 +723,63 @@ fun TripDetailsScreen(
                                         }
                                     }
 
+                                    CategoryType.FISHERMEN -> {
+                                        showEvents = false
+                                        FishermanSummary(
+                                            fishermanCount = summary.fishermanCount,
+                                            tackleBoxCount = summary.tackleBoxCount,
+                                            onClick = { navigateToSelectTripCrew(tripId) }
+                                        )
+                                    }
+
+                                    CategoryType.TARGET_SPECIES -> {
+                                        showEvents = false
+                                        TargetSpeciesColumn(
+                                            items = details.targetSpecies,
+                                            onAdd = { showSpeciesSelection = true },
+                                            onDelete = { species ->
+                                                viewModel.removeTripTargetSpecies(
+                                                    tripId,
+                                                    species.id
+                                                )
+                                            },
+                                            onClick = { species ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    speciesId = species.id,
+                                                    targetOnly = true)
+                                                )
+                                            },
+                                            summaryProvider = { species ->
+                                                viewModel.speciesSummary(
+                                                    tripId = tripId,
+                                                    speciesId = species.id)
+                                            },
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
+
+                                    CategoryType.WATER -> {
+                                        WaterSummaryRow(
+                                            waterList = sortedWaterList,
+                                            onEdit = { waterToEdit = it },
+                                            onFishClick = { water, target ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    waterId = water.id,
+                                                    targetOnly = target)
+                                                )
+                                            },
+                                            onDelete = { waterToDelete = it }
+                                        )
+                                    }
+
                                     else -> {
                                         // DO NOTHING FOR NOW
                                     }
@@ -884,6 +922,64 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                             Text("Cancel")
                         }
                     }
+                )
+            }
+
+            if (addWaterClarityDialog) {
+                AddWaterClarityDialog(
+                    onDismiss = { addWaterClarityDialog = false },
+                    onConfirm = { name ->
+                        viewModel.addWaterClarity(WaterClarity(name = name)) {
+                            // Do nothing on success
+                        }
+                        addWaterClarityDialog = false
+                    }
+                )
+            }
+
+            waterToEdit?.let { water ->
+                WaterDialog(
+                    initialTemp = water.temperature,
+                    initialDepth = water.depth,
+                    initialClarity = water.clarityId,
+                    allClarity = allWaterClarity,
+                    title = "Edit Water Conditions",
+                    thumbnailProvider = { clarity ->
+                        val thumbnailFlow = remember(clarity.id) {
+                            viewModel.waterClarityThumbnail(clarity.id)
+                        }
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.Water,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    onDismiss = { waterToEdit = null },
+                    onConfirm = { temp, depth, clarity ->
+                        viewModel.updateWater(
+                            water.copy(
+                                temperature = temp,
+                                depth = depth,
+                                clarityId = clarity?.id
+                            )
+                        )
+                        waterToEdit = null
+                    },
+                    onAddWaterClarity = { addWaterClarityDialog = true }
+                )
+            }
+
+            waterToDelete?.let { water ->
+                DeleteConfirmationDialog(
+                    title = "Delete Water Conditions",
+                    message = "Are you sure you want to delete these water conditions?",
+                    onConfirm = {
+                        viewModel.deleteWater(water.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
                 )
             }
 
