@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +48,13 @@ class TripViewModel(
 
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
+
+    private val _selectedCategory = MutableStateFlow(CategoryType.TARGET_SPECIES)
+    val selectedCategory: StateFlow<CategoryType> = _selectedCategory.asStateFlow()
+
+    fun onCategorySelected(category: CategoryType) {
+        _selectedCategory.value = category
+    }
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(

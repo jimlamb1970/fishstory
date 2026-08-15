@@ -443,7 +443,7 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    var selectedCategory by remember { mutableStateOf(CategoryType.TARGET_SPECIES) }
+                    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
                     var showEvents by remember { mutableStateOf(false) }
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
@@ -558,7 +558,7 @@ fun TripDetailsScreen(
                             CategoryRow(
                                 categories = categoryConfigs,
                                 selectedCategory = selectedCategory,
-                                onCategorySelected = { selectedCategory = it }
+                                onCategorySelected = viewModel::onCategorySelected
                             )
 
                             HorizontalDivider(
