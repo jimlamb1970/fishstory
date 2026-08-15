@@ -30,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Water
@@ -50,6 +48,7 @@ import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.EditEventDialog
 import com.funjim.fishstory.ui.utils.EventHighlightCard
+import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -80,7 +79,7 @@ fun EventDetailsScreen(
     eventId: String,
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
-    navigateToFishList: (String, String, String?, String?, String?, Boolean) -> Unit,
+    navigateToFishList: (FishFilter) -> Unit,
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -529,13 +528,23 @@ fun EventDetailsScreen(
                                 EventHighlightCard(
                                     summary = eventSummary,
                                     onClick = {
-                                        navigateToFishList(trip.id, event.id, null, null, null, false)
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id,
+                                            eventId = event.id)
+                                        )
                                     },
                                     onFishClick = {
-                                        navigateToFishList(trip.id, event.id, null, null, null, false)
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id,
+                                            eventId = event.id)
+                                        )
                                     },
                                     onTargetFishClick = {
-                                        navigateToFishList(trip.id, event.id, null, null, null, true)
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id,
+                                            eventId = event.id,
+                                            targetOnly = true)
+                                        )
                                     }
                                 )
                             }
@@ -570,15 +579,12 @@ fun EventDetailsScreen(
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
-                                                navigateToFishList(
-                                                    trip.id,
-                                                    event.id,
-                                                    null,
-                                                    water.id,
-                                                    null,
-                                                    target
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    waterId = water.id,
+                                                    targetOnly = target)
                                                 )
-
                                             },
                                             onDelete = { waterToDelete = it }
                                         )
@@ -590,13 +596,11 @@ fun EventDetailsScreen(
                                             onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
-                                                navigateToFishList(
-                                                    trip.id,
-                                                    event.id,
-                                                    null,
-                                                    null,
-                                                    weather.id,
-                                                    target
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    weatherId = weather.id,
+                                                    targetOnly = target)
                                                 )
                                             },
                                             onDelete = { weatherToDelete = it }
@@ -614,13 +618,11 @@ fun EventDetailsScreen(
                                                 )
                                             },
                                             onClick = { species ->
-                                                navigateToFishList(
-                                                    trip.id,
-                                                    event.id,
-                                                    species.id,
-                                                    null,
-                                                    null,
-                                                    true
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    speciesId = species.id,
+                                                    targetOnly = true)
                                                 )
                                             },
                                             summaryProvider = { species ->
@@ -650,13 +652,11 @@ fun EventDetailsScreen(
                                                 showUpdateAllCatchesDialog = true
                                             },
                                             onFishClick = { bodyOfWater, target ->
-                                                navigateToFishList(
-                                                    trip.id,
-                                                    event.id,
-                                                    null,
-                                                    null,
-                                                    null,
-                                                    target
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    bodyOfWaterId = bodyOfWater.id,
+                                                    targetOnly = target)
                                                 )
                                             },
                                             onDelete = { bodyOfWater ->
@@ -692,13 +692,11 @@ fun EventDetailsScreen(
                                                     ).show()
                                                 },
                                                 onFishClick = { fisherman, target ->
-                                                    navigateToFishList(
-                                                        trip.id,
-                                                        event.id,
-                                                        null,
-                                                        null,
-                                                        null,
-                                                        target
+                                                    navigateToFishList(FishFilter(
+                                                        tripId = trip.id,
+                                                        eventId = event.id,
+                                                        fishermanId = fisherman.id,
+                                                        targetOnly = target)
                                                     )
                                                 },
                                                 onDelete = { fisherman ->

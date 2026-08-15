@@ -39,5 +39,16 @@ data class FishFilter(
             weatherId = route.weatherId,
             targetOnly = route.targetOnly
         )
+
+        fun toRoute(filter: FishFilter) = FishListRoute(
+            bodyOfWaterId = filter.bodyOfWaterId,
+            eventId = filter.eventId,
+            fishermanId = filter.fishermanId,
+            lureId = filter.lureId,
+            speciesId = filter.speciesId,
+            tripId = filter.tripId,
+            waterId = filter.waterId,
+            weatherId = filter.weatherId,
+            targetOnly = filter.targetOnly)
     }
 }
