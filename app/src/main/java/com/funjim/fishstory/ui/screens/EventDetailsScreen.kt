@@ -430,7 +430,7 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    var selectedCategory by remember { mutableStateOf(CategoryType.TARGET_SPECIES) }
+                    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
@@ -558,7 +558,7 @@ fun EventDetailsScreen(
                             CategoryRow(
                                 categories = categoryConfigs,
                                 selectedCategory = selectedCategory,
-                                onCategorySelected = { selectedCategory = it }
+                                onCategorySelected = viewModel::onCategorySelected
                             )
 
                             HorizontalDivider(
@@ -573,73 +573,6 @@ fun EventDetailsScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) { category ->
                                 when (category) {
-                                    CategoryType.WATER -> {
-                                        WaterSummaryRow(
-                                            waterList = sortedWaterList,
-                                            onAddWater = { showAddWaterDialog = true },
-                                            onEdit = { waterToEdit = it },
-                                            onFishClick = { water, target ->
-                                                navigateToFishList(FishFilter(
-                                                    tripId = trip.id,
-                                                    eventId = event.id,
-                                                    waterId = water.id,
-                                                    targetOnly = target)
-                                                )
-                                            },
-                                            onDelete = { waterToDelete = it }
-                                        )
-                                    }
-
-                                    CategoryType.WEATHER -> {
-                                        WeatherSummaryRow(
-                                            list = sortedWeatherList,
-                                            onAdd = { showAddWeatherDialog = true },
-                                            onEdit = { weatherToEdit = it },
-                                            onFishClick = { weather, target ->
-                                                navigateToFishList(FishFilter(
-                                                    tripId = trip.id,
-                                                    eventId = event.id,
-                                                    weatherId = weather.id,
-                                                    targetOnly = target)
-                                                )
-                                            },
-                                            onDelete = { weatherToDelete = it }
-                                        )
-                                    }
-
-                                    CategoryType.TARGET_SPECIES -> {
-                                        TargetSpeciesColumn(
-                                            items = eventDetails.targetSpecies,
-                                            onAdd = { showSpeciesSelection = true },
-                                            onDelete = { species ->
-                                                viewModel.removeEventTargetSpecies(
-                                                    eventId,
-                                                    species.id
-                                                )
-                                            },
-                                            onClick = { species ->
-                                                navigateToFishList(FishFilter(
-                                                    tripId = trip.id,
-                                                    eventId = event.id,
-                                                    speciesId = species.id,
-                                                    targetOnly = true)
-                                                )
-                                            },
-                                            summaryProvider = { species ->
-                                                viewModel.speciesSummary(
-                                                    eventId = eventId,
-                                                    speciesId = species.id)
-                                            },
-                                            thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
-                                            },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
-                                        )
-                                    }
-
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
@@ -704,6 +637,73 @@ fun EventDetailsScreen(
                                                 }
                                             )
                                         }
+                                    }
+
+                                    CategoryType.TARGET_SPECIES -> {
+                                        TargetSpeciesColumn(
+                                            items = eventDetails.targetSpecies,
+                                            onAdd = { showSpeciesSelection = true },
+                                            onDelete = { species ->
+                                                viewModel.removeEventTargetSpecies(
+                                                    eventId,
+                                                    species.id
+                                                )
+                                            },
+                                            onClick = { species ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    speciesId = species.id,
+                                                    targetOnly = true)
+                                                )
+                                            },
+                                            summaryProvider = { species ->
+                                                viewModel.speciesSummary(
+                                                    eventId = eventId,
+                                                    speciesId = species.id)
+                                            },
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
+                                            },
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            )
+                                        )
+                                    }
+
+                                    CategoryType.WATER -> {
+                                        WaterSummaryRow(
+                                            waterList = sortedWaterList,
+                                            onAddWater = { showAddWaterDialog = true },
+                                            onEdit = { waterToEdit = it },
+                                            onFishClick = { water, target ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    waterId = water.id,
+                                                    targetOnly = target)
+                                                )
+                                            },
+                                            onDelete = { waterToDelete = it }
+                                        )
+                                    }
+
+                                    CategoryType.WEATHER -> {
+                                        WeatherSummaryRow(
+                                            list = sortedWeatherList,
+                                            onAdd = { showAddWeatherDialog = true },
+                                            onEdit = { weatherToEdit = it },
+                                            onFishClick = { weather, target ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    eventId = event.id,
+                                                    weatherId = weather.id,
+                                                    targetOnly = target)
+                                                )
+                                            },
+                                            onDelete = { weatherToDelete = it }
+                                        )
                                     }
 
                                     else -> {
