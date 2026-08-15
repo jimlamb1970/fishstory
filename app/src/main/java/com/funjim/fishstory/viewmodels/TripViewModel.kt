@@ -55,6 +55,13 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
+    val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -152,6 +159,17 @@ class TripViewModel(
     val waterSummaries: StateFlow<List<WaterSummary>> = _selectedTripId
         .flatMapLatest { id ->
             fishRepo.getWaterSummaries(tripId = id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val weatherSummaries: StateFlow<List<WeatherSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            fishRepo.getWeatherSummaries(tripId = id)
         }
         .stateIn(
             scope = viewModelScope,
@@ -257,6 +275,10 @@ class TripViewModel(
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
+    fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
 
     fun speciesSummary(tripId: String, speciesId: String): Flow<SpeciesSummary?> {
@@ -496,6 +518,34 @@ class TripViewModel(
     fun deleteWater(id: String) {
         viewModelScope.launch {
             envRepo.deleteWater(id = id)
+        }
+    }
+
+    fun addSkyCondition(
+        item: SkyCondition,
+        onSuccess: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                envRepo.addSkyCondition(item)
+                onSuccess()
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Sky Condition '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding sky condition.")
+            }
+        }
+    }
+
+    fun deleteWeather(id: String) {
+        viewModelScope.launch {
+            envRepo.deleteWeather(id = id)
+        }
+    }
+
+    fun updateWeather(weather: Weather) {
+        viewModelScope.launch {
+            envRepo.upsertWeather(weather)
         }
     }
 

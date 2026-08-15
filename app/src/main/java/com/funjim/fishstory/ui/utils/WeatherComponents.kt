@@ -1048,7 +1048,7 @@ fun WeatherRow(
 @Composable
 fun WeatherSummaryRow(
     list: List<WeatherSummary>,
-    onAdd: () -> Unit,
+    onAdd: (() -> Unit)? = null,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
     onDelete: (Weather) -> Unit
@@ -1101,18 +1101,20 @@ fun WeatherSummaryRow(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            IconButton(
-                onClick = onAdd,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add Weather"
-                )
+            if (onAdd != null) {
+                IconButton(
+                    onClick = onAdd,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Weather"
+                    )
+                }
             }
         }
 

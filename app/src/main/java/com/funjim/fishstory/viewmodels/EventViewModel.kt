@@ -442,7 +442,7 @@ class EventViewModel(
         }
     }
 
-    fun upsertWeather(weather: Weather) {
+    fun updateWeather(weather: Weather) {
         viewModelScope.launch {
             envRepo.upsertWeather(weather)
         }

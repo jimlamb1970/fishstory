@@ -798,7 +798,7 @@ fun EventDetailsScreen(
                             },
                             onDismiss = { weatherToEdit = null },
                             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
-                                viewModel.upsertWeather(
+                                viewModel.updateWeather(
                                     item.copy(
                                         temperature = temp,
                                         skyConditionId = skyCondition,
@@ -816,28 +816,14 @@ fun EventDetailsScreen(
                     }
 
                     weatherToDelete?.let { item ->
-                        AlertDialog(
-                            onDismissRequest = { weatherToDelete = null },
-                            title = { Text("Delete Weather Conditions") },
-                            text = { Text("Are you sure you want to delete these weather conditions?") },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        viewModel.deleteWeather(item.id)
-                                        weatherToDelete = null
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    )
-                                ) {
-                                    Text("Delete")
-                                }
+                        DeleteConfirmationDialog(
+                            title = "Delete Weather Conditions",
+                            message = "Are you sure you want to delete these Weather conditions?",
+                            onConfirm = {
+                                viewModel.deleteWeather(item.id)
+                                waterToDelete = null
                             },
-                            dismissButton = {
-                                TextButton(onClick = { weatherToDelete = null }) {
-                                    Text("Cancel")
-                                }
-                            }
+                            onDismiss = { waterToDelete = null }
                         )
                     }
                 }

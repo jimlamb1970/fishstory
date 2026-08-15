@@ -31,38 +31,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
-import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
-import com.funjim.fishstory.ui.utils.CategoryCarousel
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummary
-import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
-import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterSummaryRow
+import com.funjim.fishstory.ui.utils.WeatherDialog
+import com.funjim.fishstory.ui.utils.WeatherSummaryRow
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -130,6 +130,11 @@ fun TripDetailsScreen(
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var addWaterClarityDialog by remember { mutableStateOf(false) }
 
+    var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
+    var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
+    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
+    var addSkyConditionDialog by remember { mutableStateOf(false) }
+
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
     val locationPicker = rememberLocationPickerState(
@@ -165,7 +170,7 @@ fun TripDetailsScreen(
 
 //    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
-//    val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
+    val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
     val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
 
@@ -206,10 +211,14 @@ fun TripDetailsScreen(
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
+            val sortedWeatherList = remember(weatherSummaries) {
+                weatherSummaries.sortedByDescending { it.weather.timestamp }
+            }
 
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
                 sortedWaterList,
+                sortedWeatherList,
                 details.targetSpecies,
                 details.bodiesOfWater,
                 summary.fishermanCount,
@@ -260,6 +269,17 @@ fun TripDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         ) },
                         count = sortedWaterList.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.WEATHER,
+                        icon = {
+                            Icon(
+                                AppIcons.Default.Weather,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        count = sortedWeatherList.size
                     )
                 )
             }
@@ -780,6 +800,21 @@ fun TripDetailsScreen(
                                         )
                                     }
 
+                                    CategoryType.WEATHER -> {
+                                        WeatherSummaryRow(
+                                            list = sortedWeatherList,
+                                            onEdit = { weatherToEdit = it },
+                                            onFishClick = { weather, target ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    weatherId = weather.id,
+                                                    targetOnly = target)
+                                                )
+                                            },
+                                            onDelete = { weatherToDelete = it }
+                                        )
+                                    }
+
                                     else -> {
                                         // DO NOTHING FOR NOW
                                     }
@@ -977,6 +1012,72 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     message = "Are you sure you want to delete these water conditions?",
                     onConfirm = {
                         viewModel.deleteWater(water.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
+                )
+            }
+
+            if (addSkyConditionDialog) {
+                AddSkyConditionDialog(
+                    onDismiss = { addSkyConditionDialog = false },
+                    onConfirm = { name ->
+                        viewModel.addSkyCondition(SkyCondition(name = name)) {
+                            // Do nothing on success
+                        }
+                        addSkyConditionDialog = false
+                    }
+                )
+            }
+
+            weatherToEdit?.let { item ->
+                WeatherDialog(
+                    initialTemp = item.temperature,
+                    initialSkyCondition = item.skyConditionId,
+                    initialWindDirection = item.windDirection,
+                    initialWindSpeed = item.windSpeed,
+                    initialAtmosphericPressure = item.atmosphericPressure,
+                    initialAirVisibility = item.airVisibility,
+                    initialAirHumidity = item.airHumidity,
+                    allSkyConditions = allSkyConditions,
+                    title = "Edit Weather Conditions",
+                    thumbnailProvider = { sky ->
+                        val thumbnailFlow = remember(sky.id) {
+                            viewModel.skyConditionThumbnail(sky.id)
+                        }
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.Water,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    onDismiss = { weatherToEdit = null },
+                    onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
+                        viewModel.updateWeather(
+                            item.copy(
+                                temperature = temp,
+                                skyConditionId = skyCondition,
+                                windDirection = windDirection,
+                                windSpeed = windSpeed,
+                                atmosphericPressure = atmosphericPressure,
+                                airVisibility = airVisibility,
+                                airHumidity = airHumidity
+                            )
+                        )
+                        weatherToEdit = null
+                    },
+                    onAddSkyCondition = { addSkyConditionDialog = true }
+                )
+            }
+
+            weatherToDelete?.let { item ->
+                DeleteConfirmationDialog(
+                    title = "Delete Weather Conditions",
+                    message = "Are you sure you want to delete these Weather conditions?",
+                    onConfirm = {
+                        viewModel.deleteWeather(item.id)
                         waterToDelete = null
                     },
                     onDismiss = { waterToDelete = null }
