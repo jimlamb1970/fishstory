@@ -49,6 +49,7 @@ import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.TargetSpeciesRow
@@ -73,7 +74,7 @@ fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
     navigateToSelectTripCrew: (String) -> Unit,
-    navigateToFishList: (String?, String?, String?, Boolean) -> Unit,
+    navigateToFishList: (FishFilter) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String) -> Unit,
     navigateBack: () -> Unit
@@ -473,9 +474,22 @@ fun TripDetailsScreen(
 
                                 TripHighlightCard(
                                     summary = summary,
-                                    onClick = { navigateToFishList(tripId, null, null, false) },
-                                    onFishClick = { navigateToFishList(tripId, null, null, false) },
-                                    onTargetFishClick = { navigateToFishList(tripId, null, null, true) }
+                                    onClick = {
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id)
+                                        )
+                                    },
+                                    onFishClick = {
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id)
+                                        )
+                                    },
+                                    onTargetFishClick = {
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id,
+                                            targetOnly = true)
+                                        )
+                                    }
                                 )
                             }
 
@@ -515,11 +529,10 @@ fun TripDetailsScreen(
                                                 )
                                             },
                                             onClick = { species ->
-                                                navigateToFishList(
-                                                    tripId,
-                                                    null,
-                                                    species.id,
-                                                    true
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    speciesId = species.id,
+                                                    targetOnly = true)
                                                 )
                                             },
                                             summaryProvider = { species ->
@@ -640,11 +653,10 @@ fun TripDetailsScreen(
                                                     showPhotoPicker = true,
                                                     onClick = { navigateToEventDetails(eventSummary.event.id) },
                                                     onFishClick = { _, _, targetOnly ->
-                                                        navigateToFishList(
-                                                            tripId,
-                                                            eventSummary.event.id,
-                                                            null,
-                                                            targetOnly
+                                                        navigateToFishList(FishFilter(
+                                                            tripId = trip.id,
+                                                            eventId = eventSummary.event.id,
+                                                            targetOnly = targetOnly)
                                                         )
                                                     },
                                                     onPhotoAdded = {
@@ -749,11 +761,10 @@ fun TripDetailsScreen(
                                     showPhotoPicker = true,
                                     onClick = { navigateToEventDetails(eventSummary.event.id) },
                                     onFishClick = { _, _, targetOnly ->
-                                        navigateToFishList(
-                                            tripId,
-                                            eventSummary.event.id,
-                                            null,
-                                            targetOnly
+                                        navigateToFishList(FishFilter(
+                                            tripId = trip.id,
+                                            eventId = eventSummary.event.id,
+                                            targetOnly = targetOnly)
                                         )
                                     },
                                     onPhotoAdded = {
