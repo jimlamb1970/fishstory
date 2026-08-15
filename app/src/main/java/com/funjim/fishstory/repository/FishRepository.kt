@@ -171,6 +171,14 @@ class FishRepository(
             .map { list -> list.toBodyOfWaterSummaryDomainList() }
     }
 
+    fun getTripBodyOfWaterSummaries(
+        tripId: String
+    ): Flow<List<BodyOfWaterSummary>> {
+        return fishDao.getTripBodyOfWaterSummaries(
+            tripId = tripId)
+            .map { list -> list.toBodyOfWaterSummaryDomainList() }
+    }
+
     fun getEventFishermanSummaries(
         tripId: String,
         eventId: String

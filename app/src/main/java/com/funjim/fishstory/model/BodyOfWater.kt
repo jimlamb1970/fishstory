@@ -30,6 +30,6 @@ data class BodyOfWaterSummary(
     val fishKept: Int,
     val targetFishCaught: Int,
     val targetFishKept: Int,
-    val largestFish: Double,
-    val smallestFish: Double
+    val largestFish: Long,
+    val smallestFish: Long
 )

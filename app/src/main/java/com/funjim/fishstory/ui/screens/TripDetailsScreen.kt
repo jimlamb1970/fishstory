@@ -40,6 +40,7 @@ import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryCarousel
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
@@ -149,6 +150,13 @@ fun TripDetailsScreen(
     )
 
     val uiState by viewModel.uiDetailState.collectAsStateWithLifecycle()
+    val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
+
+//    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+//    val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
+//    val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
+
+    val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
 
     when (val state = uiState) {
         is TripDetailsUiState.Loading -> {
@@ -181,9 +189,14 @@ fun TripDetailsScreen(
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = bodyOfWaterId, Value = count
 
+            val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
+                bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
+            }
+
             val categoryConfigs = remember(
-                details.targetSpecies.size,
-                details.bodiesOfWater.size,
+                sortedBodyOfWaterList,
+                details.targetSpecies,
+                details.bodiesOfWater,
                 summary.fishermanCount,
                 eventSummaries.size
             ) {
@@ -561,38 +574,29 @@ fun TripDetailsScreen(
 
                                     CategoryType.BODIES_OF_WATER -> {
                                         showEvents = false
-                                        BodiesOfWaterRow(
-                                            items = details.bodiesOfWater,
+                                        BodyOfWaterSummaries(
+                                            list = sortedBodyOfWaterList,
+                                            thumbnailFlow = { bodyOfWater ->
+                                                viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                            },
                                             onAdd = { showBodiesOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
                                                 showUpdateAllCatchesDialog = true
+                                            },
+                                            onFishClick = { bodyOfWater, target ->
+                                                navigateToFishList(FishFilter(
+                                                    tripId = trip.id,
+                                                    bodyOfWaterId = bodyOfWater.id,
+                                                    targetOnly = target)
+                                                )
                                             },
                                             onDelete = { bodyOfWater ->
                                                 viewModel.removeTripBodyOfWater(
                                                     tripId,
                                                     bodyOfWater.id
                                                 )
-                                            },
-                                            thumbnailProvider = { bodyOfWater ->
-                                                val thumbnailFlow = remember(bodyOfWater.id) {
-                                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
-                                                }
-
-                                                val thumbnail by thumbnailFlow.collectAsState(
-                                                    initial = null
-                                                )
-
-                                                ThumbnailBox(
-                                                    thumbnail = thumbnail,
-                                                    imageVector = AppIcons.Default.BodyOfWater,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
+                                            }
                                         )
                                     }
 

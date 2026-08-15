@@ -106,6 +106,22 @@ class TripViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val bodyOfWaterSummaries: StateFlow<List<BodyOfWaterSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList()) // This clears the map when you set id to null
+            } else {
+                fishRepo.getTripBodyOfWaterSummaries(tripId = id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
         .flatMapLatest { id ->
             if (id == null) {
