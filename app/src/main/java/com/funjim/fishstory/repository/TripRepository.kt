@@ -32,6 +32,10 @@ import com.funjim.fishstory.model.TripWithFishermenAndSpecies
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+data class AddFishermanResult(
+    val addedToTrip: Boolean,
+    val addedToEvent: Boolean
+)
 class TripRepository(
     private val database: FishstoryDatabase,
     private val eventDao: EventDao,
@@ -180,6 +184,36 @@ class TripRepository(
     }
     suspend fun upsertEventFisherman(crossRef: EventFisherman) {
         eventDao.upsertEventFisherman(crossRef.toEntity())
+    }
+
+    suspend fun addFishermanToEventAndTrip(
+        tripId: String,
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ): AddFishermanResult {
+        val onTrip = tripDao.doesTripFishermanExist(
+            tripId = tripId,
+            fishermanId = fishermanId
+        )
+
+        if (onTrip) {
+            eventDao.addEventFisherman(
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId)
+        } else {
+            eventDao.addFishermanToEventAndTrip(
+                tripId = tripId,
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId)
+        }
+
+        return AddFishermanResult(
+            addedToTrip = !onTrip,
+            addedToEvent = true
+        )
     }
 
     fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> =

@@ -198,18 +198,10 @@ fun EventDetailsScreen(
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
             val sortedFishermen = remember(fishermen) {
-                fishermen.sortedWith(
-                    compareBy<Fisherman> { it.lastName }
-                        .thenBy { it.firstName }
-                        .thenBy { it.nickname }
-                )
+                fishermen.sortedBy { it.fullName }
             }
             val sortedFishermanList = remember(fishermanSummaries) {
-                fishermanSummaries.sortedWith(
-                    compareBy<FishermanSummary> { it.fisherman.lastName }
-                        .thenBy { it.fisherman.firstName }
-                        .thenBy { it.fisherman.nickname }
-                )
+                fishermanSummaries.sortedBy { it.fisherman.fullName }
             }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
@@ -710,7 +702,7 @@ fun EventDetailsScreen(
                                                     )
                                                 },
                                                 onDelete = { fisherman ->
-                                                    viewModel.deleteEventFisherman(eventId, fisherman.id)
+                                                    viewModel.deleteFishermanFromEvent(fisherman.id)
                                                 }
                                             )
                                         }
@@ -1016,10 +1008,10 @@ fun EventDetailsScreen(
                     items = sortedFishermen,
                     selectedItems = eventDetails.fishermen,
                     onSelected = { fisherman ->
-                        viewModel.addEventFisherman(eventId, fishermanId = fisherman.id)
+                        viewModel.addFishermanToEvent(fishermanId = fisherman.id)
                     },
                     onUnselected = { fisherman ->
-                        viewModel.deleteEventFisherman(eventId, fishermanId = fisherman.id)
+                        viewModel.deleteFishermanFromEvent(fishermanId = fisherman.id)
                     },
                     onAdd = {
                         showAddFishermanDialog = true

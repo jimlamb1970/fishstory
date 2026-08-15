@@ -177,15 +177,49 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-    // TODO -- convert these to upsert
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertEventFishermanCrossRef(crossRef: EventFishermanEntity)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
 
     @Upsert
     suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
 
     @Update
     suspend fun updateEventFishermanCrossRef(crossRef: EventFishermanEntity)
+
+    suspend fun addEventFisherman(
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        insertEventFisherman(
+            EventFishermanEntity(
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+    }
+
+    @Transaction
+    suspend fun addFishermanToEventAndTrip(
+        tripId: String,
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        insertEventFisherman(EventFishermanEntity(
+            eventId = eventId,
+            fishermanId = fishermanId,
+            tackleBoxId =tackleBoxId))
+
+        insertTripFisherman(TripFishermanEntity(
+            tripId = tripId,
+            fishermanId = fishermanId,
+            tackleBoxId =tackleBoxId))
+    }
 
     @Query("SELECT * FROM event_fisherman_cross_ref")
     fun getAllEventFishermanCrossRefs(): Flow<List<EventFishermanEntity>>

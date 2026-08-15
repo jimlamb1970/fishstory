@@ -138,10 +138,10 @@ ORDER BY t.startDate DESC
     suspend fun updateTripFishermanTackleBox(crossRef: TripFishermanEntity)
 
     @Query("SELECT * FROM trip_fisherman_cross_ref")
-    fun getAllTripFishermanCrossRefs(): Flow<List<TripFishermanEntity>>
+    fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
-    fun getTripFishermanCrossRefs(tripId: String): Flow<List<TripFishermanEntity>>
+    fun getTripFishermen(tripId: String): Flow<List<TripFishermanEntity>>
 
     @Query("""
     SELECT DISTINCT f.* FROM fisherman_table AS f
@@ -149,6 +149,16 @@ ORDER BY t.startDate DESC
     WHERE xr.tripId = :tripId
 """)
     fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
+
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM trip_fisherman_cross_ref 
+            WHERE tripId = :tripId AND fishermanId = :fishermanId
+        )
+""")
+    suspend fun doesTripFishermanExist(
+        tripId: String,
+        fishermanId: String): Boolean
 
     @Query("""
     SELECT fishermanId, tackleBoxId 

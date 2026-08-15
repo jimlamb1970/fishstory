@@ -440,15 +440,24 @@ class EventViewModel(
         }
     }
 
-    fun addEventFisherman(
-        eventId: String,
+    fun addFishermanToEvent(
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
+        val eventId = _selectedEventId.value ?: return
+        val tripId = _selectedTripId.value ?: return
+
         viewModelScope.launch {
-            tripRepo.upsertEventFisherman(
-                EventFisherman(eventId, fishermanId, tackleBoxId)
+            val result = tripRepo.addFishermanToEventAndTrip(
+                tripId = tripId,
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
             )
+
+            if (result.addedToTrip) {
+                _toastMessage.emit("Fisherman was also added to the trip.")
+            }
         }
     }
     fun updateEventFisherman(
@@ -463,9 +472,11 @@ class EventViewModel(
         }
     }
 
-    fun deleteEventFisherman(
-        eventId: String,
-        fishermanId: String) {
+    fun deleteFishermanFromEvent(
+        fishermanId: String
+    ) {
+        val eventId = _selectedEventId.value ?: return
+
         viewModelScope.launch {
             tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
