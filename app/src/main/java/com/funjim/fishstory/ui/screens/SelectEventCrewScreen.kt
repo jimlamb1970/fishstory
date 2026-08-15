@@ -146,13 +146,13 @@ fun SelectEventCrewScreen(
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        viewModel.deleteEventFishermanCrossRef(
+                        viewModel.deleteEventFisherman(
                             eventId = eventId,
                             fishermanId = fishermanId
                         )
                     }
                     addSet.forEach { fishermanId ->
-                        viewModel.upsertEventFishermanCrossRef(
+                        viewModel.addEventFisherman(
                             eventId = eventId,
                             fishermanId = fishermanId,
                             tackleBoxId = workingTackleBoxMap[fishermanId]
@@ -160,7 +160,7 @@ fun SelectEventCrewScreen(
                     }
                     workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
-                            viewModel.upsertEventFishermanCrossRef(
+                            viewModel.updateEventFisherman(
                                 eventId = eventId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId

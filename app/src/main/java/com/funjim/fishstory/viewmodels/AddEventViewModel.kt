@@ -254,7 +254,7 @@ class AddEventViewModel(
 
     fun deleteEventFisherman(eventId: String, fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFisherman(eventId, fishermanId))
+            tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
     }
 

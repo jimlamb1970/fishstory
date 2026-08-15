@@ -49,6 +49,8 @@ class EventViewModel(
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _eventCrewOverride = MutableStateFlow(false)
 
+    val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
+
     // --- Data Streams ---
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
@@ -438,7 +440,22 @@ class EventViewModel(
         }
     }
 
-    fun upsertEventFishermanCrossRef(eventId: String, fishermanId: String, tackleBoxId: String?) {
+    fun addEventFisherman(
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        viewModelScope.launch {
+            tripRepo.upsertEventFisherman(
+                EventFisherman(eventId, fishermanId, tackleBoxId)
+            )
+        }
+    }
+    fun updateEventFisherman(
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
         viewModelScope.launch {
             tripRepo.upsertEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)
@@ -446,9 +463,11 @@ class EventViewModel(
         }
     }
 
-    fun deleteEventFishermanCrossRef(eventId: String, fishermanId: String) {
+    fun deleteEventFisherman(
+        eventId: String,
+        fishermanId: String) {
         viewModelScope.launch {
-            tripRepo.deleteEventFishermanCrossRef(EventFisherman(eventId, fishermanId))
+            tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
     }
 

@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Photo
@@ -903,6 +905,269 @@ fun FishermanSelectionField(
                                     onClear = { showSheet = false; onClear() }
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FishermanSelection(
+    items: List<Fisherman>,
+    selectedItems: List<Fisherman>,
+    onSelected: (Fisherman) -> Unit,
+    onUnselected: (Fisherman) -> Unit,
+    onAdd: () -> Unit,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+    usageMap: Map<String, Int>? = null,
+    maxUsage: Int? = null,
+    thumbnailProvider: @Composable (Fisherman) -> Unit
+) {
+    var showSheet by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    var isGridView by remember { mutableStateOf(true) }
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showSheet = false
+                onDone()
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Select Fisherman",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(onClick = { isGridView = !isGridView }) {
+                        Icon(
+                            imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                            contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                TextButton(
+                    onClick = {
+                        showSheet = false
+                        searchQuery = ""
+                        onDone()
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+
+            Column(modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp)
+                .fillMaxHeight(0.8f)
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search fishermen ...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val filtered = items.filter { it.fullName.contains(searchQuery, ignoreCase = true) }
+                val filteredSize = filtered.size
+
+                if (isGridView) {
+                    // ── GRID VIEW ───────────────────────────────────────────
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        gridItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.id }
+                        ) { index, item ->
+                            val isChecked = selectedItems.contains(item)
+
+                            val state =
+                                if (isChecked) {
+                                    val usage = usageMap?.get(item.id) ?: 0
+                                    if (maxUsage != null && usage < maxUsage) {
+                                        ToggleableState.Indeterminate
+                                    }
+                                    else ToggleableState.On
+                                } else ToggleableState.Off
+
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .border(
+                                        width = if (isChecked) 2.dp else 0.dp,
+                                        color =
+                                            when (state) {
+                                                ToggleableState.On -> getOnCardColor()
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                else -> Color.Transparent
+                                            },
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                    .clickable(enabled = true) {
+                                        if (state == ToggleableState.On) onUnselected(item)
+                                        else onSelected(item)
+                                    },
+                                leadingContent = null,
+                                headlineContent = {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .fillMaxWidth() // Forces the column to span the whole grid cell width
+                                            .padding(vertical = 8.dp, horizontal = 4.dp)
+                                    ) {
+                                        thumbnailProvider(item)
+
+                                        Text(
+                                            text = item.fullName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        if (isChecked && maxUsage != null && maxUsage > 0) {
+                                            val usage = usageMap?.get(item.id) ?: 0
+                                            Text(
+                                                "($usage / $maxUsage)",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
+                                },
+                                trailingContent = null,
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getGridCardColor(index, filteredSize, isChecked),
+                                    headlineColor = getOnCardColor()
+                                )
+                            )
+                        }
+
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            ModalAddButton(
+                                title = "Add fisherman ...",
+                                onAdd = { onAdd() }
+                            )
+                        }
+                    }
+                } else {
+                    // ── LIST VIEW ───────────────────────────────────────────
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        listItemsIndexed(
+                            items = filtered,
+                            key = { _, item -> item.id }
+                        ) { index, item ->
+                            val isChecked = selectedItems.contains(item)
+
+                            val state =
+                                if (isChecked) {
+                                    val usage = usageMap?.get(item.id) ?: 0
+                                    if (maxUsage != null && usage < maxUsage) {
+                                        ToggleableState.Indeterminate
+                                    }
+                                    else ToggleableState.On
+                                } else ToggleableState.Off
+
+                            ListItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .border(
+                                        width = if (isChecked) 2.dp else 0.dp,
+                                        color =
+                                            when (state) {
+                                                ToggleableState.On -> getOnCardColor()
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                else -> Color.Transparent
+                                            },
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                    .clickable(enabled = true) {
+                                        if (state == ToggleableState.On) onUnselected(item)
+                                        else onSelected(item)
+                                    },
+                                leadingContent = {
+                                    thumbnailProvider(item)
+                                },
+                                headlineContent = {
+                                    Column() {
+                                        Text(
+                                            item.fullName,
+                                            fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                        if (isChecked && maxUsage != null && maxUsage > 0) {
+                                            val usage = usageMap?.get(item.id) ?: 0
+                                            Text(
+                                                "($usage / $maxUsage)",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
+                                },
+                                trailingContent = {
+                                    TriStateCheckbox(
+                                        state = state,
+                                        onClick = null,
+                                        enabled = true
+                                    )
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = getCardColor(index, filteredSize, isChecked),
+                                    headlineColor = getOnCardColor()
+                                )
+                            )
+                        }
+
+                        item {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+
+                        item {
+                            ModalAddButton(
+                                title = "Add fisherman ...",
+                                onAdd = { onAdd() }
+                            )
                         }
                     }
                 }

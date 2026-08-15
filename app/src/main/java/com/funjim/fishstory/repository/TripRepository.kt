@@ -196,7 +196,7 @@ class TripRepository(
             .map { list -> list.toFishermanDomainList() }
     }
 
-    suspend fun deleteEventFishermanCrossRef(crossRef: EventFisherman) {
+    suspend fun deleteEventFisherman(crossRef: EventFisherman) {
         eventDao.deleteEventFishermanCrossRef(crossRef.toEntity())
     }
 

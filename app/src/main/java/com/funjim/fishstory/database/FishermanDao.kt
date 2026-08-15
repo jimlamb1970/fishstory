@@ -171,12 +171,6 @@ interface FishermanDao {
             EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
             AND ef.eventId = :eventId
         )
-        OR
-        -- Priority 2: Fall back to trip fishermen if event has no registered fishermen
-        (
-            NOT EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
-            AND tf.tripId = :tripId
-        )
     GROUP BY f.id
 """)
     fun getEventFishermanSummaries(
