@@ -41,6 +41,7 @@ import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
@@ -54,6 +55,8 @@ import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
+import com.funjim.fishstory.ui.utils.FishermanSelection
+import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -100,40 +103,42 @@ fun TripDetailsScreen(
         }
     }
 
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    }
+    val now = System.currentTimeMillis()
+
     var showEditTripDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     var showSpeciesSelection by remember { mutableStateOf(false) }
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
-    var addNewSpecies by remember { mutableStateOf(false) }
+    var showAddSpeciesDialog by remember { mutableStateOf(false) }
 
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
-    var addNewBodyOfWater by remember { mutableStateOf(false) }
-
-    // Dialog state for updating all catches for this body of water
+    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
-    val dateTimeFormatter = remember {
-        SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-    }
-    val now = System.currentTimeMillis()
 
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
 
     var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
+    var showFishermanSelection by remember { mutableStateOf(false) }
+    var showAddFishermanDialog by remember { mutableStateOf(false) }
+
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
-    var addWaterClarityDialog by remember { mutableStateOf(false) }
+    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
 
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
-    var addSkyConditionDialog by remember { mutableStateOf(false) }
+    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -168,7 +173,7 @@ fun TripDetailsScreen(
     val uiState by viewModel.uiDetailState.collectAsStateWithLifecycle()
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
 
-//    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
@@ -195,18 +200,30 @@ fun TripDetailsScreen(
 
             val events: List<EventWithInfo> = details.events
 
-            val speciesUsageMap: Map<String, Int> = events
-                .flatMap { it.targetSpecies }
-                .groupingBy { it.id }
-                .eachCount() // Returns a Map<String, Int> where Key = speciesId, Value = count
-
             val bodyOfWaterUsageMap: Map<String, Int> = events
                 .flatMap { it.bodiesOfWater }
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = bodyOfWaterId, Value = count
 
+            val fishermanUsageMap: Map<String, Int> = events
+                .flatMap { it.fishermen }
+                .groupingBy { it.id }
+                .eachCount() // Returns a Map<String, Int> where Key = fishermanId, Value = count
+
+            val speciesUsageMap: Map<String, Int> = events
+                .flatMap { it.targetSpecies }
+                .groupingBy { it.id }
+                .eachCount() // Returns a Map<String, Int> where Key = speciesId, Value = count
+
+
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
+            }
+            val sortedFishermen = remember(fishermen) {
+                fishermen.sortedBy { it.fullName }
+            }
+            val sortedFishermanList = remember(fishermanSummaries) {
+                fishermanSummaries.sortedBy { it.fisherman.fullName }
             }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
@@ -217,6 +234,7 @@ fun TripDetailsScreen(
 
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
+                sortedFishermanList,
                 sortedWaterList,
                 sortedWeatherList,
                 details.targetSpecies,
@@ -745,11 +763,41 @@ fun TripDetailsScreen(
 
                                     CategoryType.FISHERMEN -> {
                                         showEvents = false
-                                        FishermanSummary(
-                                            fishermanCount = summary.fishermanCount,
-                                            tackleBoxCount = summary.tackleBoxCount,
-                                            onClick = { navigateToSelectTripCrew(tripId) }
-                                        )
+                                        Column() {
+                                            FishermanSummary(
+                                                fishermanCount = summary.fishermanCount,
+                                                tackleBoxCount = summary.tackleBoxCount,
+                                                onClick = { navigateToSelectTripCrew(tripId) }
+                                            )
+                                            FishermanSummaries(
+                                                list = sortedFishermanList,
+                                                thumbnailFlow = { fisherman ->
+                                                    viewModel.fishermanThumbnail(fisherman.id)
+                                                },
+                                                onAdd = {
+                                                    showFishermanSelection = true
+                                                },
+                                                onClick = { fisherman ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Not yet implemented",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                },
+                                                onFishClick = { fisherman, target ->
+                                                    navigateToFishList(
+                                                        FishFilter(
+                                                            tripId = trip.id,
+                                                            fishermanId = fisherman.id,
+                                                            targetOnly = target
+                                                        )
+                                                    )
+                                                },
+                                                onDelete = { fisherman ->
+                                                    viewModel.removeTripFisherman(fisherman.id)
+                                                }
+                                            )
+                                        }
                                     }
 
                                     CategoryType.TARGET_SPECIES -> {
@@ -786,6 +834,7 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.WATER -> {
+                                        showEvents = false
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
                                             onEdit = { waterToEdit = it },
@@ -801,6 +850,7 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.WEATHER -> {
+                                        showEvents = false
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
                                             onEdit = { weatherToEdit = it },
@@ -929,46 +979,40 @@ fun TripDetailsScreen(
 
             // DELETE CONFIRMATION
             eventToDelete?.let { item ->
-                AlertDialog(
-                    onDismissRequest = { eventToDelete = null },
-                    title = { Text("Delete Event?") },
-                    text = {
-                        Text(
-                            """Are you sure you want to delete '${item.event.name}'?
+                DeleteConfirmationDialog(
+                    title = "Delete Event",
+                    message = """Are you sure you want to delete '${item.event.name}'?
 
 This cannot be undone.
 
-All fish (${item.fishCaught}) associated with this event will also be deleted."""
-                        )
+All fish (${item.fishCaught}) associated with this event will also be deleted.""",
+                    onConfirm = {
+                        viewModel.deleteEvent(item.event)
+                        eventToDelete = null
                     },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                viewModel.deleteEvent(item.event)
-                                eventToDelete = null
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { eventToDelete = null }) {
-                            Text("Cancel")
-                        }
-                    }
+                    onDismiss = { eventToDelete = null }
                 )
             }
-
-            if (addWaterClarityDialog) {
-                AddWaterClarityDialog(
-                    onDismiss = { addWaterClarityDialog = false },
-                    onConfirm = { name ->
-                        viewModel.addWaterClarity(WaterClarity(name = name)) {
-                            // Do nothing on success
-                        }
-                        addWaterClarityDialog = false
-                    }
+            waterToDelete?.let { water ->
+                DeleteConfirmationDialog(
+                    title = "Delete Water Conditions",
+                    message = "Are you sure you want to delete these water conditions?",
+                    onConfirm = {
+                        viewModel.deleteWater(water.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
+                )
+            }
+            weatherToDelete?.let { item ->
+                DeleteConfirmationDialog(
+                    title = "Delete Weather Conditions",
+                    message = "Are you sure you want to delete these Weather conditions?",
+                    onConfirm = {
+                        viewModel.deleteWeather(item.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
                 )
             }
 
@@ -1002,34 +1046,9 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         )
                         waterToEdit = null
                     },
-                    onAddWaterClarity = { addWaterClarityDialog = true }
+                    onAddWaterClarity = { showAddWaterClarityDialog = true }
                 )
             }
-
-            waterToDelete?.let { water ->
-                DeleteConfirmationDialog(
-                    title = "Delete Water Conditions",
-                    message = "Are you sure you want to delete these water conditions?",
-                    onConfirm = {
-                        viewModel.deleteWater(water.id)
-                        waterToDelete = null
-                    },
-                    onDismiss = { waterToDelete = null }
-                )
-            }
-
-            if (addSkyConditionDialog) {
-                AddSkyConditionDialog(
-                    onDismiss = { addSkyConditionDialog = false },
-                    onConfirm = { name ->
-                        viewModel.addSkyCondition(SkyCondition(name = name)) {
-                            // Do nothing on success
-                        }
-                        addSkyConditionDialog = false
-                    }
-                )
-            }
-
             weatherToEdit?.let { item ->
                 WeatherDialog(
                     initialTemp = item.temperature,
@@ -1068,52 +1087,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         )
                         weatherToEdit = null
                     },
-                    onAddSkyCondition = { addSkyConditionDialog = true }
-                )
-            }
-
-            weatherToDelete?.let { item ->
-                DeleteConfirmationDialog(
-                    title = "Delete Weather Conditions",
-                    message = "Are you sure you want to delete these Weather conditions?",
-                    onConfirm = {
-                        viewModel.deleteWeather(item.id)
-                        waterToDelete = null
-                    },
-                    onDismiss = { waterToDelete = null }
-                )
-            }
-
-            if (showSpeciesSelection) {
-                SpeciesSelection(
-                    items = allSpecies,
-                    selectedItems = details.targetSpecies,
-                    onSelected = { selectedSpecies ->
-                        viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
-                    },
-                    onUnselected = { selectedSpecies ->
-                        viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
-                    },
-                    onAdd = {
-                        addNewSpecies = true
-                    },
-                    onDone = { showSpeciesSelection = false },
-                    modifier = Modifier.fillMaxWidth(),
-                    usageMap = speciesUsageMap,
-                    maxUsage = details.events.size,
-                    thumbnailProvider = { species ->
-                        val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
-                        }
-
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.TargetFish,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
+                    onAddSkyCondition = { showAddSkyConditionDialog = true }
                 )
             }
 
@@ -1128,7 +1102,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         viewModel.removeTripBodyOfWater(tripId, selectedBodyOfWater.id)
                     },
                     onAdd = {
-                        addNewBodyOfWater = true
+                        showAddBodyOfWaterDialog = true
                     },
                     onDone = { showBodiesOfWaterSelection = false },
                     modifier = Modifier.fillMaxWidth(),
@@ -1149,25 +1123,119 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     }
                 )
             }
+            if (showFishermanSelection) {
+                FishermanSelection(
+                    items = sortedFishermen,
+                    selectedItems = details.fishermen,
+                    onSelected = { fisherman ->
+                        viewModel.addTripFisherman(fishermanId = fisherman.id, null)
+                    },
+                    onUnselected = { fisherman ->
+                        viewModel.removeTripFisherman(fishermanId = fisherman.id)
+                    },
+                    onAdd = {
+                        showAddFishermanDialog = true
+                    },
+                    onDone = { showFishermanSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    usageMap = fishermanUsageMap,
+                    maxUsage = details.events.size,
+                    thumbnailProvider = { fisherman ->
+                        val thumbnailFlow = remember(fisherman.id) {
+                            viewModel.fishermanThumbnail(fisherman.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.Fisherman,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
+            if (showSpeciesSelection) {
+                SpeciesSelection(
+                    items = allSpecies,
+                    selectedItems = details.targetSpecies,
+                    onSelected = { selectedSpecies ->
+                        viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
+                    },
+                    onUnselected = { selectedSpecies ->
+                        viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
+                    },
+                    onAdd = {
+                        showAddSpeciesDialog = true
+                    },
+                    onDone = { showSpeciesSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    usageMap = speciesUsageMap,
+                    maxUsage = details.events.size,
+                    thumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.speciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.TargetFish,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
         }
     }
 
-    if (addNewSpecies) {
-        AddSpeciesDialog(
-            onDismiss = { addNewSpecies = false },
+    if (showAddBodyOfWaterDialog) {
+        AddBodyOfWaterDialog(
+            onDismiss = { showAddBodyOfWaterDialog = false },
             onConfirm = { name ->
-                viewModel.addTripTargetSpecies(tripId, Species(name = name))
-                addNewSpecies = false
+                viewModel.addTripBodyOfWater(tripId, BodyOfWater(name = name))
+                showAddBodyOfWaterDialog = false
             }
         )
     }
-
-    if (addNewBodyOfWater) {
-        AddBodyOfWaterDialog(
-            onDismiss = { addNewBodyOfWater = false },
+    if (showAddFishermanDialog) {
+        AddFishermanDialog(
+            onDismiss = { showAddFishermanDialog = false },
+            onAdd = { first, last, nick ->
+                Toast.makeText(context, "Add new fisherman", Toast.LENGTH_SHORT).show()
+                showAddFishermanDialog = false
+            }
+        )
+    }
+    if (showAddSkyConditionDialog) {
+        AddSkyConditionDialog(
+            onDismiss = { showAddSkyConditionDialog = false },
             onConfirm = { name ->
-                viewModel.addTripBodyOfWater(tripId, BodyOfWater(name = name))
-                addNewBodyOfWater = false
+                viewModel.addSkyCondition(SkyCondition(name = name)) {
+                    // Do nothing on success
+                }
+                showAddSkyConditionDialog = false
+            }
+        )
+    }
+    if (showAddSpeciesDialog) {
+        AddSpeciesDialog(
+            onDismiss = { showAddSpeciesDialog = false },
+            onConfirm = { name ->
+                viewModel.addTripTargetSpecies(tripId, Species(name = name))
+                showAddSpeciesDialog = false
+            }
+        )
+    }
+    if (showAddWaterClarityDialog) {
+        AddWaterClarityDialog(
+            onDismiss = { showAddWaterClarityDialog = false },
+            onConfirm = { name ->
+                viewModel.addWaterClarity(WaterClarity(name = name)) {
+                    // Do nothing on success
+                }
+                showAddWaterClarityDialog = false
             }
         )
     }

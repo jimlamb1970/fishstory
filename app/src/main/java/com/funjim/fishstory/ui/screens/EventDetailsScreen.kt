@@ -38,6 +38,7 @@ import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
@@ -114,13 +115,13 @@ fun EventDetailsScreen(
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
-    var addWaterClarityDialog by remember { mutableStateOf(false) }
+    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
 
     var showAddWeatherDialog by remember { mutableStateOf(false) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
-    var addSkyConditionDialog by remember { mutableStateOf(false) }
+    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
 
     // Dialog state for updating all catches for this body of water
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
@@ -756,7 +757,7 @@ fun EventDetailsScreen(
                                 )
                                 waterToEdit = null
                             },
-                            onAddWaterClarity = { addWaterClarityDialog = true }
+                            onAddWaterClarity = { showAddWaterClarityDialog = true }
                         )
                     }
 
@@ -811,7 +812,7 @@ fun EventDetailsScreen(
                                 )
                                 weatherToEdit = null
                             },
-                            onAddSkyCondition = { addSkyConditionDialog = true }
+                            onAddSkyCondition = { showAddSkyConditionDialog = true }
                         )
                     }
 
@@ -862,7 +863,7 @@ fun EventDetailsScreen(
                         showAddWaterDialog = false
 
                     },
-                    onAddWaterClarity = { addWaterClarityDialog = true}
+                    onAddWaterClarity = { showAddWaterClarityDialog = true}
                 )
             }
 
@@ -906,7 +907,7 @@ fun EventDetailsScreen(
                         showAddWeatherDialog = false
 
                     },
-                    onAddSkyCondition = { addSkyConditionDialog = true }
+                    onAddSkyCondition = { showAddSkyConditionDialog = true }
                 )
             }
 
@@ -1025,26 +1026,36 @@ fun EventDetailsScreen(
         )
     }
 
-    if (addSkyConditionDialog) {
-        AddSkyConditionDialog(
-            onDismiss = { addSkyConditionDialog = false },
-            onConfirm = { name ->
-                viewModel.addSkyCondition(SkyCondition(name = name)) {
-                    // Do nothing on success
-                }
-                addSkyConditionDialog = false
+    if (showAddFishermanDialog) {
+        AddFishermanDialog(
+            onDismiss = { showAddFishermanDialog = false },
+            onAdd = { first, last, nick ->
+                Toast.makeText(context, "Add new fisherman", Toast.LENGTH_SHORT).show()
+                showAddFishermanDialog = false
             }
         )
     }
 
-    if (addWaterClarityDialog) {
+    if (showAddSkyConditionDialog) {
+        AddSkyConditionDialog(
+            onDismiss = { showAddSkyConditionDialog = false },
+            onConfirm = { name ->
+                viewModel.addSkyCondition(SkyCondition(name = name)) {
+                    // Do nothing on success
+                }
+                showAddSkyConditionDialog = false
+            }
+        )
+    }
+
+    if (showAddWaterClarityDialog) {
         AddWaterClarityDialog(
-            onDismiss = { addWaterClarityDialog = false },
+            onDismiss = { showAddWaterClarityDialog = false },
             onConfirm = { name ->
                 viewModel.addWaterClarity(WaterClarity(name = name)) {
                     // Do nothing on success
                 }
-                addWaterClarityDialog = false
+                showAddWaterClarityDialog = false
             }
         )
     }

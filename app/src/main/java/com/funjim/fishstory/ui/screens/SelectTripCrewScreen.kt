@@ -15,7 +15,6 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.utils.TripViewModelCrewPickerBridge
 import com.funjim.fishstory.viewmodels.TripViewModel
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 
@@ -134,22 +133,17 @@ fun SelectTripCrewScreen(
                 confirmLabel = "Confirm Crew & Tackle Boxes",
                 onConfirm = {
                     removeSet.forEach { fishermanId ->
-                        tripViewModel.removeFishermanFromTripAndAllEvents(
-                            tripId = tripId,
-                            fishermanId = fishermanId
-                        )
+                        tripViewModel.removeTripFisherman(fishermanId = fishermanId)
                     }
                     addSet.forEach { fishermanId ->
-                        tripViewModel.upsertTripFishermanCrossRef(
-                            tripId = tripId,
+                        tripViewModel.addTripFisherman(
                             fishermanId = fishermanId,
                             tackleBoxId = workingTackleBoxMap[fishermanId]
                         )
                     }
                     workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
-                            tripViewModel.upsertTripFishermanCrossRef(
-                                tripId = tripId,
+                            tripViewModel.updateTripFisherman(
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )

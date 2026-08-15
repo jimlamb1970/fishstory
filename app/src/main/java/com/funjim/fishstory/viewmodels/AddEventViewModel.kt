@@ -246,7 +246,7 @@ class AddEventViewModel(
 
     fun upsertEventFisherman(eventId: String, fishermanId: String, tackleBoxId: String?) {
         viewModelScope.launch {
-            tripRepo.upsertEventFisherman(
+            tripRepo.updateEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }
@@ -262,7 +262,7 @@ class AddEventViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertEventFisherman(
+            tripRepo.updateEventFisherman(
                 EventFisherman(
                     eventId,
                     fishermanId,

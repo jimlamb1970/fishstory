@@ -101,7 +101,6 @@ class TripRepository(
             .toTripSummaryDomainList()
     }
 
-
     /**
      * Previous trips are in the past (end date < now).
      */
@@ -182,8 +181,20 @@ class TripRepository(
     suspend fun upsertTripFisherman(crossRef: TripFisherman) {
         tripDao.upsertTripFisherman(crossRef.toEntity())
     }
-    suspend fun upsertEventFisherman(crossRef: EventFisherman) {
+    suspend fun updateEventFisherman(crossRef: EventFisherman) {
         eventDao.upsertEventFisherman(crossRef.toEntity())
+    }
+
+    suspend fun addTripFisherman(
+        tripId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        tripDao.addTripFisherman(
+            tripId = tripId,
+            fishermanId = fishermanId,
+            tackleBoxId = tackleBoxId
+        )
     }
 
     suspend fun addFishermanToEventAndTrip(
@@ -234,8 +245,8 @@ class TripRepository(
         eventDao.deleteEventFishermanCrossRef(crossRef.toEntity())
     }
 
-    suspend fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) =
-        tripDao.removeFishermanCrossRefFromTripAndAllEvents(tripId, fishermanId)
+    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) =
+        tripDao.removeFishermanFromTrip(tripId, fishermanId)
 
     // Target Species
     fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {

@@ -318,7 +318,7 @@ class AddTripViewModel(
         fishermanId: String
     ) {
         viewModelScope.launch {
-            tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
+            tripRepo.removeFishermanFromTrip(tripId, fishermanId)
         }
     }
 
@@ -327,7 +327,7 @@ class AddTripViewModel(
         fishermanId: String, tackleBoxId: String?
     ) {
         viewModelScope.launch {
-            tripRepo.upsertEventFisherman(
+            tripRepo.updateEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }
@@ -385,7 +385,7 @@ class AddTripViewModel(
         viewModelScope.launch {
             val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertEventFisherman(
+            tripRepo.updateEventFisherman(
                 EventFisherman(
                     eventId,
                     fishermanId,

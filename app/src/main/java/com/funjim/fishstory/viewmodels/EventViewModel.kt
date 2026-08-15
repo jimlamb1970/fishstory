@@ -214,16 +214,12 @@ class EventViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val fishermanSummaries: StateFlow<List<FishermanSummary>> = combine(
-        _selectedEventId,
-        _selectedTripId
-    ) { eventId, tripId ->
-        Pair(eventId, tripId) // Group them together to feed into flatMapLatest
-    }.flatMapLatest { (eventId, tripId) ->
-        if (eventId == null || tripId == null) {
+    val fishermanSummaries: StateFlow<List<FishermanSummary>> = _selectedEventId
+        .flatMapLatest { eventId ->
+        if (eventId == null) {
             flowOf(emptyList()) // Clear if either ID is missing
         } else {
-            fishRepo.getEventFishermanSummaries(eventId = eventId, tripId = tripId)
+            fishRepo.getEventFishermanSummaries(eventId = eventId)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -474,7 +470,7 @@ class EventViewModel(
         tackleBoxId: String? = null
     ) {
         viewModelScope.launch {
-            tripRepo.upsertEventFisherman(
+            tripRepo.updateEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)
             )
         }

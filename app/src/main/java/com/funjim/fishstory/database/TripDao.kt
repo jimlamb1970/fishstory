@@ -31,6 +31,9 @@ interface TripDao {
     @Delete
     suspend fun deleteTrip(trip: TripEntity)
 
+    @Query("SELECT id FROM event_table WHERE tripId = :tripId")
+    suspend fun getEventIdsForTrip(tripId: String): List<String>
+
     @Query("DELETE FROM trip_table WHERE id = :tripId")
     suspend fun deleteTripById(tripId: String)
 
@@ -128,7 +131,10 @@ ORDER BY t.startDate DESC
     fun getTripDetailedSummary(tripId: String): Flow<TripEntityDetailedSummary?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCrossRef(crossRef: TripFishermanEntity)
+    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
 
     @Upsert
     suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
@@ -174,15 +180,38 @@ ORDER BY t.startDate DESC
     suspend fun getTripFishermanCrossRef(tripId: String, fishermanId: String): TripFishermanEntity?
 
     @Query("DELETE FROM trip_fisherman_cross_ref")
-    suspend fun deleteAllTripFishermanCrossRefs()
+    suspend fun deleteAllTripFishermen()
 
     @Transaction
-    suspend fun removeFishermanCrossRefFromTripAndAllEvents(tripId: String, fishermanId: String) {
-        // 1. Remove from the Trip level
-        deleteFishermanFromTrip(tripId, fishermanId)
+    suspend fun addTripFisherman(
+        tripId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        insertTripFisherman(
+            TripFishermanEntity(
+                tripId = tripId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
 
-        // 2. Remove from all events that belong to this specific trip
-        // This uses a subquery to find every event tied to that tripId
+        val eventIds = getEventIdsForTrip(tripId)
+
+        if (eventIds.isNotEmpty()) {
+            val eventFishermen = eventIds.map { eventId ->
+                EventFishermanEntity(
+                    eventId = eventId,
+                    fishermanId = fishermanId,
+                    tackleBoxId = tackleBoxId)
+            }
+            insertEventFishermen(eventFishermen)
+        }
+    }
+
+    @Transaction
+    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
+        deleteFishermanFromTrip(tripId, fishermanId)
         deleteFishermanFromEvents(tripId, fishermanId)
     }
 

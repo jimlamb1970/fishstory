@@ -33,6 +33,7 @@ data class EventWithInfo(
     val targetSpecies: List<Species>,
     val baits: List<Bait>,
     val bodiesOfWater: List<BodyOfWater>,
+    val fishermen: List<Fisherman>,
     val waterList: List<WaterWithDetails>,
     val weatherList: List<WeatherWithDetails>
 )

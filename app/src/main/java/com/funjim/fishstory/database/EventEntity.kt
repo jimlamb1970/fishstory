@@ -153,6 +153,17 @@ data class EventEntityWithInfo(
     val bodiesOfWater: List<BodyOfWaterEntity>,
 
     @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = EventFishermanEntity::class,
+            parentColumn = "eventId",
+            entityColumn = "fishermanId"
+        )
+    )
+    val fishermen: List<FishermanEntity>,
+
+    @Relation(
         entity = WaterEntity::class,
         parentColumn = "id",
         entityColumn = "eventId"

@@ -180,12 +180,16 @@ class FishRepository(
     }
 
     fun getEventFishermanSummaries(
-        tripId: String,
         eventId: String
     ): Flow<List<FishermanSummary>> {
-        return fishermanDao.getEventFishermanSummaries(
-            tripId = tripId,
-            eventId = eventId)
+        return fishermanDao.getEventFishermanSummaries(eventId = eventId)
+            .map { list -> list.toFishermanSummaryDomainList() }
+    }
+
+    fun getTripFishermanSummaries(
+        tripId: String
+    ): Flow<List<FishermanSummary>> {
+        return fishermanDao.getTripFishermanSummaries(tripId = tripId)
             .map { list -> list.toFishermanSummaryDomainList() }
     }
 

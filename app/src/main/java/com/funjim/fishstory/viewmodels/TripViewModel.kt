@@ -142,6 +142,20 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val fishermanSummaries: StateFlow<List<FishermanSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList()) // Clear if either ID is missing
+            } else {
+                fishRepo.getTripFishermanSummaries(tripId = id)
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val eventSummaries: StateFlow<List<EventSummary>> = _selectedTripId
@@ -285,6 +299,11 @@ class TripViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+
     fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
@@ -325,7 +344,21 @@ class TripViewModel(
         }
     }
 
-    fun upsertTripFishermanCrossRef(tripId: String, fishermanId: String, tackleBoxId: String?) {
+    fun addTripFisherman(
+        fishermanId: String,
+        tackleBoxId: String?
+    ) {
+        val tripId = _selectedTripId.value ?: return
+        viewModelScope.launch {
+            tripRepo.addTripFisherman(tripId, fishermanId, tackleBoxId)
+        }
+    }
+
+    fun updateTripFisherman(
+        fishermanId: String,
+        tackleBoxId: String?
+    ) {
+        val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
             tripRepo.upsertTripFisherman(
                 TripFisherman(tripId, fishermanId, tackleBoxId)
@@ -333,9 +366,11 @@ class TripViewModel(
         }
     }
 
-    fun removeFishermanFromTripAndAllEvents(tripId: String, fishermanId: String) {
+    fun removeTripFisherman(fishermanId: String) {
+        val tripId = _selectedTripId.value ?: return
+
         viewModelScope.launch {
-            tripRepo.removeFishermanFromTripAndAllEvents(tripId, fishermanId)
+            tripRepo.removeFishermanFromTrip(tripId, fishermanId)
         }
     }
 
