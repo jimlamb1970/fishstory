@@ -444,6 +444,22 @@ class EventViewModel(
         }
     }
 
+    fun addFisherman(
+        fisherman: Fisherman,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                fishermanRepo.addFisherman(fisherman)
+                onSuccess() // ONLY runs if addFisherman completes without throwing
+            } catch (e: SQLiteConstraintException) {
+                _toastMessage.emit("Fisherman already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding fisherman.")
+            }
+        }
+    }
+
     fun addFishermanToEvent(
         fishermanId: String,
         tackleBoxId: String? = null

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Water
@@ -601,7 +602,6 @@ fun EventDetailsScreen(
                                             }
                                         )
                                     }
-
                                     CategoryType.FISHERMEN -> {
                                         Column() {
                                             FishermanSummary(
@@ -639,14 +639,13 @@ fun EventDetailsScreen(
                                             )
                                         }
                                     }
-
                                     CategoryType.TARGET_SPECIES -> {
                                         TargetSpeciesColumn(
                                             items = eventDetails.targetSpecies,
                                             onAdd = { showSpeciesSelection = true },
                                             onDelete = { species ->
                                                 viewModel.removeEventTargetSpecies(
-                                                    eventId,
+                                                    event.id,
                                                     species.id
                                                 )
                                             },
@@ -660,7 +659,7 @@ fun EventDetailsScreen(
                                             },
                                             summaryProvider = { species ->
                                                 viewModel.speciesSummary(
-                                                    eventId = eventId,
+                                                    eventId = event.id,
                                                     speciesId = species.id)
                                             },
                                             thumbnailFlow = { species ->
@@ -672,7 +671,6 @@ fun EventDetailsScreen(
                                             )
                                         )
                                     }
-
                                     CategoryType.WATER -> {
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
@@ -689,7 +687,6 @@ fun EventDetailsScreen(
                                             onDelete = { waterToDelete = it }
                                         )
                                     }
-
                                     CategoryType.WEATHER -> {
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
@@ -726,117 +723,39 @@ fun EventDetailsScreen(
                             }
                         )
                     }
-
-                    waterToEdit?.let { water ->
-                        WaterDialog(
-                            initialTemp = water.temperature,
-                            initialDepth = water.depth,
-                            initialClarity = water.clarityId,
-                            allClarity = allWaterClarity,
-                            title = "Edit Water Conditions",
-                            thumbnailProvider = { clarity ->
-                                val thumbnailFlow = remember(clarity.id) {
-                                    viewModel.waterClarityThumbnail(clarity.id)
-                                }
-                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Water,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-                            onDismiss = { waterToEdit = null },
-                            onConfirm = { temp, depth, clarity ->
-                                viewModel.updateWater(
-                                    water.copy(
-                                        temperature = temp,
-                                        depth = depth,
-                                        clarityId = clarity?.id
-                                    )
-                                )
-                                waterToEdit = null
-                            },
-                            onAddWaterClarity = { showAddWaterClarityDialog = true }
-                        )
-                    }
-
-                    // Delete Water Confirmation Dialog
-                    waterToDelete?.let { water ->
-                        DeleteConfirmationDialog(
-                            title = "Delete Water Conditions",
-                            message = "Are you sure you want to delete these water conditions?",
-                            onConfirm = {
-                                viewModel.deleteWater(water.id)
-                                waterToDelete = null
-                            },
-                            onDismiss = { waterToDelete = null }
-                        )
-                    }
-
-                    weatherToEdit?.let { item ->
-                        WeatherDialog(
-                            initialTemp = item.temperature,
-                            initialSkyCondition = item.skyConditionId,
-                            initialWindDirection = item.windDirection,
-                            initialWindSpeed = item.windSpeed,
-                            initialAtmosphericPressure = item.atmosphericPressure,
-                            initialAirVisibility = item.airVisibility,
-                            initialAirHumidity = item.airHumidity,
-                            allSkyConditions = allSkyConditions,
-                            title = "Edit Weather Conditions",
-                            thumbnailProvider = { sky ->
-                                val thumbnailFlow = remember(sky.id) {
-                                    viewModel.skyConditionThumbnail(sky.id)
-                                }
-                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Water,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-                            onDismiss = { weatherToEdit = null },
-                            onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
-                                viewModel.updateWeather(
-                                    item.copy(
-                                        temperature = temp,
-                                        skyConditionId = skyCondition,
-                                        windDirection = windDirection,
-                                        windSpeed = windSpeed,
-                                        atmosphericPressure = atmosphericPressure,
-                                        airVisibility = airVisibility,
-                                        airHumidity = airHumidity
-                                    )
-                                )
-                                weatherToEdit = null
-                            },
-                            onAddSkyCondition = { showAddSkyConditionDialog = true }
-                        )
-                    }
-
-                    weatherToDelete?.let { item ->
-                        DeleteConfirmationDialog(
-                            title = "Delete Weather Conditions",
-                            message = "Are you sure you want to delete these Weather conditions?",
-                            onConfirm = {
-                                viewModel.deleteWeather(item.id)
-                                waterToDelete = null
-                            },
-                            onDismiss = { waterToDelete = null }
-                        )
-                    }
                 }
             }
 
-            if (showAddWaterDialog) {
+            waterToDelete?.let { water ->
+                DeleteConfirmationDialog(
+                    title = "Delete Water Conditions",
+                    message = "Are you sure you want to delete these water conditions?",
+                    onConfirm = {
+                        viewModel.deleteWater(water.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
+                )
+            }
+            weatherToDelete?.let { item ->
+                DeleteConfirmationDialog(
+                    title = "Delete Weather Conditions",
+                    message = "Are you sure you want to delete these Weather conditions?",
+                    onConfirm = {
+                        viewModel.deleteWeather(item.id)
+                        waterToDelete = null
+                    },
+                    onDismiss = { waterToDelete = null }
+                )
+            }
+
+            waterToEdit?.let { water ->
                 WaterDialog(
-                    initialTemp = null,
-                    initialDepth = null,
-                    initialClarity = null,
+                    initialTemp = water.temperature,
+                    initialDepth = water.depth,
+                    initialClarity = water.clarityId,
                     allClarity = allWaterClarity,
-                    title = "New Water Conditions",
+                    title = "Edit Water Conditions",
                     thumbnailProvider = { clarity ->
                         val thumbnailFlow = remember(clarity.id) {
                             viewModel.waterClarityThumbnail(clarity.id)
@@ -849,96 +768,59 @@ fun EventDetailsScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    onDismiss = { showAddWaterDialog = false },
+                    onDismiss = { waterToEdit = null },
                     onConfirm = { temp, depth, clarity ->
-                        val newWater = Water(
-                            tripId = tripId,
-                            eventId = eventId,
-                            temperature = temp,
-                            depth = depth,
-                            clarityId = clarity?.id
+                        viewModel.updateWater(
+                            water.copy(
+                                temperature = temp,
+                                depth = depth,
+                                clarityId = clarity?.id
+                            )
                         )
-
-                        viewModel.addWater(newWater)
-                        showAddWaterDialog = false
-
+                        waterToEdit = null
                     },
-                    onAddWaterClarity = { showAddWaterClarityDialog = true}
+                    onAddWaterClarity = { showAddWaterClarityDialog = true }
                 )
             }
-
-            if (showAddWeatherDialog) {
+            weatherToEdit?.let { item ->
                 WeatherDialog(
-                    initialTemp = null,
-                    initialSkyCondition = null,
-                    initialWindDirection = null,
-                    initialWindSpeed = null,
-                    initialAtmosphericPressure = null,
-                    initialAirVisibility = null,
-                    initialAirHumidity = null,
+                    initialTemp = item.temperature,
+                    initialSkyCondition = item.skyConditionId,
+                    initialWindDirection = item.windDirection,
+                    initialWindSpeed = item.windSpeed,
+                    initialAtmosphericPressure = item.atmosphericPressure,
+                    initialAirVisibility = item.airVisibility,
+                    initialAirHumidity = item.airHumidity,
                     allSkyConditions = allSkyConditions,
-                    title = "New Weather Conditions",
-                    thumbnailProvider = { clarity ->
-                        val thumbnailFlow = remember(clarity.id) {
-                            viewModel.waterClarityThumbnail(clarity.id)
+                    title = "Edit Weather Conditions",
+                    thumbnailProvider = { sky ->
+                        val thumbnailFlow = remember(sky.id) {
+                            viewModel.skyConditionThumbnail(sky.id)
                         }
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.BodyOfWater,
+                            imageVector = AppIcons.Default.Water,
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    onDismiss = { showAddWeatherDialog = false },
+                    onDismiss = { weatherToEdit = null },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
-                        viewModel.addWeather(
-                            Weather(
-                                tripId = tripId,
-                                eventId = eventId,
+                        viewModel.updateWeather(
+                            item.copy(
                                 temperature = temp,
                                 skyConditionId = skyCondition,
                                 windDirection = windDirection,
                                 windSpeed = windSpeed,
                                 atmosphericPressure = atmosphericPressure,
                                 airVisibility = airVisibility,
-                                airHumidity = airHumidity)
+                                airHumidity = airHumidity
+                            )
                         )
-                        showAddWeatherDialog = false
-
+                        weatherToEdit = null
                     },
                     onAddSkyCondition = { showAddSkyConditionDialog = true }
-                )
-            }
-
-            if (showSpeciesSelection) {
-                SpeciesSelection(
-                    items = allSpecies,
-                    selectedItems = eventDetails.targetSpecies,
-                    onSelected = { selectedSpecies ->
-                        viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
-                    },
-                    onUnselected = { selectedSpecies ->
-                        viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
-                    },
-                    onAdd = {
-                        showAddSpeciesDialog = true
-                    },
-                    onDone = { showSpeciesSelection = false },
-                    modifier = Modifier.fillMaxWidth(),
-                    thumbnailProvider = { species ->
-                        val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
-                        }
-
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.TargetFish,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
                 )
             }
 
@@ -972,7 +854,6 @@ fun EventDetailsScreen(
                     }
                 )
             }
-
             if (showFishermanSelection) {
                 FishermanSelection(
                     items = sortedFishermen,
@@ -1003,17 +884,37 @@ fun EventDetailsScreen(
                     }
                 )
             }
-        }
-    }
+            if (showSpeciesSelection) {
+                SpeciesSelection(
+                    items = allSpecies,
+                    selectedItems = eventDetails.targetSpecies,
+                    onSelected = { selectedSpecies ->
+                        viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
+                    },
+                    onUnselected = { selectedSpecies ->
+                        viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
+                    },
+                    onAdd = {
+                        showAddSpeciesDialog = true
+                    },
+                    onDone = { showSpeciesSelection = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    thumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.speciesThumbnail(species.id)
+                        }
 
-    if (showAddSpeciesDialog) {
-        AddSpeciesDialog(
-            onDismiss = { showAddSpeciesDialog = false },
-            onConfirm = { name ->
-                viewModel.addEventTargetSpecies(eventId, Species(name = name))
-                showAddSpeciesDialog = false
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.TargetFish,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
             }
-        )
+        }
     }
 
     if (showAddBodyOfWaterDialog) {
@@ -1025,17 +926,22 @@ fun EventDetailsScreen(
             }
         )
     }
-
     if (showAddFishermanDialog) {
         AddFishermanDialog(
             onDismiss = { showAddFishermanDialog = false },
             onAdd = { first, last, nick ->
-                Toast.makeText(context, "Add new fisherman", Toast.LENGTH_SHORT).show()
+                val fisherman = Fisherman(
+                    firstName = first.trim(),
+                    lastName = last.trim(),
+                    nickname = nick.trim()
+                )
+                viewModel.addFisherman(fisherman) {
+                    // Do nothing on Success
+                }
                 showAddFishermanDialog = false
             }
         )
     }
-
     if (showAddSkyConditionDialog) {
         AddSkyConditionDialog(
             onDismiss = { showAddSkyConditionDialog = false },
@@ -1047,7 +953,51 @@ fun EventDetailsScreen(
             }
         )
     }
+    if (showAddSpeciesDialog) {
+        AddSpeciesDialog(
+            onDismiss = { showAddSpeciesDialog = false },
+            onConfirm = { name ->
+                viewModel.addEventTargetSpecies(eventId, Species(name = name))
+                showAddSpeciesDialog = false
+            }
+        )
+    }
+    if (showAddWaterDialog) {
+        WaterDialog(
+            initialTemp = null,
+            initialDepth = null,
+            initialClarity = null,
+            allClarity = allWaterClarity,
+            title = "New Water Conditions",
+            thumbnailProvider = { clarity ->
+                val thumbnailFlow = remember(clarity.id) {
+                    viewModel.waterClarityThumbnail(clarity.id)
+                }
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Water,
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onDismiss = { showAddWaterDialog = false },
+            onConfirm = { temp, depth, clarity ->
+                val newWater = Water(
+                    tripId = tripId,
+                    eventId = eventId,
+                    temperature = temp,
+                    depth = depth,
+                    clarityId = clarity?.id
+                )
+
+                viewModel.addWater(newWater)
+                showAddWaterDialog = false
+
+            },
+            onAddWaterClarity = { showAddWaterClarityDialog = true}
+        )
+    }
     if (showAddWaterClarityDialog) {
         AddWaterClarityDialog(
             onDismiss = { showAddWaterClarityDialog = false },
@@ -1057,6 +1007,49 @@ fun EventDetailsScreen(
                 }
                 showAddWaterClarityDialog = false
             }
+        )
+    }
+    if (showAddWeatherDialog) {
+        WeatherDialog(
+            initialTemp = null,
+            initialSkyCondition = null,
+            initialWindDirection = null,
+            initialWindSpeed = null,
+            initialAtmosphericPressure = null,
+            initialAirVisibility = null,
+            initialAirHumidity = null,
+            allSkyConditions = allSkyConditions,
+            title = "New Weather Conditions",
+            thumbnailProvider = { clarity ->
+                val thumbnailFlow = remember(clarity.id) {
+                    viewModel.waterClarityThumbnail(clarity.id)
+                }
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.BodyOfWater,
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onDismiss = { showAddWeatherDialog = false },
+            onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
+                viewModel.addWeather(
+                    Weather(
+                        tripId = tripId,
+                        eventId = eventId,
+                        temperature = temp,
+                        skyConditionId = skyCondition,
+                        windDirection = windDirection,
+                        windSpeed = windSpeed,
+                        atmosphericPressure = atmosphericPressure,
+                        airVisibility = airVisibility,
+                        airHumidity = airHumidity)
+                )
+                showAddWeatherDialog = false
+
+            },
+            onAddSkyCondition = { showAddSkyConditionDialog = true }
         )
     }
 

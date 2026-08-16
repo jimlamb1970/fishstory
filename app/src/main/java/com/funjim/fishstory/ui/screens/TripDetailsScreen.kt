@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
+import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.Trip
@@ -1203,7 +1204,14 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
         AddFishermanDialog(
             onDismiss = { showAddFishermanDialog = false },
             onAdd = { first, last, nick ->
-                Toast.makeText(context, "Add new fisherman", Toast.LENGTH_SHORT).show()
+                val fisherman = Fisherman(
+                    firstName = first.trim(),
+                    lastName = last.trim(),
+                    nickname = nick.trim()
+                )
+                viewModel.addFisherman(fisherman) {
+                    // Do nothing on Success
+                }
                 showAddFishermanDialog = false
             }
         )
