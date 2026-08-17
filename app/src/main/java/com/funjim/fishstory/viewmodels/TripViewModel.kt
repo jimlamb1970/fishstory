@@ -178,6 +178,22 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> = _selectedTripId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList()) // Clear if either ID is missing
+            } else {
+                fishRepo.getTripTargetSpeciesSummaries(tripId = id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val waterSummaries: StateFlow<List<WaterSummary>> = _selectedTripId
         .flatMapLatest { id ->
             fishRepo.getWaterSummaries(tripId = id)

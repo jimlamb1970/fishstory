@@ -56,7 +56,7 @@ import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
-import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
+import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
@@ -165,6 +165,7 @@ fun EventDetailsScreen(
 
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    val targetSpeciesSummaries by viewModel.targetSpeciesSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
@@ -204,6 +205,9 @@ fun EventDetailsScreen(
             val sortedFishermanList = remember(fishermanSummaries) {
                 fishermanSummaries.sortedBy { it.fisherman.fullName }
             }
+            val sortedTargetSpeciesList = remember(targetSpeciesSummaries) {
+                targetSpeciesSummaries.sortedBy { it.species.name }
+            }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
@@ -214,6 +218,7 @@ fun EventDetailsScreen(
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
                 sortedFishermanList,
+                sortedTargetSpeciesList,
                 sortedWaterList,
                 sortedWeatherList,
                 eventDetails.targetSpecies,
@@ -237,7 +242,7 @@ fun EventDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = eventSummary.fishermanCount
+                        count = sortedFishermanList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.TARGET_SPECIES,
@@ -246,7 +251,7 @@ fun EventDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = eventDetails.targetSpecies.size
+                        count = sortedTargetSpeciesList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.WATER,
@@ -640,8 +645,8 @@ fun EventDetailsScreen(
                                         }
                                     }
                                     CategoryType.TARGET_SPECIES -> {
-                                        TargetSpeciesColumn(
-                                            items = eventDetails.targetSpecies,
+                                        SpeciesSummaries(
+                                            items = sortedTargetSpeciesList,
                                             onAdd = { showSpeciesSelection = true },
                                             onDelete = { species ->
                                                 viewModel.removeEventTargetSpecies(
@@ -656,11 +661,6 @@ fun EventDetailsScreen(
                                                     speciesId = species.id,
                                                     targetOnly = true)
                                                 )
-                                            },
-                                            summaryProvider = { species ->
-                                                viewModel.speciesSummary(
-                                                    eventId = event.id,
-                                                    speciesId = species.id)
                                             },
                                             thumbnailFlow = { species ->
                                                 viewModel.speciesThumbnail(species.id)

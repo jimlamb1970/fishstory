@@ -27,6 +27,6 @@ data class SpeciesSummary(
     val fishKept: Int = 0,
     val targetFishCaught: Int = 0,
     val targetFishKept: Int = 0,
-    val largestFish: Double,
-    val smallestFish: Double
+    val largestFish: Long,
+    val smallestFish: Long
 )

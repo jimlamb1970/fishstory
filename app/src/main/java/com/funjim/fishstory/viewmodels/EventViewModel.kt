@@ -216,16 +216,31 @@ class EventViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val fishermanSummaries: StateFlow<List<FishermanSummary>> = _selectedEventId
         .flatMapLatest { eventId ->
-        if (eventId == null) {
-            flowOf(emptyList()) // Clear if either ID is missing
-        } else {
-            fishRepo.getEventFishermanSummaries(eventId = eventId)
+            if (eventId == null) {
+                flowOf(emptyList()) // Clear if either ID is missing
+            } else {
+                fishRepo.getEventFishermanSummaries(eventId = eventId)
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> = _selectedEventId
+        .flatMapLatest { eventId ->
+            if (eventId == null) {
+                flowOf(emptyList()) // Clear if either ID is missing
+            } else {
+                fishRepo.getEventTargetSpeciesSummaries(eventId = eventId)
+            }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptyList()
-    )
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val waterSummaries: StateFlow<List<WaterSummary>> = _selectedEventId

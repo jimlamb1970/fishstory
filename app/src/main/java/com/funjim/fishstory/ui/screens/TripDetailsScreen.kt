@@ -59,6 +59,7 @@ import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.SpeciesSelection
+import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
@@ -122,7 +123,6 @@ fun TripDetailsScreen(
     var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
-
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
 
     var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
@@ -172,9 +172,10 @@ fun TripDetailsScreen(
     )
 
     val uiState by viewModel.uiDetailState.collectAsStateWithLifecycle()
-    val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
 
+    val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    val targetSpeciesSummaries by viewModel.targetSpeciesSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
@@ -226,6 +227,9 @@ fun TripDetailsScreen(
             val sortedFishermanList = remember(fishermanSummaries) {
                 fishermanSummaries.sortedBy { it.fisherman.fullName }
             }
+            val sortedTargetSpeciesList = remember(targetSpeciesSummaries) {
+                targetSpeciesSummaries.sortedBy { it.species.name }
+            }
             val sortedWaterList = remember(waterSummaries) {
                 waterSummaries.sortedByDescending { it.water.timestamp }
             }
@@ -236,6 +240,7 @@ fun TripDetailsScreen(
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
                 sortedFishermanList,
+                sortedTargetSpeciesList,
                 sortedWaterList,
                 sortedWeatherList,
                 details.targetSpecies,
@@ -251,7 +256,7 @@ fun TripDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = details.bodiesOfWater.size
+                        count = sortedBodyOfWaterList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.EVENTS,
@@ -269,7 +274,7 @@ fun TripDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = summary.fishermanCount
+                        count = sortedFishermanList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.TARGET_SPECIES,
@@ -278,7 +283,7 @@ fun TripDetailsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
-                        count = details.targetSpecies.size
+                        count = sortedTargetSpeciesList.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.WATER,
@@ -803,8 +808,8 @@ fun TripDetailsScreen(
 
                                     CategoryType.TARGET_SPECIES -> {
                                         showEvents = false
-                                        TargetSpeciesColumn(
-                                            items = details.targetSpecies,
+                                        SpeciesSummaries(
+                                            items = sortedTargetSpeciesList,
                                             onAdd = { showSpeciesSelection = true },
                                             onDelete = { species ->
                                                 viewModel.removeTripTargetSpecies(
@@ -818,11 +823,6 @@ fun TripDetailsScreen(
                                                     speciesId = species.id,
                                                     targetOnly = true)
                                                 )
-                                            },
-                                            summaryProvider = { species ->
-                                                viewModel.speciesSummary(
-                                                    tripId = tripId,
-                                                    speciesId = species.id)
                                             },
                                             thumbnailFlow = { species ->
                                                 viewModel.speciesThumbnail(species.id)

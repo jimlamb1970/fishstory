@@ -146,23 +146,6 @@ class FishRepository(
             .map { entity -> entity?.toDomain() }
     }
 
-    fun getSpeciesSummary(
-        tripId: String? = null,
-        eventId: String? = null,
-        speciesId: String): Flow<SpeciesSummary?> {
-        return fishDao.getSpeciesSummary(
-            tripId = tripId,
-            eventId = eventId,
-            speciesId = speciesId)
-            .map { entity -> entity?.toDomain() }
-    }
-
-    fun getWaterSummary(waterId: String): Flow<WaterSummary?> {
-        return fishDao.getWaterSummary(
-            waterId = waterId)
-            .map { entity -> entity?.toDomain() }
-    }
-
     fun getEventBodyOfWaterSummaries(
         eventId: String
     ): Flow<List<BodyOfWaterSummary>> {
@@ -191,6 +174,31 @@ class FishRepository(
     ): Flow<List<FishermanSummary>> {
         return fishermanDao.getTripFishermanSummaries(tripId = tripId)
             .map { list -> list.toFishermanSummaryDomainList() }
+    }
+
+    fun getSpeciesSummary(
+        tripId: String? = null,
+        eventId: String? = null,
+        speciesId: String): Flow<SpeciesSummary?> {
+        return fishDao.getSpeciesSummary(
+            tripId = tripId,
+            eventId = eventId,
+            speciesId = speciesId)
+            .map { entity -> entity?.toDomain() }
+    }
+
+    fun getEventTargetSpeciesSummaries(
+        eventId: String
+    ): Flow<List<SpeciesSummary>> {
+        return fishDao.getEventTargetSpeciesSummaries(eventId = eventId)
+            .map { list -> list.toSpeciesSummaryDomainList() }
+    }
+
+    fun getTripTargetSpeciesSummaries(
+        tripId: String
+    ): Flow<List<SpeciesSummary>> {
+        return fishDao.getTripTargetSpeciesSummaries(tripId = tripId)
+            .map { list -> list.toSpeciesSummaryDomainList() }
     }
 
     fun getWaterSummaries(
