@@ -336,13 +336,13 @@ interface FishDao {
         COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         COALESCE(SUM(
             CASE 
-                WHEN target.eventId IS NOT NULL THEN f.caughtCount 
+                WHEN target.speciesId IS NOT NULL THEN f.caughtCount 
                 ELSE 0 
             END
         ), 0) AS targetFishCaught,
         COALESCE(SUM(
             CASE 
-                WHEN target.eventId IS NOT NULL THEN f.keptCount 
+                WHEN target.speciesId IS NOT NULL THEN f.keptCount 
                 ELSE 0 
             END
         ), 0) AS targetFishKept
@@ -350,7 +350,7 @@ interface FishDao {
     LEFT JOIN fish_table AS f 
         ON s.id = f.speciesId AND f.eventId = :eventId
     JOIN event_target_species AS target 
-        ON f.eventId = target.eventId AND s.id = target.speciesId
+        ON :eventId = target.eventId AND s.id = target.speciesId
     GROUP BY s.id
 """)
     fun getEventTargetSpeciesSummaries(
@@ -366,20 +366,22 @@ interface FishDao {
         COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         COALESCE(SUM(
             CASE 
-                WHEN target.eventId IS NOT NULL THEN f.caughtCount 
+                WHEN target.speciesId IS NOT NULL THEN f.caughtCount 
                 ELSE 0 
             END
         ), 0) AS targetFishCaught,
         COALESCE(SUM(
             CASE 
-                WHEN target.eventId IS NOT NULL THEN f.keptCount 
+                WHEN target.speciesId IS NOT NULL THEN f.keptCount 
                 ELSE 0 
             END
         ), 0) AS targetFishKept
     FROM species_table AS s
+    JOIN trip_target_species AS tts 
+        ON :tripId = tts.tripId AND s.id = tts.speciesId
     LEFT JOIN fish_table AS f 
         ON s.id = f.speciesId AND f.tripId = :tripId
-    JOIN event_target_species AS target 
+    LEFT JOIN event_target_species AS target 
         ON f.eventId = target.eventId AND s.id = target.speciesId
     GROUP BY s.id
 """)
