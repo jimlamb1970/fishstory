@@ -495,11 +495,27 @@ class EventViewModel(
             }
         }
     }
+
+    fun createAndAssignTackleBox(tackleBox: TackleBox) {
+        val eventId = _selectedEventId.value ?: return
+        viewModelScope.launch {
+            fishermanRepo.insertTackleBox(tackleBox)
+            tripRepo.updateEventFisherman(
+                EventFisherman(
+                    eventId,
+                    tackleBox.fishermanId,
+                    tackleBox.id
+                )
+            )
+        }
+    }
+
     fun updateEventFisherman(
-        eventId: String,
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
+        val eventId = _selectedEventId.value ?: return
+
         viewModelScope.launch {
             tripRepo.updateEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)

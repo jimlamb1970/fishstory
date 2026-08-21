@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -50,8 +51,11 @@ import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import kotlinx.coroutines.flow.Flow
@@ -127,54 +131,6 @@ fun EditFishermanDialog(
             ) { Text("OK") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
-
-@Composable
-fun AddTackleBoxDialog(
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    EditTackleBoxDialog(
-        item = TackleBox(name = "", fishermanId = ""),
-        title = "Add",
-        onConfirm = { onConfirm(it.name) },
-        onDismiss = onDismiss
-    )
-}
-
-@Composable
-fun EditTackleBoxDialog(
-    item: TackleBox,
-    title: String = "Rename",
-    onConfirm: (TackleBox) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val origName = remember(Bait) { item.name }
-    var name by remember { mutableStateOf(origName) }
-
-    val isValid = name.isNotBlank() && (origName != name)
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("$title Tackle Box") },
-        text = {
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                placeholder = { Text("Tackle Box Name (e.g. Jim's Tackle Box)") }
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(item.copy(name = name.trim())) },
-                enabled = isValid
-            ) { Text("OK") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
     )
 }
 
@@ -396,7 +352,6 @@ fun FishermanItem(
                                 )
                             }
                         )
-
                         DropdownMenuItem(
                             text = { Text("Delete") },
                             onClick = {
@@ -435,11 +390,18 @@ fun FishermanItem(
 @Composable
 fun FishermanSummaryCard(
     item: FishermanSummary,
+    selectedTackleBoxId: String?,
+    availableBoxes: List<TackleBox>,
+    lureCount: Int,
+    lures: List<LureWithColors>,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
     totalItems: Int = 0,
     onClick: (Fisherman) -> Unit,
+    onAddTackleBox: (TackleBox) -> Unit,
+    onAddLuresToTackleBox: (TackleBox) -> Unit,
+    onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
@@ -449,6 +411,15 @@ fun FishermanSummaryCard(
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
+
+    val selectedTackleBox = availableBoxes.find { it.id == selectedTackleBoxId }
+    var tackleBoxOpen by remember { mutableStateOf(false) }
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var showTackleBoxSelection by remember { mutableStateOf(false) }
+    var luresExpanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+
+    val sortedLures by remember(lures) { derivedStateOf { sortLures(lures) } }
 
     OutlinedCard(
         modifier = modifier
@@ -488,6 +459,47 @@ fun FishermanSummaryCard(
                             fontWeight = FontWeight.Bold
                         )
                     }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (tackleBoxOpen) AppIcons.Default.TackleBox
+                                else AppIcons.Default.TackleBoxClosed,
+                            contentDescription = "Tackle Box",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable(
+                                    enabled = (selectedTackleBox != null),
+                                ) {
+                                    tackleBoxOpen = !tackleBoxOpen
+                                    luresExpanded = tackleBoxOpen
+                                }
+                        )
+
+                        Text(
+                            text = selectedTackleBox?.name ?: "No Tackle Box selected",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    if (lureCount != 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Lure,
+                                value = lureCount.toString(),
+                                contentColor = secondaryContentColor
+                            )
+                        }
+                    }
+
                     if (item.fishCaught != 0) {
                         Spacer(Modifier.height(4.dp))
                         FishCaughtItem(
@@ -514,19 +526,134 @@ fun FishermanSummaryCard(
                     }
                 }
 
-                IconButton(
-                    onClick = { onDelete(item.fisherman) },
-                    modifier = Modifier.size(24.dp)
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Fisherman options",
+                            tint = contentColor
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Select Tackle Box") },
+                            onClick = {
+                                expanded = false
+                                showTackleBoxSelection = true
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = AppIcons.Default.TackleBoxClosed,
+                                    contentDescription = "Select Tackle Box",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        )
+                        if (selectedTackleBox != null) {
+                            DropdownMenuItem(
+                                text = { Text("Add Lures") },
+                                onClick = {
+                                    expanded = false
+                                    onAddLuresToTackleBox(selectedTackleBox)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = AppIcons.Default.Lure,
+                                        contentDescription = "Add Lures",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            )
+
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                expanded = false
+                                onDelete(item.fisherman)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (luresExpanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 8.dp),
+                    thickness = 1.dp,
+                    color = getOnCardColor()
+                )
+            }
+
+            AnimatedVisibility(visible = luresExpanded) {
+                Column(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Remove",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    if (sortedLures.isNotEmpty()) {
+                        sortedLures.forEach { lure ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                LureCompositionWithColors(
+                                    name = "• ${lure.lure.name}",
+                                    lure.primaryColors,
+                                    lure.secondaryColors,
+                                    lure.lure.glows,
+                                    lure.glowColors,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    contentColor = getOnCardSecondaryColor(),
+                                    modifier = Modifier.padding(start = 50.dp),
+                                    colorBadgeSize = 20.dp
+                                )
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "Tackle Box is empty",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = getOnCardSecondaryColor(),
+                            modifier = Modifier.padding(start = 50.dp)
+                        )
+                    }
                 }
             }
         }
+    }
+
+    TackleBoxBottomSheet(
+        showSheet = showTackleBoxSelection,
+        items = availableBoxes,
+        selectedItem = selectedTackleBox,
+        onSelected = { tackleBox -> onTackleBoxSelected(item.fisherman, tackleBox.id) },
+        onAdd = { showAddTackleBoxDialog = true },
+        onClear = {
+            tackleBoxOpen = false
+            onTackleBoxSelected(item.fisherman, null)
+        },
+        onDismissRequest = { showTackleBoxSelection = false }
+    )
+
+    if (showAddTackleBoxDialog) {
+        AddTackleBoxDialog(
+            fishermanId = item.fisherman.id,
+            onDismiss = { showAddTackleBoxDialog = false },
+            onConfirm = { tackleBox ->
+                onAddTackleBox(tackleBox)
+                showAddTackleBoxDialog = false
+            }
+        )
     }
 }
 
@@ -534,8 +661,15 @@ fun FishermanSummaryCard(
 fun FishermanSummaries(
     list: List<FishermanSummary>,
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
+    tackleBoxSelections: Map<String, String?>,
+    getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
+    getLureCount: @Composable (tackleBoxId: String?) -> Int,
+    getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onAdd: () -> Unit,
     onClick: (Fisherman) -> Unit,
+    onAddTackleBox: (TackleBox) -> Unit,
+    onAddLuresToTackleBox: (TackleBox) -> Unit,
+    onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
@@ -592,12 +726,24 @@ fun FishermanSummaries(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 list.forEachIndexed { index, item ->
+                    val selectedTackleBoxId = tackleBoxSelections[item.fisherman.id]
+                    val availableBoxes = getTackleBoxesForFisherman(item.fisherman.id)
+                    val lureCount = getLureCount(selectedTackleBoxId)
+                    val lures = getLuresInTacklebox(selectedTackleBoxId).sortedBy { it.lure.name }
+
                     FishermanSummaryCard(
                         item = item,
+                        selectedTackleBoxId = selectedTackleBoxId,
+                        availableBoxes = availableBoxes,
+                        lureCount = lureCount,
+                        lures = lures,
                         thumbnailFlow = thumbnailFlow(item.fisherman),
                         index = index,
                         totalItems = list.size,
                         onClick = onClick,
+                        onAddTackleBox = onAddTackleBox,
+                        onAddLuresToTackleBox = onAddLuresToTackleBox,
+                        onTackleBoxSelected = onTackleBoxSelected,
                         onFishClick= onFishClick,
                         onDelete = onDelete
                     )
@@ -605,7 +751,9 @@ fun FishermanSummaries(
             }
         } else {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             ) {
                 Text(
                     text = "No fisherman are set.",
@@ -615,7 +763,6 @@ fun FishermanSummaries(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -1028,7 +1175,10 @@ fun FishermanSelection(
                                         color =
                                             when (state) {
                                                 ToggleableState.On -> getOnCardColor()
-                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(
+                                                    alpha = 0.5f
+                                                )
+
                                                 else -> Color.Transparent
                                             },
                                         shape = MaterialTheme.shapes.medium
@@ -1116,7 +1266,10 @@ fun FishermanSelection(
                                         color =
                                             when (state) {
                                                 ToggleableState.On -> getOnCardColor()
-                                                ToggleableState.Indeterminate -> getOnCardColor().copy(alpha = 0.5f)
+                                                ToggleableState.Indeterminate -> getOnCardColor().copy(
+                                                    alpha = 0.5f
+                                                )
+
                                                 else -> Color.Transparent
                                             },
                                         shape = MaterialTheme.shapes.medium

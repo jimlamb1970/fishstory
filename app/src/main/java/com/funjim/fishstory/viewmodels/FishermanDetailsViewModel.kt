@@ -121,8 +121,8 @@ class FishermanDetailsViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-    fun createTackleBox(fishermanId: String, name: String) {
-        viewModelScope.launch { repository.createTackleBox(fishermanId, name) }
+    fun createTackleBox(tackleBox: TackleBox) {
+        viewModelScope.launch { repository.createTackleBox(tackleBox) }
     }
 
     fun deleteTackleBox(tackleBox: TackleBox) {

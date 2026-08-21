@@ -39,6 +39,8 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_species)
         val TackleBox: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_tacklebox)
+        val TackleBoxClosed: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_tacklebox_closed)
         val TargetFish: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_target_fish)
         val Trip: ImageVector

@@ -34,6 +34,7 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
@@ -82,6 +83,7 @@ fun EventDetailsScreen(
     navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: (FishFilter) -> Unit,
+    navigateToAddLures: (TackleBox) -> Unit,
     navigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -170,6 +172,8 @@ fun EventDetailsScreen(
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
 
     val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
+
+    val tackleBoxMap by viewModel.eventTackleBoxMap.collectAsState()
 
     when (val state = uiState) {
         is EventDetailsUiState.Loading -> {
@@ -620,6 +624,19 @@ fun EventDetailsScreen(
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
+                                                tackleBoxSelections = tackleBoxMap,
+                                                getTackleBoxesForFisherman = { fishermanId ->
+                                                    viewModel.getTackleBoxesForFisherman(fishermanId)
+                                                        .collectAsState(initial = emptyList()).value
+                                                },
+                                                getLureCount = { tackleBoxId ->
+                                                    viewModel.getLureCountForTackleBox(tackleBoxId)
+                                                        .collectAsState(initial = 0).value
+                                                },
+                                                getLuresInTacklebox = { tackleBoxId ->
+                                                    viewModel.getLuresInTackleBox(tackleBoxId)
+                                                        .collectAsState(initial = emptyList()).value
+                                                },
                                                 onAdd = {
                                                     showFishermanSelection = true
                                                 },
@@ -629,6 +646,18 @@ fun EventDetailsScreen(
                                                         "Not yet implemented",
                                                         Toast.LENGTH_SHORT
                                                     ).show()
+                                                },
+                                                onAddTackleBox = { tackleBox ->
+                                                    viewModel.createAndAssignTackleBox(tackleBox)
+                                                },
+                                                onAddLuresToTackleBox = { tackleBox ->
+                                                    navigateToAddLures(tackleBox)
+                                                },
+                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                    viewModel.updateEventFisherman(
+                                                        fishermanId = fisherman.id,
+                                                        tackleBoxId = tackleBoxId
+                                                    )
                                                 },
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(FishFilter(

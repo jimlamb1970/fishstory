@@ -438,14 +438,15 @@ class TripViewModel(
         }
     }
 
-    fun createAndAssignTackleBox(fishermanId: String, tripId: String, name: String) {
+
+    fun createAndAssignTackleBox(tackleBox: TackleBox) {
+        val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
-            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
             fishermanRepo.insertTackleBox(tackleBox)
             tripRepo.upsertTripFisherman(
                 TripFisherman(
                     tripId,
-                    fishermanId,
+                    tackleBox.fishermanId,
                     tackleBox.id
                 )
             )

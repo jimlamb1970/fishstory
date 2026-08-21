@@ -113,27 +113,25 @@ fun FishCaughtItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = description,
-                tint = contentColor,
-                modifier = Modifier
-                    .size(24.dp)
-                    .then(
-                        if (onFishClick != null) {
-                            Modifier.clickable { onFishClick() }
-                        } else {
-                            Modifier
-                        }
-                    )
-            )
-            BoldingNumbersText(
-                text = "Kept $keptCount of $caughtCount",
-                style = MaterialTheme.typography.bodyMedium,
-                color = contentColor
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = contentColor,
+            modifier = Modifier
+                .size(24.dp)
+                .then(
+                    if (onFishClick != null) {
+                        Modifier.clickable { onFishClick() }
+                    } else {
+                        Modifier
+                    }
+                )
+        )
+        BoldingNumbersText(
+            text = "Kept $keptCount of $caughtCount",
+            style = MaterialTheme.typography.bodyMedium,
+            color = contentColor
+        )
     }
 }
 

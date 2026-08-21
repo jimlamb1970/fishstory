@@ -159,7 +159,6 @@ fun SelectEventCrewScreen(
                     workingTackleBoxMap.forEach { (fishermanId, boxId) ->
                         if ((fishermanId !in addSet) && (fishermanId !in removeSet)) {
                             viewModel.updateEventFisherman(
-                                eventId = eventId,
                                 fishermanId = fishermanId,
                                 tackleBoxId = boxId
                             )

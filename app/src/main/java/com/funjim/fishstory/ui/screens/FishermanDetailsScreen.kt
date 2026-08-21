@@ -536,9 +536,10 @@ fun FishermanDetailsScreen(
             // Create new tackle box dialog
             if (showAddTackleBoxDialog) {
                 AddTackleBoxDialog(
+                    fishermanId = fishermanId,
                     onDismiss = { showAddTackleBoxDialog = false },
-                    onConfirm = { tackleBoxName ->
-                        viewModel.createTackleBox(fishermanId, tackleBoxName)
+                    onConfirm = { tackleBox ->
+                        viewModel.createTackleBox(tackleBox)
                         showAddTackleBoxDialog = false
                     }
                 )

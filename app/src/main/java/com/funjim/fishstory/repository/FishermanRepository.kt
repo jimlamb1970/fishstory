@@ -114,8 +114,8 @@ class FishermanRepository(
     }
 
     // --- Tackle Box Logic ---
-    suspend fun createTackleBox(fishermanId: String, name: String) {
-        tackleBoxDao.insertTackleBox(TackleBoxEntity(fishermanId = fishermanId, name = name))
+    suspend fun createTackleBox(tackleBox: TackleBox) {
+        tackleBoxDao.insertTackleBox(tackleBox.toEntity())
     }
     suspend fun insertTackleBox(tackleBox: TackleBox) {
         tackleBoxDao.insertTackleBox(tackleBox.toEntity())

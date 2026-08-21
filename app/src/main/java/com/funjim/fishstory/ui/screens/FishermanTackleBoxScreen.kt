@@ -261,7 +261,9 @@ fun FishermanTackleBoxScreen(
     if (showRenameDialog && (tackleBox != null)) {
         EditTackleBoxDialog(
             item = tackleBox!!,
-            onConfirm = { viewModel.updateTackleBox(it) },
+            onConfirm = {
+                showRenameDialog = false
+                viewModel.updateTackleBox(it) },
             onDismiss = { showRenameDialog = false }
         )
     }

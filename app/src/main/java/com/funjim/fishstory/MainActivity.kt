@@ -702,6 +702,9 @@ fun AppNavigation(
                 navigateToAddFish = {
                     navController.navigate("add_fish/$tripId/$eventId")
                 },
+                navigateToAddLures = { tackleBox ->
+                    navController.navigate("select_lures/${tackleBox.fishermanId}/${tackleBox.id}")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -762,6 +765,9 @@ fun AppNavigation(
                 },
                 navigateToEventDetails = { eventId ->
                     navController.navigate("event_details/$eventId/$tripId")
+                },
+                navigateToAddLures = { tackleBox ->
+                    navController.navigate("select_lures/${tackleBox.fishermanId}/${tackleBox.id}")
                 },
                 navigateBack = {
                     navController.popBackStack()
