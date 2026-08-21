@@ -36,7 +36,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -60,10 +59,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddBaitDialog
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
@@ -280,7 +277,7 @@ fun ManageBodiesOfWaterScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = item.fishCaught,
                                         keptCount = item.fishKept,
-                                        onFishClick = { navigateToFishList(item.bodyOfWater.id, false) },
+                                        onClick = { navigateToFishList(item.bodyOfWater.id, false) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }
@@ -289,7 +286,7 @@ fun ManageBodiesOfWaterScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = item.targetFishCaught,
                                         keptCount = item.targetFishKept,
-                                        onFishClick = { navigateToFishList(item.bodyOfWater.id, true) },
+                                        onClick = { navigateToFishList(item.bodyOfWater.id, true) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }

@@ -31,8 +31,6 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
@@ -235,7 +233,7 @@ fun LureItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(item.lure.id, false) }
                             },
                             contentColor = secondaryContentColor
@@ -248,7 +246,7 @@ fun LureItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(item.lure.id, true) }
                             },
                             contentColor = secondaryContentColor

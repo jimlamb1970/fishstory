@@ -791,7 +791,7 @@ fun BodyOfWaterSummaryCard(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
-                            onFishClick = {
+                            onClick = {
                                 onFishClick(item.bodyOfWater, false)
                             },
                             contentColor = secondaryContentColor
@@ -803,7 +803,7 @@ fun BodyOfWaterSummaryCard(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
-                            onFishClick = {
+                            onClick = {
                                 onFishClick(item.bodyOfWater, true)
                             },
                             contentColor = secondaryContentColor

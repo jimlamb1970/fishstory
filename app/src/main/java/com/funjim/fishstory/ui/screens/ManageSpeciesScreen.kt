@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -38,7 +37,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -63,12 +61,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
-import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
@@ -299,7 +293,7 @@ fun ManageSpeciesScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = summary.fishCaught,
                                         keptCount = summary.fishKept,
-                                        onFishClick = { navigateToFishList(summary.species.id, false) },
+                                        onClick = { navigateToFishList(summary.species.id, false) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }
@@ -308,7 +302,7 @@ fun ManageSpeciesScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = summary.targetFishCaught,
                                         keptCount = summary.targetFishKept,
-                                        onFishClick = { navigateToFishList(summary.species.id, true) },
+                                        onClick = { navigateToFishList(summary.species.id, true) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }

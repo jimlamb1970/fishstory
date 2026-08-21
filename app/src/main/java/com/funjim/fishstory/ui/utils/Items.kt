@@ -79,7 +79,7 @@ fun AchievementItem(
 fun CardItemWithValue(
     icon: ImageVector,
     value: String,
-    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
@@ -90,7 +90,15 @@ fun CardItemWithValue(
             imageVector = icon,
             contentDescription = null,
             tint = contentColor,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
+                .then(
+                    if (onClick != null) {
+                        Modifier.clickable { onClick() }
+                    } else {
+                        Modifier
+                    }
+                )
         )
         Text(
             text = value,
@@ -106,7 +114,7 @@ fun FishCaughtItem(
     caughtCount: Int,
     keptCount: Int,
     description: String = "Fish Caught",
-    onFishClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
@@ -120,8 +128,8 @@ fun FishCaughtItem(
             modifier = Modifier
                 .size(24.dp)
                 .then(
-                    if (onFishClick != null) {
-                        Modifier.clickable { onFishClick() }
+                    if (onClick != null) {
+                        Modifier.clickable { onClick() }
                     } else {
                         Modifier
                     }

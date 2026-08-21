@@ -424,7 +424,7 @@ fun WaterSummaryCard(
                         icon = AppIcons.Default.LeapingFishWithFins,
                         caughtCount = water.fishCaught,
                         keptCount = water.fishKept,
-                        onFishClick = {
+                        onClick = {
                             onFishClick(water.water, false)
                         },
                         contentColor = secondaryContentColor
@@ -436,7 +436,7 @@ fun WaterSummaryCard(
                         icon = AppIcons.Default.TargetFish,
                         caughtCount = water.targetFishCaught,
                         keptCount = water.targetFishKept,
-                        onFishClick = {
+                        onClick = {
                             onFishClick(water.water, true)
                         },
                         contentColor = secondaryContentColor

@@ -283,7 +283,7 @@ fun ManageBaitsScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = item.fishCaught,
                                         keptCount = item.fishKept,
-                                        onFishClick = null,
+                                        onClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }
@@ -292,7 +292,7 @@ fun ManageBaitsScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = item.targetFishCaught,
                                         keptCount = item.targetFishKept,
-                                        onFishClick = null,
+                                        onClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }

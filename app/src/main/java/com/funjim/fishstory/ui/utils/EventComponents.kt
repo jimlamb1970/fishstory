@@ -377,7 +377,7 @@ fun EventItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(item.trip.id, item.event.id, false) }
                             },
                             contentColor = secondaryContentColor
@@ -390,7 +390,7 @@ fun EventItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(item.trip.id, item.event.id, true) }
                             },
                             contentColor = secondaryContentColor

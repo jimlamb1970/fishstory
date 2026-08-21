@@ -953,7 +953,7 @@ fun SpeciesItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = summary.targetFishCaught,
                             keptCount = summary.targetFishKept,
-                            onFishClick = {
+                            onClick = {
                                 onFishClick(species)
                             },
                             contentColor = secondaryContentColor
@@ -1043,7 +1043,7 @@ fun TargetSpeciesItem(
                                 icon = AppIcons.Default.TargetFish,
                                 caughtCount = summary.targetFishCaught,
                                 keptCount = summary.targetFishKept,
-                                onFishClick = {
+                                onClick = {
                                     onFishClick(species)
                                 },
                                 contentColor = secondaryContentColor

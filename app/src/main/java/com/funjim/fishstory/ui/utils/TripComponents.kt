@@ -43,7 +43,6 @@ import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -444,7 +443,7 @@ fun TripItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = trip.fishCaught,
                             keptCount = trip.fishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(trip.trip.id, false) }
                             },
                             contentColor = secondaryContentColor
@@ -458,7 +457,7 @@ fun TripItem(
                             description = "Target Fish Caught",
                             caughtCount = trip.targetFishCaught,
                             keptCount = trip.targetFishKept,
-                            onFishClick = onFishClick?.let { onClick ->
+                            onClick = onFishClick?.let { onClick ->
                                 { onClick(trip.trip.id, true) }
                             },
                             contentColor = secondaryContentColor

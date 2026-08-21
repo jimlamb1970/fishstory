@@ -640,6 +640,12 @@ fun EventDetailsScreen(
                                                 onAdd = {
                                                     showFishermanSelection = true
                                                 },
+                                                onAddTackleBox = { tackleBox ->
+                                                    viewModel.createAndAssignTackleBox(tackleBox)
+                                                },
+                                                onAddLuresToTackleBox = { tackleBox ->
+                                                    navigateToAddLures(tackleBox)
+                                                },
                                                 onClick = { fisherman ->
                                                     Toast.makeText(
                                                         context,
@@ -647,24 +653,18 @@ fun EventDetailsScreen(
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 },
-                                                onAddTackleBox = { tackleBox ->
-                                                    viewModel.createAndAssignTackleBox(tackleBox)
-                                                },
-                                                onAddLuresToTackleBox = { tackleBox ->
-                                                    navigateToAddLures(tackleBox)
-                                                },
-                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                                    viewModel.updateEventFisherman(
-                                                        fishermanId = fisherman.id,
-                                                        tackleBoxId = tackleBoxId
-                                                    )
-                                                },
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(FishFilter(
                                                         tripId = trip.id,
                                                         eventId = event.id,
                                                         fishermanId = fisherman.id,
                                                         targetOnly = target)
+                                                    )
+                                                },
+                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                    viewModel.updateEventFisherman(
+                                                        fishermanId = fisherman.id,
+                                                        tackleBoxId = tackleBoxId
                                                     )
                                                 },
                                                 onDelete = { fisherman ->

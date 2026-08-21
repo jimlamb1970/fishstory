@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
@@ -47,15 +46,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.funjim.fishstory.model.Bait
-import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import kotlinx.coroutines.flow.Flow
@@ -274,7 +269,7 @@ fun FishermanItem(
                                 icon = AppIcons.Default.LeapingFishWithFins,
                                 caughtCount = fisherman.fishCaught,
                                 keptCount = fisherman.fishKept,
-                                onFishClick = { onFishClick(fisherman.fisherman.id, false) },
+                                onClick = { onFishClick(fisherman.fisherman.id, false) },
                                 contentColor = secondaryContentColor,
                             )
                         }
@@ -291,7 +286,7 @@ fun FishermanItem(
                                 icon = AppIcons.Default.TargetFish,
                                 caughtCount = fisherman.targetFishCaught,
                                 keptCount = fisherman.targetFishKept,
-                                onFishClick = { onFishClick(fisherman.fisherman.id, true) },
+                                onClick = { onFishClick(fisherman.fisherman.id, true) },
                                 contentColor = secondaryContentColor
                             )
                         }
@@ -390,18 +385,18 @@ fun FishermanItem(
 @Composable
 fun FishermanSummaryCard(
     item: FishermanSummary,
+    modifier: Modifier = Modifier,
+    index: Int = 0,
+    totalItems: Int = 0,
+    thumbnailFlow: Flow<ByteArray?>,
     selectedTackleBoxId: String?,
     availableBoxes: List<TackleBox>,
     lureCount: Int,
     lures: List<LureWithColors>,
-    modifier: Modifier = Modifier,
-    thumbnailFlow: Flow<ByteArray?>,
-    index: Int = 0,
-    totalItems: Int = 0,
-    onClick: (Fisherman) -> Unit,
     onAddTackleBox: (TackleBox) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
+    onClick: (Fisherman) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
@@ -487,16 +482,21 @@ fun FishermanSummaryCard(
                         )
                     }
 
-                    if (lureCount != 0) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Lure,
-                                value = lureCount.toString(),
-                                contentColor = secondaryContentColor
-                            )
+                    if (selectedTackleBox != null) {
+                        if (lureCount != 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Lure,
+                                    value = lureCount.toString(),
+                                    onClick = {
+                                        onAddLuresToTackleBox(selectedTackleBox)
+                                    },
+                                    contentColor = secondaryContentColor
+                                )
+                            }
                         }
                     }
 
@@ -506,7 +506,7 @@ fun FishermanSummaryCard(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
-                            onFishClick = {
+                            onClick = {
                                 onFishClick(item.fisherman, false)
                             },
                             contentColor = secondaryContentColor
@@ -518,7 +518,7 @@ fun FishermanSummaryCard(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
-                            onFishClick = {
+                            onClick = {
                                 onFishClick(item.fisherman, true)
                             },
                             contentColor = secondaryContentColor
@@ -666,11 +666,11 @@ fun FishermanSummaries(
     getLureCount: @Composable (tackleBoxId: String?) -> Int,
     getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onAdd: () -> Unit,
-    onClick: (Fisherman) -> Unit,
     onAddTackleBox: (TackleBox) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
-    onTackleBoxSelected: (Fisherman, String?) -> Unit,
+    onClick: (Fisherman) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
+    onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
     Column() {
@@ -733,17 +733,17 @@ fun FishermanSummaries(
 
                     FishermanSummaryCard(
                         item = item,
+                        index = index,
+                        totalItems = list.size,
+                        thumbnailFlow = thumbnailFlow(item.fisherman),
                         selectedTackleBoxId = selectedTackleBoxId,
                         availableBoxes = availableBoxes,
                         lureCount = lureCount,
                         lures = lures,
-                        thumbnailFlow = thumbnailFlow(item.fisherman),
-                        index = index,
-                        totalItems = list.size,
-                        onClick = onClick,
                         onAddTackleBox = onAddTackleBox,
                         onAddLuresToTackleBox = onAddLuresToTackleBox,
                         onTackleBoxSelected = onTackleBoxSelected,
+                        onClick = onClick,
                         onFishClick= onFishClick,
                         onDelete = onDelete
                     )

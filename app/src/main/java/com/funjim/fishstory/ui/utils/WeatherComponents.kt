@@ -595,7 +595,7 @@ fun WeatherSummaryCard(
                         icon = AppIcons.Default.LeapingFishWithFins,
                         caughtCount = weather.fishCaught,
                         keptCount = weather.fishKept,
-                        onFishClick = {
+                        onClick = {
                             onFishClick(weather.weather, false)
                         },
                         contentColor = secondaryContentColor
@@ -607,7 +607,7 @@ fun WeatherSummaryCard(
                         icon = AppIcons.Default.TargetFish,
                         caughtCount = weather.targetFishCaught,
                         keptCount = weather.targetFishKept,
-                        onFishClick = {
+                        onClick = {
                             onFishClick(weather.weather, true)
                         },
                         contentColor = secondaryContentColor

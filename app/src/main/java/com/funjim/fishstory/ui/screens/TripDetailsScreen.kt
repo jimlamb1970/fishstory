@@ -800,24 +800,18 @@ fun TripDetailsScreen(
                                                 onAdd = {
                                                     showFishermanSelection = true
                                                 },
-                                                onClick = { fisherman ->
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Not yet implemented",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                },
                                                 onAddTackleBox = { tackleBox ->
                                                     viewModel.createAndAssignTackleBox(tackleBox)
                                                 },
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
                                                 },
-                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                                    viewModel.updateTripFisherman(
-                                                        fisherman.id,
-                                                        tackleBoxId
-                                                    )
+                                                onClick = { fisherman ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Not yet implemented",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 },
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(
@@ -826,6 +820,12 @@ fun TripDetailsScreen(
                                                             fishermanId = fisherman.id,
                                                             targetOnly = target
                                                         )
+                                                    )
+                                                },
+                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                    viewModel.updateTripFisherman(
+                                                        fisherman.id,
+                                                        tackleBoxId
                                                     )
                                                 },
                                                 onDelete = { fisherman ->
