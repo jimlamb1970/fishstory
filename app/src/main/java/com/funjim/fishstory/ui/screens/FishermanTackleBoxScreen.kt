@@ -36,6 +36,8 @@ import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
+import com.funjim.fishstory.ui.utils.sortLures
+import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.LureSortOrder
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.flow.Flow
@@ -71,6 +73,14 @@ fun FishermanTackleBoxScreen(
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
+
+    val sortedLures = remember(allLures, currentOrder, luresInBoxIds) {
+        sortLures(
+            lureList = allLures,
+            order = currentOrder,
+            luresInBoxIds = luresInBoxIds
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -212,9 +222,9 @@ fun FishermanTackleBoxScreen(
                         state = listState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        val totalItems = allLures.size
+                        val totalItems = sortedLures.size
                         itemsIndexed(
-                            allLures,
+                            sortedLures,
                             key = { _, item -> item.lure.id }) { index, item ->
                             val inBox = item.lure.id in luresInBoxIds
                             LureTackleBoxItem(

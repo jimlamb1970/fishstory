@@ -658,7 +658,55 @@ fun sortLures(lureList: List<LureWithColors>): List<LureWithColors> {
     )
 }
 
-fun sortLures(lureList: List<LureWithColorsSummary>, order: LureSortOrder): List<LureWithColorsSummary> {
+fun sortLures(
+    lureList: List<LureWithColorsSummary>,
+    order: LureSortOrder,
+    luresInBoxIds: Set<String> = emptySet()
+): List<LureWithColorsSummary> {
+    val getColorsSortingString = { colors: List<LureColor> ->
+        if (colors.isEmpty()) ""
+        else colors.map { it.name }.sorted().joinToString(",")
+    }
+
+    // Base Comparator for tie-breakers (Primary -> Secondary -> Glow -> Name)
+    val colorAndNameComparator = compareBy<LureWithColorsSummary> { it.lure.name }
+        .thenBy { it.primaryColors.isEmpty() }
+        .thenBy { getColorsSortingString(it.primaryColors) }
+        .thenBy { it.secondaryColors.isEmpty() }
+        .thenBy { getColorsSortingString(it.secondaryColors) }
+        .thenBy { it.glowColors.isEmpty() }
+        .thenBy { getColorsSortingString(it.glowColors) }
+
+    // Select the target comparator based on sort order
+    val targetComparator = when (order) {
+        LureSortOrder.NAME -> colorAndNameComparator
+
+        LureSortOrder.PRIMARY_COLOR -> compareBy<LureWithColorsSummary> { it.primaryColors.isEmpty() }
+            .thenBy { getColorsSortingString(it.primaryColors) }
+            .then(colorAndNameComparator)
+
+        LureSortOrder.SECONDARY_COLOR -> compareBy<LureWithColorsSummary> { it.secondaryColors.isEmpty() }
+            .thenBy { getColorsSortingString(it.secondaryColors) }
+            .then(colorAndNameComparator)
+
+        LureSortOrder.GLOW_COLOR -> compareBy<LureWithColorsSummary> { it.glowColors.isEmpty() }
+            .thenBy { getColorsSortingString(it.glowColors) }
+            .then(colorAndNameComparator)
+
+        else -> colorAndNameComparator
+    }
+
+    // Always prioritize lures in the tackle box first, then apply the chosen sort order
+    return lureList.sortedWith(
+        compareByDescending<LureWithColorsSummary> { it.lure.id in luresInBoxIds }
+            .then(targetComparator)
+    )
+}
+
+fun sortLuresOrig(
+    lureList: List<LureWithColorsSummary>,
+    order: LureSortOrder
+): List<LureWithColorsSummary> {
     // Helper function returning empty string if empty
     val getColorsSortingString = { colors: List<LureColor> ->
         if (colors.isEmpty()) ""
