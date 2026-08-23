@@ -643,11 +643,7 @@ fun TripDetailsScreen(
                             }
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(
-                                    top = 8.dp,
-                                    start = 16.dp,
-                                    end = 16.dp
-                                ),
+                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )

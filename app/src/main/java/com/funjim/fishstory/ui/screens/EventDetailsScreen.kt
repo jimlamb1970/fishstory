@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -175,6 +177,9 @@ fun EventDetailsScreen(
 
     val tackleBoxMap by viewModel.eventTackleBoxMap.collectAsState()
 
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
+
     when (val state = uiState) {
         is EventDetailsUiState.Loading -> {
             Box(
@@ -319,6 +324,136 @@ fun EventDetailsScreen(
                                     }
                                 }
                             }
+                            when (selectedCategory) {
+                                CategoryType.BODIES_OF_WATER -> {
+                                    IconButton(onClick = { showBodiesOfWaterSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.BodyOfWater,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                CategoryType.EVENTS -> {
+                                }
+                                CategoryType.FISHERMEN -> {
+                                    IconButton(onClick = { showFishermanSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.Fisherman,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                }
+                                CategoryType.TARGET_SPECIES -> {
+                                    IconButton(onClick = { showSpeciesSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.TargetFish,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                CategoryType.WATER -> {
+                                    IconButton(onClick = { showAddWaterDialog = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.Water,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                CategoryType.WEATHER -> {
+                                    IconButton(onClick = { showAddWeatherDialog = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.Weather,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = "More")
@@ -337,6 +472,23 @@ fun EventDetailsScreen(
                                             Icon(
                                                 Icons.Default.Edit,
                                                 contentDescription = "Edit Event"
+                                            )
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = {
+                                            if (showPhotos) Text("Hide Photos")
+                                            else Text("Show Photos") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            viewModel.toggleShowPhotos()
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                if (showPhotos) Icons.Default.VisibilityOff
+                                                else Icons.Default.Visibility,
+                                                contentDescription = null
                                             )
                                         }
                                     )
@@ -441,20 +593,46 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+                    val thumbnail by viewModel.eventThumbnail().collectAsState(initial = null)
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
                             Row(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.CanoeEmpty,
+                                    modifier = Modifier.size(64.dp),
+                                    onClick = { viewModel.toggleShowPhotos()
+                                    }
+                                )
                                 Text(
                                     text = event.name,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = getOnMainColor()
                                 )
+                            }
+
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Start: ${dateTimeFormatter.format(Date(event.startTime))}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = getOnSecondaryColor()
+                                    )
+                                    Text(
+                                        text = "End: ${dateTimeFormatter.format(Date(event.endTime))}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = getOnSecondaryColor()
+                                    )
+                                }
                                 val displayLat = event.latitude ?: trip.latitude
                                 val displayLng = event.longitude ?: event.longitude
                                 val hasAnyLocation = displayLat != null && displayLng != null
@@ -491,18 +669,6 @@ fun EventDetailsScreen(
                                     }
                                 }
                             }
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "Start: ${dateTimeFormatter.format(Date(event.startTime))}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = getOnSecondaryColor()
-                            )
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "End: ${dateTimeFormatter.format(Date(event.endTime))}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = getOnSecondaryColor()
-                            )
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
@@ -510,32 +676,34 @@ fun EventDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            PhotoPickerRow(
-                                photos = eventDetails.photos,
-                                onPhotoSelected = { uri ->
-                                    viewModel.addEventPhoto(eventId = eventId, uri = uri, true)
-                                },
-                                onPhotoTaken = { uri ->
-                                    viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
-                                },
-                                onSetThumbnail = { photo ->
-                                    viewModel.setEventThumbnail(
-                                        eventId = eventId,
-                                        photoId = photo.id
-                                    )
-                                },
-                                onPhotoDeleted = { photo ->
-                                    viewModel.deleteEventPhoto(eventId, photo.id)
-                                }
-                            )
+                            if (showPhotos) {
+                                PhotoPickerRow(
+                                    photos = eventDetails.photos,
+                                    onPhotoSelected = { uri ->
+                                        viewModel.addEventPhoto(eventId = eventId, uri = uri, true)
+                                    },
+                                    onPhotoTaken = { uri ->
+                                        viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
+                                    },
+                                    onSetThumbnail = { photo ->
+                                        viewModel.setEventThumbnail(
+                                            eventId = eventId,
+                                            photoId = photo.id
+                                        )
+                                    },
+                                    onPhotoDeleted = { photo ->
+                                        viewModel.deleteEventPhoto(eventId, photo.id)
+                                    }
+                                )
 
-                            if (eventSummary.fishCaught != 0 || now >= event.startTime) {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                                     thickness = 1.dp,
                                     color = getOnMainColor()
                                 )
+                            }
 
+                            if (eventSummary.fishCaught != 0 || now >= event.startTime) {
                                 EventHighlightCard(
                                     summary = eventSummary,
                                     onClick = {
@@ -558,13 +726,12 @@ fun EventDetailsScreen(
                                         )
                                     }
                                 )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                    thickness = 1.dp,
+                                    color = getOnMainColor()
+                                )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
 
                             CategoryRow(
                                 categories = categoryConfigs,

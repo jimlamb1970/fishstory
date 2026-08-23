@@ -52,6 +52,12 @@ class EventViewModel(
         _selectedCategory.value = category
     }
 
+    private val _showPhotos = MutableStateFlow(false)
+    val showPhotos: StateFlow<Boolean> = _showPhotos.asStateFlow()
+    fun toggleShowPhotos() {
+        _showPhotos.value = !_showPhotos.value
+    }
+
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
@@ -531,6 +537,13 @@ class EventViewModel(
         viewModelScope.launch {
             tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
+    }
+
+    fun eventThumbnail(): Flow<ByteArray?> {
+        val eventId = _selectedEventId.value ?: return(flowOf(null))
+
+        return photoRepo.fetchEventThumbnail(eventId)
+            .flowOn(Dispatchers.IO)
     }
 
     fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
