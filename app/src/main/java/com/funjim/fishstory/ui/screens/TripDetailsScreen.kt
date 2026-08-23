@@ -186,6 +186,7 @@ fun TripDetailsScreen(
 
     val tackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
 
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
@@ -334,28 +335,112 @@ fun TripDetailsScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = { navigateToAddEvent(tripId) }) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        AppIcons.Default.CanoeEmpty,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp))
+                            when (selectedCategory) {
+                                CategoryType.BODIES_OF_WATER -> {
+                                    IconButton(onClick = { showBodiesOfWaterSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.BodyOfWater,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
 
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Add,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(12.dp)
-                                        )
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                }
+                                CategoryType.EVENTS -> {
+                                    IconButton(onClick = { navigateToAddEvent(tripId) }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.CanoeEmpty,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+                                CategoryType.FISHERMEN -> {
+                                    IconButton(onClick = { showFishermanSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.Fisherman,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                }
+                                CategoryType.TARGET_SPECIES -> {
+                                    IconButton(onClick = { showSpeciesSelection = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Default.TargetFish,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                }
+                                CategoryType.WATER -> {}
+                                CategoryType.WEATHER -> {}
                             }
                             Box {
                                 IconButton(onClick = { menuExpanded = true }) {
@@ -491,7 +576,6 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
                     var showEvents by remember { mutableStateOf(false) }
                     val thumbnail by viewModel.tripThumbnail().collectAsState(initial = null)
 
