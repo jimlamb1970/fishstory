@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -61,7 +63,6 @@ import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
-import com.funjim.fishstory.ui.utils.TargetSpeciesColumn
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripHighlightCard
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
@@ -184,6 +185,8 @@ fun TripDetailsScreen(
     val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
 
     val tackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
+
+    val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
         is TripDetailsUiState.Loading -> {
@@ -376,6 +379,23 @@ fun TripDetailsScreen(
                                         }
                                     )
 
+                                    DropdownMenuItem(
+                                        text = {
+                                            if (showPhotos) Text("Hide Photos")
+                                            else Text("Show Photos") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            viewModel.toggleShowPhotos()
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                if (showPhotos) Icons.Default.VisibilityOff
+                                                else Icons.Default.Visibility,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+
                                     if (hasLocationPermission) {
                                         DropdownMenuItem(
                                             text = { Text("Use Current Location") },
@@ -473,24 +493,47 @@ fun TripDetailsScreen(
                 ) {
                     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
                     var showEvents by remember { mutableStateOf(false) }
+                    val thumbnail by viewModel.tripThumbnail().collectAsState(initial = null)
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
                             Row(
-                                modifier = Modifier.padding(
-                                    horizontal = 16.dp,
-                                    vertical = 8.dp
-                                ),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Boat,
+                                    modifier = Modifier.size(64.dp),
+                                    onClick = { viewModel.toggleShowPhotos()
+                                    }
+                                )
                                 Text(
                                     text = details.trip.name,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = getOnMainColor()
                                 )
+                            }
+
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = getOnSecondaryColor()
+                                    )
+                                    Text(
+                                        text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = getOnSecondaryColor()
+                                    )
+                                }
                                 if (details.trip.latitude != null && details.trip.longitude != null) {
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Icon(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = "View on map",
@@ -514,48 +557,45 @@ fun TripDetailsScreen(
                                     )
                                 }
                             }
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "Start: ${dateTimeFormatter.format(Date(details.trip.startDate))}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = getOnSecondaryColor()
-                            )
-                            Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = "End: ${dateTimeFormatter.format(Date(details.trip.endDate))}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = getOnSecondaryColor()
-                            )
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(
+                                    top = 8.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                ),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
 
-                            PhotoPickerRow(
-                                photos = details.photos,
-                                onPhotoSelected = { uri ->
-                                    viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
-                                },
-                                onPhotoTaken = { uri ->
-                                    viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
-                                },
-                                onSetThumbnail = { photo ->
-                                    viewModel.setTripThumbnail(tripId = tripId, photoId = photo.id)
-                                },
-                                onPhotoDeleted = { photo ->
-                                    viewModel.deleteTripPhoto(tripId, photo.id)
-                                }
-                            )
+                            if (showPhotos) {
+                                PhotoPickerRow(
+                                    photos = details.photos,
+                                    onPhotoSelected = { uri ->
+                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
+                                    },
+                                    onPhotoTaken = { uri ->
+                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
+                                    },
+                                    onSetThumbnail = { photo ->
+                                        viewModel.setTripThumbnail(
+                                            tripId = tripId,
+                                            photoId = photo.id
+                                        )
+                                    },
+                                    onPhotoDeleted = { photo ->
+                                        viewModel.deleteTripPhoto(tripId, photo.id)
+                                    }
+                                )
 
-                            if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                                     thickness = 1.dp,
                                     color = getOnMainColor()
                                 )
+                            }
 
+                            if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 TripHighlightCard(
                                     summary = summary,
                                     onClick = {
@@ -575,13 +615,13 @@ fun TripDetailsScreen(
                                         )
                                     }
                                 )
-                            }
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                    thickness = 1.dp,
+                                    color = getOnMainColor()
+                                )
+                            }
 
                             CategoryRow(
                                 categories = categoryConfigs,

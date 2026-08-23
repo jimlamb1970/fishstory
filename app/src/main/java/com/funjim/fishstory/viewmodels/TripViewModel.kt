@@ -56,6 +56,12 @@ class TripViewModel(
         _selectedCategory.value = category
     }
 
+    private val _showPhotos = MutableStateFlow(false)
+    val showPhotos: StateFlow<Boolean> = _showPhotos.asStateFlow()
+    fun toggleShowPhotos() {
+        _showPhotos.value = !_showPhotos.value
+    }
+
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(
             scope = viewModelScope,
@@ -451,6 +457,13 @@ class TripViewModel(
                 )
             )
         }
+    }
+
+    fun tripThumbnail(): Flow<ByteArray?> {
+        val tripId = _selectedTripId.value ?: return(flowOf(null))
+
+        return photoRepo.fetchTripThumbnail(tripId)
+            .flowOn(Dispatchers.IO)
     }
 
     fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
