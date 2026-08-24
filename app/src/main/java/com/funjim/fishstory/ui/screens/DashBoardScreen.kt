@@ -116,6 +116,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
+import com.funjim.fishstory.ui.utils.CategoryType
 
 private data class GridParams(
     val text: String,
@@ -443,10 +444,18 @@ fun DashboardScreen(
                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                     photosFlow = viewModel.tripPhotos(trip.trip.id),
                     onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
+                    onEventClick = {
+                        val category = CategoryType.EVENTS
+                        onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
+                    },
                     onFishClick = { tripId, targetOnly ->
                         onFishListNavigate(FishListRoute(
                             tripId = tripId,
                             targetOnly = targetOnly))
+                    },
+                    onFishermanClick = {
+                        val category = CategoryType.FISHERMEN
+                        onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
                     },
                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },

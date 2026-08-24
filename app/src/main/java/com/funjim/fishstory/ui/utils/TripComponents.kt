@@ -149,7 +149,9 @@ fun TripItemWithMenu(
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     onNavigateToDetails: (String) -> Unit,
+    onEventClick: (() -> Unit)? = null,
     onFishClick: ((String, Boolean) -> Unit)? = null,
+    onFishermanClick: (() -> Unit)? = null,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onSetThumbnail: (Photo) -> Unit,
@@ -168,7 +170,9 @@ fun TripItemWithMenu(
         showPhotoPicker = true,
         onClick = { onNavigateToDetails(tripSummary.trip.id) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
+        onEventClick = onEventClick,
         onFishClick = onFishClick,
+        onFishermanClick = onFishermanClick,
         onPhotoAdded = onPhotoAdded,
         onPhotoTaken = onPhotoTaken,
         onSetThumbnail = onSetThumbnail,
@@ -298,7 +302,9 @@ fun TripItem(
     showPhotoPicker: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onEventClick: (() -> Unit)? = null,
     onFishClick: ((String, Boolean) -> Unit)? = null,
+    onFishermanClick: (() -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
     onSetThumbnail: ((Photo) -> Unit)? = null,
@@ -417,6 +423,7 @@ fun TripItem(
                                 CardItemWithValue(
                                     icon = AppIcons.Default.CanoeEmpty,
                                     value = eventCount.toString(),
+                                    onClick = onEventClick,
                                     contentColor = secondaryContentColor
                                 )
                             }
@@ -425,12 +432,14 @@ fun TripItem(
                                 CardItemWithValue(
                                     icon = AppIcons.Default.Fisherman,
                                     value = fishermanCount.toString(),
+                                    onClick = onFishermanClick,
                                     contentColor = secondaryContentColor
                                 )
 
                                 CardItemWithValue(
                                     icon = AppIcons.Default.TackleBox,
                                     value = tackleBoxCount.toString(),
+                                    onClick = onFishermanClick,
                                     contentColor = secondaryContentColor
                                 )
                             }

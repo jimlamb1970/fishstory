@@ -71,6 +71,7 @@ import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.FishFilter
 
@@ -741,10 +742,25 @@ fun AppNavigation(
         }
 
         composable(
-            route = "trip_details/{tripId}",
-            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+            route = "trip_details/{tripId}?category={category}",
+            arguments = listOf(
+                navArgument("tripId") { type = NavType.StringType },
+                navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+            val categoryString = backStackEntry.arguments?.getString("category")
+            val initialCategory = categoryString?.let { name ->
+                try {
+                    CategoryType.valueOf(name)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
 
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: TripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -754,6 +770,7 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = viewModel,
                 tripId = tripId,
+                initialCategory = initialCategory,
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
                 },
