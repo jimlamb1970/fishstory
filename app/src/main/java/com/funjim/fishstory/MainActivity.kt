@@ -800,8 +800,8 @@ fun AppNavigation(
 
             TripListScreen(
                 viewModel = viewModel,
-                navigateToTripDetails = { tripId ->
-                    navController.navigate("trip_details/$tripId")
+                navigateToTripDetails = { tripId, categoryType ->
+                    navController.navigate("trip_details/$tripId?category=${categoryType.name}")
                 },
                 navigateToFishList = { tripId, targetOnly ->
                     navController.navigate(

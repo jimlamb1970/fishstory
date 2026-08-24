@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
@@ -45,7 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun TripListScreen(
     viewModel: TripListViewModel,
-    navigateToTripDetails: (String) -> Unit,
+    navigateToTripDetails: (String, CategoryType) -> Unit,
     navigateToFishList: (String, Boolean) -> Unit,
     navigateToAddTrip: () -> Unit,
     navigateBack: () -> Unit
@@ -314,8 +315,14 @@ fun TripListScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onEventClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
+                                    },
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
+                                    },
+                                    onFishermanClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.FISHERMEN)
                                     },
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
@@ -339,8 +346,14 @@ fun TripListScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onEventClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
+                                    },
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
+                                    },
+                                    onFishermanClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.FISHERMEN)
                                     },
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
@@ -364,8 +377,14 @@ fun TripListScreen(
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = viewModel.tripPhotos(trip.trip.id),
                                     onNavigateToDetails = navigateToTripDetails,
+                                    onEventClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
+                                    },
                                     onFishClick = { tripId, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
+                                    },
+                                    onFishermanClick = {
+                                        navigateToTripDetails(trip.trip.id, CategoryType.FISHERMEN)
                                     },
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },

@@ -443,7 +443,9 @@ fun DashboardScreen(
                     hasLocationPermission,
                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                     photosFlow = viewModel.tripPhotos(trip.trip.id),
-                    onNavigateToDetails = { onNavigate("trip_details/${trip.trip.id}") },
+                    onNavigateToDetails = { tripId, categoryType ->
+                        onNavigate("trip_details/${tripId}?${categoryType.name}")
+                    },
                     onEventClick = {
                         val category = CategoryType.EVENTS
                         onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
