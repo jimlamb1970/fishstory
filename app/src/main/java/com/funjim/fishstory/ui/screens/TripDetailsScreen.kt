@@ -87,7 +87,6 @@ import java.util.Locale
 fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
-    initialCategory: CategoryType? = CategoryType.TARGET_SPECIES,
     navigateToSelectTripCrew: (String) -> Unit,
     navigateToFishList: (FishFilter) -> Unit,
     navigateToAddEvent: (String) -> Unit,
@@ -101,12 +100,6 @@ fun TripDetailsScreen(
 
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
-    }
-
-    LaunchedEffect(initialCategory) {
-        if (initialCategory != null) {
-            viewModel.onCategorySelected(initialCategory)
-        }
     }
 
     LaunchedEffect(Unit) {

@@ -770,7 +770,6 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = viewModel,
                 tripId = tripId,
-                initialCategory = initialCategory,
                 navigateToSelectTripCrew = { id ->
                     navController.navigate("select_trip_crew/$id")
                 },
