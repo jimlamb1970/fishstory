@@ -143,7 +143,7 @@ fun ManageSkyConditionsScreen(
                     IconButton(onClick = { addItem = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                AppIcons.Default.Weather,
+                                AppIcons.Default.WeatherSet,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
                             Surface(
@@ -234,7 +234,7 @@ fun ManageSkyConditionsScreen(
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Weather,
+                                    imageVector = AppIcons.Default.WeatherSet,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 DropdownMenu(

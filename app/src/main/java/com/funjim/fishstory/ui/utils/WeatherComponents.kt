@@ -273,7 +273,7 @@ fun WeatherCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.Weather,
+                imageVector = AppIcons.Default.WeatherSet,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
@@ -474,7 +474,7 @@ fun WeatherSummaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.Weather,
+                imageVector = AppIcons.Default.WeatherSet,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)

@@ -211,7 +211,7 @@ fun WaterCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.Water,
+                imageVector = AppIcons.Default.WaterSet,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
@@ -358,7 +358,7 @@ fun WaterSummaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.Default.Water,
+                imageVector = AppIcons.Default.WaterSet,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)

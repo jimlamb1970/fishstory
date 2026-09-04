@@ -296,7 +296,7 @@ fun TripDetailsScreen(
                     CategoryChipConfig(
                         category = CategoryType.WATER,
                         icon = { Icon(
-                            AppIcons.Default.Water,
+                            AppIcons.Default.WaterSet,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
@@ -306,7 +306,7 @@ fun TripDetailsScreen(
                         category = CategoryType.WEATHER,
                         icon = {
                             Icon(
-                                AppIcons.Default.Weather,
+                                AppIcons.Default.WeatherSet,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -1094,7 +1094,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Water,
+                            imageVector = AppIcons.Default.WaterSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -1131,7 +1131,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Water,
+                            imageVector = AppIcons.Default.WaterSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },

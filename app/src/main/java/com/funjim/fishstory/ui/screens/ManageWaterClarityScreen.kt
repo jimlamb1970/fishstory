@@ -144,7 +144,7 @@ fun ManageWaterClarityScreen(
                     IconButton(onClick = { addItem = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                AppIcons.Default.Water,
+                                AppIcons.Default.WaterSet,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
                             Surface(
@@ -235,7 +235,7 @@ fun ManageWaterClarityScreen(
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Water,
+                                    imageVector = AppIcons.Default.WaterSet,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 DropdownMenu(

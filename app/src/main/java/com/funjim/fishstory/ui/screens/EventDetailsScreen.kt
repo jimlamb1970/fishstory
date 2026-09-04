@@ -265,7 +265,7 @@ fun EventDetailsScreen(
                     CategoryChipConfig(
                         category = CategoryType.WATER,
                         icon = { Icon(
-                            AppIcons.Default.Water,
+                            AppIcons.Default.WaterSet,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
@@ -275,7 +275,7 @@ fun EventDetailsScreen(
                         category = CategoryType.WEATHER,
                         icon = {
                             Icon(
-                                AppIcons.Default.Weather,
+                                AppIcons.Default.WeatherSet,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -407,7 +407,7 @@ fun EventDetailsScreen(
                                     IconButton(onClick = { showAddWaterDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
-                                                AppIcons.Default.Water,
+                                                AppIcons.Default.WaterSet,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp))
 
@@ -432,7 +432,7 @@ fun EventDetailsScreen(
                                     IconButton(onClick = { showAddWeatherDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
-                                                AppIcons.Default.Weather,
+                                                AppIcons.Default.WeatherSet,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp))
 
@@ -960,7 +960,7 @@ fun EventDetailsScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Water,
+                            imageVector = AppIcons.Default.WaterSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -997,7 +997,7 @@ fun EventDetailsScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Water,
+                            imageVector = AppIcons.Default.WaterSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -1173,7 +1173,7 @@ fun EventDetailsScreen(
 
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.Water,
+                    imageVector = AppIcons.Default.WaterSet,
                     modifier = Modifier.size(24.dp)
                 )
             },

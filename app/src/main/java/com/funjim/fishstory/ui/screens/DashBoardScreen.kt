@@ -923,7 +923,7 @@ fun ActiveTripCard(
 
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.Water,
+                    imageVector = AppIcons.Default.WaterSet,
                     modifier = Modifier.size(24.dp)
                 )
             },
