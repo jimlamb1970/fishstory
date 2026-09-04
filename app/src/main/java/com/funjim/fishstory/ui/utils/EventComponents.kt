@@ -171,6 +171,7 @@ fun EventItem(
     totalItems: Int = 0,
     onClick: () -> Unit,
     onFishClick: ((String, String, Boolean) -> Unit)? = null,
+    onFishermanClick: (() -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
     onSetThumbnail: ((Photo) -> Unit)? = null,
@@ -361,12 +362,14 @@ fun EventItem(
                             CardItemWithValue(
                                 icon = AppIcons.Default.Fisherman,
                                 value = item.fishermanCount.toString(),
+                                onClick = onFishermanClick,
                                 contentColor = secondaryContentColor
                             )
 
                             CardItemWithValue(
                                 icon = AppIcons.Default.TackleBox,
                                 value = item.tackleBoxCount.toString(),
+                                onClick = onFishermanClick,
                                 contentColor = secondaryContentColor
                             )
                         }

@@ -90,7 +90,7 @@ fun TripDetailsScreen(
     navigateToSelectTripCrew: (String) -> Unit,
     navigateToFishList: (FishFilter) -> Unit,
     navigateToAddEvent: (String) -> Unit,
-    navigateToEventDetails: (String) -> Unit,
+    navigateToEventDetails: (String, CategoryType) -> Unit,
     navigateToAddLures: (TackleBox) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -576,7 +576,6 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    var showEvents by remember { mutableStateOf(false) }
                     val thumbnail by viewModel.tripThumbnail().collectAsState(initial = null)
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
@@ -722,7 +721,6 @@ fun TripDetailsScreen(
                             ) { category ->
                                 when (category) {
                                     CategoryType.BODIES_OF_WATER -> {
-                                        showEvents = false
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
                                             thumbnailFlow = { bodyOfWater ->
@@ -750,7 +748,6 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.EVENTS -> {
-                                        //showEvents = true
                                         Column() {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth()
@@ -804,12 +801,23 @@ fun TripDetailsScreen(
                                                     ),
                                                     photosFlow = viewModel.eventPhotos(eventSummary.event.id),
                                                     showPhotoPicker = true,
-                                                    onClick = { navigateToEventDetails(eventSummary.event.id) },
+                                                    onClick = {
+                                                        navigateToEventDetails(
+                                                            eventSummary.event.id,
+                                                            CategoryType.TARGET_SPECIES
+                                                        )
+                                                    },
                                                     onFishClick = { _, _, targetOnly ->
                                                         navigateToFishList(FishFilter(
                                                             tripId = trip.id,
                                                             eventId = eventSummary.event.id,
                                                             targetOnly = targetOnly)
+                                                        )
+                                                    },
+                                                    onFishermanClick = {
+                                                        navigateToEventDetails(
+                                                            eventSummary.event.id,
+                                                            CategoryType.FISHERMEN
                                                         )
                                                     },
                                                     onPhotoAdded = {
@@ -892,7 +900,6 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.FISHERMEN -> {
-                                        showEvents = false
                                         Column() {
                                             FishermanSummary(
                                                 fishermanCount = summary.fishermanCount,
@@ -956,7 +963,6 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.TARGET_SPECIES -> {
-                                        showEvents = false
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
                                             onAdd = { showSpeciesSelection = true },
@@ -984,7 +990,6 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.WATER -> {
-                                        showEvents = false
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
                                             onEdit = { waterToEdit = it },
@@ -1000,7 +1005,6 @@ fun TripDetailsScreen(
                                     }
 
                                     CategoryType.WEATHER -> {
-                                        showEvents = false
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
                                             onEdit = { weatherToEdit = it },
@@ -1019,97 +1023,6 @@ fun TripDetailsScreen(
                                         // DO NOTHING FOR NOW
                                     }
                                 }
-                            }
-                        }
-
-                        if (showEvents) {
-                            val totalItems = eventSummaries.size
-                            itemsIndexed(eventSummaries) { index, eventSummary ->
-                                EventItem(
-                                    item = eventSummary,
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 4.dp
-                                    ),
-                                    index = index,
-                                    totalItems = totalItems,
-                                    thumbnailFlow = viewModel.eventThumbnail(eventSummary.event.id),
-                                    photosFlow = viewModel.eventPhotos(eventSummary.event.id),
-                                    showPhotoPicker = true,
-                                    onClick = { navigateToEventDetails(eventSummary.event.id) },
-                                    onFishClick = { _, _, targetOnly ->
-                                        navigateToFishList(FishFilter(
-                                            tripId = trip.id,
-                                            eventId = eventSummary.event.id,
-                                            targetOnly = targetOnly)
-                                        )
-                                    },
-                                    onPhotoAdded = {
-                                        viewModel.addEventPhoto(eventSummary.event.id, it, true)
-                                    },
-                                    onPhotoTaken = {
-                                        viewModel.addEventPhoto(eventSummary.event.id, it, false)
-                                    },
-                                    onSetThumbnail = { photo ->
-                                        viewModel.setEventThumbnail(
-                                            eventSummary.event.id,
-                                            photo.id
-                                        )
-                                    },
-                                    onPhotoDeleted = { photo ->
-                                        viewModel.deleteEventPhoto(
-                                            eventSummary.event.id,
-                                            photo.id
-                                        )
-                                    },
-                                    onDelete = { eventToDelete = eventSummary },
-                                    onSetLocation = if (hasLocationPermission) {
-                                        {
-                                            scope.launch {
-                                                val location = viewModel.fetchLocation()
-                                                if (location != null) {
-                                                    viewModel.upsertEvent(
-                                                        eventSummary.event.copy(
-                                                            latitude = location.latitude,
-                                                            longitude = location.longitude
-                                                        )
-                                                    )
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Location updated",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            }
-                                        }
-                                    } else null,
-                                    onSelectLocation = {
-                                        eventToUpdateLocation = eventSummary
-                                        locationPickerEvent.openPicker()
-                                    },
-                                    onUseTripLocation = if (details.trip.latitude != null) {
-                                        {
-                                            scope.launch {
-                                                viewModel.upsertEvent(
-                                                    eventSummary.event.copy(
-                                                        latitude = details.trip.latitude,
-                                                        longitude = details.trip.longitude
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    } else null,
-                                    onClearLocation = {
-                                        scope.launch {
-                                            viewModel.upsertEvent(
-                                                eventSummary.event.copy(
-                                                    latitude = null,
-                                                    longitude = null
-                                                )
-                                            )
-                                        }
-                                    }
-                                )
                             }
                         }
                     }

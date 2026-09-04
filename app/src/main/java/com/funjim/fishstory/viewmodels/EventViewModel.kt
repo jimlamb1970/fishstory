@@ -2,9 +2,12 @@ package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
@@ -37,16 +40,26 @@ class EventViewModel(
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
-    private val tripRepo: TripRepository
+    private val tripRepo: TripRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
+    private val inputCategory: String? = savedStateHandle["category"]
+    private val initialCategory: CategoryType = inputCategory?.let {
+        try {
+            CategoryType.valueOf(it)
+        } catch (e: Exception) {
+            null
+        }
+    } ?: CategoryType.TARGET_SPECIES
+
+    private val _selectedCategory = MutableStateFlow(initialCategory)
+    val selectedCategory: StateFlow<CategoryType> = _selectedCategory.asStateFlow()
+
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
-
-    private val _selectedCategory = MutableStateFlow(CategoryType.TARGET_SPECIES)
-    val selectedCategory: StateFlow<CategoryType> = _selectedCategory.asStateFlow()
 
     fun onCategorySelected(category: CategoryType) {
         _selectedCategory.value = category
@@ -612,8 +625,12 @@ class EventViewModelFactory(
     private val photoRepository: PhotoRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(
+        modelClass: Class<T>,
+        extras: CreationExtras
+    ): T {
         if (modelClass.isAssignableFrom(EventViewModel::class.java)) {
+            val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
             return EventViewModel(
                 locationProvider,
@@ -621,7 +638,8 @@ class EventViewModelFactory(
                 fishermanRepository,
                 fishRepository,
                 photoRepository,
-                tripRepository) as T
+                tripRepository,
+                savedStateHandle) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

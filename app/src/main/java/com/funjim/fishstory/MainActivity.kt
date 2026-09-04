@@ -676,10 +676,15 @@ fun AppNavigation(
         }
 
         composable(
-            route = "event_details/{eventId}/{tripId}",
+            route = "event_details/{eventId}/{tripId}?category={category}",
             arguments = listOf(
                 navArgument("eventId") { type = NavType.StringType },
-                navArgument("tripId") { type = NavType.StringType }
+                navArgument("tripId") { type = NavType.StringType },
+                navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
@@ -753,14 +758,6 @@ fun AppNavigation(
             )
         ) { backStackEntry ->
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-            val categoryString = backStackEntry.arguments?.getString("category")
-            val initialCategory = categoryString?.let { name ->
-                try {
-                    CategoryType.valueOf(name)
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
-            }
 
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: TripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -779,8 +776,8 @@ fun AppNavigation(
                 navigateToAddEvent = { id ->
                     navController.navigate("add_event/$id")
                 },
-                navigateToEventDetails = { eventId ->
-                    navController.navigate("event_details/$eventId/$tripId")
+                navigateToEventDetails = { eventId, categoryType ->
+                    navController.navigate("event_details/$eventId/$tripId?category=${categoryType.name}")
                 },
                 navigateToAddLures = { tackleBox ->
                     navController.navigate("select_lures/${tackleBox.fishermanId}/${tackleBox.id}")
