@@ -26,7 +26,8 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -160,6 +161,8 @@ fun TripItemWithMenu(
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
 ) {
+    var showPhotos by remember { mutableStateOf(false) }
+
     TripItem(
         trip = tripSummary,
         index = index,
@@ -167,12 +170,14 @@ fun TripItemWithMenu(
         modifier = modifier,
         thumbnailFlow = thumbnailFlow,
         photosFlow = photosFlow,
-        showPhotoPicker = true,
+        allowPhotos = true,
+        showPhotos = showPhotos,
         onClick = { onNavigateToDetails(tripSummary.trip.id, CategoryType.TARGET_SPECIES) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
         onEventClick = onEventClick,
         onFishClick = onFishClick,
         onFishermanClick = onFishermanClick,
+        onPhotoClick = { showPhotos = !showPhotos },
         onPhotoAdded = onPhotoAdded,
         onPhotoTaken = onPhotoTaken,
         onSetThumbnail = onSetThumbnail,
@@ -192,29 +197,18 @@ fun TripItemWithMenu(
                     onDismiss = onMenuDismiss
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Add Photo") },
+                        text = {
+                            if (showPhotos) Text("Hide Photos")
+                            else Text("Show Photos") },
                         onClick = {
                             onMenuDismiss()
-                            onAction(TripAction.SelectPhoto(tripSummary))
+                            showPhotos = !showPhotos
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = "Add Photo From Gallery"
-                            )
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = { Text("Take Photo") },
-                        onClick = {
-                            onMenuDismiss()
-                            onAction(TripAction.TakePhoto(tripSummary))
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = "Take Photo"
+                                if (showPhotos) Icons.Default.VisibilityOff
+                                else Icons.Default.Visibility,
+                                contentDescription = null
                             )
                         }
                     )
@@ -299,12 +293,14 @@ fun TripItem(
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
-    showPhotoPicker: Boolean = false,
+    allowPhotos: Boolean = false,
+    showPhotos: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onEventClick: (() -> Unit)? = null,
     onFishClick: ((String, Boolean) -> Unit)? = null,
     onFishermanClick: (() -> Unit)? = null,
+    onPhotoClick: (() -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
     onSetThumbnail: ((Photo) -> Unit)? = null,
@@ -318,8 +314,6 @@ fun TripItem(
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     }
-
-    var isExpanded by remember { mutableStateOf(false) }
 
     val startString = dateTimeFormatter.format(Date(trip.trip.startDate))
     val endString = dateTimeFormatter.format(Date(trip.trip.endDate))
@@ -357,7 +351,7 @@ fun TripItem(
                     imageVector = AppIcons.Default.Boat,
                     modifier = Modifier.size(64.dp),
                     onClick =
-                        if (showPhotoPicker) { { isExpanded = !isExpanded } }
+                        if (allowPhotos) { onPhotoClick }
                         else null
                 )
 
@@ -478,7 +472,7 @@ fun TripItem(
             }
 
             // Expanded content: PhotoPickerRow
-            if (isExpanded) {
+            if (showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))
