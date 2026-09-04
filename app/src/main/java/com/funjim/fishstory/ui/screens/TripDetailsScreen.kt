@@ -203,6 +203,17 @@ fun TripDetailsScreen(
         bodyOfWaterForPhoto = null
     }
 
+    var speciesForPhoto by remember { mutableStateOf<Species?>(null) }
+    val speciesPhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = speciesForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateSpeciesThumbnail(item.id, uri)
+        }
+        speciesForPhoto = null
+    }
+
     when (val state = uiState) {
         is TripDetailsUiState.Loading -> {
             // Keeps the screen entirely blank or showing a spinner
@@ -988,13 +999,14 @@ fun TripDetailsScreen(
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
-                                            onAdd = { showSpeciesSelection = true },
-                                            onDelete = { species ->
-                                                viewModel.removeTripTargetSpecies(
-                                                    tripId,
-                                                    species.id
-                                                )
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            ),
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
                                             },
+                                            onAdd = { showSpeciesSelection = true },
                                             onClick = { species ->
                                                 navigateToFishList(FishFilter(
                                                     tripId = trip.id,
@@ -1002,13 +1014,21 @@ fun TripDetailsScreen(
                                                     targetOnly = true)
                                                 )
                                             },
-                                            thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
+                                            onSetThumbnail = { species ->
+                                                speciesForPhoto = species
+                                                speciesPhotoPicker.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
                                             },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
+                                            onClearThumbnail = { species ->
+                                                viewModel.deleteSpeciesThumbnail(species.id)
+                                            },
+                                            onDelete = { species ->
+                                                viewModel.removeTripTargetSpecies(
+                                                    tripId,
+                                                    species.id
+                                                )
+                                            }
                                         )
                                     }
 

@@ -4,7 +4,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,11 +29,16 @@ import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.HideImage
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -815,11 +822,13 @@ fun TargetSpeciesColumn(
 @Composable
 fun SpeciesSummaries(
     items: List<SpeciesSummary>,
-    onAdd: () -> Unit,
-    onDelete: (Species) -> Unit,
-    onClick: (Species) -> Unit,
     modifier: Modifier = Modifier,
-    thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) }
+    thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
+    onAdd: () -> Unit,
+    onClick: (Species) -> Unit,
+    onSetThumbnail: (Species) -> Unit,
+    onClearThumbnail: (Species) -> Unit,
+    onDelete: (Species) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -882,6 +891,8 @@ fun SpeciesSummaries(
                     totalItems = items.size,
                     onClick = { species -> onClick(species) },
                     onFishClick = { species -> onClick(species) },
+                    onSetThumbnail = { species -> onSetThumbnail(species) },
+                    onClearThumbnail = { species -> onClearThumbnail(species) },
                     onDelete = { species -> onDelete(species) }
                 )
             }
@@ -898,6 +909,8 @@ fun SpeciesItem(
     totalItems: Int = 0,
     onClick: (Species) -> Unit,
     onFishClick: (Species) -> Unit,
+    onSetThumbnail: (Species) -> Unit,
+    onClearThumbnail: (Species) -> Unit,
     onDelete: (Species) -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -906,6 +919,9 @@ fun SpeciesItem(
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
+
+    var menuExpanded by remember { mutableStateOf(false) }
+    var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
     val species = summary.species
 
@@ -931,11 +947,59 @@ fun SpeciesItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ThumbnailBox(
-                    thumbnail = thumbnail,
-                    modifier = Modifier.size(48.dp),
-                    imageVector = AppIcons.Default.Species
-                )
+                Box(
+                    modifier = Modifier.combinedClickable(
+                        onClick = { /* Do nothing */ },
+                        onLongClick = {
+                            thumbnailMenuExpanded = true
+                        }
+                    )
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        modifier = Modifier.size(48.dp),
+                        imageVector = AppIcons.Default.Species
+                    )
+
+                    DropdownMenu(
+                        expanded = thumbnailMenuExpanded,
+                        onDismissRequest = { thumbnailMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                if (thumbnail != null) Text("Update Thumbnail")
+                                else Text("Select Thumbnail")
+                            },
+                            onClick = {
+                                thumbnailMenuExpanded = false
+                                onSetThumbnail(species)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.AddAPhoto,
+                                    contentDescription =
+                                        null
+                                )
+                            }
+                        )
+                        if (thumbnail != null) {
+                            DropdownMenuItem(
+                                text = { Text("Reset Thumbnail") },
+                                onClick = {
+                                    thumbnailMenuExpanded = false
+                                    onClearThumbnail(species)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.HideImage,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -961,16 +1025,63 @@ fun SpeciesItem(
                     }
                 }
 
-                IconButton(
-                    onClick = { onDelete(species) },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Remove",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                if (thumbnail != null) Text("Update Thumbnail")
+                                else Text("Select Thumbnail")
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onSetThumbnail(species)
+                            },
+                            leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                        )
+                        if (thumbnail != null) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Reset Thumbnail")
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onClearThumbnail(species)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.HideImage,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Remove") },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete(species)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Remove",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

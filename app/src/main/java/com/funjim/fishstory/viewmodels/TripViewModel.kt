@@ -477,10 +477,20 @@ class TripViewModel(
             photoRepo.deleteBodyOfWaterThumbnail(id)
         }
     }
-
     fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             photoRepo.updateBodyOfWaterThumbnail(id, uri)
+        }
+    }
+
+    fun deleteSpeciesThumbnail(speciesId: String) {
+        viewModelScope.launch {
+            photoRepo.deleteSpeciesThumbnail(speciesId)
+        }
+    }
+    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateSpeciesThumbnail(speciesId, uri)
         }
     }
 

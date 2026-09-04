@@ -184,7 +184,7 @@ fun EventDetailsScreen(
     val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
 
     var bodyOfWaterForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
+    val bodyOfWaterPhotoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         val item = bodyOfWaterForPhoto
@@ -192,6 +192,16 @@ fun EventDetailsScreen(
             viewModel.updateBodyOfWaterThumbnail(item.id, uri)
         }
         bodyOfWaterForPhoto = null
+    }
+    var speciesForPhoto by remember { mutableStateOf<Species?>(null) }
+    val speciesPhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = speciesForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateSpeciesThumbnail(item.id, uri)
+        }
+        speciesForPhoto = null
     }
 
     when (val state = uiState) {
@@ -786,7 +796,7 @@ fun EventDetailsScreen(
                                             },
                                             onSetThumbnail = { bodyOfWater ->
                                                 bodyOfWaterForPhoto = bodyOfWater
-                                                photoPickerLauncher.launch(
+                                                bodyOfWaterPhotoPicker.launch(
                                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                                 )
                                             },
@@ -866,13 +876,14 @@ fun EventDetailsScreen(
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
-                                            onAdd = { showSpeciesSelection = true },
-                                            onDelete = { species ->
-                                                viewModel.removeEventTargetSpecies(
-                                                    event.id,
-                                                    species.id
-                                                )
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            ),
+                                            thumbnailFlow = { species ->
+                                                viewModel.speciesThumbnail(species.id)
                                             },
+                                            onAdd = { showSpeciesSelection = true },
                                             onClick = { species ->
                                                 navigateToFishList(FishFilter(
                                                     tripId = trip.id,
@@ -881,13 +892,21 @@ fun EventDetailsScreen(
                                                     targetOnly = true)
                                                 )
                                             },
-                                            thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
+                                            onSetThumbnail = { species ->
+                                                speciesForPhoto = species
+                                                speciesPhotoPicker.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
                                             },
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp
-                                            )
+                                            onClearThumbnail = { species ->
+                                                viewModel.deleteSpeciesThumbnail(species.id)
+                                            },
+                                            onDelete = { species ->
+                                                viewModel.removeEventTargetSpecies(
+                                                    event.id,
+                                                    species.id
+                                                )
+                                            }
                                         )
                                     }
                                     CategoryType.WATER -> {

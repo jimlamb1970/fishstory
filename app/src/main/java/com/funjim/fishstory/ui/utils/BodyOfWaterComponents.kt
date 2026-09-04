@@ -794,6 +794,7 @@ fun BodyOfWaterSummaryCard(
                         modifier = Modifier.size(48.dp),
                         imageVector = AppIcons.Default.BodyOfWater
                     )
+
                     DropdownMenu(
                         expanded = thumbnailMenuExpanded,
                         onDismissRequest = { thumbnailMenuExpanded = false }
