@@ -130,7 +130,9 @@ fun FishItem(
                     .width(IntrinsicSize.Min,
                 )
             ) {
-                ReleasedChip(fish.fish.keptCount == 0)
+                if (fish.fish.keptCount > 0) {
+                    ReleasedChip(fish.fish.keptCount == 0)
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 ThumbnailBox(
                     thumbnail = thumbnail,
