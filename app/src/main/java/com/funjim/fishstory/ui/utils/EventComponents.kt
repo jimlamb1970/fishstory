@@ -32,7 +32,8 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -185,6 +186,7 @@ fun EventItem(
     val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
+    var showPhotos by remember { mutableStateOf(false) }
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd HH:mm", Locale.getDefault())
@@ -198,52 +200,6 @@ fun EventItem(
     val secondaryContentColor = getOnCardSecondaryColor()
 
     var menuExpanded by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(false) }
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (e: Exception) {
-                    // This can happen if the provider doesn't support persistable permissions
-                }
-                if (onPhotoAdded != null) {
-                    onPhotoAdded(it)
-                }
-            }
-        }
-    )
-
-    var tempUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                tempUri?.let {
-                    if (onPhotoTaken != null) {
-                        onPhotoTaken(it)
-                    }
-                }
-            }
-        }
-    )
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val uri = createPublicImageUri(context)
-            tempUri = uri
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     val hasMenuActions = (onPhotoAdded != null) || (onPhotoTaken != null) ||
             (onSelectLocation != null) || (onSetLocation != null) ||
@@ -278,7 +234,7 @@ fun EventItem(
                     imageVector = AppIcons.Default.CanoeEmpty,
                     modifier = Modifier.size(64.dp),
                     onClick =
-                        if (showPhotoPicker) { { isExpanded = !isExpanded } }
+                        if (showPhotoPicker) { { showPhotos = !showPhotos } }
                         else null
                 )
 
@@ -415,51 +371,22 @@ fun EventItem(
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false }
                         ) {
-                            if (onPhotoAdded != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Add Photo") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        galleryLauncher.launch(
-                                            PickVisualMediaRequest(
-                                                ActivityResultContracts.PickVisualMedia.ImageOnly
-                                            )
-                                        )
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.PhotoLibrary,
-                                            contentDescription = "Add Photo From Gallery"
-                                        )
-                                    }
-                                )
-                            }
-                            if (onPhotoTaken != null) {
-                                DropdownMenuItem(
-                                    text = { Text("Take Photo") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        val permissionCheckResult =
-                                            ContextCompat.checkSelfPermission(
-                                                context,
-                                                Manifest.permission.CAMERA
-                                            )
-                                        if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                            val uri = createPublicImageUri(context)
-                                            tempUri = uri
-                                            cameraLauncher.launch(uri)
-                                        } else {
-                                            permissionLauncher.launch(Manifest.permission.CAMERA)
-                                        }
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.AddAPhoto,
-                                            contentDescription = "Take Photo"
-                                        )
-                                    }
-                                )
-                            }
+                            DropdownMenuItem(
+                                text = {
+                                    if (showPhotos) Text("Hide Photos")
+                                    else Text("Show Photos") },
+                                onClick = {
+                                    menuExpanded = false
+                                    showPhotos = !showPhotos
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        if (showPhotos) Icons.Default.VisibilityOff
+                                        else Icons.Default.Visibility,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
 
                             if (onSetLocation != null) {
                                 DropdownMenuItem(
@@ -540,7 +467,7 @@ fun EventItem(
             }
 
             // Expanded content: PhotoPickerRow
-            if (isExpanded) {
+            if (showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))
