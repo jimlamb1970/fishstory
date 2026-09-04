@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -145,56 +147,16 @@ fun FishermanItem(
     onPhotoDeleted: (Photo) -> Unit,
     onDelete: () -> Unit
 ) {
-    val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
+    var showPhotos by remember { mutableStateOf(false) }
 
-    var isExpanded by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (e: Exception) {
-                    // This can happen if the provider doesn't support persistable permissions
-                }
-                onPhotoAdded(it)
-            }
-        }
-    )
-
-    var tempUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                tempUri?.let { onPhotoTaken(it) }
-            }
-        }
-    )
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val uri = createPublicImageUri(context)
-            tempUri = uri
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     OutlinedCard(
         modifier = Modifier
@@ -224,7 +186,7 @@ fun FishermanItem(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.Fisherman,
                     modifier = Modifier.size(64.dp),
-                    onClick = { isExpanded = !isExpanded }
+                    onClick = { showPhotos = !showPhotos }
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -308,45 +270,22 @@ fun FishermanItem(
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Add Photo") },
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos") },
                             onClick = {
                                 expanded = false
-                                galleryLauncher.launch(
-                                    PickVisualMediaRequest(
-                                        ActivityResultContracts.PickVisualMedia.ImageOnly
-                                    )
-                                )
+                                showPhotos = !showPhotos
                             },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Add Photo From Gallery"
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
                                 )
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text("Take Photo") },
-                            onClick = {
-                                expanded = false
-                                val permissionCheckResult = ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.CAMERA
-                                )
-                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                    val uri = createPublicImageUri(context)
-                                    tempUri = uri
-                                    cameraLauncher.launch(uri)
-                                } else {
-                                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.AddAPhoto,
-                                    contentDescription = "Take Photo"
-                                )
-                            }
-                        )
+
                         DropdownMenuItem(
                             text = { Text("Delete") },
                             onClick = {
@@ -365,7 +304,7 @@ fun FishermanItem(
                 }
             }
 
-            if (isExpanded) {
+            if (showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -389,6 +328,7 @@ fun FishermanSummaryCard(
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
     selectedTackleBoxId: String?,
     availableBoxes: List<TackleBox>,
     lureCount: Int,
@@ -398,23 +338,31 @@ fun FishermanSummaryCard(
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onClick: (Fisherman) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
 
+    var expanded by remember { mutableStateOf(false) }
+
     val selectedTackleBox = availableBoxes.find { it.id == selectedTackleBoxId }
     var tackleBoxOpen by remember { mutableStateOf(false) }
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
     var showTackleBoxSelection by remember { mutableStateOf(false) }
     var luresExpanded by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
 
     val sortedLures by remember(lures) { derivedStateOf { sortLures(lures) } }
+
+    var showPhotos by remember { mutableStateOf(false) }
 
     OutlinedCard(
         modifier = modifier
@@ -441,7 +389,14 @@ fun FishermanSummaryCard(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     modifier = Modifier.size(48.dp),
-                    imageVector = AppIcons.Default.Fisherman
+                    imageVector = AppIcons.Default.Fisherman,
+                    onClick = {
+                        if (!showPhotos) {
+                            tackleBoxOpen = false
+                            luresExpanded = false
+                        }
+                        showPhotos = !showPhotos
+                    }
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -472,6 +427,9 @@ fun FishermanSummaryCard(
                                     enabled = (selectedTackleBox != null),
                                 ) {
                                     tackleBoxOpen = !tackleBoxOpen
+                                    if (tackleBoxOpen) {
+                                        showPhotos = false
+                                    }
                                     luresExpanded = tackleBoxOpen
                                 }
                         )
@@ -540,6 +498,27 @@ fun FishermanSummaryCard(
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos") },
+                            onClick = {
+                                expanded = false
+                                if (!showPhotos) {
+                                    tackleBoxOpen = false
+                                    luresExpanded = false
+                                }
+                                showPhotos = !showPhotos
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
                             text = { Text("Select Tackle Box") },
                             onClick = {
                                 expanded = false
@@ -553,6 +532,7 @@ fun FishermanSummaryCard(
                                 )
                             }
                         )
+
                         if (selectedTackleBox != null) {
                             DropdownMenuItem(
                                 text = { Text("Add Lures") },
@@ -568,10 +548,10 @@ fun FishermanSummaryCard(
                                     )
                                 }
                             )
-
                         }
+
                         DropdownMenuItem(
-                            text = { Text("Delete") },
+                            text = { Text("Remove") },
                             onClick = {
                                 expanded = false
                                 onDelete(item.fisherman)
@@ -588,7 +568,7 @@ fun FishermanSummaryCard(
                 }
             }
 
-            if (luresExpanded) {
+            if (luresExpanded || showPhotos) {
                 HorizontalDivider(
                     modifier = Modifier.padding(top = 8.dp),
                     thickness = 1.dp,
@@ -629,6 +609,15 @@ fun FishermanSummaryCard(
                     }
                 }
             }
+            AnimatedVisibility(visible = showPhotos) {
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                )
+            }
         }
     }
 
@@ -661,6 +650,7 @@ fun FishermanSummaryCard(
 fun FishermanSummaries(
     list: List<FishermanSummary>,
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
+    photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
     getLureCount: @Composable (tackleBoxId: String?) -> Int,
@@ -671,6 +661,10 @@ fun FishermanSummaries(
     onClick: (Fisherman) -> Unit,
     onFishClick: (Fisherman, Boolean) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
+    onPhotoAdded: (Fisherman, Uri) -> Unit,
+    onPhotoTaken: (Fisherman, Uri) -> Unit,
+    onSetThumbnail: (Fisherman, Photo) -> Unit,
+    onPhotoDeleted: (Fisherman, Photo) -> Unit,
     onDelete: (Fisherman) -> Unit
 ) {
     Column() {
@@ -736,6 +730,7 @@ fun FishermanSummaries(
                         index = index,
                         totalItems = list.size,
                         thumbnailFlow = thumbnailFlow(item.fisherman),
+                        photosFlow = photosFlow(item.fisherman),
                         selectedTackleBoxId = selectedTackleBoxId,
                         availableBoxes = availableBoxes,
                         lureCount = lureCount,
@@ -745,6 +740,10 @@ fun FishermanSummaries(
                         onTackleBoxSelected = onTackleBoxSelected,
                         onClick = onClick,
                         onFishClick= onFishClick,
+                        onPhotoAdded = { uri -> onPhotoAdded(item.fisherman, uri) },
+                        onPhotoTaken = { uri -> onPhotoTaken(item.fisherman, uri) },
+                        onSetThumbnail = { photo -> onSetThumbnail(item.fisherman, photo) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(item.fisherman, photo) },
                         onDelete = onDelete
                     )
                 }

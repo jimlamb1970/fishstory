@@ -824,6 +824,9 @@ fun EventDetailsScreen(
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
+                                                photosFlow = { fisherman ->
+                                                    viewModel.fishermanPhotos(fisherman.id)
+                                                },
                                                 tackleBoxSelections = tackleBoxMap,
                                                 getTackleBoxesForFisherman = { fishermanId ->
                                                     viewModel.getTackleBoxesForFisherman(fishermanId)
@@ -865,6 +868,32 @@ fun EventDetailsScreen(
                                                     viewModel.updateEventFisherman(
                                                         fishermanId = fisherman.id,
                                                         tackleBoxId = tackleBoxId
+                                                    )
+                                                },
+                                                onPhotoTaken = { fisherman, uri ->
+                                                    viewModel.addFishermanPhoto(
+                                                        fisherman.id,
+                                                        uri,
+                                                        false
+                                                    )
+                                                },
+                                                onPhotoAdded = { fisherman, uri ->
+                                                    viewModel.addFishermanPhoto(
+                                                        fisherman.id,
+                                                        uri,
+                                                        true
+                                                    )
+                                                },
+                                                onSetThumbnail = { fisherman, photo ->
+                                                    viewModel.setFishermanThumbnail(
+                                                        fisherman.id,
+                                                        photo.id
+                                                    )
+                                                },
+                                                onPhotoDeleted = { fisherman, photo ->
+                                                    viewModel.deleteFishermanPhoto(
+                                                        fisherman.id,
+                                                        photo.id
                                                     )
                                                 },
                                                 onDelete = { fisherman ->

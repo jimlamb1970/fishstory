@@ -73,6 +73,14 @@ class FishermanListViewModel(
         }
     }
 
+    fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForFisherman(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
     fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addFishermanPhoto(fishermanId, uri, selected)
@@ -80,23 +88,11 @@ class FishermanListViewModel(
                 .onFailure {  }
         }
     }
-
-    fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
-        return photoRepo.getPhotosForFisherman(fishermanId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
-    }
-
-    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
-        return photoRepo.fetchFishermanThumbnail(fishermanId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
-    }
-
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
-    }
-
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+    }
+    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }
 }
 
