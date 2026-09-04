@@ -4,6 +4,9 @@ import DeleteConfirmationDialog
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -179,6 +182,17 @@ fun EventDetailsScreen(
 
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
+
+    var bodyOfWaterForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = bodyOfWaterForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateBodyOfWaterThumbnail(item.id, uri)
+        }
+        bodyOfWaterForPhoto = null
+    }
 
     when (val state = uiState) {
         is EventDetailsUiState.Loading -> {
@@ -769,6 +783,15 @@ fun EventDetailsScreen(
                                                     bodyOfWaterId = bodyOfWater.id,
                                                     targetOnly = target)
                                                 )
+                                            },
+                                            onSetThumbnail = { bodyOfWater ->
+                                                bodyOfWaterForPhoto = bodyOfWater
+                                                photoPickerLauncher.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            },
+                                            onClearThumbnail = { bodyOfWater ->
+                                                viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
                                             },
                                             onDelete = { bodyOfWater ->
                                                 viewModel.removeEventBodyOfWater(

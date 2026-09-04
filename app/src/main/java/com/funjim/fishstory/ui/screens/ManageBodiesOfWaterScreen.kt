@@ -94,7 +94,6 @@ fun ManageBodiesOfWaterScreen(
     ) { uri: Uri? ->
         val item = currentItemForPhoto
         if (uri != null && item != null) {
-            // TODO -- add ability to crop directly
             viewModel.updateBodyOfWaterThumbnail(item.id, uri)
         }
         currentItemForPhoto = null

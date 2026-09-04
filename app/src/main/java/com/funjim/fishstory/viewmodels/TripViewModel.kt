@@ -472,6 +472,18 @@ class TripViewModel(
         }
     }
 
+    fun deleteBodyOfWaterThumbnail(id: String) {
+        viewModelScope.launch {
+            photoRepo.deleteBodyOfWaterThumbnail(id)
+        }
+    }
+
+    fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateBodyOfWaterThumbnail(id, uri)
+        }
+    }
+
     fun tripThumbnail(): Flow<ByteArray?> {
         val tripId = _selectedTripId.value ?: return(flowOf(null))
 

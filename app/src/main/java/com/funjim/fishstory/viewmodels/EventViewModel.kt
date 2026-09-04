@@ -552,6 +552,18 @@ class EventViewModel(
         }
     }
 
+    fun deleteBodyOfWaterThumbnail(id: String) {
+        viewModelScope.launch {
+            photoRepo.deleteBodyOfWaterThumbnail(id)
+        }
+    }
+
+    fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateBodyOfWaterThumbnail(id, uri)
+        }
+    }
+
     fun eventThumbnail(): Flow<ByteArray?> {
         val eventId = _selectedEventId.value ?: return(flowOf(null))
 
