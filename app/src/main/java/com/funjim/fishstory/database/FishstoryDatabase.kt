@@ -34,8 +34,10 @@ import com.funjim.fishstory.model.*
         PhotoFishEntity::class,
         PhotoFishermanEntity::class,
         PhotoLureEntity::class,
+        PhotoSkyConditionEntity::class,
         PhotoSpeciesEntity::class,
         PhotoTripEntity::class,
+        PhotoWaterClarityEntity::class,
         SkyConditionEntity::class,
         SpeciesEntity::class,
         TackleBoxEntity::class,
@@ -53,7 +55,7 @@ import com.funjim.fishstory.model.*
         EventEntityDetailedSummary::class,
         TripEntityDetailedSummary::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(WeatherConverters::class)

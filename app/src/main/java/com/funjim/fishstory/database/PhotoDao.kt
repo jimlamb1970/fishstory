@@ -93,10 +93,17 @@ interface PhotoDao {
     @Delete
     suspend fun deleteFishPhoto(crossRef: PhotoFishEntity)
     @Upsert
+    suspend fun addSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
+    @Delete
+    suspend fun deleteSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
+    @Upsert
     suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesEntity)
     @Delete
     suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesEntity)
-
+    @Upsert
+    suspend fun addWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
+    @Delete
+    suspend fun deleteWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
 
     @Query("""
     SELECT photo_table.* FROM photo_table
@@ -163,6 +170,14 @@ interface PhotoDao {
 
     @Query("""
         SELECT photo_table.* FROM photo_table
+        INNER JOIN photo_sky_condition_cross_ref ON photo_table.id = photo_sky_condition_cross_ref.photoId
+        WHERE photo_sky_condition_cross_ref.skyConditionId = :id
+        LIMIT 1
+    """)
+    suspend fun getPhotoForSkyCondition(id: String): PhotoEntity?
+
+    @Query("""
+        SELECT photo_table.* FROM photo_table
         INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
         WHERE photo_species_cross_ref.speciesId = :speciesId
         LIMIT 1
@@ -177,6 +192,15 @@ interface PhotoDao {
     LIMIT 1
 """)
     fun getThumbnailForTrip(tripId: String): Flow<ByteArray?>
+
+    @Query("""
+        SELECT photo_table.* FROM photo_table
+        INNER JOIN photo_water_clarity_cross_ref ON photo_table.id = photo_water_clarity_cross_ref.photoId
+        WHERE photo_water_clarity_cross_ref.waterClarityId = :id
+        LIMIT 1
+    """)
+    suspend fun getPhotoForWaterClarity(id: String): PhotoEntity?
+
 
     @Query("""
     SELECT thumbnail FROM photo_table 
@@ -234,12 +258,31 @@ interface PhotoDao {
 
     @Query("""
     SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_sky_condition_cross_ref ON photo_table.id = photo_sky_condition_cross_ref.photoId
+    WHERE skyConditionId = :id 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForSkyCondition(id: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
     INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
     WHERE speciesId = :speciesId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
 """)
     fun getThumbnailForSpecies(speciesId: String): Flow<ByteArray?>
+
+    @Query("""
+    SELECT thumbnail FROM photo_table 
+    INNER JOIN photo_water_clarity_cross_ref ON photo_table.id = photo_water_clarity_cross_ref.photoId
+    WHERE waterClarityId = :id 
+    ORDER BY isPrimary DESC, timestamp ASC 
+    LIMIT 1
+""")
+    fun getThumbnailForWaterClarity(id: String): Flow<ByteArray?>
+
 
     @Transaction
     suspend fun setPrimaryPhotoForEvent(eventId: String, photoId: String) {

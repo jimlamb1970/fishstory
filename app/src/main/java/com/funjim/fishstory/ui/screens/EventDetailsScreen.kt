@@ -1060,9 +1060,9 @@ fun EventDetailsScreen(
                     initialAirHumidity = item.airHumidity,
                     allSkyConditions = allSkyConditions,
                     title = "Edit Weather Conditions",
-                    thumbnailProvider = { sky ->
-                        val thumbnailFlow = remember(sky.id) {
-                            viewModel.skyConditionThumbnail(sky.id)
+                    thumbnailProvider = { skyCondition ->
+                        val thumbnailFlow = remember(skyCondition.id) {
+                            viewModel.skyConditionThumbnail(skyCondition.id)
                         }
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
@@ -1287,9 +1287,9 @@ fun EventDetailsScreen(
             initialAirHumidity = null,
             allSkyConditions = allSkyConditions,
             title = "New Weather Conditions",
-            thumbnailProvider = { clarity ->
-                val thumbnailFlow = remember(clarity.id) {
-                    viewModel.waterClarityThumbnail(clarity.id)
+            thumbnailProvider = { skyCondition ->
+                val thumbnailFlow = remember(skyCondition.id) {
+                    viewModel.skyConditionThumbnail(skyCondition.id)
                 }
                 val thumbnail by thumbnailFlow.collectAsState(initial = null)
 

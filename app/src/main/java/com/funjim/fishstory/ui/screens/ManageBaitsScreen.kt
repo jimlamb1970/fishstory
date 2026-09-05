@@ -85,6 +85,7 @@ fun ManageBaitsScreen(
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
     val allItems by viewModel.baitSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
     var addItem by remember { mutableStateOf(false) }
 
@@ -99,7 +100,6 @@ fun ManageBaitsScreen(
     ) { uri: Uri? ->
         val item = currentItemForPhoto
         if (uri != null && item != null) {
-            // TODO -- add ability to crop directly
             viewModel.updateBaitThumbnail(item.id, uri)
         }
         currentItemForPhoto = null
@@ -147,7 +147,6 @@ fun ManageBaitsScreen(
                                 AppIcons.Default.Bait,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
-
                             Surface(
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primary,

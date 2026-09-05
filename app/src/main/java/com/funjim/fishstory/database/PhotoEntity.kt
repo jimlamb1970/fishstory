@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.WaterClarity
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -210,6 +211,31 @@ data class PhotoLureEntity(
     val isPrimary: Boolean = false
 )
 
+@Serializable
+@Entity(
+    primaryKeys = ["photoId", "skyConditionId"],
+    tableName = "photo_sky_condition_cross_ref",
+    indices = [Index(value = ["skyConditionId"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = PhotoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["photoId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = SkyConditionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["skyConditionId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class PhotoSkyConditionEntity(
+    val photoId: String,
+    val skyConditionId: String,
+    val isPrimary: Boolean = false
+)
 
 @Serializable
 @Entity(
@@ -260,5 +286,31 @@ data class PhotoSpeciesEntity(
 data class PhotoTripEntity(
     val photoId: String,
     val tripId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+@Entity(
+    primaryKeys = ["photoId", "waterClarityId"],
+    tableName = "photo_water_clarity_cross_ref",
+    indices = [Index(value = ["waterClarityId"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = PhotoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["photoId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = WaterClarityEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["waterClarityId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class PhotoWaterClarityEntity(
+    val photoId: String,
+    val waterClarityId: String,
     val isPrimary: Boolean = false
 )

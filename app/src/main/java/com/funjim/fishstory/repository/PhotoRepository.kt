@@ -31,8 +31,10 @@ import com.funjim.fishstory.database.PhotoEventEntity
 import com.funjim.fishstory.database.PhotoFishEntity
 import com.funjim.fishstory.database.PhotoFishermanEntity
 import com.funjim.fishstory.database.PhotoLureEntity
+import com.funjim.fishstory.database.PhotoSkyConditionEntity
 import com.funjim.fishstory.database.PhotoSpeciesEntity
 import com.funjim.fishstory.database.PhotoTripEntity
+import com.funjim.fishstory.database.PhotoWaterClarityEntity
 import com.funjim.fishstory.database.toPhotoDomainList
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -416,13 +418,11 @@ class PhotoRepository(
     }
 
     fun fetchSkyConditionThumbnail(id: String): Flow<ByteArray?> {
-        //return photoDao.getThumbnailForSkyCondition(id)
-        return flowOf(null)
+        return photoDao.getThumbnailForSkyCondition(id)
     }
 
     fun fetchWaterClarityThumbnail(id: String): Flow<ByteArray?> {
-        //return photoDao.getThumbnailForWaterClarity(id)
-        return flowOf(null)
+        return photoDao.getThumbnailForWaterClarity(id)
     }
 
     suspend fun deleteBaitThumbnail(id: String) {
@@ -457,9 +457,25 @@ class PhotoRepository(
     }
 
     suspend fun deleteSkyConditionThumbnail(id: String) {
+        // Check if existing photo cross reference exists
+        val existingPhoto = photoDao.getPhotoForSkyCondition(id)
+
+        // If it does, delete the photo that corresponds to the cross reference from the photo table
+        // Deleting the photo will delete the cross reference too
+        if (existingPhoto != null) {
+            photoDao.deletePhoto(existingPhoto)
+        }
     }
 
     suspend fun deleteWaterClarityThumbnail(id: String) {
+        // Check if existing photo cross reference exists
+        val existingPhoto = photoDao.getPhotoForWaterClarity(id)
+
+        // If it does, delete the photo that corresponds to the cross reference from the photo table
+        // Deleting the photo will delete the cross reference too
+        if (existingPhoto != null) {
+            photoDao.deletePhoto(existingPhoto)
+        }
     }
 
     suspend fun updateBaitThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
@@ -538,8 +554,52 @@ class PhotoRepository(
     }
 
     suspend fun updateSkyConditionThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            // 1) Check if existing species photo cross reference exists.
+            val existingPhoto = photoDao.getPhotoForSkyCondition(id)
+
+            // 2) If it does, delete the photo that corresponds to the cross reference from the photo table
+            if (existingPhoto != null) {
+                photoDao.deletePhoto(existingPhoto)
+            }
+
+            val metadata = getPhotoMetadata(uri)
+
+            // 3) Create a new entry for the photo table
+            val photo = PhotoEntity(
+                uri = "sky_condition_thumb_${id}_${System.currentTimeMillis()}",
+                hashcode = metadata.hashcode,
+                thumbnail = metadata.thumbnail
+            )
+            photoDao.insertPhoto(photo)
+
+            // 4) Add the new photo species cross ref
+            photoDao.addSkyConditionPhoto(PhotoSkyConditionEntity(photo.id, id, true))
+        }
     }
 
     suspend fun updateWaterClarityThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            // 1) Check if existing species photo cross reference exists.
+            val existingPhoto = photoDao.getPhotoForWaterClarity(id)
+
+            // 2) If it does, delete the photo that corresponds to the cross reference from the photo table
+            if (existingPhoto != null) {
+                photoDao.deletePhoto(existingPhoto)
+            }
+
+            val metadata = getPhotoMetadata(uri)
+
+            // 3) Create a new entry for the photo table
+            val photo = PhotoEntity(
+                uri = "water_clarity_thumb_${id}_${System.currentTimeMillis()}",
+                hashcode = metadata.hashcode,
+                thumbnail = metadata.thumbnail
+            )
+            photoDao.insertPhoto(photo)
+
+            // 4) Add the new photo species cross ref
+            photoDao.addWaterClarityPhoto(PhotoWaterClarityEntity(photo.id, id, true))
+        }
     }
 }
