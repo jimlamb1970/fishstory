@@ -763,8 +763,9 @@ fun BodyOfWaterSummaryCard(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clickable(
-                onClick = { onClick(item.bodyOfWater) }
+            .combinedClickable(
+                onClick = { onClick(item.bodyOfWater) },
+                onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,

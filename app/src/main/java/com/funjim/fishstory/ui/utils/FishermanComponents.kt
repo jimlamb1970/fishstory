@@ -368,8 +368,9 @@ fun FishermanSummaryCard(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clickable(
-                onClick = { onClick(item.fisherman) }
+            .combinedClickable(
+                onClick = { onClick(item.fisherman) },
+                onLongClick = { expanded = true }
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,

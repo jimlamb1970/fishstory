@@ -5,6 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -197,7 +198,11 @@ fun WaterCard(
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
-            .animateContentSize(),
+            .animateContentSize()
+            .combinedClickable(
+                onClick = {},
+                onLongClick = { menuExpanded = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = contentColor,
@@ -344,7 +349,11 @@ fun WaterSummaryCard(
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
-            .animateContentSize(),
+            .animateContentSize()
+            .combinedClickable(
+                onClick = {},
+                onLongClick = { menuExpanded = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = contentColor,

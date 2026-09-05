@@ -929,8 +929,9 @@ fun SpeciesItem(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clickable(
-                onClick = { onClick(species) }
+            .combinedClickable(
+                onClick = { onClick(species) },
+                onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,

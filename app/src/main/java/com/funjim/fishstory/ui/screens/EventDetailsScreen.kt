@@ -849,12 +849,7 @@ fun EventDetailsScreen(
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
                                                 },
-                                                onClick = { fisherman ->
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Not yet implemented",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                onClick = { fisherman -> /* do nothing */
                                                 },
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(FishFilter(
