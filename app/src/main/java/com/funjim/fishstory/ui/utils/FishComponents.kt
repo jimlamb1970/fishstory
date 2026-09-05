@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -22,6 +23,8 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
@@ -34,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
@@ -49,61 +53,29 @@ fun FishItem(
     includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
     onDelete: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: () -> Unit,
     onClearLocation: () -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
+
+    var showPhotos by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (e: Exception) {
-                    // This can happen if the provider doesn't support persistable permissions
-                }
-                onPhotoAdded(it)
-            }
-        }
-    )
 
-    var tempUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                tempUri?.let {
-                    onPhotoTaken(it)
-                }
-            }
-        }
-    )
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val uri = createPublicImageUri(context)
-            tempUri = uri
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val borderColor = getCardBorderColor(index, totalItems)
 
     OutlinedCard(
         modifier = Modifier
@@ -117,7 +89,7 @@ fun FishItem(
             containerColor = getCardColor(index, totalItems),
             contentColor = getOnCardColor()
         ),
-        border = BorderStroke(1.dp, color = getCardBorderColor(index, totalItems))
+        border = BorderStroke(1.dp, color = borderColor)
     ) {
         Row(
             modifier = Modifier.padding(8.dp).fillMaxWidth(),
@@ -137,7 +109,8 @@ fun FishItem(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(64.dp),
+                    onClick = { showPhotos = !showPhotos }
                 )
             }
 
@@ -267,35 +240,18 @@ fun FishItem(
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Add Photo") },
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos") },
                             onClick = {
                                 menuExpanded = false
-                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                showPhotos = !showPhotos
                             },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Add Photo From Gallery"
-                                )
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Take Photo") },
-                            onClick = {
-                                menuExpanded = false
-                                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                    val uri = createPublicImageUri(context)
-                                    tempUri = uri
-                                    cameraLauncher.launch(uri)
-                                } else {
-                                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.AddAPhoto,
-                                    contentDescription = "Take Photo"
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
                                 )
                             }
                         )
@@ -376,6 +332,23 @@ fun FishItem(
                         )
                     }
                 }
+            }
+        }
+
+        AnimatedVisibility(visible = showPhotos) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                HorizontalDivider(color = borderColor)
+
+                PhotoPickerRow(
+                    photos = photos,
+                    onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                    onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                )
             }
         }
     }

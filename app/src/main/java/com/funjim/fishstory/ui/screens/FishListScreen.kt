@@ -315,6 +315,7 @@ fun FishListScreen(
                                 thumbnailFlow =
                                     if (fishDetails.photoCount == 0) viewModel.speciesThumbnail(fishDetails.fish.speciesId)
                                     else viewModel.fishThumbnail(fishDetails.fish.id),
+                                photosFlow = viewModel.fishPhotos(fishDetails.fish.id),
                                 onClick = {
                                     navigateToFishDetails(fishDetails.fish.id)
                                 },
@@ -336,6 +337,12 @@ fun FishListScreen(
                                         fishId = fishDetails.fish.id,
                                         uri = uri,
                                         selected = false)
+                                },
+                                onSetThumbnail = { photo ->
+                                    viewModel.setFishThumbnail(fishDetails.fish.id, photo.id)
+                                },
+                                onPhotoDeleted = { photo ->
+                                    viewModel.deleteFishPhoto(fishDetails.fish.id, photo.id)
                                 },
                                 onDelete = { fishToDelete = fishDetails.fish },
                                 onSetLocation = if (hasLocationPermission) {

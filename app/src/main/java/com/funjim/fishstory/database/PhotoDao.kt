@@ -289,7 +289,6 @@ interface PhotoDao {
         clearPrimaryPhotoForEvent(eventId)
         setPhotoAsPrimaryForEvent(eventId, photoId)
     }
-
     @Query("UPDATE photo_event_cross_ref SET isPrimary = 0 WHERE eventId = :eventId")
     suspend fun clearPrimaryPhotoForEvent(eventId: String)
 
@@ -297,14 +296,22 @@ interface PhotoDao {
     suspend fun setPhotoAsPrimaryForEvent(eventId: String, photoId: String)
 
     @Transaction
+    suspend fun setPrimaryPhotoForFish(fishId: String, photoId: String) {
+        clearPrimaryPhotoForFish(fishId)
+        setPhotoAsPrimaryForFish(fishId, photoId)
+    }
+    @Query("UPDATE photo_fish_cross_ref SET isPrimary = 0 WHERE fishId = :fishId")
+    suspend fun clearPrimaryPhotoForFish(fishId: String)
+    @Query("UPDATE photo_fish_cross_ref SET isPrimary = 1 WHERE fishId = :fishId AND photoId = :photoId")
+    suspend fun setPhotoAsPrimaryForFish(fishId: String, photoId: String)
+
+    @Transaction
     suspend fun setPrimaryPhotoForFisherman(fishermanId: String, photoId: String) {
         clearPrimaryPhotoForFisherman(fishermanId)
         setPhotoAsPrimaryForFisherman(fishermanId, photoId)
     }
-
     @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 0 WHERE fishermanId = :fishermanId")
     suspend fun clearPrimaryPhotoForFisherman(fishermanId: String)
-
     @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 1 WHERE fishermanId = :fishermanId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForFisherman(fishermanId: String, photoId: String)
 

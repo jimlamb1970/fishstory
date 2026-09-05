@@ -434,6 +434,9 @@ class FishViewModel(
     fun deleteFishPhoto(fishId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishPhoto(fishId, photoId) }
     }
+    fun setFishThumbnail(fishId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setFishThumbnail(fishId, photoId) }
+    }
 
     fun baitThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchBaitThumbnail(id)

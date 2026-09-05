@@ -302,74 +302,14 @@ class PhotoRepository(
             false
         }
     }
-    suspend fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) =
-        addPhoto(uri, selected) { photoId ->
-            photoDao.addTripPhoto(PhotoTripEntity(photoId, tripId))
-        }
-
-    suspend fun setTripThumbnail(tripId: String, photoId: String) =
-        photoDao.setPrimaryPhotoForTrip(tripId = tripId, photoId = photoId)
-
-    suspend fun deleteTripPhoto(tripId: String, photoId: String) =
-        photoDao.deleteTripPhoto(PhotoTripEntity(photoId, tripId))
-
     suspend fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
             photoDao.addEventPhoto(PhotoEventEntity(photoId, eventId))
         }
-
-    suspend fun setEventThumbnail(eventId: String, photoId: String) =
-        photoDao.setPrimaryPhotoForEvent(eventId = eventId, photoId = photoId)
-
-    suspend fun deleteEventPhoto(eventId: String, photoId: String) =
-        photoDao.deleteEventPhoto(PhotoEventEntity(photoId, eventId))
-
-    suspend fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) =
+    suspend fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
-            photoDao.addFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
+            photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId))
         }
-
-    suspend fun setFishermanThumbnail(fishermanId: String, photoId: String) =
-        photoDao.setPrimaryPhotoForFisherman(fishermanId = fishermanId, photoId = photoId)
-
-
-    suspend fun deleteFishermanPhoto(fishermanId: String, photoId: String) =
-        photoDao.deleteFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
-
-    suspend fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) =
-        addPhoto(uri, selected) { photoId ->
-            photoDao.addLurePhoto(
-                PhotoLureEntity(
-                    photoId = photoId,
-                    lureId = lureId
-                )
-            )
-        }
-
-    suspend fun addLurePhotos(lureId: String, photos: List<Photo>) {
-        photos.forEach { photo ->
-            addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->
-                photoDao.addLurePhoto(PhotoLureEntity(photoId, lureId)).toString()
-            }
-                .onSuccess { }
-                .onFailure { }
-        }
-    }
-
-    suspend fun setLureThumbnail(lureId: String, photoId: String) =
-        photoDao.setPrimaryPhotoForLure(lureId = lureId, photoId = photoId)
-
-
-    suspend fun deleteLurePhoto(lureId: String, photo: Photo) {
-        photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
-    }
-
-    suspend fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
-        photos.forEach { photo ->
-            photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
-        }
-    }
-
     suspend fun addFishPhotos(fishId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->
@@ -379,51 +319,65 @@ class PhotoRepository(
                 .onFailure { }
         }
     }
+    suspend fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) =
+        addPhoto(uri, selected) { photoId ->
+            photoDao.addFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
+        }
+    suspend fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) =
+        addPhoto(uri, selected) { photoId ->
+            photoDao.addLurePhoto(
+                PhotoLureEntity(
+                    photoId = photoId,
+                    lureId = lureId
+                )
+            )
+        }
+    suspend fun addLurePhotos(lureId: String, photos: List<Photo>) {
+        photos.forEach { photo ->
+            addPhoto(photo.uri.toUri(), !photo.hashcode.isEmpty()) { photoId ->
+                photoDao.addLurePhoto(PhotoLureEntity(photoId, lureId)).toString()
+            }
+                .onSuccess { }
+                .onFailure { }
+        }
+    }
+    suspend fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) =
+        addPhoto(uri, selected) { photoId ->
+            photoDao.addTripPhoto(PhotoTripEntity(photoId, tripId))
+        }
+
+    suspend fun setEventThumbnail(eventId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForEvent(eventId = eventId, photoId = photoId)
+    suspend fun setFishThumbnail(fishId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForFish(fishId = fishId, photoId = photoId)
+    suspend fun setFishermanThumbnail(fishermanId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForFisherman(fishermanId = fishermanId, photoId = photoId)
+    suspend fun setLureThumbnail(lureId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForLure(lureId = lureId, photoId = photoId)
+    suspend fun setTripThumbnail(tripId: String, photoId: String) =
+        photoDao.setPrimaryPhotoForTrip(tripId = tripId, photoId = photoId)
+
+    suspend fun deleteEventPhoto(eventId: String, photoId: String) =
+        photoDao.deleteEventPhoto(PhotoEventEntity(photoId, eventId))
+    suspend fun deleteFishPhoto(fishId: String, photoId: String) =
+        photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
     suspend fun deleteFishPhotos(fishId: String, photos: List<Photo>) {
         photos.forEach { photo ->
             photoDao.deleteFishPhoto(PhotoFishEntity(photo.id, fishId))
         }
     }
-
-    suspend fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) =
-        addPhoto(uri, selected) { photoId ->
-            photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId))
+    suspend fun deleteFishermanPhoto(fishermanId: String, photoId: String) =
+        photoDao.deleteFishermanPhoto(PhotoFishermanEntity(photoId, fishermanId))
+    suspend fun deleteLurePhoto(lureId: String, photo: Photo) {
+        photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
+    }
+    suspend fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
+        photos.forEach { photo ->
+            photoDao.deleteLurePhoto(PhotoLureEntity(photo.id, lureId))
         }
-    suspend fun deleteFishPhoto(fishId: String, photoId: String) =
-        photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
-
-    fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForTrip(id)
     }
-    fun fetchBaitThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForBait(id)
-    }
-    fun fetchBodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForBodyOfWater(id)
-    }
-    fun fetchEventThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForEvent(id)
-    }
-    fun fetchFishermanThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForFisherman(id)
-    }
-    fun fetchFishThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForFish(id)
-    }
-    fun fetchLureThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForLure(id)
-    }
-    fun fetchSpeciesThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForSpecies(id)
-    }
-
-    fun fetchSkyConditionThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForSkyCondition(id)
-    }
-
-    fun fetchWaterClarityThumbnail(id: String): Flow<ByteArray?> {
-        return photoDao.getThumbnailForWaterClarity(id)
-    }
+    suspend fun deleteTripPhoto(tripId: String, photoId: String) =
+        photoDao.deleteTripPhoto(PhotoTripEntity(photoId, tripId))
 
     suspend fun deleteBaitThumbnail(id: String) {
         // Check if existing photo cross reference exists
@@ -455,7 +409,6 @@ class PhotoRepository(
             photoDao.deletePhoto(existingPhoto)
         }
     }
-
     suspend fun deleteSkyConditionThumbnail(id: String) {
         // Check if existing photo cross reference exists
         val existingPhoto = photoDao.getPhotoForSkyCondition(id)
@@ -466,7 +419,6 @@ class PhotoRepository(
             photoDao.deletePhoto(existingPhoto)
         }
     }
-
     suspend fun deleteWaterClarityThumbnail(id: String) {
         // Check if existing photo cross reference exists
         val existingPhoto = photoDao.getPhotoForWaterClarity(id)
@@ -476,6 +428,37 @@ class PhotoRepository(
         if (existingPhoto != null) {
             photoDao.deletePhoto(existingPhoto)
         }
+    }
+
+    fun fetchBaitThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForBait(id)
+    }
+    fun fetchBodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForBodyOfWater(id)
+    }
+    fun fetchEventThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForEvent(id)
+    }
+    fun fetchFishThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForFish(id)
+    }
+    fun fetchFishermanThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForFisherman(id)
+    }
+    fun fetchLureThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForLure(id)
+    }
+    fun fetchSkyConditionThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForSkyCondition(id)
+    }
+    fun fetchSpeciesThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForSpecies(id)
+    }
+    fun fetchTripThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForTrip(id)
+    }
+    fun fetchWaterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoDao.getThumbnailForWaterClarity(id)
     }
 
     suspend fun updateBaitThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
