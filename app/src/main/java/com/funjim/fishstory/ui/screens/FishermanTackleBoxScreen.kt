@@ -300,18 +300,26 @@ private fun LureTackleBoxItem(
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-    val backgroundColor = getCardColor(index, totalItems)
+    // Make background less transparent when selected (e.g., 1.0f vs 0.85f)
+    val backgroundColor = getCardColor(index, totalItems, selected = inTackleBox)
+
+    // Make border thicker when selected (e.g., 3.dp vs 1.dp)
     val borderColor = getCardBorderColor(index, totalItems)
+    val borderWidth = if (inTackleBox) 3.dp else 1.dp
+
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        onClick = { onCheckedChange(!inTackleBox) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = contentColor
         ),
-        border = BorderStroke(1.dp, color = borderColor)
+        border = BorderStroke(borderWidth, color = borderColor)
     ) {
         Row(
             modifier = Modifier
@@ -319,25 +327,19 @@ private fun LureTackleBoxItem(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                checked = inTackleBox,
-                onCheckedChange = onCheckedChange
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-
             ThumbnailBox(
                 thumbnail = thumbnail,
                 imageVector = AppIcons.Default.Lure,
                 modifier = Modifier.size(48.dp)
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.lure.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (inTackleBox) FontWeight.Medium else FontWeight.Normal
+                    fontWeight = if (inTackleBox) FontWeight.Bold else FontWeight.Normal
                 )
                 LureColorComposition(
                     primary = item.primaryColors,
