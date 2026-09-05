@@ -148,7 +148,7 @@ fun EditEventDialog(
             Button(
                 onClick = {
                     onConfirm(event.copy(
-                        name = name,
+                        name = name.trim(),
                         startTime = startTime,
                         endTime = endTime)
                     )

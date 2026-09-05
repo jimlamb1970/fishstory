@@ -120,9 +120,9 @@ fun EditFishermanDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(fisherman.copy(
-                    firstName = firstName,
-                    lastName = lastName,
-                    nickname = nickname))
+                    firstName = firstName.trim(),
+                    lastName = lastName.trim(),
+                    nickname = nickname.trim()))
                 },
                 enabled = (firstName.isNotBlank() || lastName.isNotBlank()) && isChanged
             ) { Text("OK") }

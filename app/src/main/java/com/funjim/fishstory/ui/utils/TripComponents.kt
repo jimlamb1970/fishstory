@@ -127,7 +127,7 @@ fun EditTripDialog(
             Button(
                 onClick = {
                     onConfirm(item.copy(
-                        name = name,
+                        name = name.trim(),
                         startDate = startTime,
                         endDate = endTime)
                     )
