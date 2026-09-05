@@ -144,7 +144,7 @@ fun ManageBaitsScreen(
                     IconButton(onClick = { addItem = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                AppIcons.Default.Bait,
+                                AppIcons.Default.Worm,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
                             Surface(
