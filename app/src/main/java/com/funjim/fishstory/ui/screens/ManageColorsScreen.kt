@@ -583,7 +583,7 @@ fun AdvancedColorPickerDialog(
         },
         title = {
             Text(
-                text = if (maxAllowedColors > 1) "Select Colors (Up to 4)" else "Select Lure Color",
+                text = if (maxAllowedColors > 1) "Select Colors (Up to 4)" else "Select Color",
                 fontWeight = FontWeight.Bold
             )
         },
@@ -802,7 +802,7 @@ fun AdvancedColorPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Lure Color", fontWeight = FontWeight.Bold) },
+        title = { Text("Select Color", fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
