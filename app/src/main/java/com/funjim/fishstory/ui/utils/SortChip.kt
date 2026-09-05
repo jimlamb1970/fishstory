@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SortChip(
     label: String,
-    selected:
-    Boolean, onClick: () -> Unit
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
     FilterChip(
         selected = selected,

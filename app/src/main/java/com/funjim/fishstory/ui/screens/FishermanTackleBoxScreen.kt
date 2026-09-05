@@ -44,6 +44,11 @@ import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
+enum class LureFilterOption(val label: String) {
+    ALL("All"),
+    SELECTED("In Tackle Box"),
+    UNSELECTED("Not In Tackle Box")
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FishermanTackleBoxScreen(
@@ -75,11 +80,18 @@ fun FishermanTackleBoxScreen(
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
-    val sortedLures = remember(allLures, currentOrder, luresInBoxIds) {
+    var currentFilter by remember { mutableStateOf(LureFilterOption.ALL) }
+
+    val sortedLures = remember(allLures, currentOrder, luresInBoxIds, currentFilter) {
+        val filteredList = when (currentFilter) {
+            LureFilterOption.ALL -> allLures
+            LureFilterOption.SELECTED -> allLures.filter { it.lure.id in luresInBoxIds }
+            LureFilterOption.UNSELECTED -> allLures.filter { it.lure.id !in luresInBoxIds }
+        }
+
         sortLures(
-            lureList = allLures,
-            order = currentOrder,
-            luresInBoxIds = luresInBoxIds
+            lureList = filteredList,
+            order = currentOrder
         )
     }
 
@@ -144,7 +156,6 @@ fun FishermanTackleBoxScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-
             // Summary chip
             Surface(
                 modifier = Modifier
@@ -162,59 +173,86 @@ fun FishermanTackleBoxScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                 Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .horizontalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
                 ) {
-                    SortChip("Name",
-                        currentOrder == LureSortOrder.NAME) {
-                        viewModel.setSortOrder(LureSortOrder.NAME)
-                    }
-                    SortChip("Primary Color",
-                        currentOrder == LureSortOrder.PRIMARY_COLOR) {
-                        viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
-                    }
-                    SortChip("Secondary Color",
-                        currentOrder == LureSortOrder.SECONDARY_COLOR) {
-                        viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
-                    }
-                    SortChip("Glow Color",
-                        currentOrder == LureSortOrder.GLOW_COLOR) {
-                        viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
-                    }
-                    SortChip("Glows",
-                        currentOrder == LureSortOrder.GLOW) {
-                        viewModel.setSortOrder(LureSortOrder.GLOW)
-                    }
-                    SortChip("Hooks",
-                        currentOrder == LureSortOrder.HOOKS) {
-                        viewModel.setSortOrder(LureSortOrder.HOOKS)
+                    LureFilterOption.entries.forEach { option ->
+                        SortChip(
+                            label = option.label,
+                            selected = (currentFilter == option),
+                            onClick = { currentFilter = option },
+                        )
                     }
                 }
 
-                Spacer(Modifier.width(4.dp))
-
-                IconButton(
-                    onClick = { viewModel.toggleReverse() },
+                Row(
                     modifier = Modifier
-                        .border(
-                            width = 1.dp,
-                            color = getChipColor(),
-                            shape = RoundedCornerShape(8.dp)
-                        ).size(34.dp)
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                        contentDescription = "Reverse Sort",
-                        tint = getOnChipColor(),
-                    )
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .horizontalScroll(rememberScrollState())
+                    ) {
+                        SortChip(
+                            "Name",
+                            currentOrder == LureSortOrder.NAME
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.NAME)
+                        }
+                        SortChip(
+                            "Primary Color",
+                            currentOrder == LureSortOrder.PRIMARY_COLOR
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
+                        }
+                        SortChip(
+                            "Secondary Color",
+                            currentOrder == LureSortOrder.SECONDARY_COLOR
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
+                        }
+                        SortChip(
+                            "Glow Color",
+                            currentOrder == LureSortOrder.GLOW_COLOR
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
+                        }
+                        SortChip(
+                            "Glows",
+                            currentOrder == LureSortOrder.GLOW
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.GLOW)
+                        }
+                        SortChip(
+                            "Hooks",
+                            currentOrder == LureSortOrder.HOOKS
+                        ) {
+                            viewModel.setSortOrder(LureSortOrder.HOOKS)
+                        }
+                    }
+
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(
+                        onClick = { viewModel.toggleReverse() },
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = getChipColor(),
+                                shape = RoundedCornerShape(8.dp)
+                            ).size(34.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            contentDescription = "Reverse Sort",
+                            tint = getOnChipColor(),
+                        )
+                    }
                 }
             }
 
