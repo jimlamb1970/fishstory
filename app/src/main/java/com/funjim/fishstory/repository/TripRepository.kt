@@ -28,7 +28,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
-import com.funjim.fishstory.model.TripWithFishermenAndSpecies
+import com.funjim.fishstory.model.TripWithInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -52,7 +52,7 @@ class TripRepository(
             .map { it?.toDomain() }
     }
 
-    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithFishermenAndSpecies?> {
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithInfo?> {
         return tripDao.getTripWithFishermenAndSpecies(tripId)
             .map { it?.toDomain() }
     }

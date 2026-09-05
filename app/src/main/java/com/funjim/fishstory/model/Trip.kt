@@ -20,8 +20,9 @@ data class TripWithFishermen(
     val fishermen: List<Fisherman>
 )
 
-data class TripWithFishermenAndSpecies(
+data class TripWithInfo(
     val trip: Trip,
+    val bodiesOfWater: List<BodyOfWater>,
     val fishermen: List<Fisherman>,
     val targetSpecies: List<Species>
 )

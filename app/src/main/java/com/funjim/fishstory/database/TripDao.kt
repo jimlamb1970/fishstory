@@ -68,7 +68,7 @@ interface TripDao {
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripEntityWithFishermenAndSpecies?>
+    fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripEntityWithInfo?>
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")

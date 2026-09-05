@@ -37,8 +37,20 @@ data class TripEntityWithFishermen(
     val fishermen: List<FishermanEntity>
 )
 
-data class TripEntityWithFishermenAndSpecies(
+data class TripEntityWithInfo(
     @Embedded val trip: TripEntity,
+
+    @Relation(
+        entity = BodyOfWaterEntity::class,
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = TripBodyOfWaterEntity::class,
+            parentColumn = "tripId",
+            entityColumn = "bodyOfWaterId"
+        )
+    )
+    val bodiesOfWater: List<BodyOfWaterEntity>,
 
     @Relation(
         parentColumn = "id",

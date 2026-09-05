@@ -17,9 +17,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
+import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.EventViewModelCrewPickerBridge
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -53,6 +56,11 @@ fun AddEventScreen(
     val uiState by viewModel.uiAddEventState.collectAsStateWithLifecycle()
 
     val eventDraft by viewModel.eventDraft.collectAsStateWithLifecycle()
+
+    var showBodyOfWaterSelection by remember { mutableStateOf(false) }
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    val bodiesOfWater by viewModel.eventBodiesOfWater.collectAsStateWithLifecycle()
+    var addNewBodyOfWater by remember { mutableStateOf(false) }
 
     var showSpeciesSelection by remember { mutableStateOf(false) }
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
@@ -155,6 +163,7 @@ fun AddEventScreen(
                     )
                 }
                 viewModel.updateEventTargetSpecies(trip.targetSpecies)
+                viewModel.updateEventBodiesOfWater(trip.bodiesOfWater)
                 isDraftInitialized = true
             }
 
@@ -321,7 +330,7 @@ fun AddEventScreen(
                                 OutlinedTextField(
                                     value = eventDraft.name,
                                     onValueChange = { name ->
-                                        viewModel.updateEventDraft { eventDraft.copy(name = name) }
+                                        viewModel.updateEventDraft { eventDraft.copy(name = name.trim()) }
                                     },
                                     label = { Text("Event Name") },
                                     modifier = Modifier.fillMaxWidth(),
@@ -413,7 +422,6 @@ fun AddEventScreen(
                                 }
 
                                 HorizontalDivider()
-
                                 TargetSpeciesRow(
                                     items = targetSpecies,
                                     onAdd = { showSpeciesSelection = true },
@@ -430,6 +438,30 @@ fun AddEventScreen(
                                         ThumbnailBox(
                                             thumbnail = thumbnail,
                                             imageVector = AppIcons.Default.TargetFish,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                HorizontalDivider()
+                                BodiesOfWaterRow(
+                                    items = bodiesOfWater,
+                                    onAdd = { showBodyOfWaterSelection = true },
+                                    onClick = {},
+                                    onDelete = { bodyOfWater ->
+                                        viewModel.updateEventBodiesOfWater(bodiesOfWater - bodyOfWater)
+                                    },
+                                    thumbnailProvider = { bodyOfWater ->
+                                        val thumbnailFlow = remember(bodyOfWater.id) {
+                                            viewModel.speciesThumbnail(bodyOfWater.id)
+                                        }
+
+                                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                        ThumbnailBox(
+                                            thumbnail = thumbnail,
+                                            imageVector = AppIcons.Default.BodyOfWater,
                                             modifier = Modifier.size(18.dp)
                                         )
                                     },
@@ -590,6 +622,38 @@ fun AddEventScreen(
                         }
                     }
                 }
+
+                if (showBodyOfWaterSelection) {
+                    BodyOfWaterSelection(
+                        items = allBodiesOfWater,
+                        selectedItems = bodiesOfWater,
+                        onSelected = { selected ->
+                            viewModel.updateEventBodiesOfWater(bodiesOfWater + selected)
+                        },
+                        onUnselected = { unselected ->
+                            viewModel.updateEventBodiesOfWater(bodiesOfWater - unselected)
+                        },
+                        onAdd = {
+                            addNewBodyOfWater = true
+                        },
+                        onDone = { showBodyOfWaterSelection = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        thumbnailProvider = { item ->
+                            val thumbnailFlow = remember(item.id) {
+                                viewModel.bodyOfWaterThumbnail(item.id)
+                            }
+
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.BodyOfWater,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    )
+                }
+
                 if (showSpeciesSelection) {
                     SpeciesSelection(
                         items = allSpecies,
@@ -624,11 +688,20 @@ fun AddEventScreen(
         }
     }
 
+    if (addNewBodyOfWater) {
+        AddSpeciesDialog(
+            onDismiss = { addNewBodyOfWater = false },
+            onConfirm = { name ->
+                viewModel.updateEventBodiesOfWater(BodyOfWater(name = name))
+                addNewBodyOfWater = false
+            }
+        )
+    }
     if (addNewSpecies) {
         AddSpeciesDialog(
             onDismiss = { addNewSpecies = false },
-            onConfirm = { speciesName ->
-                viewModel.updateEventTargetSpecies(Species(name = speciesName))
+            onConfirm = { name ->
+                viewModel.updateEventTargetSpecies(Species(name = name))
                 addNewSpecies = false
             }
         )

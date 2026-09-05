@@ -5,7 +5,7 @@ import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripWithDetails
 import com.funjim.fishstory.model.TripWithFishermen
-import com.funjim.fishstory.model.TripWithFishermenAndSpecies
+import com.funjim.fishstory.model.TripWithInfo
 
 // TripEntity <-> Trip
 fun TripEntity.toDomain(): Trip {
@@ -50,16 +50,17 @@ fun List<TripEntityWithFishermen>.toTripWithFishermenDomainList(): List<TripWith
     return map { it.toDomain() }
 }
 
-// TripEntityWithFishermenAndSpecies <-> TripWithFishermenAndSpecies
-fun TripEntityWithFishermenAndSpecies.toDomain(): TripWithFishermenAndSpecies {
-    return TripWithFishermenAndSpecies(
+// TripEntityWithInfo <-> TripWithInfo
+fun TripEntityWithInfo.toDomain(): TripWithInfo {
+    return TripWithInfo(
         trip = trip.toDomain(),
+        bodiesOfWater = bodiesOfWater.toBodyOfWaterDomainList(),
         fishermen = fishermen.toFishermanDomainList(),
         targetSpecies = targetSpecies.toSpeciesDomainList()
     )
 }
 
-fun List<TripEntityWithFishermenAndSpecies>.toTripWithFishermenAndSpeciesDomainList(): List<TripWithFishermenAndSpecies> {
+fun List<TripEntityWithInfo>.toTripWithInfoDomainList(): List<TripWithInfo> {
     return map { it.toDomain() }
 }
 

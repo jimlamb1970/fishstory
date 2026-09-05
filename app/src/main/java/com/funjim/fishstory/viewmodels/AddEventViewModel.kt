@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -37,6 +38,7 @@ enum class EventWizardStep {
 }
 class AddEventViewModel(
     private val locationProvider: LocationProvider,
+    private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
@@ -64,11 +66,19 @@ class AddEventViewModel(
         _selectedEventId.value = _eventDraft.value.id
     }
 
+    private val _eventBodiesOfWater = MutableStateFlow<List<BodyOfWater>>(emptyList())
+    val eventBodiesOfWater = _eventBodiesOfWater.asStateFlow()
+    fun updateEventBodiesOfWater(bodyOfWater: BodyOfWater) {
+        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
+            _eventBodiesOfWater.update { it -> it + addedBodyOfWater }
+        }
+    }
+    fun updateEventBodiesOfWater(ids: List<BodyOfWater>) {
+        _eventBodiesOfWater.value = ids
+    }
+
     private val _eventTargetSpecies = MutableStateFlow<List<Species>>(emptyList())
     val eventTargetSpecies = _eventTargetSpecies.asStateFlow()
-    fun clearEventTargetSpecies() {
-        _eventTargetSpecies.value = emptyList()
-    }
     fun updateEventTargetSpecies(species: Species) {
         addSpecies(species) { addedSpecies ->
             _eventTargetSpecies.update { it -> it + addedSpecies }
@@ -181,6 +191,12 @@ class AddEventViewModel(
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
 
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -209,11 +225,31 @@ class AddEventViewModel(
         initialValue = AddEventUiState.Loading
     )
 
-    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
-        return photoRepo.fetchSpeciesThumbnail(speciesId)
+    fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(id)
+            .flowOn(Dispatchers.IO)
+    }
+    fun speciesThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchSpeciesThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
 
+    fun addBodyOfWater(
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                envRepo.addBodyOfWater(item)
+                onSuccess(item)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Body of Water '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding body of water.")
+            }
+        }
+    }
     fun addSpecies(
         item: Species,
         onSuccess: (Species) -> Unit
@@ -328,13 +364,14 @@ sealed interface AddEventUiState {
     object Loading : AddEventUiState
 
     data class Success(
-        val trip: TripWithFishermenAndSpecies,
+        val trip: TripWithInfo,
         val event: Event
     ) : AddEventUiState
 }
 
 class AddEventViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val photoRepository: PhotoRepository,
@@ -345,6 +382,7 @@ class AddEventViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return AddEventViewModel(
                 locationProvider,
+                environmentRepository,
                 fishermanRepository,
                 fishRepository,
                 photoRepository,
