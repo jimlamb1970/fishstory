@@ -304,7 +304,7 @@ fun FishermanItem(
                 }
             }
 
-            if (showPhotos) {
+            AnimatedVisibility(visible = showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -610,6 +610,7 @@ fun FishermanSummaryCard(
                     }
                 }
             }
+
             AnimatedVisibility(visible = showPhotos) {
                 PhotoPickerRow(
                     photos = photos,

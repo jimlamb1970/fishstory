@@ -1,13 +1,12 @@
 package com.funjim.fishstory.ui.utils
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,7 +31,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -123,11 +123,10 @@ fun LureItem(
     onPhotoDeleted: (Photo) -> Unit,
     onDelete: () -> Unit
 ) {
-    val context = LocalContext.current
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
 
-    var isExpanded by remember { mutableStateOf(false) }
+    var showPhotos by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val backgroundColor = getCardColor(index, totalItems)
@@ -135,52 +134,13 @@ fun LureItem(
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (e: Exception) {
-                    // This can happen if the provider doesn't support persistable permissions
-                }
-                onPhotoAdded(it)
-            }
-        }
-    )
-
-    var tempUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                tempUri?.let { onPhotoTaken(it) }
-            }
-        }
-    )
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            val uri = createPublicImageUri(context)
-            tempUri = uri
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .animateContentSize()
             .combinedClickable(
-                onClick = { isExpanded = !isExpanded },
+                onClick = { showPhotos = !showPhotos },
                 onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
@@ -203,12 +163,11 @@ fun LureItem(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.Lure,
                     modifier = Modifier.size(64.dp),
-                    onClick = { isExpanded = !isExpanded }
+                    onClick = { showPhotos = !showPhotos }
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Middle Column: Lure Details
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.lure.name,
@@ -254,7 +213,6 @@ fun LureItem(
                     }
                 }
 
-                // Right Column: Overflow Menu
                 Box {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
@@ -283,36 +241,18 @@ fun LureItem(
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Add Photo") },
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos") },
                             onClick = {
                                 menuExpanded = false
-                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                showPhotos = !showPhotos
                             },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Add Photo From Gallery"
-                                )
-                            }
-                        )
-
-                        DropdownMenuItem(
-                            text = { Text("Take Photo") },
-                            onClick = {
-                                menuExpanded = false
-                                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                    val uri = createPublicImageUri(context)
-                                    tempUri = uri
-                                    cameraLauncher.launch(uri)
-                                } else {
-                                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.AddAPhoto,
-                                    contentDescription = "Take Photo"
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
                                 )
                             }
                         )
@@ -335,7 +275,7 @@ fun LureItem(
                 }
             }
 
-            if (isExpanded) {
+            AnimatedVisibility(visible = showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))

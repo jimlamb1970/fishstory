@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -466,8 +467,7 @@ fun EventItem(
                 }
             }
 
-            // Expanded content: PhotoPickerRow
-            if (showPhotos) {
+            AnimatedVisibility(visible = showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))

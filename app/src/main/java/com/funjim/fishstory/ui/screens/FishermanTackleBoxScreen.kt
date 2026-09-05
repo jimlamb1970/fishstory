@@ -1,7 +1,11 @@
 package com.funjim.fishstory.ui.screens
 
+import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +19,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -25,9 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureWithColorsSummary
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.EditTackleBoxDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
+import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -56,6 +66,7 @@ fun FishermanTackleBoxScreen(
     fishermanId: String,
     tackleBoxId: String,
     onAdd: () -> Unit,
+    onEdit: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
     LaunchedEffect(fishermanId) {
@@ -278,9 +289,33 @@ fun FishermanTackleBoxScreen(
                             LureTackleBoxItem(
                                 item = item,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
+                                photosFlow = viewModel.lurePhotos(item.lure.id),
                                 index = index,
                                 totalItems = totalItems,
                                 inTackleBox = inBox,
+                                onEdit = { onEdit(item.lure.id) },
+                                onPhotoAdded = { uri ->
+                                    viewModel.addLurePhoto(
+                                        lureId = item.lure.id,
+                                        uri = uri,
+                                        selected = true
+                                    )
+                                },
+                                onPhotoTaken = { uri ->
+                                    viewModel.addLurePhoto(
+                                        lureId = item.lure.id,
+                                        uri = uri,
+                                        selected = false
+                                    )
+                                },
+                                onSetThumbnail = { photo ->
+                                    viewModel.setLureThumbnail(
+                                        lureId = item.lure.id,
+                                        photoId = photo.id)
+                                },
+                                onPhotoDeleted = { photo ->
+                                    viewModel.deleteLurePhoto(item.lure.id, photo)
+                                },
                                 onCheckedChange = { checked ->
                                     scope.launch {
                                         if (checked) {
@@ -331,17 +366,25 @@ fun FishermanTackleBoxScreen(
 private fun LureTackleBoxItem(
     item: LureWithColorsSummary,
     thumbnailFlow: Flow<ByteArray?>,
+    photosFlow: Flow<List<Photo>>,
     index: Int = 0,
     totalItems: Int = 0,
     inTackleBox: Boolean,
+    onEdit: () -> Unit,
+    onPhotoAdded: (Uri) -> Unit,
+    onPhotoTaken: (Uri) -> Unit,
+    onSetThumbnail: (Photo) -> Unit,
+    onPhotoDeleted: (Photo) -> Unit,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
+    val photos by photosFlow.collectAsState(initial = emptyList())
 
-    // Make background less transparent when selected (e.g., 1.0f vs 0.85f)
+    var showPhotos by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+
     val backgroundColor = getCardColor(index, totalItems, selected = inTackleBox)
 
-    // Make border thicker when selected (e.g., 3.dp vs 1.dp)
     val borderColor = getCardBorderColor(index, totalItems)
     val borderWidth = if (inTackleBox) 3.dp else 1.dp
 
@@ -349,47 +392,120 @@ private fun LureTackleBoxItem(
     val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
-        onClick = { onCheckedChange(!inTackleBox) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .animateContentSize()
+            .combinedClickable(
+                onClick = { onCheckedChange(!inTackleBox) },
+                onLongClick = { menuExpanded = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor,
             contentColor = contentColor
         ),
         border = BorderStroke(borderWidth, color = borderColor)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            ThumbnailBox(
-                thumbnail = thumbnail,
-                imageVector = AppIcons.Default.Lure,
-                modifier = Modifier.size(48.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Lure,
+                    modifier = Modifier.size(48.dp),
+                    onClick = { showPhotos = !showPhotos }
+                )
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.lure.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (inTackleBox) FontWeight.Bold else FontWeight.Normal
-                )
-                LureColorComposition(
-                    primary = item.primaryColors,
-                    secondary = item.secondaryColors,
-                    glows = item.lure.glows,
-                    glow = item.glowColors
-                )
-                Text(
-                    text = "Number of hooks: ${item.lure.hookCount}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = secondaryContentColor
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.lure.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (inTackleBox) FontWeight.Bold else FontWeight.Normal
+                    )
+                    LureColorComposition(
+                        primary = item.primaryColors,
+                        secondary = item.secondaryColors,
+                        glows = item.lure.glows,
+                        glow = item.glowColors
+                    )
+                    Text(
+                        text = "Number of hooks: ${item.lure.hookCount}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = secondaryContentColor
+                    )
+                }
+
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Lure options",
+                            tint = contentColor
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos")
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                showPhotos = !showPhotos
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = showPhotos) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = borderColor)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    PhotoPickerRow(
+                        photos = photos,
+                        onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                        onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                        onSetThumbnail = { photo -> onSetThumbnail(photo) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                    )
+                }
             }
         }
     }

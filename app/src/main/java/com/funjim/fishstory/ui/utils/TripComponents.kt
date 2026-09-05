@@ -2,6 +2,7 @@ package com.funjim.fishstory.ui.utils
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -471,8 +472,7 @@ fun TripItem(
                 actions()
             }
 
-            // Expanded content: PhotoPickerRow
-            if (showPhotos) {
+            AnimatedVisibility(visible = showPhotos) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = borderColor)
                 Spacer(modifier = Modifier.height(8.dp))

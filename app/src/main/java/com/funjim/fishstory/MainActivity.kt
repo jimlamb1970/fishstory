@@ -610,6 +610,9 @@ fun AppNavigation(
                 fishermanId = fishermanId ?: "",
                 tackleBoxId = tackleBoxId ?: "",
                 onAdd = { navController.navigate("add_lure") },
+                onEdit = { lureId ->
+                    navController.navigate("add_lure?lureId=$lureId")
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
