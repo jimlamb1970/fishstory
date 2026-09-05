@@ -702,30 +702,41 @@ fun EventDetailsScreen(
                             )
 
                             AnimatedVisibility(visible = showPhotos) {
-                                PhotoPickerRow(
-                                    photos = eventDetails.photos,
-                                    onPhotoSelected = { uri ->
-                                        viewModel.addEventPhoto(eventId = eventId, uri = uri, true)
-                                    },
-                                    onPhotoTaken = { uri ->
-                                        viewModel.addEventPhoto(eventId = eventId, uri = uri, false)
-                                    },
-                                    onSetThumbnail = { photo ->
-                                        viewModel.setEventThumbnail(
-                                            eventId = eventId,
-                                            photoId = photo.id
-                                        )
-                                    },
-                                    onPhotoDeleted = { photo ->
-                                        viewModel.deleteEventPhoto(eventId, photo.id)
-                                    }
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    PhotoPickerRow(
+                                        photos = eventDetails.photos,
+                                        onPhotoSelected = { uri ->
+                                            viewModel.addEventPhoto(
+                                                eventId = eventId,
+                                                uri = uri,
+                                                true
+                                            )
+                                        },
+                                        onPhotoTaken = { uri ->
+                                            viewModel.addEventPhoto(
+                                                eventId = eventId,
+                                                uri = uri,
+                                                false
+                                            )
+                                        },
+                                        onSetThumbnail = { photo ->
+                                            viewModel.setEventThumbnail(
+                                                eventId = eventId,
+                                                photoId = photo.id
+                                            )
+                                        },
+                                        onPhotoDeleted = { photo ->
+                                            viewModel.deleteEventPhoto(eventId, photo.id)
+                                        }
+                                    )
 
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                    thickness = 1.dp,
-                                    color = getOnMainColor()
-                                )
+                                    HorizontalDivider(
+                                        modifier = Modifier
+                                            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                                        thickness = 1.dp,
+                                        color = getOnMainColor()
+                                    )
+                                }
                             }
 
                             if (eventSummary.fishCaught != 0 || now >= event.startTime) {

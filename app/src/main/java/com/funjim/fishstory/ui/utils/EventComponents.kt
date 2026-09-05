@@ -468,17 +468,19 @@ fun EventItem(
             }
 
             AnimatedVisibility(visible = showPhotos) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = borderColor)
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = borderColor)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                PhotoPickerRow(
-                    photos = photos,
-                    onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
-                    onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
-                    onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
-                    onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
-                )
+                    PhotoPickerRow(
+                        photos = photos,
+                        onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
+                        onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
+                        onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
+                        onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+                    )
+                }
             }
         }
     }

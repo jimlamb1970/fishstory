@@ -674,30 +674,37 @@ fun TripDetailsScreen(
                             )
 
                             AnimatedVisibility(visible = showPhotos) {
-                                PhotoPickerRow(
-                                    photos = details.photos,
-                                    onPhotoSelected = { uri ->
-                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
-                                    },
-                                    onPhotoTaken = { uri ->
-                                        viewModel.addTripPhoto(tripId = tripId, uri = uri, false)
-                                    },
-                                    onSetThumbnail = { photo ->
-                                        viewModel.setTripThumbnail(
-                                            tripId = tripId,
-                                            photoId = photo.id
-                                        )
-                                    },
-                                    onPhotoDeleted = { photo ->
-                                        viewModel.deleteTripPhoto(tripId, photo.id)
-                                    }
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    PhotoPickerRow(
+                                        photos = details.photos,
+                                        onPhotoSelected = { uri ->
+                                            viewModel.addTripPhoto(tripId = tripId, uri = uri, true)
+                                        },
+                                        onPhotoTaken = { uri ->
+                                            viewModel.addTripPhoto(
+                                                tripId = tripId,
+                                                uri = uri,
+                                                false
+                                            )
+                                        },
+                                        onSetThumbnail = { photo ->
+                                            viewModel.setTripThumbnail(
+                                                tripId = tripId,
+                                                photoId = photo.id
+                                            )
+                                        },
+                                        onPhotoDeleted = { photo ->
+                                            viewModel.deleteTripPhoto(tripId, photo.id)
+                                        }
+                                    )
 
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                    thickness = 1.dp,
-                                    color = getOnMainColor()
-                                )
+                                    HorizontalDivider(
+                                        modifier = Modifier
+                                            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                                        thickness = 1.dp,
+                                        color = getOnMainColor()
+                                    )
+                                }
                             }
 
                             if (summary.fishCaught != 0 || now >= trip.startDate) {

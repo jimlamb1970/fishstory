@@ -305,17 +305,19 @@ fun FishermanItem(
             }
 
             AnimatedVisibility(visible = showPhotos) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = borderColor)
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = borderColor)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                PhotoPickerRow(
-                    photos = photos,
-                    onPhotoSelected = { uri -> onPhotoAdded(uri) },
-                    onPhotoTaken = { uri -> onPhotoTaken(uri) },
-                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
-                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
-                )
+                    PhotoPickerRow(
+                        photos = photos,
+                        onPhotoSelected = { uri -> onPhotoAdded(uri) },
+                        onPhotoTaken = { uri -> onPhotoTaken(uri) },
+                        onSetThumbnail = { photo -> onSetThumbnail(photo) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                    )
+                }
             }
         }
     }
