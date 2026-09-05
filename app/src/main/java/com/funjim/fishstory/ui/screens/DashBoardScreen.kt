@@ -459,8 +459,8 @@ fun DashboardScreen(
                         val category = CategoryType.FISHERMEN
                         onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
                     },
-                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, false) },
-                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, true) },
+                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, false) },
                     onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
                     onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
                     onAction = onAction,
