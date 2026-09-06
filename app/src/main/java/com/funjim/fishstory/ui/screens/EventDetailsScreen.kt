@@ -659,7 +659,7 @@ fun EventDetailsScreen(
                                     )
                                 }
                                 val displayLat = event.latitude ?: trip.latitude
-                                val displayLng = event.longitude ?: event.longitude
+                                val displayLng = event.longitude ?: trip.longitude
                                 val hasAnyLocation = displayLat != null && displayLng != null
 
                                 if (hasAnyLocation) {

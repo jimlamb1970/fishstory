@@ -25,17 +25,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.map
 
-enum class EventWizardStep {
-    EventInfo,          // Step 1 – event name, dates, location
-    EventCrew           // Step 2 – fishermen + tackle boxes for event
-}
 class AddEventViewModel(
     private val locationProvider: LocationProvider,
     private val envRepo: EnvironmentRepository,
@@ -59,7 +54,6 @@ class AddEventViewModel(
     val eventDraft = _eventDraft.asStateFlow()
     fun clearEventDraft() {
         _eventDraft.value = Event(id = UUID.randomUUID().toString(), name = "", tripId = "")
-        _currentEventWizardStep.value = EventWizardStep.EventInfo
     }
     fun updateEventDraft(update: (Event) -> Event) {
         _eventDraft.update(update)
@@ -77,6 +71,23 @@ class AddEventViewModel(
         _eventBodiesOfWater.value = ids
     }
 
+    private val _eventFishermen = MutableStateFlow<List<Fisherman>>(emptyList())
+    val eventFishermen = _eventFishermen.asStateFlow()
+    fun updateEventFishermen(item: Fisherman) {
+        addFisherman(item) { addedItem ->
+            _eventFishermen.update { it -> it + addedItem }
+        }
+    }
+    fun updateEventFishermen(ids: List<Fisherman>) {
+        _eventFishermen.value = ids
+    }
+
+    private val _eventTackleBoxMap = MutableStateFlow<Map<String, String?>>(emptyMap())
+    val eventTackleBoxMap = _eventTackleBoxMap.asStateFlow()
+    fun updateEventTackleBoxMap(map: Map<String, String?>) {
+        _eventTackleBoxMap.value = map
+    }
+
     private val _eventTargetSpecies = MutableStateFlow<List<Species>>(emptyList())
     val eventTargetSpecies = _eventTargetSpecies.asStateFlow()
     fun updateEventTargetSpecies(species: Species) {
@@ -89,6 +100,43 @@ class AddEventViewModel(
         _eventTargetSpecies.value = ids
     }
 
+    fun addFishermanToEvent(
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        val eventId = _selectedEventId.value ?: return
+        val tripId = _selectedTripId.value ?: return
+
+        viewModelScope.launch {
+            val result = tripRepo.addFishermanToEventAndTrip(
+                tripId = tripId,
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+
+            if (result.addedToTrip) {
+                _toastMessage.emit("Fisherman was also added to the trip.")
+            }
+        }
+    }
+
+    fun persistBodiesOfWater() {
+        _eventBodiesOfWater.value.forEach { item ->
+            viewModelScope.launch {
+                envRepo.insertEventBodyOfWater(
+                    EventBodyOfWater(
+                        eventId = eventDraft.value.id,
+                        bodyOfWaterId = item.id)
+                )
+            }
+        }
+    }
+    fun persistFishermen() {
+        _eventFishermen.value.forEach { item ->
+            addFishermanToEvent(item.id, _eventTackleBoxMap.value[item.id])
+        }
+    }
     fun persistTargetSpecies() {
         _eventTargetSpecies.value.forEach { species ->
             viewModelScope.launch {
@@ -103,31 +151,6 @@ class AddEventViewModel(
     }
 
     // --- Data Streams ---
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventFishermen: StateFlow<List<Fisherman>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                fishermanRepo.getFishermenForEvent(id)
-            }
-        }
-        .map { list ->
-            // Sort by Last Name, then First Name
-            list.sortedWith(compareBy({ it.fullName }))
-        }
-        .onEach { list ->
-            // SIDE EFFECT: Update the draft IDs whenever the list changes
-            // This ensures the wizard state is "set" automatically
-            val ids = list.map { it.id }.toSet()
-            _eventFishermanIds.value = ids
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
@@ -136,14 +159,13 @@ class AddEventViewModel(
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
 
-    // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyMap()) // This clears the map when you set id to null
             } else {
-                getTackleBoxMapForTrip(tripId = id)
+                tripRepo.getTackleBoxMapForTrip(id)
             }
         }
         .stateIn(
@@ -151,30 +173,6 @@ class AddEventViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyMap()
         )
-
-    // TODO -- check flows where filterNotNul is and see if they need to be changed
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyMap()) // This clears the map when you set id to null
-            } else {
-                getTackleBoxMapForEvent(eventId = id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
-
-    fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> {
-        return tripRepo.getTackleBoxMapForTrip(tripId)
-    }
-
-    fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> {
-        return tripRepo.getTackleBoxMapForEvent(eventId)
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTrip = _selectedTripId
@@ -197,6 +195,12 @@ class AddEventViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+    val allFishermen: StateFlow<List<Fisherman>> = fishermanRepo.allFishermen
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -206,14 +210,16 @@ class AddEventViewModel(
 
     val uiAddEventState: StateFlow<AddEventUiState> = combine(
         selectedTrip,
+        tripTackleBoxMap,
         _eventDraft
-    ) { trip, event ->
+    ) { trip, tackleBoxMap, event ->
         if (trip != null) {
             val ids = trip.fishermen.map { it.id }.toSet()
             _tripFishermanIds.value = ids
 
             AddEventUiState.Success(
                 trip = trip,
+                tripTackleBoxMap = tackleBoxMap,
                 event = event
             )
         } else {
@@ -227,6 +233,10 @@ class AddEventViewModel(
 
     fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchBodyOfWaterThumbnail(id)
+            .flowOn(Dispatchers.IO)
+    }
+    fun fishermanThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
     fun speciesThumbnail(id: String): Flow<ByteArray?> {
@@ -250,6 +260,22 @@ class AddEventViewModel(
             }
         }
     }
+    fun addFisherman(
+        item: Fisherman,
+        onSuccess: (Fisherman) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                fishermanRepo.addFisherman(item)
+                onSuccess(item)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Fisherman '${item.fullName}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while adding fisherman.")
+            }
+        }
+    }
     fun addSpecies(
         item: Species,
         onSuccess: (Species) -> Unit
@@ -268,29 +294,17 @@ class AddEventViewModel(
     }
 
     // --- Actions ---
-    fun upsertEvent(event: Event) {
+    fun saveEvent(
+    ) {
+        persistEvent(eventDraft.value)
+        persistBodiesOfWater()
+        persistFishermen()
+        persistTargetSpecies()
+    }
+
+    fun persistEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.upsertEvent(event)
-        }
-    }
-
-    fun deleteEventById(eventId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteEventById(eventId)
-        }
-    }
-
-    fun upsertEventFisherman(eventId: String, fishermanId: String, tackleBoxId: String?) {
-        viewModelScope.launch {
-            tripRepo.updateEventFisherman(
-                EventFisherman(eventId, fishermanId, tackleBoxId)
-            )
-        }
-    }
-
-    fun deleteEventFisherman(eventId: String, fishermanId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
     }
 
@@ -323,21 +337,6 @@ class AddEventViewModel(
         _selectedEventId.value = id
     }
 
-    // --- Wizard Navigation State ---
-    private val _currentEventWizardStep = MutableStateFlow(EventWizardStep.EventInfo)
-    val currentEventWizardStep = _currentEventWizardStep.asStateFlow()
-
-    private val _overrideTripCrew = MutableStateFlow(false)
-    val overrideTripCrew = _overrideTripCrew.asStateFlow()
-
-    fun updateEventWizardStep(step: EventWizardStep) {
-        _currentEventWizardStep.value = step
-    }
-
-    fun updateOverrideTripCrew(override: Boolean) {
-        _overrideTripCrew.value = override
-    }
-
     // --- Crew Draft State ---
     private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
     val tripFishermenIds = _tripFishermanIds.asStateFlow()
@@ -365,6 +364,7 @@ sealed interface AddEventUiState {
 
     data class Success(
         val trip: TripWithInfo,
+        val tripTackleBoxMap: Map<String, String?>,
         val event: Event
     ) : AddEventUiState
 }

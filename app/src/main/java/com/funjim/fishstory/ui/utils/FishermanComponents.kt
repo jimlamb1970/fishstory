@@ -17,20 +17,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -47,7 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.LureWithColors
@@ -316,6 +317,113 @@ fun FishermanItem(
                         onPhotoTaken = { uri -> onPhotoTaken(uri) },
                         onSetThumbnail = { photo -> onSetThumbnail(photo) },
                         onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FishermanRow(
+    items: List<Fisherman>,
+    onAdd: () -> Unit,
+    onClick: (Fisherman) -> Unit,
+    onDelete: (Fisherman) -> Unit,
+    thumbnailProvider: @Composable (Fisherman) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Fishermen",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = getOnMainColor()
+                )
+                if (items.size > 1) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "(${items.size})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = getOnMainColor()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = { onAdd() },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = getMainButtonColor(),
+                    contentColor = getOnMainButtonColor()
+                ),
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Fisherman"
+                )
+            }
+        }
+
+        if (items.isEmpty()) {
+            Text(
+                text = "No fishermen are set.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = getOnSecondaryColor(),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        } else {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val sortedItems = items.sortedBy { it.fullName }
+                sortedItems.forEach { item ->
+                    InputChip(
+                        selected = true,
+                        onClick = { onClick(item) },
+                        label = { Text(item.fullName) },
+                        avatar = { thumbnailProvider(item) },
+                        colors = InputChipDefaults.inputChipColors(
+                            selectedContainerColor = getCardColor().copy(alpha = 0.15f),
+                            selectedLabelColor = getOnCardColor(),
+                            selectedLeadingIconColor = getOnCardColor(),
+                            selectedTrailingIconColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = true,
+                            selectedBorderColor = getCardBorderColor(),
+                            selectedBorderWidth = 1.dp,
+                            borderColor = getOnChipColor(),
+                            borderWidth = 1.dp
+                        ),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { onDelete(item) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Remove",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     )
                 }
             }
@@ -768,8 +876,6 @@ fun FishermanSummaries(
         }
     }
 }
-
-
 
 @Composable
 fun FishermanSummary(
