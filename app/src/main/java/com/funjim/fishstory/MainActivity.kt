@@ -336,6 +336,9 @@ fun AppNavigation(
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
                     navController.navigate("select_lures/$fishermanId/$tackleBoxId")
                 },
+                navigateToAddEvent = { id ->
+                    navController.navigate("add_event/$id")
+                },
                 navigateBack = { navController.popBackStack() }
             )
         }

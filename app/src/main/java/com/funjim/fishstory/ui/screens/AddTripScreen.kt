@@ -47,6 +47,7 @@ import kotlin.collections.plus
 fun AddTripScreen(
     viewModel: AddTripViewModel,
     navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
+    navigateToAddEvent: ((tripId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -80,6 +81,8 @@ fun AddTripScreen(
     val tripTackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
 
     var menuExpanded by remember { mutableStateOf(false) }
+
+    var showEventDialog by remember { mutableStateOf(false) }
 
     // Location pickers
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
@@ -126,14 +129,11 @@ fun AddTripScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            viewModel.saveTrip()
-                            navigateBack()
-                        },
+                        onClick = { showEventDialog = true }, // Intercept save to present choices
                         enabled = tripDraft.name.isNotBlank()
                     ) {
                         Icon(
-                            Icons.Default.Save,
+                            imageVector = Icons.Default.Save,
                             contentDescription = "Save Trip"
                         )
                     }
@@ -518,6 +518,72 @@ fun AddTripScreen(
             onConfirm = { name ->
                 viewModel.updateTripTargetSpecies(Species(name = name))
                 addNewSpecies = false
+            }
+        )
+    }
+
+    if (showEventDialog) {
+        AlertDialog(
+            onDismissRequest = { showEventDialog = false },
+            title = {
+                Text(
+                    text = "Event Setup",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "How would you like to set up events for this trip?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Option 1: Ignore for now
+                    OutlinedButton(
+                        onClick = {
+                            showEventDialog = false
+                            viewModel.saveTrip()
+                            navigateBack()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Skip for now (Add manually later)")
+                    }
+
+                    // Option 2: Auto-create single event spanning full trip
+                    Button(
+                        onClick = {
+                            showEventDialog = false
+                            viewModel.saveTripWithEvent()
+                            navigateBack()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Auto-create full trip event")
+                    }
+
+                    // Option 3: Navigate to custom event creation screen
+                    ElevatedButton(
+                        onClick = {
+                            showEventDialog = false
+                            val tripId = tripDraft.id
+                            viewModel.saveTrip()
+                            navigateBack()
+                            navigateToAddEvent(tripId)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Create custom event(s) now")
+                    }
+                }
+            },
+            confirmButton = {}, // Actions are self-contained in the option buttons
+            dismissButton = {
+                TextButton(onClick = { showEventDialog = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }

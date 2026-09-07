@@ -174,12 +174,50 @@ class AddTripViewModel(
     // --- Actions ---
     fun saveTrip() {
         val name = tripDraft.value.name.trim()
-        updateTripDraft { tripDraft.value.copy(name = name) }
+        val updatedDraft = tripDraft.value.copy(name = name)
+        updateTripDraft { updatedDraft }
 
-        persistTrip(tripDraft.value)
-        persistBodiesOfWater()
-        persistFishermen()
-        persistTargetSpecies()
+        viewModelScope.launch {
+            try {
+                tripRepo.upsertTrip(updatedDraft)
+
+                persistBodiesOfWater()
+                persistFishermen()
+                persistTargetSpecies()
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving trip.")
+            }
+        }
+    }
+
+    fun saveTripWithEvent() {
+        val name = tripDraft.value.name.trim()
+        val updatedDraft = tripDraft.value.copy(name = name)
+        updateTripDraft { updatedDraft }
+
+        val event = Event(
+            name = updatedDraft.name,
+            tripId = updatedDraft.id,
+            startTime = updatedDraft.startDate,
+            endTime = updatedDraft.endDate,
+            latitude = updatedDraft.latitude,
+            longitude = updatedDraft.longitude,
+            isLocked = true,
+            isFavorite = false
+        )
+
+        viewModelScope.launch {
+            try {
+                tripRepo.upsertTrip(updatedDraft)
+                tripRepo.upsertEvent(event)
+
+                persistBodiesOfWater()
+                persistFishermen()
+                persistTargetSpecies()
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while saving trip.")
+            }
+        }
     }
 
     fun addFishermanToTrip(
@@ -221,11 +259,6 @@ class AddTripViewModel(
                     )
                 )
             }
-        }
-    }
-    fun persistTrip(trip: Trip) {
-        viewModelScope.launch {
-            tripRepo.upsertTrip(trip)
         }
     }
 
