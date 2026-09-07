@@ -20,6 +20,7 @@ data class EventWithDetails(
     val event: Event,
     val trip: Trip,
     val fishermen: List<Fisherman>,
+    val notes: List<Note>,
     val photos: List<Photo>,
     val targetSpecies: List<Species>,
     val baits: List<Bait>,

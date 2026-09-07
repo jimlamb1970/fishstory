@@ -29,9 +29,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
+import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
+import com.funjim.fishstory.ui.utils.NotesDialog
+import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -141,6 +144,9 @@ fun FishDetailScreen(
         val fishPhotos = remember(fish.fish.id) {
             viewModel.fishPhotos(fish.fish.id)
         }
+        val fishNotes = remember(fish.fish.id) {
+            viewModel.fishNotes(fish.fish.id)
+        }
         val baitThumbnailFlow = remember(fish.fish.baitId) {
             viewModel.baitThumbnail(fish.fish.baitId ?: "")
         }
@@ -213,6 +219,7 @@ fun FishDetailScreen(
                     fishThumbnailFlow =
                         if (fish.photoCount == 0) speciesThumbnailFlow
                         else fishThumbnailFlow,
+                    fishNoteFlow = fishNotes,
                     fishPhotoFlow = fishPhotos,
                     baitThumbnailFlow = baitThumbnailFlow,
                     bodyOfWaterThumbnailFlow = bodyOfWaterThumbnailFlow,
@@ -220,6 +227,12 @@ fun FishDetailScreen(
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
+                    onSaveNote = { noteId, content ->
+                        viewModel.addNote(fish.fish.id, noteId, content)
+                    },
+                    onDeleteNote = { noteId ->
+                        viewModel.deleteNote(noteId)
+                    },
                     onPhotoSelected = { uri ->
                         viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri, true)
                     },
@@ -270,6 +283,7 @@ fun FishDetailScreen(
 private fun FishDetailContent(
     fish: FishWithDetails,
     fishThumbnailFlow: Flow<ByteArray?>,
+    fishNoteFlow: Flow<List<Note>>,
     fishPhotoFlow: Flow<List<Photo>>,
     baitThumbnailFlow: Flow<ByteArray?>,
     bodyOfWaterThumbnailFlow: Flow<ByteArray?>,
@@ -277,6 +291,8 @@ private fun FishDetailContent(
     fishermanThumbnailFlow: Flow<ByteArray?>,
     lureThumbnailFlow: Flow<ByteArray?>,
     tripThumbnailFlow: Flow<ByteArray?>,
+    onSaveNote: (noteId: String?, text: String) -> Unit,
+    onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onPhotoDeleted: (Photo) -> Unit
@@ -284,6 +300,7 @@ private fun FishDetailContent(
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
+    val fishNotes by fishNoteFlow.collectAsState(initial = null)
     val fishPhotos by fishPhotoFlow.collectAsState(initial = null)
 
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
@@ -306,6 +323,8 @@ private fun FishDetailContent(
     val activeLat = fish.fish.latitude ?: event.latitude ?: trip.latitude
     val activeLng = fish.fish.longitude ?: event.longitude ?: trip.longitude
 
+    var showNotesDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -321,6 +340,8 @@ private fun FishDetailContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ReleasedChip(fish.fish.keptCount == 0)
+
+            Spacer(modifier = Modifier.weight(1f))
 
             IconButton(
                 onClick = {
@@ -347,6 +368,11 @@ private fun FishDetailContent(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+
+            NotesIconButton(
+                noteCount = fishNotes?.size ?: 0,
+                onClick = { showNotesDialog = true }
+            )
         }
 
         HorizontalDivider()
@@ -617,6 +643,15 @@ private fun FishDetailContent(
                 }
             }
         }
+    }
+
+    if (showNotesDialog) {
+        NotesDialog(
+            notes = fishNotes?: emptyList(),
+            onDismiss = { showNotesDialog = false },
+            onSaveNote = onSaveNote,
+            onDeleteNote = onDeleteNote
+        )
     }
 }
 

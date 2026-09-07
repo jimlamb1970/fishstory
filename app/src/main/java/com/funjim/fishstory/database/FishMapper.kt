@@ -132,6 +132,7 @@ fun FishEntityWithDetails.toDomain(): FishWithDetails {
         bodyOfWater = bodyOfWater?.toDomain(),
         water = water?.toDomain(),
         weather = weather?.toDomain(),
+        noteCount = noteCount,
         photoCount = photoCount
     )
 }

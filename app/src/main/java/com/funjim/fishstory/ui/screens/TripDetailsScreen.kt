@@ -65,6 +65,8 @@ import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.NotesDialog
+import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -118,6 +120,7 @@ fun TripDetailsScreen(
     val now = System.currentTimeMillis()
 
     var showEditTripDialog by remember { mutableStateOf(false) }
+    var showNotesDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     var showSpeciesSelection by remember { mutableStateOf(false) }
@@ -622,7 +625,8 @@ fun TripDetailsScreen(
                                     text = details.trip.name,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = getOnMainColor()
+                                    color = getOnMainColor(),
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
 
@@ -665,6 +669,10 @@ fun TripDetailsScreen(
                                             }
                                     )
                                 }
+                                NotesIconButton(
+                                    noteCount = details.notes.size,
+                                    onClick = { showNotesDialog = true }
+                                )
                             }
 
                             HorizontalDivider(
@@ -1325,6 +1333,19 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     }
                 )
             }
+
+            if (showNotesDialog) {
+                NotesDialog(
+                    notes = details.notes,
+                    onDismiss = { showNotesDialog = false },
+                    onSaveNote = { noteId, content ->
+                        viewModel.addNote(noteId, content)
+                    },
+                    onDeleteNote = { noteId ->
+                        viewModel.deleteNote(noteId)
+                    }
+                )
+            }
         }
     }
 
@@ -1384,6 +1405,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             }
         )
     }
+
 
     // Confirmation Dialog for long pressing a Body of Water
     if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {

@@ -54,6 +54,17 @@ data class EventEntityWithDetails(
 
     @Relation(
         parentColumn = "id",        // Event ID
+        entityColumn = "id",        // Note ID
+        associateBy = Junction(
+            value = NoteEventEntity::class,
+            parentColumn = "eventId",
+            entityColumn = "noteId"
+        )
+    )
+    val notes: List<NoteEntity>,
+
+    @Relation(
+        parentColumn = "id",        // Event ID
         entityColumn = "id",        // Photo ID
         associateBy = Junction(
             value = PhotoEventEntity::class,

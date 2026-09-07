@@ -6,7 +6,7 @@ import java.util.UUID
 @Serializable
 data class Note(
     val id: String = UUID.randomUUID().toString(), // GUID string primary key
-    val text: String,
+    val content: String,
     val timestamp: Long = System.currentTimeMillis()
 )
 

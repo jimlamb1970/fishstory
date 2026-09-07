@@ -167,6 +167,7 @@ data class FishEntityWithDetails(
         entityColumn = "id"
     )
     val weather: WeatherEntityWithDetails?,
+    val noteCount: Int = 0,
     val photoCount: Int = 0
 )
 

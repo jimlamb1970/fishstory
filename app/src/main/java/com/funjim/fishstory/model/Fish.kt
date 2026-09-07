@@ -42,6 +42,7 @@ data class FishWithDetails(
     val bodyOfWater: BodyOfWater?,
     val water: WaterWithDetails?,
     val weather: WeatherWithDetails?,
+    val noteCount: Int = 0,
     val photoCount: Int = 0
 ) {
     val fullLureName: String

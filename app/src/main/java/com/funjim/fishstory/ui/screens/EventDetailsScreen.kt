@@ -62,6 +62,8 @@ import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.NotesDialog
+import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
@@ -140,6 +142,7 @@ fun EventDetailsScreen(
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
     var showEditEventDialog by remember { mutableStateOf(false) }
+    var showNotesDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     val dateTimeFormatter = remember {
@@ -689,6 +692,11 @@ fun EventDetailsScreen(
                                             .alpha(if (event.latitude == null) 0.6f else 1f )
                                     )
                                 }
+
+                                NotesIconButton(
+                                    noteCount = eventDetails.notes.size,
+                                    onClick = { showNotesDialog = true }
+                                )
                             }
 
                             HorizontalDivider(
@@ -1181,6 +1189,18 @@ fun EventDetailsScreen(
                             imageVector = AppIcons.Default.TargetFish,
                             modifier = Modifier.size(48.dp)
                         )
+                    }
+                )
+            }
+            if (showNotesDialog) {
+                NotesDialog(
+                    notes = eventDetails.notes,
+                    onDismiss = { showNotesDialog = false },
+                    onSaveNote = { noteId, content ->
+                        viewModel.addNote(noteId, content)
+                    },
+                    onDeleteNote = { noteId ->
+                        viewModel.deleteNote(noteId)
                     }
                 )
             }

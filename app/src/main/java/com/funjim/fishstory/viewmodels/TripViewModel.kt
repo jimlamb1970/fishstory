@@ -396,6 +396,23 @@ class TripViewModel(
         }
     }
 
+    fun addNote(noteId: String?, content: String) {
+        val tripId = _selectedTripId.value ?: return
+        viewModelScope.launch {
+            if (noteId == null) {
+                tripRepo.addNoteToTrip(tripId, content)
+            } else {
+                tripRepo.updateNote(noteId, content)
+            }
+        }
+    }
+
+    fun deleteNote(noteId: String) {
+        viewModelScope.launch {
+            tripRepo.deleteNote(noteId)
+        }
+    }
+
     fun addFisherman(
         fisherman: Fisherman,
         onSuccess: () -> Unit

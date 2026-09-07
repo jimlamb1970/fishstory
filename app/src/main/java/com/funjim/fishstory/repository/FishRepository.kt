@@ -5,6 +5,7 @@ import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
 import com.funjim.fishstory.database.LureDao
+import com.funjim.fishstory.database.NoteDao
 import com.funjim.fishstory.database.PhotoDao
 import com.funjim.fishstory.database.PhotoFishEntity
 import com.funjim.fishstory.database.TripDao
@@ -18,6 +19,8 @@ import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toFishermanSummaryDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
+import com.funjim.fishstory.database.toNoteDomainList
+import com.funjim.fishstory.database.toPhotoDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.toTripDomainList
@@ -36,6 +39,7 @@ import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
+import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
@@ -53,6 +57,7 @@ class FishRepository(
     private val fishDao: FishDao,
     private val fishermanDao: FishermanDao,
     private val lureDao: LureDao,
+    private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
     private val eventDao: EventDao,
     private val tripDao: TripDao
@@ -318,6 +323,10 @@ class FishRepository(
     }
     suspend fun deleteFishPhoto(fishId: String, photoId: String) =
         photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
+
+    fun getNotesForFish(id: String): Flow<List<Note>> {
+        return noteDao.getNotesForFish(id).map { list -> list.toNoteDomainList() }
+    }
 
     suspend fun updateFishBodyOfWater(
         newBodyOfWaterId: String?,

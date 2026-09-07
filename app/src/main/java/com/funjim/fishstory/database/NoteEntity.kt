@@ -4,9 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Fish
-import com.funjim.fishstory.model.Trip
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -15,7 +12,7 @@ import java.util.UUID
 data class NoteEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(), // GUID string primary key
-    val text: String,
+    val content: String,
     val timestamp: Long = System.currentTimeMillis()
 )
 

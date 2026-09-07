@@ -10,6 +10,7 @@ interface FishDao {
         """
         SELECT 
             f.*, 
+            (SELECT COUNT(*) FROM note_fish_cross_ref AS nf WHERE nf.fishId = f.id) AS noteCount,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
         LEFT JOIN lure_table AS l ON f.lureId = l.id
@@ -47,6 +48,7 @@ interface FishDao {
         """
         SELECT 
             f.*, 
+            (SELECT COUNT(*) FROM note_fish_cross_ref AS nf WHERE nf.fishId = f.id) AS noteCount,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.tripId = :tripId
@@ -60,6 +62,7 @@ interface FishDao {
         """
         SELECT 
             f.*, 
+            (SELECT COUNT(*) FROM note_fish_cross_ref AS nf WHERE nf.fishId = f.id) AS noteCount,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.fishermanId = :fishermanId
@@ -73,6 +76,7 @@ interface FishDao {
         """
         SELECT 
             f.*, 
+            (SELECT COUNT(*) FROM note_fish_cross_ref AS nf WHERE nf.fishId = f.id) AS noteCount,
             (SELECT COUNT(*) FROM photo_fish_cross_ref AS pf WHERE pf.fishId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.eventId = :eventId

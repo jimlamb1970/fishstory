@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.database.NoteDao
 import com.funjim.fishstory.database.TripDao
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
@@ -39,6 +40,7 @@ data class AddFishermanResult(
 class TripRepository(
     private val database: FishstoryDatabase,
     private val eventDao: EventDao,
+    private val noteDao: NoteDao,
     private val tripDao: TripDao
 ) {
     // Trip Streams
@@ -302,5 +304,27 @@ class TripRepository(
             val eventIds = eventDao.getEventIdsForTrip(tripId)
             eventDao.deleteTargetSpeciesForEvents(eventIds, speciesId)
         }
+    }
+
+    suspend fun addNoteToTrip(tripId: String, content: String) {
+        noteDao.addNoteToTrip(tripId, content)
+    }
+
+    suspend fun addNoteToEvent(eventId: String, content: String) {
+        noteDao.addNoteToEvent(eventId, content)
+    }
+
+    suspend fun addNoteToFish(fishId: String, content: String) {
+        noteDao.addNoteToFish(fishId, content)
+    }
+
+    suspend fun updateNote(
+        noteId: String,
+        noteText: String) {
+        noteDao.updateNote(noteId, noteText)
+    }
+
+    suspend fun deleteNote(noteId: String) {
+        noteDao.deleteNoteById(noteId)
     }
 }

@@ -63,6 +63,7 @@ class FishstoryApplication : Application() {
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
             lureDao = database.lureDao(),
+            noteDao = database.noteDao(),
             photoDao = database.photoDao(),
             tripDao = database.tripDao()
         )
@@ -101,6 +102,7 @@ class FishstoryApplication : Application() {
         TripRepository(
             database = database,
             eventDao = database.eventDao(),
+            noteDao = database.noteDao(),
             tripDao = database.tripDao()
         )
     }

@@ -495,6 +495,23 @@ class EventViewModel(
         }
     }
 
+    fun addNote(noteId: String?, content: String) {
+        val eventId = _selectedEventId.value ?: return
+        viewModelScope.launch {
+            if (noteId == null) {
+                tripRepo.addNoteToEvent(eventId, content)
+            } else {
+                tripRepo.updateNote(noteId, content)
+            }
+        }
+    }
+
+    fun deleteNote(noteId: String) {
+        viewModelScope.launch {
+            tripRepo.deleteNote(noteId)
+        }
+    }
+
     fun addFisherman(
         fisherman: Fisherman,
         onSuccess: () -> Unit
