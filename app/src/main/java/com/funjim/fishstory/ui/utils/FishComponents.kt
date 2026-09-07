@@ -31,6 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -159,14 +160,8 @@ fun FishItem(
                                         ).show()
                                     }
                                 }
+                                .alpha(if (fishLat == null) 0.6f else 1f )
                         )
-                        if (fishLat == null) {
-                            Text(
-                                text = if (eventLat != null) "(Event)" else "(Trip)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = getOnCardColor()
-                            )
-                        }
                     }
                 }
 

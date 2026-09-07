@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -401,14 +402,8 @@ private fun FishDetailContent(
                                         ).show()
                                     }
                                 }
+                                .alpha(if (fishLat == null) 0.6f else 1f )
                         )
-                        if (fishLat == null) {
-                            Text(
-                                text = if (eventLat != null) "(Event)" else "(Trip)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
                     }
                 }
 

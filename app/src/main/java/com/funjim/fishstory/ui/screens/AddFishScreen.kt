@@ -552,15 +552,10 @@ fun AddFishScreen(
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
                                     contentDescription = "GPS Location",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.alpha(if (fishLat == null) 0.6f else 1f )
+
                                 )
-                                if (fishLat == null) {
-                                    Text(
-                                        text = if (eventLat != null) "(Event)" else "(Trip)",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
                                 Spacer(modifier = Modifier.width(8.dp))
                             }
 

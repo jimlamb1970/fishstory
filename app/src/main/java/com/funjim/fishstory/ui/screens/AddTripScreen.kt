@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -254,7 +255,7 @@ fun AddTripScreen(
                         Box {
                             IconButton(onClick = { locationMenuExpanded = true }) {
                                 Icon(
-                                    Icons.Default.LocationOn,
+                                    imageVector = Icons.Default.LocationOn,
                                     contentDescription = "Location",
                                     tint =
                                         if (hasLocation) Color(0xFF4CAF50)
@@ -550,14 +551,8 @@ fun AddTripScreen(
                                     tint = getOnMainColor(),
                                     modifier = Modifier
                                         .size(24.dp)
+                                        .alpha(if (eventDraft.latitude == null) 0.6f else 1f )
                                 )
-                                if (eventDraft.latitude == null) {
-                                    Text(
-                                        text = "(Trip)",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = getOnMainColor()
-                                    )
-                                }
                             }
                         }
 

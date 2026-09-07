@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -684,14 +685,8 @@ fun EventDetailsScreen(
                                                     ).show()
                                                 }
                                             }
+                                            .alpha(if (event.latitude == null) 0.6f else 1f )
                                     )
-                                    if (event.latitude == null) {
-                                        Text(
-                                            text = "(Trip)",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = getOnMainColor()
-                                        )
-                                    }
                                 }
                             }
 

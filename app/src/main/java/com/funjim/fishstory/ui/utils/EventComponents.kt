@@ -40,6 +40,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -278,14 +279,8 @@ fun EventItem(
                                             ).show()
                                         }
                                     }
+                                    .alpha(if (eventLat == null) 0.6f else 1f )
                             )
-                            if (eventLat == null) {
-                                Text(
-                                    text = "(Trip)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
                         }
                     }
 
