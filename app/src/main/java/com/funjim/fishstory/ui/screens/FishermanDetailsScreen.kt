@@ -52,6 +52,7 @@ import com.funjim.fishstory.ui.utils.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -85,18 +86,18 @@ fun FishermanDetailsScreen(
         }
     }
 
+    val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
+
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
-    // Expansion States for Accordion
     var tackleBoxesExpanded by remember { mutableStateOf(false) }
-    var tripsExpanded by remember { mutableStateOf(true) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     val stats by viewModel.statistics.collectAsStateWithLifecycle()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fishermanPhotos by viewModel.fishermanPhotos.collectAsStateWithLifecycle()
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
-    var newTackleBoxName by remember { mutableStateOf("") }
     var tackleBoxToDelete by remember { mutableStateOf<TackleBox?>(null) }
 
     if (stats == null) {
@@ -143,8 +144,47 @@ fun FishermanDetailsScreen(
                                 }
                             }
                         }
-                        IconButton(onClick = { showEditFishermanDialog = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Rename Fisherman")
+
+                        Box {
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = "More")
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Edit") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showEditFishermanDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Edit,
+                                            contentDescription = "Rename"
+                                        )
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = {
+                                        if (showPhotos) Text("Hide Photos")
+                                        else Text("Show Photos")
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        viewModel.toggleShowPhotos()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            if (showPhotos) Icons.Default.VisibilityOff
+                                            else Icons.Default.Visibility,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 )
@@ -157,16 +197,31 @@ fun FishermanDetailsScreen(
                     val totalTackleBoxes = details.tackleBoxesWithLures.size
                     val pagerState = rememberPagerState(pageCount = { totalTackleBoxes })
                     val scope = rememberCoroutineScope()
+                    val thumbnail by viewModel.fishermanThumbnail().collectAsState(initial = null)
 
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
-                            Text(
-                                text = details.fisherman.fullName,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
+                            Row(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Fisherman,
+                                    modifier = Modifier.size(64.dp),
+                                    onClick = {
+                                        viewModel.toggleShowPhotos()
+                                    }
+                                )
+                                Text(
+                                    text = details.fisherman.fullName,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
@@ -174,27 +229,42 @@ fun FishermanDetailsScreen(
                                 color = getOnMainColor()
                             )
 
-                            PhotoPickerRow(
-                                photos = fishermanPhotos,
-                                onPhotoSelected = { uri ->
-                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri, true)
-                                },
-                                onPhotoTaken = { uri ->
-                                    viewModel.addFishermanPhoto(fishermanId = fishermanId, uri, false)
-                                },
-                                onSetThumbnail = { photo ->
-                                    viewModel.setFishermanThumbnail(fishermanId = fishermanId, photoId = photo.id)
-                                },
-                                onPhotoDeleted = { photo ->
-                                    viewModel.deleteFishermanPhoto(fishermanId, photo.id)
-                                }
-                            )
+                            AnimatedVisibility(visible = showPhotos) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    PhotoPickerRow(
+                                        photos = fishermanPhotos,
+                                        onPhotoSelected = { uri ->
+                                            viewModel.addFishermanPhoto(
+                                                fishermanId = fishermanId,
+                                                uri,
+                                                true
+                                            )
+                                        },
+                                        onPhotoTaken = { uri ->
+                                            viewModel.addFishermanPhoto(
+                                                fishermanId = fishermanId,
+                                                uri,
+                                                false
+                                            )
+                                        },
+                                        onSetThumbnail = { photo ->
+                                            viewModel.setFishermanThumbnail(
+                                                fishermanId = fishermanId,
+                                                photoId = photo.id
+                                            )
+                                        },
+                                        onPhotoDeleted = { photo ->
+                                            viewModel.deleteFishermanPhoto(fishermanId, photo.id)
+                                        }
+                                    )
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                                thickness = 1.dp,
-                                color = getOnMainColor()
-                            )
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                        thickness = 1.dp,
+                                        color = getOnMainColor()
+                                    )
+                                }
+                            }
 
                             FishermanHighlightCard(stats!!) {
                                 navigateToFishList(fishermanId, null, false)
@@ -252,7 +322,6 @@ fun FishermanDetailsScreen(
 
                                 IconButton(
                                     onClick = {
-                                        newTackleBoxName = ""
                                         showAddTackleBoxDialog = true
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -36,6 +37,12 @@ class FishermanDetailsViewModel(
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     fun selectFisherman(id: String) { _selectedFishermanId.value = id }
+
+    private val _showPhotos = MutableStateFlow(false)
+    val showPhotos: StateFlow<Boolean> = _showPhotos.asStateFlow()
+    fun toggleShowPhotos() {
+        _showPhotos.value = !_showPhotos.value
+    }
 
     // Data Flows
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -108,6 +115,12 @@ class FishermanDetailsViewModel(
         }
     }
 
+    fun fishermanThumbnail(): Flow<ByteArray?> {
+        val eventId = _selectedFishermanId.value ?: return(flowOf(null))
+
+        return photoRepo.fetchFishermanThumbnail(eventId)
+            .flowOn(Dispatchers.IO)
+    }
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }

@@ -632,7 +632,8 @@ fun EventDetailsScreen(
                                     thumbnail = thumbnail,
                                     imageVector = AppIcons.Default.CanoeEmpty,
                                     modifier = Modifier.size(64.dp),
-                                    onClick = { viewModel.toggleShowPhotos()
+                                    onClick = {
+                                        viewModel.toggleShowPhotos()
                                     }
                                 )
                                 Text(
