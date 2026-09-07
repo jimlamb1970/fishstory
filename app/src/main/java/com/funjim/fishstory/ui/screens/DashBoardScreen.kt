@@ -590,9 +590,9 @@ fun ActiveTripCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Waves, contentDescription = null)
+                    Icon(AppIcons.Default.Boat, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("LIVE TRIP", style = MaterialTheme.typography.labelLarge)
+                    Text("LIVE EVENT", style = MaterialTheme.typography.labelLarge)
                 }
                 if (activeEvents.size > 1) {
                     Text(
