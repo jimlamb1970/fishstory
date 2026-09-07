@@ -527,14 +527,14 @@ fun AddTripScreen(
             onDismissRequest = { showEventDialog = false },
             title = {
                 Text(
-                    text = "Event Setup",
+                    text = "Save Trip",
                     style = MaterialTheme.typography.titleLarge
                 )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "How would you like to set up events for this trip?",
+                        text = "How would you like to add events for this trip?",
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -549,7 +549,7 @@ fun AddTripScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Skip for now (Add manually later)")
+                        Text("Save & don't add events")
                     }
 
                     // Option 2: Auto-create single event spanning full trip
@@ -561,7 +561,7 @@ fun AddTripScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Auto-create full trip event")
+                        Text("Save & add full trip event")
                     }
 
                     // Option 3: Navigate to custom event creation screen
@@ -575,7 +575,7 @@ fun AddTripScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Create custom event(s) now")
+                        Text("Save & manually add event(s)")
                     }
                 }
             },

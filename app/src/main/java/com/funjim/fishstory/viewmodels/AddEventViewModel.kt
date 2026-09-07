@@ -324,19 +324,12 @@ class AddEventViewModel(
         }
     }
 
-    fun clearTrip() {
-        _selectedTripId.value = null
-    }
-    fun clearEvent() {
-        _selectedEventId.value = null
+    fun resetEventDraft() {
+        updateEventDraft { eventDraft.value.copy(name = "") }
     }
 
     fun selectTrip(id: String) {
         _selectedTripId.value = id
-    }
-
-    fun selectEvent(id: String) {
-        _selectedEventId.value = id
     }
 
     // --- Crew Draft State ---

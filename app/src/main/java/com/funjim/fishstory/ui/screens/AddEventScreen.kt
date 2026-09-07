@@ -80,9 +80,10 @@ fun AddEventScreen(
     val allFishermen by viewModel.allFishermen.collectAsStateWithLifecycle()
     var addNewFisherman by remember { mutableStateOf(false) }
 
+    var showSaveDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
-        viewModel.selectEvent(eventDraft.id)
     }
 
     LaunchedEffect(Unit) {
@@ -179,8 +180,7 @@ fun AddEventScreen(
                         actions = {
                             IconButton(
                                 onClick = {
-                                    viewModel.saveEvent()
-                                    navigateBack()
+                                    showSaveDialog = true
                                 },
                                 enabled = eventDraft.name.isNotBlank()
                             ) {
@@ -602,6 +602,50 @@ fun AddEventScreen(
             onConfirm = { name ->
                 viewModel.updateEventTargetSpecies(Species(name = name))
                 addNewSpecies = false
+            }
+        )
+    }
+
+    if (showSaveDialog) {
+        AlertDialog(
+            onDismissRequest = { showSaveDialog = false },
+            title = {
+                Text(
+                    text = "Save Event",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Text(
+                    text = """The current event will be saved.
+                        
+Would you like to add another event?""",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                // Option A: Save and reset screen to add another
+                Button(
+                    onClick = {
+                        showSaveDialog = false
+                        viewModel.saveEvent()
+                        viewModel.resetEventDraft() // Clears event name/state for new input
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                // Option B: Save and leave screen
+                OutlinedButton(
+                    onClick = {
+                        showSaveDialog = false
+                        viewModel.saveEvent()
+                        navigateBack()
+                    }
+                ) {
+                    Text("No")
+                }
             }
         )
     }
