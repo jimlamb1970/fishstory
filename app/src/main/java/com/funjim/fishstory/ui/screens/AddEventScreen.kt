@@ -14,7 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -323,7 +322,7 @@ fun AddEventScreen(
                         OutlinedTextField(
                             value = eventDraft.name,
                             onValueChange = { name ->
-                                viewModel.updateEventDraft { eventDraft.copy(name = name.trim()) }
+                                viewModel.updateEventDraft { eventDraft.copy(name = name.trimStart()) }
                             },
                             label = { Text("Event Name") },
                             modifier = Modifier.fillMaxWidth(),

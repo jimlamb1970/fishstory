@@ -125,10 +125,11 @@ class FishstoryApplication : Application() {
 
     fun getAddTripViewModelFactory() = AddTripViewModelFactory(
         locationProvider = locationProvider,
-        fishermanRepository,
-        fishRepository,
-        photoRepository,
-        tripRepository
+        environmentRepository = environmentRepository,
+        fishermanRepository = fishermanRepository,
+        fishRepository = fishRepository,
+        photoRepository = photoRepository,
+        tripRepository = tripRepository
     )
 
     fun getBaitViewModelFactory() = BaitViewModelFactory(

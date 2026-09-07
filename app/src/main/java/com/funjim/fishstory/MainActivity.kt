@@ -332,7 +332,7 @@ fun AppNavigation(
             )
 
             AddTripScreen(
-                tripViewModel = viewModel,
+                viewModel = viewModel,
                 navigateToEditTackleBox = { fishermanId, tackleBoxId ->
                     navController.navigate("select_lures/$fishermanId/$tackleBoxId")
                 },

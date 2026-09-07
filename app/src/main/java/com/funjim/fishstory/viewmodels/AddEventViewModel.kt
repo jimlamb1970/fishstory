@@ -95,7 +95,6 @@ class AddEventViewModel(
             _eventTargetSpecies.update { it -> it + addedSpecies }
         }
     }
-
     fun updateEventTargetSpecies(ids: List<Species>) {
         _eventTargetSpecies.value = ids
     }
@@ -296,6 +295,9 @@ class AddEventViewModel(
     // --- Actions ---
     fun saveEvent(
     ) {
+        val name = eventDraft.value.name.trim()
+        updateEventDraft { eventDraft.value.copy(name = name) }
+
         persistEvent(eventDraft.value)
         persistBodiesOfWater()
         persistFishermen()
