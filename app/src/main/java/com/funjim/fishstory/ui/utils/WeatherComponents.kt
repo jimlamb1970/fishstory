@@ -241,8 +241,8 @@ fun WeatherCard(
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
-    onEdit: (Weather) -> Unit,
-    onDelete: (Weather) -> Unit
+    onEdit: ((Weather) -> Unit)? = null,
+    onDelete: ((Weather) -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -395,44 +395,50 @@ fun WeatherCard(
                 }
             }
 
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Weather Snapshot Options"
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null
+            if (onEdit != null || onDelete != null) {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Weather Snapshot Options"
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        if (onEdit != null) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onEdit(weather.weather)
+                                }
                             )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onEdit(weather.weather)
                         }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
+                        if (onDelete != null) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete(weather.weather)
+                                }
                             )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete(weather.weather)
                         }
-                    )
+                    }
                 }
             }
         }

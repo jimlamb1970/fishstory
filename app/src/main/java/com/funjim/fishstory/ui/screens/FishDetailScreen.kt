@@ -1,9 +1,13 @@
 package com.funjim.fishstory.ui.screens
 
+import DeleteConfirmationDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -13,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Share // Added for fallback if needed
@@ -32,15 +37,32 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AddNoteDialog
+import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
+import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryRow
+import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.EditNoteDialog
+import com.funjim.fishstory.ui.utils.FishFilter
+import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.LureColorComposition
+import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesDialog
 import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
+import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.WaterCard
+import com.funjim.fishstory.ui.utils.WaterSummaryRow
+import com.funjim.fishstory.ui.utils.WeatherCard
+import com.funjim.fishstory.ui.utils.WeatherSummaryRow
+import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.toDisplayString
 import com.funjim.fishstory.viewmodels.FishViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -133,7 +155,9 @@ fun FishDetailScreen(
     ) { padding ->
         if (fish == null) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 Text("No fish to display.")
@@ -189,6 +213,7 @@ fun FishDetailScreen(
                                     dragOffset < -swipeThreshold && currentIndex < fishList.size - 1 -> {
                                         currentIndex++
                                     }
+
                                     dragOffset > swipeThreshold && currentIndex > 0 -> {
                                         currentIndex--
                                     }
@@ -211,7 +236,10 @@ fun FishDetailScreen(
                     }
                     .graphicsLayer {
                         translationX = animatedOffset
-                        alpha = 1f - (animatedOffset.absoluteValue / (swipeThreshold * 4)).coerceIn(0f, 0.4f)
+                        alpha = 1f - (animatedOffset.absoluteValue / (swipeThreshold * 4)).coerceIn(
+                            0f,
+                            0.4f
+                        )
                     }
             ) {
                 FishDetailContent(
@@ -301,6 +329,13 @@ private fun FishDetailContent(
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val fishNotes by fishNoteFlow.collectAsState(initial = null)
+    val sortedNotes = remember(fishNotes) {
+        fishNotes?.sortedByDescending { it.timestamp }
+    }
+    var showAddNoteDialog by remember { mutableStateOf(false) }
+    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+
     val fishPhotos by fishPhotoFlow.collectAsState(initial = null)
 
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
@@ -323,21 +358,66 @@ private fun FishDetailContent(
     val activeLat = fish.fish.latitude ?: event.latitude ?: trip.latitude
     val activeLng = fish.fish.longitude ?: event.longitude ?: trip.longitude
 
-    var showNotesDialog by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf(CategoryType.NOTES) }
+
+    val categoryConfigs = remember(
+        fishNotes,
+        fish.water,
+        fish.weather
+    ) {
+        buildList {
+            add(
+                CategoryChipConfig(
+                    category = CategoryType.NOTES,
+                    icon = { Icon(
+                        Icons.AutoMirrored.Filled.StickyNote2,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    ) },
+                    count = fishNotes?.size ?: 0
+                )
+            )
+
+            if (fish.water != null) {
+                CategoryChipConfig(
+                    category = CategoryType.WATER,
+                    icon = { Icon(
+                        AppIcons.Default.WaterSet,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    ) },
+                    count = 1
+                )
+            }
+
+            if (fish.weather != null) {
+                CategoryChipConfig(
+                    category = CategoryType.WEATHER,
+                    icon = {
+                        Icon(
+                            AppIcons.Default.WeatherSet,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    count = 1
+                )
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
 
         // Placed the Chip and Share button on the same horizontal line
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             ReleasedChip(fish.fish.keptCount == 0)
 
@@ -368,14 +448,13 @@ private fun FishDetailContent(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-
-            NotesIconButton(
-                noteCount = fishNotes?.size ?: 0,
-                onClick = { showNotesDialog = true }
-            )
         }
 
-        HorizontalDivider()
+        HorizontalDivider(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            thickness = 1.dp,
+            color = getOnMainColor()
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -428,7 +507,7 @@ private fun FishDetailContent(
                                         ).show()
                                     }
                                 }
-                                .alpha(if (fishLat == null) 0.6f else 1f )
+                                .alpha(if (fishLat == null) 0.6f else 1f)
                         )
                     }
                 }
@@ -557,16 +636,12 @@ private fun FishDetailContent(
             }
         }
 
-        HorizontalDivider()
 
-        PhotoPickerRow(
-            photos = fishPhotos ?: emptyList(),
-            onPhotoSelected = onPhotoSelected,
-            onPhotoTaken = onPhotoTaken,
-            onPhotoDeleted = onPhotoDeleted
+        HorizontalDivider(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            thickness = 1.dp,
+            color = getOnMainColor()
         )
-
-        HorizontalDivider()
 
         // Lure section
         if (fish.lure != null) {
@@ -643,14 +718,101 @@ private fun FishDetailContent(
                 }
             }
         }
-    }
 
-    if (showNotesDialog) {
-        NotesDialog(
-            notes = fishNotes?: emptyList(),
-            onDismiss = { showNotesDialog = false },
-            onSaveNote = onSaveNote,
-            onDeleteNote = onDeleteNote
+        if (fish.lure != null || fish.bait != null) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                thickness = 1.dp,
+                color = getOnMainColor()
+            )
+        }
+
+        PhotoPickerRow(
+            photos = fishPhotos ?: emptyList(),
+            onPhotoSelected = onPhotoSelected,
+            onPhotoTaken = onPhotoTaken,
+            onPhotoDeleted = onPhotoDeleted
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            thickness = 1.dp,
+            color = getOnMainColor()
+        )
+
+        if (categoryConfigs.size > 1) {
+            CategoryRow(
+                categories = categoryConfigs,
+                selectedCategory = selectedCategory,
+                onCategorySelected = { category ->
+                    selectedCategory = category
+                }
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                thickness = 1.dp,
+                color = getOnMainColor()
+            )
+        }
+
+        Crossfade(
+            targetState = selectedCategory,
+            label = "CategoryTransition",
+            modifier = Modifier.fillMaxWidth()
+        ) { category ->
+            when (category) {
+                CategoryType.NOTES -> {
+                    NoteRow(
+                        noteList = sortedNotes ?: emptyList(),
+                        onAdd = { showAddNoteDialog = true },
+                        onEdit = { noteToEdit = it },
+                        onDelete = { noteToDelete = it }
+                    )
+                }
+                CategoryType.WATER -> {
+                    if (fish.water != null) {
+                        WaterCard(water = fish.water)
+                    }
+                }
+                CategoryType.WEATHER -> {
+                    if (fish.weather != null) {
+                        WeatherCard(weather = fish.weather)
+                    }
+                }
+                else -> {
+                    // DO NOTHING FOR NOW
+                }
+            }
+        }
+    }
+    if (showAddNoteDialog) {
+        AddNoteDialog(
+            onDismiss = { showAddNoteDialog = false },
+            onConfirm = { content ->
+                onSaveNote(null, content)
+                showAddNoteDialog = false
+            }
+        )
+    }
+    noteToEdit?.let { note ->
+        EditNoteDialog(
+            item = note,
+            onDismiss = { noteToEdit = null },
+            onConfirm = { note ->
+                onSaveNote(note.id, note.content)
+                noteToEdit = null
+            }
+        )
+    }
+    noteToDelete?.let { note ->
+        DeleteConfirmationDialog(
+            title = "Delete Note",
+            message = "Are you sure you want to delete this note?",
+            onConfirm = {
+                onDeleteNote(note.id)
+                noteToDelete = null
+            },
+            onDismiss = { noteToDelete = null }
         )
     }
 }

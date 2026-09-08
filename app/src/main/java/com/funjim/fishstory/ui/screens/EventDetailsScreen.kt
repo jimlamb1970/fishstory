@@ -738,11 +738,6 @@ fun EventDetailsScreen(
                                             .alpha(if (event.latitude == null) 0.6f else 1f )
                                     )
                                 }
-
-                                NotesIconButton(
-                                    noteCount = eventDetails.notes.size,
-                                    onClick = { showNotesDialog = true }
-                                )
                             }
 
                             HorizontalDivider(

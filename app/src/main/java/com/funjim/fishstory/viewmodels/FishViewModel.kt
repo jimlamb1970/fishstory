@@ -13,6 +13,7 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.LocationProvider
 import com.funjim.fishstory.ui.utils.sortLures

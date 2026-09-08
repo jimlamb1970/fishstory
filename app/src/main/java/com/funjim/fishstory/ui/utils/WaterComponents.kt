@@ -179,8 +179,8 @@ fun WaterCard(
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
-    onEdit: (Water) -> Unit,
-    onDelete: (Water) -> Unit
+    onEdit: ((Water) -> Unit)? = null,
+    onDelete: ((Water) -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -279,44 +279,50 @@ fun WaterCard(
                 }
             }
 
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Water Snapshot Options"
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null
+            if ((onEdit != null) || (onDelete != null)) {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Water Snapshot Options"
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        if (onEdit != null) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onEdit(water.water)
+                                }
                             )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onEdit(water.water)
                         }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
+                        if (onDelete != null) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete(water.water)
+                                }
                             )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete(water.water)
                         }
-                    )
+                    }
                 }
             }
         }
