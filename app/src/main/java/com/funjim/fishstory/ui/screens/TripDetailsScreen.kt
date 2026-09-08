@@ -12,10 +12,10 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
@@ -40,6 +40,7 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBox
@@ -50,6 +51,7 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
+import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
@@ -58,6 +60,7 @@ import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.EditNoteDialog
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -65,6 +68,7 @@ import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesDialog
 import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.SpeciesSelection
@@ -140,6 +144,10 @@ fun TripDetailsScreen(
 
     var showFishermanSelection by remember { mutableStateOf(false) }
     var showAddFishermanDialog by remember { mutableStateOf(false) }
+
+    var showAddNoteDialog by remember { mutableStateOf(false) }
+    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
 
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
@@ -261,6 +269,9 @@ fun TripDetailsScreen(
             val sortedFishermen = remember(fishermen) {
                 fishermen.sortedBy { it.fullName }
             }
+            val sortedNotes = remember(details.notes) {
+                details.notes.sortedByDescending { it.timestamp }
+            }
             val sortedFishermanList = remember(fishermanSummaries) {
                 fishermanSummaries.sortedBy { it.fisherman.fullName }
             }
@@ -277,6 +288,7 @@ fun TripDetailsScreen(
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
                 sortedFishermanList,
+                sortedNotes,
                 sortedTargetSpeciesList,
                 sortedWaterList,
                 sortedWeatherList,
@@ -312,6 +324,15 @@ fun TripDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         ) },
                         count = sortedFishermanList.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.NOTES,
+                        icon = { Icon(
+                            Icons.AutoMirrored.Filled.StickyNote2,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = sortedNotes.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.TARGET_SPECIES,
@@ -440,7 +461,31 @@ fun TripDetailsScreen(
                                             }
                                         }
                                     }
+                                }
+                                CategoryType.NOTES -> {
+                                    IconButton(onClick = { showAddNoteDialog = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.AutoMirrored.Filled.StickyNote2,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp))
 
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                                 CategoryType.TARGET_SPECIES -> {
                                     IconButton(onClick = { showSpeciesSelection = true }) {
@@ -1035,7 +1080,14 @@ fun TripDetailsScreen(
                                             )
                                         }
                                     }
-
+                                    CategoryType.NOTES -> {
+                                        NoteRow(
+                                            noteList = sortedNotes,
+                                            onAdd = { showAddNoteDialog = true },
+                                            onEdit = { noteToEdit = it },
+                                            onDelete = { noteToDelete = it }
+                                        )
+                                    }
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
@@ -1139,6 +1191,17 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     onDismiss = { eventToDelete = null }
                 )
             }
+            noteToDelete?.let { note ->
+                DeleteConfirmationDialog(
+                    title = "Delete Note",
+                    message = "Are you sure you want to delete this note?",
+                    onConfirm = {
+                        viewModel.deleteNote(note.id)
+                        noteToDelete = null
+                    },
+                    onDismiss = { noteToDelete = null }
+                )
+            }
             waterToDelete?.let { water ->
                 DeleteConfirmationDialog(
                     title = "Delete Water Conditions",
@@ -1162,6 +1225,16 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                 )
             }
 
+            noteToEdit?.let { note ->
+                EditNoteDialog(
+                    item = note,
+                    onDismiss = { noteToEdit = null },
+                    onConfirm = { note ->
+                        viewModel.addNote(note.id, note.content)
+                        noteToEdit = null
+                    }
+                )
+            }
             waterToEdit?.let { water ->
                 WaterDialog(
                     initialTemp = water.temperature,
@@ -1371,6 +1444,15 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     // Do nothing on Success
                 }
                 showAddFishermanDialog = false
+            }
+        )
+    }
+    if (showAddNoteDialog) {
+        AddNoteDialog(
+            onDismiss = { showAddNoteDialog = false },
+            onConfirm = { content ->
+                viewModel.addNote(null, content)
+                showAddNoteDialog = false
             }
         )
     }

@@ -26,6 +26,7 @@ enum class CategoryType(val label: String) {
     BODIES_OF_WATER("Bodies of Water"),
     EVENTS("Events"),
     FISHERMEN("Fishermen"),
+    NOTES("Notes"),
     TARGET_SPECIES("Target Species"),
     WATER("Water"),
     WEATHER("Weather")

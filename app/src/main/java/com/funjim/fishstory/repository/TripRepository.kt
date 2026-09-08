@@ -321,7 +321,7 @@ class TripRepository(
     suspend fun updateNote(
         noteId: String,
         noteText: String) {
-        noteDao.updateNote(noteId, noteText)
+        noteDao.updateNoteContent(noteId, noteText)
     }
 
     suspend fun deleteNote(noteId: String) {

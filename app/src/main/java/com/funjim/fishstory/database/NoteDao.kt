@@ -30,12 +30,8 @@ interface NoteDao {
     @Query("DELETE FROM note_table WHERE id = :id")
     suspend fun deleteNoteById(id: String)
 
-    suspend fun updateNote(
-        noteId: String,
-        content: String) {
-        val note = NoteEntity(id = noteId, content = content)
-        upsertNote(note)
-    }
+    @Query("UPDATE note_table SET content = :content WHERE id = :noteId")
+    suspend fun updateNoteContent(noteId: String, content: String)
 
     // Transaction to add a note to a specific Trip
     @Transaction
