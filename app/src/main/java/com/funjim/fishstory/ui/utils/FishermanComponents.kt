@@ -534,14 +534,16 @@ fun FishermanSummaryCard(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(24.dp)
-                                .clickable(
-                                    enabled = (selectedTackleBox != null),
-                                ) {
-                                    tackleBoxOpen = !tackleBoxOpen
-                                    if (tackleBoxOpen) {
-                                        showPhotos = false
+                                .clickable() {
+                                    if (selectedTackleBox != null) {
+                                        tackleBoxOpen = !tackleBoxOpen
+                                        if (tackleBoxOpen) {
+                                            showPhotos = false
+                                        }
+                                        luresExpanded = tackleBoxOpen
+                                    } else {
+                                        showTackleBoxSelection = true
                                     }
-                                    luresExpanded = tackleBoxOpen
                                 }
                         )
 
