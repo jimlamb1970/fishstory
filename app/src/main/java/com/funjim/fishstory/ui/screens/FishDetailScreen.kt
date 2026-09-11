@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
@@ -39,31 +37,21 @@ import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddNoteDialog
-import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.EditNoteDialog
-import com.funjim.fishstory.ui.utils.FishFilter
-import com.funjim.fishstory.ui.utils.FishermanSummaries
-import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.NoteRow
-import com.funjim.fishstory.ui.utils.NotesDialog
-import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
-import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.WaterCard
-import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.WeatherCard
-import com.funjim.fishstory.ui.utils.WeatherSummaryRow
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.toDisplayString
-import com.funjim.fishstory.viewmodels.FishViewModel
+import com.funjim.fishstory.viewmodels.FishDetailsViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -83,7 +71,7 @@ fun shareContent(context: Context, textToShare: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FishDetailScreen(
-    viewModel: FishViewModel,
+    viewModel: FishDetailsViewModel,
     initialFishId: String,
     onEditFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
     navigateBack: () -> Unit

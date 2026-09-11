@@ -18,6 +18,7 @@ import com.funjim.fishstory.viewmodels.BaitViewModelFactory
 import com.funjim.fishstory.viewmodels.BodyOfWaterViewModelFactory
 import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
 import com.funjim.fishstory.viewmodels.EventViewModelFactory
+import com.funjim.fishstory.viewmodels.FishDetailsViewModelFactory
 import com.funjim.fishstory.viewmodels.FishViewModelFactory
 import com.funjim.fishstory.viewmodels.ImportViewModelFactory
 import com.funjim.fishstory.viewmodels.LureViewModelFactory
@@ -160,6 +161,15 @@ class FishstoryApplication : Application() {
             fishRepository,
             photoRepository,
             tripRepository)
+
+    fun getFishDetailsViewModelFactory() = FishDetailsViewModelFactory(
+        locationProvider = locationProvider,
+        envRepo = environmentRepository,
+        fishRepo = fishRepository,
+        lureRepo = lureRepository,
+        photoRepo = photoRepository,
+        tripRepo = tripRepository
+    )
 
     fun getFishViewModelFactory() = FishViewModelFactory(
         locationProvider = locationProvider,

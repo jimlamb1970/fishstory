@@ -830,10 +830,9 @@ fun AppNavigation(
 
             val app = navController.context.applicationContext as FishstoryApplication
 
-            // Fresh, isolated ViewModel scoped strictly to this FishDetails backstack entry
-            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+            val viewModel: FishDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 viewModelStoreOwner = backStackEntry,
-                factory = app.getFishViewModelFactory()
+                factory = app.getFishDetailsViewModelFactory()
             )
 
             // Populate the new ViewModel instance with the filter parsed from the route
