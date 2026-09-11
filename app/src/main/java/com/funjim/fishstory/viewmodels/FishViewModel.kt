@@ -400,16 +400,14 @@ class FishViewModel(
         onSuccess: (Species) -> Unit
     ) {
         viewModelScope.launch {
-            viewModelScope.launch {
-                try {
-                    fishRepo.updateSpecies(item)
-                    onSuccess(item)
-                } catch (e: SQLiteConstraintException) {
-                    // Catches duplicate UNIQUE constraint failures
-                    _toastMessage.emit("Species '${item.name}' already exists.")
-                } catch (e: Exception) {
-                    _toastMessage.emit("An error occurred while updating species.")
-                }
+            try {
+                fishRepo.updateSpecies(item)
+                onSuccess(item)
+            } catch (e: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Species '${item.name}' already exists.")
+            } catch (e: Exception) {
+                _toastMessage.emit("An error occurred while updating species.")
             }
         }
     }

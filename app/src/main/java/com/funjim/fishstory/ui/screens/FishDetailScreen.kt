@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Share // Added for fallback if needed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -89,18 +90,33 @@ fun FishDetailScreen(
 ) {
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
 
-    // Find initial index — if fish is deleted or list changes, clamp to valid range
-    val initialIndex = remember(fishList, initialFishId) {
-        fishList.indexOfFirst { it.fish.id == initialFishId }.coerceAtLeast(0)
-    }
+    // Persist target ID across process death
+    val targetFishId by rememberSaveable { mutableStateOf(initialFishId) }
 
-    var currentIndex by remember(initialIndex) { mutableIntStateOf(initialIndex) }
+    // Track active index with rememberSaveable
+    var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
+
+    LaunchedEffect(fishList, targetFishId) {
+        if (fishList.isNotEmpty()) {
+            if (currentIndex == -1) {
+                // Initial load: find index of target ID
+                val foundIndex = fishList.indexOfFirst { it.fish.id == targetFishId }
+                currentIndex = if (foundIndex != -1) foundIndex else 0
+            } else {
+                // Ensure index stays in valid bounds if list updates
+                currentIndex = currentIndex.coerceIn(0, fishList.lastIndex)
+            }
+        }
+    }
 
     // Clamp index if list shrinks
     val safeIndex = currentIndex.coerceIn(0, (fishList.size - 1).coerceAtLeast(0))
     if (safeIndex != currentIndex) currentIndex = safeIndex
 
-    val fish = fishList.getOrNull(currentIndex)
+// Safely resolve active fish
+    val fish = if (fishList.isNotEmpty() && currentIndex in fishList.indices) {
+        fishList[currentIndex]
+    } else null
 
     // Swipe gesture state
     var dragOffset by remember { mutableFloatStateOf(0f) }
@@ -328,15 +344,17 @@ private fun FishDetailContent(
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
-    val fishNotes by fishNoteFlow.collectAsState(initial = null)
+    val fishNotes by fishNoteFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+    val fishPhotos by fishPhotoFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+
     val sortedNotes = remember(fishNotes) {
-        fishNotes?.sortedByDescending { it.timestamp }
+        fishNotes.sortedByDescending { it.timestamp }
     }
+
     var showAddNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
 
-    val fishPhotos by fishPhotoFlow.collectAsState(initial = null)
 
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
     val bodyOfWaterThumbnail by bodyOfWaterThumbnailFlow.collectAsState(initial = null)
@@ -374,34 +392,46 @@ private fun FishDetailContent(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     ) },
-                    count = fishNotes?.size ?: 0
+                    count = fishNotes.size
                 )
             )
 
             if (fish.water != null) {
-                CategoryChipConfig(
-                    category = CategoryType.WATER,
-                    icon = { Icon(
-                        AppIcons.Default.WaterSet,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    ) },
-                    count = 1
+                add (
+                    CategoryChipConfig(
+                        category = CategoryType.WATER,
+                        icon = { Icon(
+                            AppIcons.Default.WaterSet,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = 1
+                    )
                 )
             }
 
             if (fish.weather != null) {
-                CategoryChipConfig(
-                    category = CategoryType.WEATHER,
-                    icon = {
-                        Icon(
-                            AppIcons.Default.WeatherSet,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    count = 1
+                add (
+                    CategoryChipConfig(
+                        category = CategoryType.WEATHER,
+                        icon = {
+                            Icon(
+                                AppIcons.Default.WeatherSet,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        count = 1
+                    )
                 )
+            }
+        }
+    }
+
+    LaunchedEffect(categoryConfigs) {
+        if (categoryConfigs.none { it.category == selectedCategory }) {
+            categoryConfigs.firstOrNull()?.let {
+                selectedCategory = it.category
             }
         }
     }
@@ -412,7 +442,6 @@ private fun FishDetailContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
         // Placed the Chip and Share button on the same horizontal line
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
@@ -456,112 +485,7 @@ private fun FishDetailContent(
             color = getOnMainColor()
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(.25f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ThumbnailBox(
-                    thumbnail = fishThumbnail,
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(64.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                modifier = Modifier.weight(.75f),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = fish.species.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    if (activeLat != null && activeLng != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "View on map",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
-                                    val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not open map",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                                .alpha(if (fishLat == null) 0.6f else 1f)
-                        )
-                    }
-                }
-
-                if (fish.fish.length != null) {
-                    DetailRow(
-                        label = "Length",
-                        value = fish.fish.length.toDisplayString(
-                            useMetric = false,
-                            useFractions = true
-                        )
-                    )
-                }
-
-                fish.fish.holeNumber?.let {
-                    DetailRow(label = "Hole #", value = it.toString())
-                }
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(.25f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ThumbnailBox(
-                    thumbnail = fishermanThumbnail,
-                    imageVector = AppIcons.Default.Fisherman,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                modifier = Modifier.weight(.75f),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = fish.fisherman.fullName,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        if (fish.fish.bodyOfWaterId != null) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -572,8 +496,80 @@ private fun FishDetailContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ThumbnailBox(
-                        thumbnail = bodyOfWaterThumbnail,
-                        imageVector = AppIcons.Default.BodyOfWater,
+                        thumbnail = fishThumbnail,
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(
+                    modifier = Modifier.weight(.75f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = fish.species.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (activeLat != null && activeLng != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        val mapUri =
+                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not open map",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                    .alpha(if (fishLat == null) 0.6f else 1f)
+                            )
+                        }
+                    }
+
+                    if (fish.fish.length != null) {
+                        DetailRow(
+                            label = "Length",
+                            value = fish.fish.length.toDisplayString(
+                                useMetric = false,
+                                useFractions = true
+                            )
+                        )
+                    }
+
+                    fish.fish.holeNumber?.let {
+                        DetailRow(label = "Hole #", value = it.toString())
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(.25f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ThumbnailBox(
+                        thumbnail = fishermanThumbnail,
+                        imageVector = AppIcons.Default.Fisherman,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -586,56 +582,99 @@ private fun FishDetailContent(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = fish.bodyOfWater?.name ?: "Unknown",
+                            text = fish.fisherman.fullName,
                             style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                Modifier.weight(0.25f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                ThumbnailBox(
-                    thumbnail = tripThumbnail,
-                    imageVector = AppIcons.Default.Boat,
-                    modifier = Modifier.size(40.dp)
-                )
-                Text(
-                    text = fish.trip.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            if (fish.fish.bodyOfWaterId != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(.25f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ThumbnailBox(
+                            thumbnail = bodyOfWaterThumbnail,
+                            imageVector = AppIcons.Default.BodyOfWater,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column(
+                        modifier = Modifier.weight(.75f),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = fish.bodyOfWater?.name ?: "Unknown",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
-            Column(
-                Modifier.weight(0.25f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                ThumbnailBox(
-                    thumbnail = eventThumbnail,
-                    imageVector = AppIcons.Default.CanoeEmpty,
-                    modifier = Modifier.size(40.dp)
-                )
-                Text(
-                    text = fish.event.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Column(
-                modifier = Modifier.weight(.5f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                DetailRow(label = "Date", value = dateFormatter.format(Date(fish.fish.timestamp)))
-                DetailRow(label = "Time", value = timeFormatter.format(Date(fish.fish.timestamp)))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    Modifier.weight(0.25f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ThumbnailBox(
+                        thumbnail = tripThumbnail,
+                        imageVector = AppIcons.Default.Boat,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        text = fish.trip.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Column(
+                    Modifier.weight(0.25f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ThumbnailBox(
+                        thumbnail = eventThumbnail,
+                        imageVector = AppIcons.Default.CanoeEmpty,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        text = fish.event.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(.5f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    DetailRow(
+                        label = "Date",
+                        value = dateFormatter.format(Date(fish.fish.timestamp))
+                    )
+                    DetailRow(
+                        label = "Time",
+                        value = timeFormatter.format(Date(fish.fish.timestamp))
+                    )
+                }
             }
         }
-
 
         HorizontalDivider(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp),
@@ -771,12 +810,20 @@ private fun FishDetailContent(
                 }
                 CategoryType.WATER -> {
                     if (fish.water != null) {
-                        WaterCard(water = fish.water)
+                        Column(modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        ) {
+                            WaterCard(water = fish.water)
+                        }
                     }
                 }
                 CategoryType.WEATHER -> {
                     if (fish.weather != null) {
-                        WeatherCard(weather = fish.weather)
+                        Column(modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        ) {
+                            WeatherCard(weather = fish.weather)
+                        }
                     }
                 }
                 else -> {
