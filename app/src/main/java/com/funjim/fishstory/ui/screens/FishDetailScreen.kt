@@ -90,35 +90,23 @@ fun FishDetailScreen(
 ) {
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
 
-    // Persist target ID across process death
-    val targetFishId by rememberSaveable { mutableStateOf(initialFishId) }
-
-    // Track active index with rememberSaveable
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
 
-    LaunchedEffect(fishList, targetFishId) {
+    LaunchedEffect(fishList) {
         if (fishList.isNotEmpty()) {
             if (currentIndex == -1) {
-                // Initial load: find index of target ID
-                val foundIndex = fishList.indexOfFirst { it.fish.id == targetFishId }
+                val foundIndex = fishList.indexOfFirst { it.fish.id == initialFishId }
                 currentIndex = if (foundIndex != -1) foundIndex else 0
             } else {
-                // Ensure index stays in valid bounds if list updates
                 currentIndex = currentIndex.coerceIn(0, fishList.lastIndex)
             }
         }
     }
 
-    // Clamp index if list shrinks
-    val safeIndex = currentIndex.coerceIn(0, (fishList.size - 1).coerceAtLeast(0))
-    if (safeIndex != currentIndex) currentIndex = safeIndex
-
-// Safely resolve active fish
     val fish = if (fishList.isNotEmpty() && currentIndex in fishList.indices) {
         fishList[currentIndex]
     } else null
 
-    // Swipe gesture state
     var dragOffset by remember { mutableFloatStateOf(0f) }
     val animatedOffset by animateFloatAsState(targetValue = dragOffset, label = "swipe")
     val swipeThreshold = 120f
