@@ -377,6 +377,45 @@ fun AppNavigation(
             )
         }
 
+        composable<FishDetailsRoute> { backStackEntry ->
+            val route: FishDetailsRoute = backStackEntry.toRoute()
+            val filter = FishFilter.fromDetailsRoute(route)
+
+            val app = navController.context.applicationContext as FishstoryApplication
+
+            val viewModel: FishDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                viewModelStoreOwner = backStackEntry,
+                factory = app.getFishDetailsViewModelFactory()
+            )
+
+            // Populate the new ViewModel instance with the filter parsed from the route
+            LaunchedEffect(filter) {
+                viewModel.updateSortOrder(filter.sortOrder)
+                if (filter.sortReversed) {
+                    viewModel.toggleReverse()
+                }
+                viewModel.selectBodyOfWater(filter.bodyOfWaterId)
+                viewModel.selectEvent(filter.eventId)
+                viewModel.selectFisherman(filter.fishermanId)
+                viewModel.selectLure(filter.lureId)
+                viewModel.selectSpecies(filter.speciesId)
+                viewModel.selectTrip(filter.tripId, filter.eventId)
+                viewModel.selectWater(filter.waterId)
+                viewModel.selectWeather(filter.weatherId)
+                viewModel.selectTargetOnly(filter.targetOnly)
+            }
+
+            FishDetailScreen(
+                viewModel = viewModel,
+                initialFishId = route.fishId,
+                onEditFish = { tripId, eventId, editFishId ->
+                    val editRoute = "add_fish/$tripId/$eventId?fishId=$editFishId"
+                    navController.navigate(editRoute)
+                },
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable<FishListRoute> { backStackEntry ->
             val route: FishListRoute = backStackEntry.toRoute()
             val filter = FishFilter.fromRoute(route)
@@ -390,12 +429,17 @@ fun AppNavigation(
                 viewModel = viewModel,
                 filter = filter,
                 onAddFish = { tripId, eventId, fishId ->
-                    val addRoute = if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId" else "add_fish/$tripId/$eventId"
+                    val addRoute =
+                        if (fishId != null) "add_fish/$tripId/$eventId?fishId=$fishId"
+                        else "add_fish/$tripId/$eventId"
                     navController.navigate(addRoute)
                 },
-                navigateToFishDetails = { selectedFishId ->
+                navigateToFishDetails = { selectedFishId, sortOrder, sortReversed ->
                     // Convert list route to details route cleanly using our extension helper
-                    val detailsRoute = route.toDetailsRoute(selectedFishId)
+                    val detailsRoute = route.toDetailsRoute(
+                        selectedFishId,
+                        sortOrder,
+                        sortReversed)
                     navController.navigate(detailsRoute)
                 },
                 navigateBack = {
@@ -821,41 +865,6 @@ fun AppNavigation(
                 navigateBack = {
                     navController.popBackStack()
                 }
-            )
-        }
-
-        composable<FishDetailsRoute> { backStackEntry ->
-            val route: FishDetailsRoute = backStackEntry.toRoute()
-            val filter = FishFilter.fromDetailsRoute(route)
-
-            val app = navController.context.applicationContext as FishstoryApplication
-
-            val viewModel: FishDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                viewModelStoreOwner = backStackEntry,
-                factory = app.getFishDetailsViewModelFactory()
-            )
-
-            // Populate the new ViewModel instance with the filter parsed from the route
-            LaunchedEffect(filter) {
-                viewModel.selectBodyOfWater(filter.bodyOfWaterId)
-                viewModel.selectEvent(filter.eventId)
-                viewModel.selectFisherman(filter.fishermanId)
-                viewModel.selectLure(filter.lureId)
-                viewModel.selectSpecies(filter.speciesId)
-                viewModel.selectTrip(filter.tripId, filter.eventId)
-                viewModel.selectWater(filter.waterId)
-                viewModel.selectWeather(filter.weatherId)
-                viewModel.selectTargetOnly(filter.targetOnly)
-            }
-
-            FishDetailScreen(
-                viewModel = viewModel,
-                initialFishId = route.fishId,
-                onEditFish = { tripId, eventId, editFishId ->
-                    val editRoute = if (editFishId != null) "add_fish/$tripId/$eventId?fishId=$editFishId" else "add_fish/$tripId/$eventId"
-                    navController.navigate(editRoute)
-                },
-                navigateBack = { navController.popBackStack() }
             )
         }
     }

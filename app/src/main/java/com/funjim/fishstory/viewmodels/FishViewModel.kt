@@ -2,7 +2,6 @@ package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,6 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
-import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.LocationProvider
 import com.funjim.fishstory.ui.utils.sortLures
@@ -32,7 +30,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

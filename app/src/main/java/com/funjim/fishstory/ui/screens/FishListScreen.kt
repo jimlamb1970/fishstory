@@ -47,7 +47,11 @@ fun FishListScreen(
     filter: FishFilter,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
-    navigateToFishDetails: (fishId: String) -> Unit
+    navigateToFishDetails: (
+        fishId: String,
+        sortOrder:FishSortOrder,
+            sortReversed: Boolean
+    ) -> Unit
 ) {
     LaunchedEffect(filter) {
         viewModel.selectBodyOfWater(filter.bodyOfWaterId)
@@ -317,7 +321,11 @@ fun FishListScreen(
                                     else viewModel.fishThumbnail(fishDetails.fish.id),
                                 photosFlow = viewModel.fishPhotos(fishDetails.fish.id),
                                 onClick = {
-                                    navigateToFishDetails(fishDetails.fish.id)
+                                    navigateToFishDetails(
+                                        fishDetails.fish.id,
+                                        currentOrder,
+                                        reversed
+                                    )
                                 },
                                 onEdit = {
                                     onAddFish(

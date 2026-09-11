@@ -73,7 +73,7 @@ fun shareContent(context: Context, textToShare: String) {
 fun FishDetailScreen(
     viewModel: FishDetailsViewModel,
     initialFishId: String,
-    onEditFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
+    onEditFish: (tripId: String, eventId: String, fishId: String) -> Unit,
     navigateBack: () -> Unit
 ) {
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()

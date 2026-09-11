@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import com.funjim.fishstory.viewmodels.FishSortOrder
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +19,8 @@ data class FishListRoute(
 @Serializable
 data class FishDetailsRoute(
     val fishId: String,
+    val sortOrder: FishSortOrder,
+    val sortReversed: Boolean = false,
     val bodyOfWaterId: String? = null,
     val eventId: String? = null,
     val fishermanId: String? = null,
@@ -31,6 +34,8 @@ data class FishDetailsRoute(
 
 data class FishFilter(
     val fishId: String? = null,
+    val sortOrder: FishSortOrder = FishSortOrder.TIMESTAMP_NEWEST_FIRST,
+    val sortReversed: Boolean = false,
     val bodyOfWaterId: String? = null,
     val eventId: String? = null,
     val fishermanId: String? = null,
@@ -56,6 +61,8 @@ data class FishFilter(
 
         fun fromDetailsRoute(route: FishDetailsRoute) = FishFilter(
             fishId = route.fishId,
+            sortOrder = route.sortOrder,
+            sortReversed = route.sortReversed,
             bodyOfWaterId = route.bodyOfWaterId,
             eventId = route.eventId,
             fishermanId = route.fishermanId,
@@ -79,8 +86,13 @@ data class FishFilter(
             targetOnly = filter.targetOnly
         )
 
-        fun toDetailsRoute(filter: FishFilter, fishId: String) = FishDetailsRoute(
+        fun toDetailsRoute(
+            filter: FishFilter,
+            fishId: String
+        ) = FishDetailsRoute(
             fishId = fishId,
+            sortOrder = filter.sortOrder,
+            sortReversed = filter.sortReversed,
             bodyOfWaterId = filter.bodyOfWaterId,
             eventId = filter.eventId,
             fishermanId = filter.fishermanId,
@@ -95,8 +107,14 @@ data class FishFilter(
 }
 
 // Extension helper for seamless transition from list route to details route
-fun FishListRoute.toDetailsRoute(fishId: String): FishDetailsRoute = FishDetailsRoute(
+fun FishListRoute.toDetailsRoute(
+    fishId: String,
+    sortOrder: FishSortOrder,
+    sortReversed: Boolean
+): FishDetailsRoute = FishDetailsRoute(
     fishId = fishId,
+    sortOrder = sortOrder,
+    sortReversed = sortReversed,
     bodyOfWaterId = this.bodyOfWaterId,
     eventId = this.eventId,
     fishermanId = this.fishermanId,

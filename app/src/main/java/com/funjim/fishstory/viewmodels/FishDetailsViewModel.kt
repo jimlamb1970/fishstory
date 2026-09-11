@@ -59,6 +59,9 @@ class FishDetailsViewModel(
     private val _sortOrder = MutableStateFlow(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
     private val _isReversed = MutableStateFlow(false)
 
+    fun toggleReverse() { _isReversed.value = !_isReversed.value }
+    fun updateSortOrder(order: FishSortOrder) { _sortOrder.value = order }
+
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(
             scope = viewModelScope,
