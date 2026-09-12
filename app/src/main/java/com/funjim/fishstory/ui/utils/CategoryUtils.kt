@@ -13,10 +13,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -128,65 +130,68 @@ fun CategoryRow(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        categories.forEach { config ->
-            val isSelected = config.category == selectedCategory
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+            categories.forEach { config ->
+                val isSelected = config.category == selectedCategory
 
-            FilterChip(
-                selected = isSelected,
-                onClick = { onCategorySelected(config.category) },
-                label = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = config.category.label,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onCategorySelected(config.category) },
+                    label = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = config.category.label,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
 
-                        // Badge Count Indicator
-                        config.count?.let { count ->
-                            if (count > 0) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = getMainButtonColor(),
-                                    modifier = Modifier.padding(start = 2.dp)
-                                ) {
-                                    Text(
-                                        text = count.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = getOnMainButtonColor(),
-                                        modifier = Modifier.padding(
-                                            horizontal = 6.dp,
-                                            vertical = 2.dp
+                            // Badge Count Indicator
+                            config.count?.let { count ->
+                                if (count > 0) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = getMainButtonColor(),
+                                        modifier = Modifier.padding(start = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = count.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = getOnMainButtonColor(),
+                                            modifier = Modifier.padding(
+                                                horizontal = 6.dp,
+                                                vertical = 2.dp
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    selectedBorderColor = getChipColor(true),
-                    selectedBorderWidth = 2.dp,
-                    borderColor = getOnChipColor(),
-                    borderWidth = 1.dp
-                ),
-                leadingIcon = {
-                    Box(modifier = Modifier.size(18.dp)) {
-                        config.icon()
-                    }
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
-                    selectedLabelColor = getOnChipSecondaryColor(),
-                    labelColor = getOnChipColor()
+                    },
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        selectedBorderColor = getChipColor(true),
+                        selectedBorderWidth = 2.dp,
+                        borderColor = getOnChipColor(),
+                        borderWidth = 1.dp
+                    ),
+                    leadingIcon = {
+                        Box(modifier = Modifier.size(18.dp)) {
+                            config.icon()
+                        }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = getChipColor(true).copy(alpha = 0.15f),
+                        selectedLabelColor = getOnChipSecondaryColor(),
+                        labelColor = getOnChipColor()
+                    ),
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
-            )
+            }
         }
     }
 }
