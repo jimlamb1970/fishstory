@@ -171,6 +171,28 @@ class EventViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val limitSummaries: StateFlow<List<LimitSummary>> = _selectedEventId
+        .flatMapLatest { eventId ->
+            if (eventId.isNullOrBlank()) {
+                flowOf(emptyList())
+            } else {
+                fishRepo.getLimitsForEvent(eventId).map { limits ->
+                    limits.map { limit ->
+                        LimitSummary(
+                            limit = limit,
+                            caughtCount = 0
+                        )
+                    }
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }
@@ -421,18 +443,58 @@ class EventViewModel(
     }
 
     // --- Actions ---
+    // Event functions
     fun upsertEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.upsertEvent(event)
         }
     }
 
+    // Limit functions
+    fun addLimit(limit: Limit) {
+        val eventId = _selectedEventId.value
+
+        if (eventId.isNullOrBlank()) {
+            return
+        }
+
+        viewModelScope.launch {
+            fishRepo.addLimitToEvent(
+                eventId = eventId,
+                limit = limit
+            )
+        }
+    }
+
+    fun deleteLimit(limit: Limit) {
+        viewModelScope.launch {
+            fishRepo.deleteLimit(limit)
+        }
+    }
+
+    // Note functions
+    fun addNote(noteId: String?, content: String) {
+        val eventId = _selectedEventId.value ?: return
+        viewModelScope.launch {
+            if (noteId == null) {
+                tripRepo.addNoteToEvent(eventId, content)
+            } else {
+                tripRepo.updateNote(noteId, content)
+            }
+        }
+    }
+    fun deleteNote(noteId: String) {
+        viewModelScope.launch {
+            tripRepo.deleteNote(noteId)
+        }
+    }
+
+    // Water functions
     fun addWater(water: Water) {
         viewModelScope.launch {
             envRepo.addWater(water)
         }
     }
-
     fun addWaterClarity(
         item: WaterClarity,
         onSuccess: () -> Unit,
@@ -448,25 +510,23 @@ class EventViewModel(
             }
         }
     }
-
     fun updateWater(water: Water) {
         viewModelScope.launch {
             envRepo.upsertWater(water)
         }
     }
-
     fun deleteWater(id: String) {
         viewModelScope.launch {
             envRepo.deleteWater(id = id)
         }
     }
 
+    // Weather functions
     fun addWeather(weather: Weather) {
         viewModelScope.launch {
             envRepo.addWeather(weather)
         }
     }
-
     fun addSkyCondition(
         item: SkyCondition,
         onSuccess: () -> Unit,
@@ -482,35 +542,17 @@ class EventViewModel(
             }
         }
     }
-
     fun deleteWeather(id: String) {
         viewModelScope.launch {
             envRepo.deleteWeather(id = id)
         }
     }
-
     fun updateWeather(weather: Weather) {
         viewModelScope.launch {
             envRepo.upsertWeather(weather)
         }
     }
 
-    fun addNote(noteId: String?, content: String) {
-        val eventId = _selectedEventId.value ?: return
-        viewModelScope.launch {
-            if (noteId == null) {
-                tripRepo.addNoteToEvent(eventId, content)
-            } else {
-                tripRepo.updateNote(noteId, content)
-            }
-        }
-    }
-
-    fun deleteNote(noteId: String) {
-        viewModelScope.launch {
-            tripRepo.deleteNote(noteId)
-        }
-    }
 
     fun addFisherman(
         fisherman: Fisherman,

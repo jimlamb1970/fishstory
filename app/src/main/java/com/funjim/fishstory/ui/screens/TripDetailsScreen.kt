@@ -462,6 +462,7 @@ fun TripDetailsScreen(
                                         }
                                     }
                                 }
+                                CategoryType.LIMITS -> {}
                                 CategoryType.NOTES -> {
                                     IconButton(onClick = { showAddNoteDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {

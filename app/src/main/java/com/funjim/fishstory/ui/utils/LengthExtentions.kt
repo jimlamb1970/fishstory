@@ -4,6 +4,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -85,26 +86,38 @@ fun Long.toDecimalInchesDisplayString(): String {
  * Converts the stored database Long into a clean fractional inch string rounded to the nearest 1/16th.
  * Example: 523875L -> "2 1/16\""
  */
+private val INCH_FRACTIONS = listOf(
+    "0" to 0.0,
+    "⅛" to 0.125,
+    "¼" to 0.25,
+    "⅜" to 0.375,
+    "½" to 0.5,
+    "⅝" to 0.625,
+    "¾" to 0.75,
+    "⅞" to 0.875
+)
 fun Long.toFractionalInchesDisplayString(): String {
     val totalInches = this.toInches()
     val wholeInches = totalInches.toInt()
-
-    // Extract the decimal fraction portion and calculate total sixteenths
     val fractionPart = totalInches - wholeInches
-    val sixteenths = (fractionPart * 16).roundToInt()
+
+    // Find the nearest matching fraction symbol
+    val fractionLabel = INCH_FRACTIONS
+        .minByOrNull { abs(it.second - fractionPart) }
+        ?.first ?: "0"
 
     return when {
-        // Case 1: The fraction rounds up to a full inch
-        sixteenths == 16 -> "${wholeInches + 1}\""
+        // Case 1: Fraction is close to 1 whole inch (e.g., 0.99)
+        abs(fractionPart - 1.0) < 0.001 -> "${wholeInches + 1}″"
 
-        // Case 2: No fraction, just whole inches
-        sixteenths == 0 -> if (wholeInches == 0) "0\"" else "$wholeInches\""
+        // Case 2: Pure whole number with no fractional remainder
+        fractionLabel == "0" -> if (wholeInches == 0) "0″" else "$wholeInches″"
 
-        // Case 3: It's a pure fraction less than an inch (e.g., "1/16\"")
-        wholeInches == 0 -> "${reduceFraction(sixteenths, 16)}\""
+        // Case 3: Pure fraction less than an inch (e.g., "½″")
+        wholeInches == 0 -> "$fractionLabel″"
 
-        // Case 4: Standard mixed fraction (e.g., "2 1/16\"")
-        else -> "$wholeInches ${reduceFraction(sixteenths, 16)}\""
+        // Case 4: Standard mixed number (e.g., "12½″")
+        else -> "$wholeInches$fractionLabel″"
     }
 }
 

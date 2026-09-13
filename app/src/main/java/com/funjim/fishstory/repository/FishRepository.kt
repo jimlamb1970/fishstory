@@ -4,6 +4,7 @@ import com.funjim.fishstory.database.BodyOfWaterDao
 import com.funjim.fishstory.database.EventDao
 import com.funjim.fishstory.database.FishDao
 import com.funjim.fishstory.database.FishermanDao
+import com.funjim.fishstory.database.LimitDao
 import com.funjim.fishstory.database.LureDao
 import com.funjim.fishstory.database.NoteDao
 import com.funjim.fishstory.database.PhotoDao
@@ -13,15 +14,16 @@ import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.toDomain
+import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toSpeciesEntityList
 import com.funjim.fishstory.database.toEventDomainList
 import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toFishermanSummaryDomainList
+import com.funjim.fishstory.database.toLimitWithSpeciesDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toNoteDomainList
-import com.funjim.fishstory.database.toPhotoDomainList
-import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.toTripDomainList
 import com.funjim.fishstory.database.toWaterSummaryDomainList
@@ -37,6 +39,7 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
+import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Note
@@ -56,6 +59,7 @@ class FishRepository(
     private val bodyOfWaterDao: BodyOfWaterDao,
     private val fishDao: FishDao,
     private val fishermanDao: FishermanDao,
+    private val limitDao: LimitDao,
     private val lureDao: LureDao,
     private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
@@ -351,5 +355,22 @@ class FishRepository(
     }
     suspend fun deleteSpecies(species: Species) {
         fishDao.deleteSpecies(species.toEntity())
+    }
+
+    fun getLimitsForEvent(eventId: String): Flow<List<Limit>> {
+        return limitDao.getLimitsForEvent(eventId = eventId)
+            .map { list -> list.toLimitWithSpeciesDomainList() }
+    }
+
+    suspend fun addLimitToEvent(eventId: String, limit: Limit) {
+        limitDao.insertLimitForEvent(
+            limit = limit.toEntity(),
+            species = limit.species.toSpeciesEntityList(),
+            eventId = eventId
+        )
+    }
+
+    suspend fun deleteLimit(limit: Limit) {
+        limitDao.deleteLimit(limit.toEntity())
     }
 }

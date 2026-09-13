@@ -699,7 +699,8 @@ fun FractionalLengthField(
     wholeValue: String,
     fractionValue: Double,
     onLengthChanged: (whole: Int, fraction: Double) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wholeWeight: Float = 0.5f
 ) {
     val fractions = remember {
         listOf(
@@ -721,6 +722,9 @@ fun FractionalLengthField(
         fractions.minByOrNull { kotlin.math.abs(it.second - fractionValue) }?.first ?: "0"
     }
 
+    val safeWholeWeight = wholeWeight.coerceIn(0.1f, 0.9f)
+    val fractionWeight = 1f - safeWholeWeight
+
     Column(modifier = modifier) {
         Text(text = label, style = MaterialTheme.typography.labelMedium)
         Row(
@@ -736,7 +740,7 @@ fun FractionalLengthField(
                     val wholeInt = cleanInput.toIntOrNull() ?: 0
                     onLengthChanged(wholeInt.coerceAtLeast(0), fractionValue)
                 },
-                modifier = Modifier.weight(0.5f),
+                modifier = Modifier.weight(safeWholeWeight),
                 textStyle = TextStyle(textAlign = TextAlign.Center),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -744,7 +748,7 @@ fun FractionalLengthField(
             )
 
             // Fraction Item Selection Dropdown Trigger Box
-            Box(modifier = Modifier.weight(0.5f)) {
+            Box(modifier = Modifier.weight(fractionWeight)) {
                 OutlinedTextField(
                     value = currentFractionLabel,
                     onValueChange = {},

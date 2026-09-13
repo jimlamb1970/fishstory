@@ -15,9 +15,12 @@ import com.funjim.fishstory.model.*
         EventBaitEntity::class,
         EventBodyOfWaterEntity::class,
         EventFishermanEntity::class,
+        EventLimitEntity::class,
         EventTargetSpeciesEntity::class,
         FishEntity::class,
         FishermanEntity::class,
+        LimitEntity::class,
+        LimitSpeciesEntity::class,
         LureEntity::class,
         LureColorEntity::class,
         LureGlowColorEntity::class,
@@ -46,6 +49,7 @@ import com.funjim.fishstory.model.*
         TripBaitEntity::class,
         TripBodyOfWaterEntity::class,
         TripFishermanEntity::class,
+        TripLimitEntity::class,
         TripTargetSpeciesEntity::class,
         WaterEntity::class,
         WaterClarityEntity::class,
@@ -58,13 +62,14 @@ import com.funjim.fishstory.model.*
     version = 11,
     exportSchema = false
 )
-@TypeConverters(WeatherConverters::class)
+@TypeConverters(WeatherConverters::class, LimitTypeConverter::class)
 abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun baitDao(): BaitDao
     abstract fun bodyOfWaterDao(): BodyOfWaterDao
     abstract fun eventDao(): EventDao
     abstract fun fishDao(): FishDao
     abstract fun fishermanDao(): FishermanDao
+    abstract fun limitDao(): LimitDao
     abstract fun lureDao(): LureDao
     abstract fun noteDao(): NoteDao
     abstract fun photoDao(): PhotoDao

@@ -371,11 +371,11 @@ fun SpeciesSelection(
 fun SpeciesSelection(
     items: List<Species>,
     selectedItems: List<Species>,
+    modifier: Modifier = Modifier,
     onSelected: (Species) -> Unit,
     onUnselected: (Species) -> Unit,
-    onAdd: () -> Unit,
+    onAdd: (() -> Unit)? = null,
     onDone: () -> Unit,
-    modifier: Modifier = Modifier,
     usageMap: Map<String, Int>? = null,
     maxUsage: Int? = null,
     thumbnailProvider: @Composable (Species) -> Unit
@@ -532,11 +532,13 @@ fun SpeciesSelection(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            ModalAddButton(
-                                title = "Add species ...",
-                                onAdd = { onAdd() }
-                            )
+                        if (onAdd != null) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                ModalAddButton(
+                                    title = "Add species ...",
+                                    onAdd = { onAdd() }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -616,11 +618,13 @@ fun SpeciesSelection(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
-                        item {
-                            ModalAddButton(
-                                title = "Add species ...",
-                                onAdd = { onAdd() }
-                            )
+                        if (onAdd != null) {
+                            item {
+                                ModalAddButton(
+                                    title = "Add species ...",
+                                    onAdd = { onAdd() }
+                                )
+                            }
                         }
                     }
                 }
@@ -632,12 +636,11 @@ fun SpeciesSelection(
 @Composable
 fun TargetSpeciesRow(
     items: List<Species>,
+    modifier: Modifier = Modifier,
+    name: String = "Target Species",
     onAdd: () -> Unit,
     onDelete: (Species) -> Unit,
     thumbnailProvider: @Composable (Species) -> Unit,
-    modifier: Modifier = Modifier,
-    summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
-    thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
@@ -653,7 +656,7 @@ fun TargetSpeciesRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Target Species",
+                    text = name,
                     style = MaterialTheme.typography.titleMedium,
                     color = getOnMainColor()
                 )
@@ -687,7 +690,7 @@ fun TargetSpeciesRow(
 
         if (items.isEmpty()) {
             Text(
-                text = "No target species are set.",
+                text = "No ${name.lowercase()} are set.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 enum class CategoryType(val label: String) {
     BODIES_OF_WATER("Bodies of Water"),
     EVENTS("Events"),
+    LIMITS("Limits"),
     FISHERMEN("Fishermen"),
     NOTES("Notes"),
     TARGET_SPECIES("Target Species"),

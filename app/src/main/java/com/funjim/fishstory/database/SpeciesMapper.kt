@@ -26,6 +26,10 @@ fun Species.toEntity(): SpeciesEntity {
     )
 }
 
+fun List<Species>.toSpeciesEntityList(): List<SpeciesEntity> {
+    return map { it.toEntity() }
+}
+
 // Extension: Database Entity -> Domain Model
 fun SpeciesSummaryEntity.toDomain(): SpeciesSummary {
     return SpeciesSummary(

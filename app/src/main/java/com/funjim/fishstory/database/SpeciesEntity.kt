@@ -24,7 +24,7 @@ data class SpeciesEntity(
 @Serializable
 @Entity(
     tableName = "event_target_species",
-    primaryKeys = ["eventId", "speciesId"], // Prevents duplicate target rows
+    primaryKeys = ["eventId", "speciesId"],
     indices = [
         Index(value = ["eventId"]),
         Index(value = ["speciesId"])
@@ -34,7 +34,7 @@ data class SpeciesEntity(
             entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
-            onDelete = ForeignKey.CASCADE // If event is deleted, targets wipe out cleanly
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = SpeciesEntity::class,
@@ -52,7 +52,7 @@ data class EventTargetSpeciesEntity(
 @Serializable
 @Entity(
     tableName = "trip_target_species",
-    primaryKeys = ["tripId", "speciesId"], // Prevents duplicate target rows
+    primaryKeys = ["tripId", "speciesId"],
     indices = [
         Index(value = ["tripId"]),
         Index(value = ["speciesId"])
@@ -62,7 +62,7 @@ data class EventTargetSpeciesEntity(
             entity = TripEntity::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE // If trip is deleted, targets wipe out cleanly
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = SpeciesEntity::class,

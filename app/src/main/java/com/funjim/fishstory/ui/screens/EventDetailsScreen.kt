@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -50,6 +51,7 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
+import com.funjim.fishstory.ui.utils.AddLimitDialog
 import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
@@ -66,9 +68,9 @@ import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.LimitSummaryRow
 import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesDialog
-import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
@@ -131,6 +133,8 @@ fun EventDetailsScreen(
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
 
+    var showAddLimitDialog by remember { mutableStateOf(false) }
+
     var showAddWaterDialog by remember { mutableStateOf(false) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
@@ -185,6 +189,7 @@ fun EventDetailsScreen(
 
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+    val limitSummaries by viewModel.limitSummaries.collectAsStateWithLifecycle()
     val targetSpeciesSummaries by viewModel.targetSpeciesSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
@@ -242,6 +247,7 @@ fun EventDetailsScreen(
             val activeLat = eventLat ?: tripLat
 
             // Sort water snapshots descending (most recent first)
+
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
@@ -265,6 +271,7 @@ fun EventDetailsScreen(
             }
 
             val categoryConfigs = remember(
+                limitSummaries,
                 sortedBodyOfWaterList,
                 sortedFishermanList,
                 sortedNotes,
@@ -293,6 +300,15 @@ fun EventDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         ) },
                         count = sortedFishermanList.size
+                    ),
+                    CategoryChipConfig(
+                        category = CategoryType.LIMITS,
+                        icon = { Icon(
+                            Icons.Default.VerifiedUser,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        ) },
+                        count = limitSummaries.size
                     ),
                     CategoryChipConfig(
                         category = CategoryType.NOTES,
@@ -427,6 +443,8 @@ fun EventDetailsScreen(
                                         }
                                     }
 
+                                }
+                                CategoryType.LIMITS -> {
                                 }
                                 CategoryType.NOTES -> {
                                     IconButton(onClick = { showAddNoteDialog = true }) {
@@ -954,6 +972,33 @@ fun EventDetailsScreen(
                                             )
                                         }
                                     }
+                                    CategoryType.LIMITS -> {
+                                        LimitSummaryRow(
+                                            itemList = limitSummaries,
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            ),
+                                            speciesThumbnailProvider = { species ->
+                                                val thumbnailFlow = remember(species.id) {
+                                                    viewModel.speciesThumbnail(species.id)
+                                                }
+
+                                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                                ThumbnailBox(
+                                                    thumbnail = thumbnail,
+                                                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            },
+                                            onAdd = { showAddLimitDialog = true },
+                                            onEdit = { /* limitToEdit = it */ },
+                                            onDelete = { limit ->
+                                                viewModel.deleteLimit(limit)
+                                            }
+                                        )
+                                    }
                                     CategoryType.NOTES -> {
                                         NoteRow(
                                             noteList = sortedNotes,
@@ -1299,6 +1344,29 @@ fun EventDetailsScreen(
                     // Do nothing on Success
                 }
                 showAddFishermanDialog = false
+            }
+        )
+    }
+    if (showAddLimitDialog) {
+        AddLimitDialog(
+            species = allSpecies,
+            speciesThumbnailProvider = { species ->
+                val thumbnailFlow = remember(species.id) {
+                    viewModel.speciesThumbnail(species.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.LeapingFishWithFins,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            onDismiss = { showAddLimitDialog = false },
+            onConfirm = { limit ->
+                viewModel.addLimit(limit)
+                showAddLimitDialog = false
             }
         )
     }

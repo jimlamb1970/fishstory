@@ -63,6 +63,7 @@ class FishstoryApplication : Application() {
             eventDao = database.eventDao(),
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
+            limitDao = database.limitDao(),
             lureDao = database.lureDao(),
             noteDao = database.noteDao(),
             photoDao = database.photoDao(),
