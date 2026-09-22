@@ -1,6 +1,24 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.MapColumn
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import androidx.room.Upsert
+import com.funjim.fishstory.database.EventEntity
+import com.funjim.fishstory.database.EventEntityDetailedSummary
+import com.funjim.fishstory.database.EventEntitySummary
+import com.funjim.fishstory.database.EventEntityWithDetails
+import com.funjim.fishstory.database.EventEntityWithInfo
+import com.funjim.fishstory.database.EventFishermanEntity
+import com.funjim.fishstory.database.EventTargetSpeciesEntity
+import com.funjim.fishstory.database.FishermanEntity
+import com.funjim.fishstory.database.SpeciesEntity
+import com.funjim.fishstory.database.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -91,7 +109,7 @@ ORDER BY s.startTime ASC
     fun getEventWithInfo(eventId: String): Flow<EventEntityWithInfo?>
 
     // TODO - convert these upsert
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEvent(event: EventEntity)
 
     @Upsert
@@ -177,10 +195,10 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
 
     @Upsert
@@ -210,15 +228,21 @@ ORDER BY s.startTime DESC"""
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        insertEventFisherman(EventFishermanEntity(
-            eventId = eventId,
-            fishermanId = fishermanId,
-            tackleBoxId =tackleBoxId))
+        insertEventFisherman(
+            EventFishermanEntity(
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
 
-        insertTripFisherman(TripFishermanEntity(
-            tripId = tripId,
-            fishermanId = fishermanId,
-            tackleBoxId =tackleBoxId))
+        insertTripFisherman(
+            TripFishermanEntity(
+                tripId = tripId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
     }
 
     @Query("SELECT * FROM event_fisherman_cross_ref")

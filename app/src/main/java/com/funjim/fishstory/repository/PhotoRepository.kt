@@ -11,7 +11,7 @@ import android.os.Build
 import android.provider.OpenableColumns
 import android.util.Log
 import android.util.Size
-import com.funjim.fishstory.database.PhotoDao
+import com.funjim.fishstory.database.dao.PhotoDao
 import com.funjim.fishstory.model.Photo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

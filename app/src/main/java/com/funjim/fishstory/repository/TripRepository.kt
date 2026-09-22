@@ -1,11 +1,11 @@
 package com.funjim.fishstory.repository
 
 import androidx.room.withTransaction
-import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.database.NoteDao
-import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.dao.NoteDao
+import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toEventSummaryDomainList

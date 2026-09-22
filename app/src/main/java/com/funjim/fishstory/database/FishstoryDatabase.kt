@@ -5,6 +5,19 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.funjim.fishstory.database.dao.BaitDao
+import com.funjim.fishstory.database.dao.BodyOfWaterDao
+import com.funjim.fishstory.database.dao.EventDao
+import com.funjim.fishstory.database.dao.FishDao
+import com.funjim.fishstory.database.dao.FishermanDao
+import com.funjim.fishstory.database.dao.LimitDao
+import com.funjim.fishstory.database.dao.LureDao
+import com.funjim.fishstory.database.dao.NoteDao
+import com.funjim.fishstory.database.dao.PhotoDao
+import com.funjim.fishstory.database.dao.TackleBoxDao
+import com.funjim.fishstory.database.dao.TripDao
+import com.funjim.fishstory.database.dao.WaterDao
+import com.funjim.fishstory.database.dao.WeatherDao
 import com.funjim.fishstory.model.*
 
 @Database(

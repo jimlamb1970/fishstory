@@ -1,30 +1,33 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.funjim.fishstory.database.NoteEntity
+import com.funjim.fishstory.database.NoteEventEntity
+import com.funjim.fishstory.database.NoteFishEntity
+import com.funjim.fishstory.database.NoteTripEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertNote(note: NoteEntity)
 
     @Upsert
     suspend fun upsertNote(note: NoteEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTripNote(crossRef: NoteTripEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEventNote(crossRef: NoteEventEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertFishNote(crossRef: NoteFishEntity)
 
     @Query("DELETE FROM note_table WHERE id = :id")

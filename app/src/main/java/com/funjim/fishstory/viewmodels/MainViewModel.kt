@@ -5,6 +5,15 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.funjim.fishstory.database.*
+import com.funjim.fishstory.database.dao.BaitDao
+import com.funjim.fishstory.database.dao.BodyOfWaterDao
+import com.funjim.fishstory.database.dao.EventDao
+import com.funjim.fishstory.database.dao.FishDao
+import com.funjim.fishstory.database.dao.FishermanDao
+import com.funjim.fishstory.database.dao.LureDao
+import com.funjim.fishstory.database.dao.PhotoDao
+import com.funjim.fishstory.database.dao.TackleBoxDao
+import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.utils.LocationProvider

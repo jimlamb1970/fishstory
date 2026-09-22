@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -8,6 +8,13 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.FishermanEntity
+import com.funjim.fishstory.database.FishermanEntityFullStatistics
+import com.funjim.fishstory.database.FishermanEntitySummary
+import com.funjim.fishstory.database.FishermanEntityWithDetails
+import com.funjim.fishstory.database.FishermanEntityWithTrips
+import com.funjim.fishstory.database.TripEntitySummary
+import com.funjim.fishstory.database.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -37,10 +44,10 @@ interface FishermanDao {
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insert(fisherman: FishermanEntity)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertFisherman(fisherman: FishermanEntity)
 
     @Upsert
@@ -63,7 +70,11 @@ interface FishermanDao {
             existingFisherman.id
         } else {
             val newFisherman =
-                FishermanEntity(firstName = firstName, lastName = lastName, nickname = nickname ?: "")
+                FishermanEntity(
+                    firstName = firstName,
+                    lastName = lastName,
+                    nickname = nickname ?: ""
+                )
             upsert(newFisherman)
             newFisherman.id
         }

@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,11 +7,14 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.BaitEntity
+import com.funjim.fishstory.database.EventBaitEntity
+import com.funjim.fishstory.database.TripBaitEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BaitDao {
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertBait(bait: BaitEntity)
 
     @Upsert

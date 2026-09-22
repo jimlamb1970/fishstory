@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -9,6 +9,17 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.EventFishermanEntity
+import com.funjim.fishstory.database.FishermanEntity
+import com.funjim.fishstory.database.SpeciesEntity
+import com.funjim.fishstory.database.TripEntity
+import com.funjim.fishstory.database.TripEntityDetailedSummary
+import com.funjim.fishstory.database.TripEntitySummary
+import com.funjim.fishstory.database.TripEntityWithDetails
+import com.funjim.fishstory.database.TripEntityWithFishermen
+import com.funjim.fishstory.database.TripEntityWithInfo
+import com.funjim.fishstory.database.TripFishermanEntity
+import com.funjim.fishstory.database.TripTargetSpeciesEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,7 +30,7 @@ interface TripDao {
     @Query("DELETE FROM trip_table")
     suspend fun deleteAllTrips()
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertTrip(trip: TripEntity)
 
     @Upsert
@@ -130,10 +141,10 @@ ORDER BY t.startDate DESC
     @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startDate DESC")
     fun getTripDetailedSummary(tripId: String): Flow<TripEntityDetailedSummary?>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
 
     @Upsert
@@ -203,7 +214,8 @@ ORDER BY t.startDate DESC
                 EventFishermanEntity(
                     eventId = eventId,
                     fishermanId = fishermanId,
-                    tackleBoxId = tackleBoxId)
+                    tackleBoxId = tackleBoxId
+                )
             }
             insertEventFishermen(eventFishermen)
         }

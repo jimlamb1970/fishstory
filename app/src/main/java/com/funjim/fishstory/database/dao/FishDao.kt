@@ -1,6 +1,28 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import androidx.room.Upsert
+import com.funjim.fishstory.database.BaitSummaryEntity
+import com.funjim.fishstory.database.BodyOfWaterSummaryEntity
+import com.funjim.fishstory.database.EventEntityWithCounts
+import com.funjim.fishstory.database.FishCountsEntity
+import com.funjim.fishstory.database.FishEntity
+import com.funjim.fishstory.database.FishEntityWithDetails
+import com.funjim.fishstory.database.FishEntityWithPhotos
+import com.funjim.fishstory.database.FishermanEntityWithCounts
+import com.funjim.fishstory.database.LureEntityWithCounts
+import com.funjim.fishstory.database.SpeciesEntity
+import com.funjim.fishstory.database.SpeciesEntityWithCounts
+import com.funjim.fishstory.database.SpeciesSummaryEntity
+import com.funjim.fishstory.database.TripEntityWithCounts
+import com.funjim.fishstory.database.WaterSummaryEntity
+import com.funjim.fishstory.database.WeatherSummaryEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -100,7 +122,7 @@ interface FishDao {
     @Query("SELECT * FROM fish_table WHERE id = :id")
     fun getFishWithPhotos(id: String): Flow<FishEntityWithPhotos>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertFish(fish: FishEntity)
 
     @Upsert
@@ -125,7 +147,7 @@ interface FishDao {
     @Query("DELETE FROM species_table")
     suspend fun deleteAllSpecies()
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertSpecies(species: SpeciesEntity)
 
     @Update
@@ -894,4 +916,5 @@ interface FishDao {
         eventId: String,
         speciesIds: List<String>,
         upperSize: Long?
-    ): Flow<Int>}
+    ): Flow<Int>
+}

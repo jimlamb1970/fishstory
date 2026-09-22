@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,12 +7,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.BodyOfWaterEntity
+import com.funjim.fishstory.database.EventBodyOfWaterEntity
+import com.funjim.fishstory.database.TripBodyOfWaterEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BodyOfWaterDao {
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Update

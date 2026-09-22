@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,11 +7,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.SkyConditionEntity
+import com.funjim.fishstory.database.WeatherEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WeatherDao {
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertSkyCondition(skyConditionEntity: SkyConditionEntity)
 
     @Update
@@ -29,7 +31,7 @@ interface WeatherDao {
     @Delete
     suspend fun deleteSkyCondition(skyConditionEntity: SkyConditionEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertWeather(weatherEntity: WeatherEntity)
 
     @Upsert

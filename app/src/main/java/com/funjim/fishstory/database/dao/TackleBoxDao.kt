@@ -1,6 +1,17 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import androidx.room.Upsert
+import com.funjim.fishstory.database.LureEntity
+import com.funjim.fishstory.database.LureEntityWithColors
+import com.funjim.fishstory.database.TackleBoxEntity
+import com.funjim.fishstory.database.TackleBoxLureEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -30,7 +41,7 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBoxEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTackleBox(tackleBox: TackleBoxEntity)
 
     // TODO - rename these getOrCreate functions
@@ -55,7 +66,7 @@ interface TackleBoxDao {
     @Update
     suspend fun updateTackleBox(tackleBox: TackleBoxEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertLureToTackleBox(crossRef: TackleBoxLureEntity)
 
     @Delete
@@ -68,7 +79,7 @@ interface TackleBoxDao {
         WHERE tackle_box_lure_cross_ref.tackleBoxId = :tackleBoxId
     """)
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureEntityWithColors>>
-    
+
     @Query("""
         SELECT lure_table.* FROM lure_table
         INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId

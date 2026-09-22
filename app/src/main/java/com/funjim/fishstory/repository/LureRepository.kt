@@ -1,9 +1,9 @@
 package com.funjim.fishstory.repository
 
-import com.funjim.fishstory.database.BaitDao
-import com.funjim.fishstory.database.FishermanDao
-import com.funjim.fishstory.database.LureDao
-import com.funjim.fishstory.database.TackleBoxDao
+import com.funjim.fishstory.database.dao.BaitDao
+import com.funjim.fishstory.database.dao.FishermanDao
+import com.funjim.fishstory.database.dao.LureDao
+import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.TackleBoxLureEntity
 import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toDomain

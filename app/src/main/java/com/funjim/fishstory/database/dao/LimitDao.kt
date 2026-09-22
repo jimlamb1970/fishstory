@@ -1,6 +1,18 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
+import com.funjim.fishstory.database.EventLimitEntity
+import com.funjim.fishstory.database.LimitEntity
+import com.funjim.fishstory.database.LimitSpeciesEntity
+import com.funjim.fishstory.database.LimitWithSpeciesEntity
+import com.funjim.fishstory.database.SpeciesEntity
+import com.funjim.fishstory.database.TripLimitEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,7 +29,7 @@ interface LimitDao {
     @Query("SELECT * FROM limit_table WHERE id = :id")
     fun getLimit(id: String): Flow<LimitEntity?>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertLimit(entity: LimitEntity)
 
     @Upsert
@@ -26,13 +38,13 @@ interface LimitDao {
     @Delete
     suspend fun deleteLimit(entity: LimitEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertLimitSpeciesXRefs(xRefs: List<LimitSpeciesEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEventLimit(entity: EventLimitEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTripLimit(entity: TripLimitEntity)
 
     @Transaction

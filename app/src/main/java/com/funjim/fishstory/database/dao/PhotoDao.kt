@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,6 +7,17 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.funjim.fishstory.database.PhotoBaitEntity
+import com.funjim.fishstory.database.PhotoBodyOfWaterEntity
+import com.funjim.fishstory.database.PhotoEntity
+import com.funjim.fishstory.database.PhotoEventEntity
+import com.funjim.fishstory.database.PhotoFishEntity
+import com.funjim.fishstory.database.PhotoFishermanEntity
+import com.funjim.fishstory.database.PhotoLureEntity
+import com.funjim.fishstory.database.PhotoSkyConditionEntity
+import com.funjim.fishstory.database.PhotoSpeciesEntity
+import com.funjim.fishstory.database.PhotoTripEntity
+import com.funjim.fishstory.database.PhotoWaterClarityEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -52,7 +63,7 @@ interface PhotoDao {
     suspend fun deleteAllPhotosForTrips()
 
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertPhoto(photo: PhotoEntity): Long
 
     @Query("SELECT id FROM photo_table WHERE uri = :uri LIMIT 1")
