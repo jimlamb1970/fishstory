@@ -40,6 +40,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Note
@@ -372,5 +373,27 @@ class FishRepository(
 
     suspend fun deleteLimit(limit: Limit) {
         limitDao.deleteLimit(limit.toEntity())
+    }
+
+    fun getCaughtCountForLimit(eventId: String, limit: Limit): Flow<Int> {
+        val speciesIds = limit.species.map { it.id }
+
+        return when (limit.type) {
+            LimitType.BAG_LIMIT -> {
+                fishDao.getKeptCountForSpecies(eventId, speciesIds)
+            }
+            LimitType.MIN_SIZE -> {
+                fishDao.getKeptCountMinSize(eventId, speciesIds, limit.lowerSize)
+            }
+            LimitType.MAX_SIZE -> {
+                fishDao.getKeptCountMaxSize(eventId, speciesIds, limit.upperSize)
+            }
+            LimitType.SLOT_LIMIT -> {
+                fishDao.getKeptCountSlotLimit(eventId, speciesIds, limit.lowerSize, limit.upperSize)
+            }
+            LimitType.TROPHY_LIMIT -> {
+                fishDao.getKeptCountTrophyLimit(eventId, speciesIds, limit.upperSize)
+            }
+        }
     }
 }

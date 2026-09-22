@@ -2,39 +2,29 @@ package com.funjim.fishstory.ui.utils
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.GppBad
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
-import com.funjim.fishstory.ui.theme.AppIcons
 import kotlin.collections.minus
 import kotlin.collections.plus
 import kotlin.math.floor
@@ -374,12 +364,24 @@ fun LimitSummaryCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            StatusGumball(
+                status = if (item.isLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD,
+                size = 32.dp,
+                borderWidth = 2.dp,
+                borderColor = secondaryContentColor
+            )
+            /*
             Icon(
-                imageVector = Icons.Default.VerifiedUser,
+                imageVector =
+                    if (item.isLimitExceeded)
+                        Icons.Default.GppBad
+                    else
+                        Icons.Default.VerifiedUser,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
+            */
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
@@ -391,10 +393,20 @@ fun LimitSummaryCard(
                         text = item.limit.type.label,
                         style = MaterialTheme.typography.titleMedium
                     )
+                }
 
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     AssistChip(
                         onClick = { },
-                        label = { Text("Limit: ${item.limit.count}") },
+                        label = { Text("Limit: ${item.limit.count * item.fishermanCount}") },
+                        modifier = Modifier.height(24.dp)
+                    )
+                    AssistChip(
+                        onClick = { },
+                        label = { Text("Kept: ${item.caughtCount}") },
                         modifier = Modifier.height(24.dp)
                     )
                 }

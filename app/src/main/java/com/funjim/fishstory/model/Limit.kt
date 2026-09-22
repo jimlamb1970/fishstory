@@ -46,11 +46,18 @@ data class Limit(
 @Serializable
 data class LimitSummary(
     val limit: Limit,
+    val fishermanCount: Int = 0,
     val caughtCount: Int = 0
 ) {
+    val totalLimitCount: Int
+        get() = limit.count * fishermanCount
+
     val isLimitReached: Boolean
-        get() = limit.count > 0 && caughtCount >= limit.count
+        get() = caughtCount >= totalLimitCount
+
+    val isLimitExceeded: Boolean
+        get() = caughtCount > totalLimitCount
 
     val remainingQuota: Int
-        get() = (limit.count - caughtCount).coerceAtLeast(0)
+        get() = (totalLimitCount - caughtCount).coerceAtLeast(0)
 }

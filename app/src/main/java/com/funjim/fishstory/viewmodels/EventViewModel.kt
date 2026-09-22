@@ -177,22 +177,39 @@ class EventViewModel(
             if (eventId.isNullOrBlank()) {
                 flowOf(emptyList())
             } else {
-                fishRepo.getLimitsForEvent(eventId).map { limits ->
-                    limits.map { limit ->
-                        LimitSummary(
-                            limit = limit,
-                            caughtCount = 0
-                        )
+                // Combine limits stream with the current list of fishermen
+                combine(
+                    fishRepo.getLimitsForEvent(eventId),
+                    fishermanSummaries
+                ) { limits, fishermen ->
+                    // Calculate total count (defaulting to 1 if no fishermen are assigned yet)
+                    val numberOfFishermen = fishermen.size.coerceAtLeast(1)
+                    limits to numberOfFishermen
+                }.flatMapLatest { (limits, numFishermen) ->
+                    if (limits.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        val countFlows = limits.map { limit ->
+                            fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                                LimitSummary(
+                                    limit = limit,
+                                    caughtCount = caught,
+                                    fishermanCount = numFishermen
+                                )
+                            }
+                        }
+                        combine(countFlows) { summariesArray ->
+                            summariesArray.toList()
+                        }
                     }
                 }
             }
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
-
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }

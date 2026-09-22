@@ -826,4 +826,72 @@ interface FishDao {
         lureId: String? = null,
         tripId: String? = null
     ): Flow<List<SpeciesEntity>>
-}
+
+    @Query("""
+        SELECT COALESCE(SUM(keptCount), 0) FROM fish_table
+        WHERE eventId = :eventId
+          AND keptCount > 0
+          AND speciesId IN (:speciesIds)
+    """)
+    fun getKeptCountForSpecies(
+        eventId: String,
+        speciesIds: List<String>
+    ): Flow<Int>
+
+    // 2. MIN SIZE: Sum keptCount for fish >= lower size bound
+    @Query("""
+        SELECT COALESCE(SUM(keptCount), 0) FROM fish_table
+        WHERE eventId = :eventId
+          AND keptCount > 0
+          AND speciesId IN (:speciesIds)
+          AND (:lowerSize IS NULL OR length >= :lowerSize)
+    """)
+    fun getKeptCountMinSize(
+        eventId: String,
+        speciesIds: List<String>,
+        lowerSize: Long?
+    ): Flow<Int>
+
+    // 3. MAX SIZE: Sum keptCount for fish <= upper size bound
+    @Query("""
+        SELECT COALESCE(SUM(keptCount), 0) FROM fish_table
+        WHERE eventId = :eventId
+          AND keptCount > 0
+          AND speciesId IN (:speciesIds)
+          AND (:upperSize IS NULL OR length <= :upperSize)
+    """)
+    fun getKeptCountMaxSize(
+        eventId: String,
+        speciesIds: List<String>,
+        upperSize: Long?
+    ): Flow<Int>
+
+    // 4. SLOT LIMIT: Sum keptCount for fish within lower and upper bounds
+    @Query("""
+        SELECT COALESCE(SUM(keptCount), 0) FROM fish_table
+        WHERE eventId = :eventId
+          AND keptCount > 0
+          AND speciesId IN (:speciesIds)
+          AND (:lowerSize IS NULL OR length >= :lowerSize)
+          AND (:upperSize IS NULL OR length <= :upperSize)
+    """)
+    fun getKeptCountSlotLimit(
+        eventId: String,
+        speciesIds: List<String>,
+        lowerSize: Long?,
+        upperSize: Long?
+    ): Flow<Int>
+
+    // 5. TROPHY LIMIT: Sum keptCount for fish strictly exceeding or matching trophy size
+    @Query("""
+        SELECT COALESCE(SUM(keptCount), 0) FROM fish_table
+        WHERE eventId = :eventId
+          AND keptCount > 0
+          AND speciesId IN (:speciesIds)
+          AND (:upperSize IS NULL OR length >= :upperSize)
+    """)
+    fun getKeptCountTrophyLimit(
+        eventId: String,
+        speciesIds: List<String>,
+        upperSize: Long?
+    ): Flow<Int>}
