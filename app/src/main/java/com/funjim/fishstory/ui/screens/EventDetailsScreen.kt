@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
@@ -69,6 +70,7 @@ import com.funjim.fishstory.ui.utils.EventHighlightCard
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.LimitDialog
 import com.funjim.fishstory.ui.utils.LimitSummaryRow
 import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesDialog
@@ -131,6 +133,7 @@ fun EventDetailsScreen(
     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
     var showAddLimitDialog by remember { mutableStateOf(false) }
+    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
 
     var showAddNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
@@ -995,7 +998,7 @@ fun EventDetailsScreen(
                                                 )
                                             },
                                             onAdd = { showAddLimitDialog = true },
-                                            onEdit = { /* limitToEdit = it */ },
+                                            onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
                                                 viewModel.deleteLimit(limit)
                                             }
@@ -1131,6 +1134,30 @@ fun EventDetailsScreen(
                         waterToDelete = null
                     },
                     onDismiss = { waterToDelete = null }
+                )
+            }
+            limitToEdit?.let { limit ->
+                LimitDialog(
+                    species = allSpecies,
+                    speciesThumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.speciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.LeapingFishWithFins,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    onDismiss = { limitToEdit = null },
+                    onConfirm = { limit ->
+                        viewModel.addLimit(limit)
+                        limitToEdit = null
+                    },
+                    limitToEdit = limit
                 )
             }
 

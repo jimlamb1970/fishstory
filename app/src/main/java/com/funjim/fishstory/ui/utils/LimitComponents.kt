@@ -33,29 +33,48 @@ import kotlin.math.floor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddLimitDialog(
+fun LimitDialog(
     species: List<Species>,
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (Limit) -> Unit
+    onConfirm: (Limit) -> Unit,
+    limitToEdit: Limit? = null
 ) {
-    var selectedType by remember { mutableStateOf(LimitType.BAG_LIMIT) }
+    // Determine mode
+    val isEditing = limitToEdit != null
+
+    // Initialize state with limitToEdit values if present
+    var selectedType by remember(limitToEdit) {
+        mutableStateOf(limitToEdit?.type ?: LimitType.BAG_LIMIT)
+    }
     var expandedTypeDropdown by remember { mutableStateOf(false) }
 
-    var selectedSpecies by remember { mutableStateOf<List<Species>>(emptyList()) }
+    var selectedSpecies by remember(limitToEdit) {
+        mutableStateOf<List<Species>>(limitToEdit?.species ?: emptyList())
+    }
     var showSpeciesSelection by remember { mutableStateOf(false) }
 
-    var countText by remember { mutableStateOf("") }
-    var lowerSize by remember { mutableLongStateOf(0) }
-    var lowerInclusive by remember { mutableStateOf(true) }
-    var upperSize by remember { mutableLongStateOf(0) }
-    var upperInclusive by remember { mutableStateOf(true) }
+    var countText by remember(limitToEdit) {
+        mutableStateOf(limitToEdit?.count?.toString() ?: "")
+    }
+    var lowerSize by remember(limitToEdit) {
+        mutableLongStateOf(limitToEdit?.lowerSize ?: 0L)
+    }
+    var lowerInclusive by remember(limitToEdit) {
+        mutableStateOf(limitToEdit?.lowerInclusive ?: true)
+    }
+    var upperSize by remember(limitToEdit) {
+        mutableLongStateOf(limitToEdit?.upperSize ?: 0L)
+    }
+    var upperInclusive by remember(limitToEdit) {
+        mutableStateOf(limitToEdit?.upperInclusive ?: true)
+    }
 
     val isValid = selectedSpecies.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Limit") },
+        title = { Text(if (isEditing) "Edit Limit" else "Add Limit") },
         text = {
             Column(
                 modifier = Modifier
@@ -63,7 +82,6 @@ fun AddLimitDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 1. LIMIT TYPE SELECTOR
                 ExposedDropdownMenuBox(
                     expanded = expandedTypeDropdown,
                     onExpandedChange = { expandedTypeDropdown = !expandedTypeDropdown }
@@ -121,7 +139,6 @@ fun AddLimitDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 3. COUNT FIELD (Applies to all limit types)
                 OutlinedTextField(
                     value = countText,
                     onValueChange = { countText = it.filter { char -> char.isDigit() } },
@@ -131,7 +148,212 @@ fun AddLimitDialog(
                     singleLine = true
                 )
 
-                // 4. LOWER SIZE FIELD (For MIN_SIZE and SLOT_LIMIT)
+                if (selectedType == LimitType.MIN_SIZE ||
+                    selectedType == LimitType.SLOT_LIMIT) {
+                    val currentTotalInches = lowerSize.toInches()
+                    val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                    val remainingFraction = currentTotalInches - wholeInches
+
+                    FractionalLengthField(
+                        label =
+                            if (selectedType == LimitType.MIN_SIZE)
+                                "Minimum Length Limit (in)"
+                            else
+                                "Lower Slot Length Limit (in)",
+                        wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                        fractionValue = remainingFraction,
+                        onLengthChanged = { newWhole, newFraction ->
+                            val checkedWhole = newWhole.coerceAtLeast(0)
+                            val computedDouble = checkedWhole.toDouble() + newFraction
+                            lowerSize = computedDouble.inchesToStorage()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        wholeWeight = 0.6f
+                    )
+                }
+
+                if (selectedType == LimitType.MAX_SIZE ||
+                    selectedType == LimitType.SLOT_LIMIT ||
+                    selectedType == LimitType.TROPHY_LIMIT) {
+                    val currentTotalInches = upperSize.toInches()
+                    val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                    val remainingFraction = currentTotalInches - wholeInches
+
+                    FractionalLengthField(
+                        label =
+                            if (selectedType == LimitType.MAX_SIZE)
+                                "Maximum Length Limit (in)"
+                            else if (selectedType == LimitType.SLOT_LIMIT)
+                                "Upper Slot Length Limit (in)"
+                            else
+                                "Trophy Length Limit (in)",
+                        wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                        fractionValue = remainingFraction,
+                        onLengthChanged = { newWhole, newFraction ->
+                            val checkedWhole = newWhole.coerceAtLeast(0)
+                            val computedDouble = checkedWhole.toDouble() + newFraction
+                            upperSize = computedDouble.inchesToStorage()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        wholeWeight = 0.6f
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val countVal = countText.toIntOrNull() ?: 0
+
+                    val limit = (limitToEdit?.copy(
+                        type = selectedType,
+                        species = selectedSpecies,
+                        count = countVal,
+                        lowerSize = if (selectedType == LimitType.MIN_SIZE || selectedType == LimitType.SLOT_LIMIT) lowerSize else null,
+                        lowerInclusive = lowerInclusive,
+                        upperSize = if (selectedType == LimitType.MAX_SIZE || selectedType == LimitType.SLOT_LIMIT || selectedType == LimitType.TROPHY_LIMIT) upperSize else null,
+                        upperInclusive = upperInclusive
+                    ) ?: Limit(
+                        type = selectedType,
+                        name = "",
+                        species = selectedSpecies,
+                        count = countVal,
+                        lowerSize = if (selectedType == LimitType.MIN_SIZE || selectedType == LimitType.SLOT_LIMIT) lowerSize else null,
+                        lowerInclusive = lowerInclusive,
+                        upperSize = if (selectedType == LimitType.MAX_SIZE || selectedType == LimitType.SLOT_LIMIT || selectedType == LimitType.TROPHY_LIMIT) upperSize else null,
+                        upperInclusive = upperInclusive
+                    ))
+
+                    onConfirm(limit)
+                },
+                enabled = isValid
+            ) {
+                Text(if (isEditing) "Update" else "Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+
+    if (showSpeciesSelection) {
+        SpeciesSelection(
+            items = species,
+            selectedItems = selectedSpecies,
+            onSelected = { selected ->
+                selectedSpecies = selectedSpecies + selected
+            },
+            onUnselected = { unselected ->
+                selectedSpecies = selectedSpecies - unselected
+            },
+            onAdd = null,
+            onDone = { showSpeciesSelection = false },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = speciesThumbnailProvider
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddLimitDialog(
+    species: List<Species>,
+    speciesThumbnailProvider: @Composable (Species) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (Limit) -> Unit
+) {
+    var selectedType by remember { mutableStateOf(LimitType.BAG_LIMIT) }
+    var expandedTypeDropdown by remember { mutableStateOf(false) }
+
+    var selectedSpecies by remember { mutableStateOf<List<Species>>(emptyList()) }
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+
+    var countText by remember { mutableStateOf("") }
+    var lowerSize by remember { mutableLongStateOf(0) }
+    var lowerInclusive by remember { mutableStateOf(true) }
+    var upperSize by remember { mutableLongStateOf(0) }
+    var upperInclusive by remember { mutableStateOf(true) }
+
+    val isValid = selectedSpecies.isNotEmpty()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Limit") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ExposedDropdownMenuBox(
+                    expanded = expandedTypeDropdown,
+                    onExpandedChange = { expandedTypeDropdown = !expandedTypeDropdown }
+                ) {
+                    OutlinedTextField(
+                        value = selectedType.label,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Limit Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTypeDropdown) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedTypeDropdown,
+                        onDismissRequest = { expandedTypeDropdown = false }
+                    ) {
+                        LimitType.entries.forEachIndexed { index, type ->
+                            if (index >= 1) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(
+                                            text = type.label,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = type.description,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    selectedType = type
+                                    expandedTypeDropdown = false
+                                },
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+                TargetSpeciesRow(
+                    items = selectedSpecies,
+                    name = "Species",
+                    onAdd = { showSpeciesSelection = true },
+                    onDelete = { species ->
+                        selectedSpecies = selectedSpecies - species
+                    },
+                    thumbnailProvider = speciesThumbnailProvider,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = countText,
+                    onValueChange = { countText = it.filter { char -> char.isDigit() } },
+                    label = { Text("Count Limit") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
                 if (selectedType == LimitType.MIN_SIZE ||
                     selectedType == LimitType.SLOT_LIMIT) {
                     val currentTotalInches = lowerSize.toInches()
@@ -157,7 +379,6 @@ fun AddLimitDialog(
                     )
                 }
 
-                // 5. UPPER SIZE FIELD (For MAX_SIZE, SLOT_LIMIT, and TROPHY_LIMIT)
                 if (selectedType == LimitType.MAX_SIZE ||
                     selectedType == LimitType.SLOT_LIMIT ||
                     selectedType == LimitType.TROPHY_LIMIT) {

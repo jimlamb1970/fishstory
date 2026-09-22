@@ -29,7 +29,7 @@ interface LimitDao {
     @Query("SELECT * FROM limit_table WHERE id = :id")
     fun getLimit(id: String): Flow<LimitEntity?>
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimit(entity: LimitEntity)
 
     @Upsert
@@ -38,13 +38,13 @@ interface LimitDao {
     @Delete
     suspend fun deleteLimit(entity: LimitEntity)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimitSpeciesXRefs(xRefs: List<LimitSpeciesEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEventLimit(entity: EventLimitEntity)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTripLimit(entity: TripLimitEntity)
 
     @Transaction
@@ -53,7 +53,7 @@ interface LimitDao {
         species: List<SpeciesEntity>,
         eventId: String
     ) {
-        insertLimit(limit)
+        upsertLimit(limit)
 
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
@@ -78,7 +78,7 @@ interface LimitDao {
         species: List<SpeciesEntity>,
         tripId: String
     ) {
-        insertLimit(limit)
+        upsertLimit(limit)
 
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
