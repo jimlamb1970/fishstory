@@ -41,6 +41,7 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
@@ -1100,6 +1101,7 @@ fun TripDetailsScreen(
                                     CategoryType.LIMITS -> {
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
+                                            scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

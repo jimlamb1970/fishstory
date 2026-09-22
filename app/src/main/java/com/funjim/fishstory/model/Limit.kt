@@ -43,12 +43,18 @@ data class Limit(
     val species: List<Species> = emptyList()
 )
 
+enum class LimitScope {
+    EVENT,
+    TRIP
+}
+
 @Serializable
 data class LimitSummary(
     val limit: Limit,
     val event: Event? = null,
     val fishermanCount: Int = 0,
-    val caughtCount: Int = 0
+    val caughtCount: Int = 0,
+    val scope: LimitScope = LimitScope.EVENT
 ) {
     val totalLimitCount: Int
         get() = limit.count * fishermanCount
@@ -58,6 +64,9 @@ data class LimitSummary(
 
     val isLimitExceeded: Boolean
         get() = caughtCount > totalLimitCount
+
+    val isTripLimit: Boolean
+        get() = scope == LimitScope.TRIP
 
     val remainingQuota: Int
         get() = (totalLimitCount - caughtCount).coerceAtLeast(0)

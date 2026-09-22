@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
@@ -247,6 +248,7 @@ fun AddLimitDialog(
 @Composable
 fun LimitSummaryRow(
     itemList: List<LimitSummary>,
+    scope: LimitScope,
     modifier: Modifier,
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
@@ -306,6 +308,7 @@ fun LimitSummaryRow(
             itemList.forEachIndexed { index, item ->
                 LimitSummaryCard(
                     item = item,
+                    scope = scope,
                     eventThumbnailProvider = eventThumbnailProvider,
                     speciesThumbnailProvider = speciesThumbnailProvider,
                     index = index,
@@ -333,6 +336,7 @@ fun LimitSummaryRow(
 @Composable
 fun LimitSummaryCard(
     item: LimitSummary,
+    scope: LimitScope,
     modifier: Modifier = Modifier,
     eventThumbnailProvider: (@Composable (Event) -> Unit),
     speciesThumbnailProvider: @Composable (Species) -> Unit,
@@ -347,6 +351,9 @@ fun LimitSummaryCard(
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
     val secondaryContentColor = getOnCardSecondaryColor()
+
+    val allowMenu = (scope == LimitScope.EVENT && !item.isTripLimit) ||
+            (scope == LimitScope.TRIP && item.isTripLimit)
 
     OutlinedCard(
         modifier = modifier
@@ -471,44 +478,46 @@ fun LimitSummaryCard(
                 }
             }
 
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Limit Options"
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onEdit(item.limit)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete(item.limit)
-                        }
-                    )
+            if (allowMenu) {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Limit Options"
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit(item.limit)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete(item.limit)
+                            }
+                        )
+                    }
                 }
             }
         }

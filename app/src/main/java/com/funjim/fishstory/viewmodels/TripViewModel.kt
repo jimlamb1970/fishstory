@@ -219,7 +219,8 @@ class TripViewModel(
                                         limit = limit,
                                         event = eventSummary.event,
                                         caughtCount = caught,
-                                        fishermanCount = eventSummary.fishermanCount
+                                        fishermanCount = eventSummary.fishermanCount,
+                                        scope = LimitScope.TRIP
                                     )
                                 }
                             }

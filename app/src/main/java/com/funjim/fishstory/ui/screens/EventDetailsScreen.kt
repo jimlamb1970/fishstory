@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
@@ -975,6 +976,7 @@ fun EventDetailsScreen(
                                     CategoryType.LIMITS -> {
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
+                                            scope = LimitScope.EVENT,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

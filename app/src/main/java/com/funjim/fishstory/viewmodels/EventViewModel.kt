@@ -172,44 +172,62 @@ class EventViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val limitSummaries: StateFlow<List<LimitSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            if (eventId.isNullOrBlank()) {
+    val limitSummaries: StateFlow<List<LimitSummary>> = combine(
+        _selectedEventId,
+        _selectedTripId
+    ) { eventId, tripId ->
+        eventId to tripId
+    }.flatMapLatest { (eventId, tripId) ->
+        if (eventId.isNullOrBlank()) {
+            flowOf(emptyList())
+        } else {
+            val eventLimitsFlow = fishRepo.getLimitsForEvent(eventId)
+            val tripLimitsFlow = if (tripId.isNullOrBlank()) {
                 flowOf(emptyList())
             } else {
-                // Combine limits stream with the current list of fishermen
-                combine(
-                    fishRepo.getLimitsForEvent(eventId),
-                    fishermanSummaries
-                ) { limits, fishermen ->
-                    // Calculate total count (defaulting to 1 if no fishermen are assigned yet)
-                    val numberOfFishermen = fishermen.size.coerceAtLeast(1)
-                    limits to numberOfFishermen
-                }.flatMapLatest { (limits, numFishermen) ->
-                    if (limits.isEmpty()) {
-                        flowOf(emptyList())
-                    } else {
-                        val countFlows = limits.map { limit ->
-                            fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
-                                LimitSummary(
-                                    limit = limit,
-                                    caughtCount = caught,
-                                    fishermanCount = numFishermen
-                                )
-                            }
+                fishRepo.getLimitsForTrip(tripId)
+            }
+
+            combine(
+                eventLimitsFlow,
+                tripLimitsFlow,
+                fishermanSummaries
+            ) { eventLimits, tripLimits, fishermen ->
+                // Map limits to Scoped items
+                val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }
+                val scopedTripLimits = tripLimits.map { it to LimitScope.TRIP }
+
+                val combinedScopedLimits = (scopedEventLimits + scopedTripLimits)
+                    .distinctBy { (limit, _) -> limit.id }
+
+                val numFishermen = fishermen.size.coerceAtLeast(1)
+
+                combinedScopedLimits to numFishermen
+            }.flatMapLatest { (scopedLimits, numFishermen) ->
+                if (scopedLimits.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    val countFlows = scopedLimits.map { (limit, scope) ->
+                        fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                            LimitSummary(
+                                limit = limit,
+                                caughtCount = caught,
+                                fishermanCount = numFishermen,
+                                scope = scope // Pass scope down to summary
+                            )
                         }
-                        combine(countFlows) { summariesArray ->
-                            summariesArray.toList()
-                        }
+                    }
+                    combine(countFlows) { summariesArray ->
+                        summariesArray.toList()
                     }
                 }
             }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
