@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.LimitType
@@ -247,6 +248,7 @@ fun AddLimitDialog(
 fun LimitSummaryRow(
     itemList: List<LimitSummary>,
     modifier: Modifier,
+    eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     onAdd: (() -> Unit)? = null,
     onEdit: (Limit) -> Unit,
@@ -304,6 +306,7 @@ fun LimitSummaryRow(
             itemList.forEachIndexed { index, item ->
                 LimitSummaryCard(
                     item = item,
+                    eventThumbnailProvider = eventThumbnailProvider,
                     speciesThumbnailProvider = speciesThumbnailProvider,
                     index = index,
                     totalItems = itemList.size,
@@ -331,6 +334,7 @@ fun LimitSummaryRow(
 fun LimitSummaryCard(
     item: LimitSummary,
     modifier: Modifier = Modifier,
+    eventThumbnailProvider: (@Composable (Event) -> Unit),
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     index: Int = 0,
     totalItems: Int = 0,
@@ -393,6 +397,21 @@ fun LimitSummaryCard(
                         text = item.limit.type.label,
                         style = MaterialTheme.typography.titleMedium
                     )
+                }
+
+                if (item.event != null) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        eventThumbnailProvider(item.event)
+                        Text(
+                            text = item.event.name,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+
                 }
 
                 Row(

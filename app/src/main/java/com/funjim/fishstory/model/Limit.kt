@@ -46,6 +46,7 @@ data class Limit(
 @Serializable
 data class LimitSummary(
     val limit: Limit,
+    val event: Event? = null,
     val fishermanCount: Int = 0,
     val caughtCount: Int = 0
 ) {

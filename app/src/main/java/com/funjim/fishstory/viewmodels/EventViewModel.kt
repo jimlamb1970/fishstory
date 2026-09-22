@@ -210,6 +210,7 @@ class EventViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
+
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }

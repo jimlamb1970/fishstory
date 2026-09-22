@@ -129,11 +129,11 @@ fun EventDetailsScreen(
     var showFishermanSelection by remember { mutableStateOf(false) }
     var showAddFishermanDialog by remember { mutableStateOf(false) }
 
+    var showAddLimitDialog by remember { mutableStateOf(false) }
+
     var showAddNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
-
-    var showAddLimitDialog by remember { mutableStateOf(false) }
 
     var showAddWaterDialog by remember { mutableStateOf(false) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
@@ -271,9 +271,9 @@ fun EventDetailsScreen(
             }
 
             val categoryConfigs = remember(
-                limitSummaries,
                 sortedBodyOfWaterList,
                 sortedFishermanList,
+                limitSummaries,
                 sortedNotes,
                 sortedTargetSpeciesList,
                 sortedWaterList,

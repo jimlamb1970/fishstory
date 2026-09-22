@@ -32,6 +32,9 @@ interface LimitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEventLimit(entity: EventLimitEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTripLimit(entity: TripLimitEntity)
+
     @Transaction
     suspend fun insertLimitForEvent(
         limit: LimitEntity,
@@ -58,10 +61,43 @@ interface LimitDao {
     }
 
     @Transaction
+    suspend fun insertLimitForTrip(
+        limit: LimitEntity,
+        species: List<SpeciesEntity>,
+        tripId: String
+    ) {
+        insertLimit(limit)
+
+        if (species.isNotEmpty()) {
+            val speciesXRefs = species.map { species ->
+                LimitSpeciesEntity(
+                    limitId = limit.id,
+                    speciesId = species.id
+                )
+            }
+            insertLimitSpeciesXRefs(speciesXRefs)
+        }
+
+        val tripLimit = TripLimitEntity(
+            tripId = tripId,
+            limitId = limit.id
+        )
+        insertTripLimit(tripLimit)
+    }
+
+    @Transaction
     @Query("""
         SELECT limit_table.* FROM limit_table
         INNER JOIN event_limit_table ON limit_table.id = event_limit_table.limitId
         WHERE event_limit_table.eventId = :eventId
     """)
     fun getLimitsForEvent(eventId: String): Flow<List<LimitWithSpeciesEntity>>
+
+    @Transaction
+    @Query("""
+        SELECT limit_table.* FROM limit_table
+        INNER JOIN trip_limit_table ON limit_table.id = trip_limit_table.limitId
+        WHERE trip_limit_table.tripId = :tripId
+    """)
+    fun getLimitsForTrip(tripId: String): Flow<List<LimitWithSpeciesEntity>>
 }

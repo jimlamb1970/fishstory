@@ -363,11 +363,24 @@ class FishRepository(
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
+    fun getLimitsForTrip(tripId: String): Flow<List<Limit>> {
+        return limitDao.getLimitsForTrip(tripId = tripId)
+            .map { list -> list.toLimitWithSpeciesDomainList() }
+    }
+
     suspend fun addLimitToEvent(eventId: String, limit: Limit) {
         limitDao.insertLimitForEvent(
             limit = limit.toEntity(),
             species = limit.species.toSpeciesEntityList(),
             eventId = eventId
+        )
+    }
+
+    suspend fun addLimitToTrip(tripId: String, limit: Limit) {
+        limitDao.insertLimitForTrip(
+            limit = limit.toEntity(),
+            species = limit.species.toSpeciesEntityList(),
+            tripId = tripId
         )
     }
 

@@ -197,6 +197,47 @@ class TripViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    val limitSummaries: StateFlow<List<LimitSummary>> = _selectedTripId
+        .flatMapLatest { tripId ->
+            if (tripId.isNullOrBlank()) {
+                flowOf(emptyList())
+            } else {
+                combine(
+                    fishRepo.getLimitsForTrip(tripId),
+                    eventSummaries
+                ) { limits, events ->
+                    limits to events
+                }.flatMapLatest { (limits, events) ->
+                    if (limits.isEmpty() || events.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        // Generate a flow for every individual (Limit x Event) pair
+                        val limitFlows: List<Flow<LimitSummary>> = events.flatMap { eventSummary ->
+                            limits.map { limit ->
+                                fishRepo.getCaughtCountForLimit(eventSummary.event.id, limit).map { caught ->
+                                    LimitSummary(
+                                        limit = limit,
+                                        event = eventSummary.event,
+                                        caughtCount = caught,
+                                        fishermanCount = eventSummary.fishermanCount
+                                    )
+                                }
+                            }
+                        }
+
+                        combine(limitFlows) { summariesArray ->
+                            summariesArray.toList()
+                        }
+                    }
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+    @OptIn(ExperimentalCoroutinesApi::class)
     val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> = _selectedTripId
         .flatMapLatest { id ->
             if (id == null) {
@@ -393,6 +434,27 @@ class TripViewModel(
     fun deleteEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.deleteEvent(event)
+        }
+    }
+
+    fun addLimit(limit: Limit) {
+        val tripId = _selectedTripId.value
+
+        if (tripId.isNullOrBlank()) {
+            return
+        }
+
+        viewModelScope.launch {
+            fishRepo.addLimitToTrip(
+                tripId = tripId,
+                limit = limit
+            )
+        }
+    }
+
+    fun deleteLimit(limit: Limit) {
+        viewModelScope.launch {
+            fishRepo.deleteLimit(limit)
         }
     }
 
