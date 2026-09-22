@@ -1,18 +1,18 @@
 package com.funjim.fishstory.repository
 
 import androidx.room.withTransaction
-import com.funjim.fishstory.database.FishDao
-import com.funjim.fishstory.database.FishermanDao
+import com.funjim.fishstory.database.dao.FishDao
+import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.database.LureDao
-import com.funjim.fishstory.database.EventDao
+import com.funjim.fishstory.database.dao.LureDao
+import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.EventFishermanEntity
 import com.funjim.fishstory.database.FishEntity
 import com.funjim.fishstory.database.LureColorEntity
 import com.funjim.fishstory.database.LureEntity
 import com.funjim.fishstory.database.SpeciesEntity
-import com.funjim.fishstory.database.TackleBoxDao
-import com.funjim.fishstory.database.TripDao
+import com.funjim.fishstory.database.dao.TackleBoxDao
+import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.TripFishermanEntity
 import java.io.InputStream
 import java.time.LocalDateTime
