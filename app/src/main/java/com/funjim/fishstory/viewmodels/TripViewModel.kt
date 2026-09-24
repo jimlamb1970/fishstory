@@ -202,42 +202,128 @@ class TripViewModel(
             if (tripId.isNullOrBlank()) {
                 flowOf(emptyList())
             } else {
+                // Fetch trip-level limits and all event summaries for this trip
                 combine(
                     fishRepo.getLimitsForTrip(tripId),
                     eventSummaries
-                ) { limits, events ->
-                    limits to events
-                }.flatMapLatest { (limits, events) ->
-                    if (limits.isEmpty() || events.isEmpty()) {
-                        flowOf(emptyList())
+                ) { tripLimits, events ->
+                    tripLimits to events
+                }.flatMapLatest { (tripLimits, events) ->
+                    if (events.isEmpty()) {
+                        // There are no events in this trip, so just return the trip limits with
+                        // an empty list of event summaries
+                        val initialSummaries = tripLimits.map { limit ->
+                            LimitSummary(
+                                limit = limit,
+                                summaryList = emptyList(),
+                                scope = LimitScope.TRIP
+                            )
+                        }
+                        flowOf(initialSummaries)
                     } else {
-                        // Generate a flow for every individual (Limit x Event) pair
-                        val limitFlows: List<Flow<LimitSummary>> = events.flatMap { eventSummary ->
-                            limits.map { limit ->
-                                fishRepo.getCaughtCountForLimit(eventSummary.event.id, limit).map { caught ->
-                                    LimitSummary(
-                                        limit = limit,
-                                        event = eventSummary.event,
-                                        caughtCount = caught,
-                                        fishermanCount = eventSummary.fishermanCount,
-                                        scope = LimitScope.TRIP
-                                    )
-                                }
+                        // First, for each event, we need to determine if there are limits
+                        // assigned specifically to each event
+                        val eventLimitsFlows: List<Flow<Pair<EventSummary, List<Limit>>>> = events.map { eventSummary ->
+                            fishRepo.getLimitsForEvent(eventSummary.event.id).map { eventLimits ->
+                                eventSummary to eventLimits
                             }
                         }
 
-                        combine(limitFlows) { summariesArray ->
-                            summariesArray.toList()
+                        combine(eventLimitsFlows) { eventLimitsPairs ->
+                            // This is list of all the limits at the trip level
+                            val tripScoped = tripLimits.map { it to LimitScope.TRIP }
+
+                            // For each event, there will be a list of limits at the event level
+                            val eventScoped = eventLimitsPairs.flatMap { (eventSummary, limits) ->
+                                limits.map { limit -> (limit to LimitScope.EVENT) to eventSummary }
+                            }
+
+                            // A list of unique limits will be all the event specific limits plus
+                            // the trip specific limits
+                            val uniqueLimits = (eventScoped.map { it.first } + tripScoped)
+                                .distinctBy { (limit, _) -> limit.id }
+
+                            // Build a map that will allow us to get the event summary for each limit
+                            val eventLimitOwnerMap = eventScoped.associate { (limitScoped, eventSummary) ->
+                                limitScoped.first.id to eventSummary
+                            }
+
+                            Triple(uniqueLimits, events, eventLimitOwnerMap)
+                        }.flatMapLatest { (uniqueLimits, allEvents, eventLimitOwnerMap) ->
+                            if (uniqueLimits.isEmpty()) {
+                                flowOf(emptyList())
+                            } else {
+                                // We now have to process each limit in turn
+                                val parentLimitFlows: List<Flow<LimitSummary>> = uniqueLimits.map { (limit, scope) ->
+                                    // If it is a trip limit, we need to query every event in the
+                                    // trip to get the caught count for each event
+                                    if (scope == LimitScope.TRIP) {
+                                        val childFlows = allEvents.map { eventSummary ->
+                                            fishRepo.getCaughtCountForLimit(eventSummary.event.id, limit).map { caught ->
+                                                LimitEventSummary(
+                                                    limit = limit,
+                                                    event = eventSummary.event,
+                                                    fishermanCount = eventSummary.fishermanCount,
+                                                    caughtCount = caught
+                                                )
+                                            }
+                                        }
+
+                                        combine(childFlows) { summariesArray ->
+                                            LimitSummary(
+                                                limit = limit,
+                                                summaryList = summariesArray.toList(),
+                                                scope = LimitScope.TRIP
+                                            )
+                                        }
+                                    } else {
+                                        // Otherwise, it is an event limit.  So, we just need to
+                                        // query the single event to get the caught count
+                                        val ownerEventSummary = eventLimitOwnerMap[limit.id]
+
+                                        // This should never happen -- but better safe than sorry
+                                        if (ownerEventSummary == null) {
+                                            flowOf(
+                                                LimitSummary(
+                                                    limit = limit,
+                                                    summaryList = emptyList(),
+                                                    scope = LimitScope.EVENT
+                                                )
+                                            )
+                                        } else {
+                                            fishRepo.getCaughtCountForLimit(ownerEventSummary.event.id, limit).map { caught ->
+                                                LimitSummary(
+                                                    limit = limit,
+                                                    summaryList = listOf(
+                                                        LimitEventSummary(
+                                                            limit = limit,
+                                                            event = ownerEventSummary.event,
+                                                            fishermanCount = ownerEventSummary.fishermanCount,
+                                                            caughtCount = caught
+                                                        )
+                                                    ),
+                                                    scope = LimitScope.EVENT
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Combine all the limit summaries into a single list
+                                combine(parentLimitFlows) { summariesArray ->
+                                    summariesArray.toList()
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        .stateIn(
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> = _selectedTripId
         .flatMapLatest { id ->
@@ -776,10 +862,6 @@ class TripViewModel(
 
     fun selectTrip(id: String) {
         _selectedTripId.value = id
-    }
-
-    fun selectEvent(id: String) {
-        _selectedEventId.value = id
     }
 }
 

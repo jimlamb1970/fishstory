@@ -2,6 +2,7 @@ package com.funjim.fishstory.model
 
 import kotlinx.serialization.Serializable
 import java.util.UUID
+import kotlin.compareTo
 
 @Serializable
 enum class LimitType(
@@ -49,12 +50,11 @@ enum class LimitScope {
 }
 
 @Serializable
-data class LimitSummary(
+data class LimitEventSummary(
     val limit: Limit,
     val event: Event? = null,
     val fishermanCount: Int = 0,
-    val caughtCount: Int = 0,
-    val scope: LimitScope = LimitScope.EVENT
+    val caughtCount: Int = 0
 ) {
     val totalLimitCount: Int
         get() = limit.count * fishermanCount
@@ -65,9 +65,15 @@ data class LimitSummary(
     val isLimitExceeded: Boolean
         get() = caughtCount > totalLimitCount
 
+}
+
+data class LimitSummary(
+    val limit: Limit,
+    val summaryList: List<LimitEventSummary>,
+    val scope: LimitScope = LimitScope.EVENT
+) {
+    val isLimitExceeded: Boolean
+        get() = summaryList.any { it.isLimitExceeded }
     val isTripLimit: Boolean
         get() = scope == LimitScope.TRIP
-
-    val remainingQuota: Int
-        get() = (totalLimitCount - caughtCount).coerceAtLeast(0)
 }

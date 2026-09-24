@@ -27,6 +27,7 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
+import com.funjim.fishstory.ui.theme.AppIcons
 import kotlin.collections.minus
 import kotlin.collections.plus
 import kotlin.math.floor
@@ -567,6 +568,298 @@ fun LimitSummaryCard(
     onDelete: (Limit) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val backgroundColor = getCardColor(index, totalItems)
+    val borderColor = getCardBorderColor(index, totalItems)
+    val contentColor = getOnCardColor()
+    val secondaryContentColor = getOnCardSecondaryColor()
+
+    val allowMenu = (scope == LimitScope.EVENT && !item.isTripLimit) ||
+            (scope == LimitScope.TRIP && item.isTripLimit)
+
+    val isMultiEvent = item.summaryList.size > 1
+
+    OutlinedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .combinedClickable(
+                onClick = {
+                    if (isMultiEvent) {
+                        isExpanded = !isExpanded
+                    }
+                },
+                onLongClick = { menuExpanded = true }
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+        ),
+        border = BorderStroke(1.dp, color = borderColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StatusGumball(
+                    status = if (item.isLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD,
+                    size = 32.dp,
+                    borderWidth = 2.dp,
+                    borderColor = secondaryContentColor
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = item.limit.type.label,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+
+                    if (isMultiEvent) {
+                        CardItemWithValue(
+                            icon = AppIcons.Default.CanoeEmpty,
+                            value = "${item.summaryList.size} Events",
+                            contentColor = secondaryContentColor
+                        )
+                    } else {
+                        item.summaryList.firstOrNull()?.event?.let { event ->
+                            Column {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    eventThumbnailProvider(event)
+                                    Text(
+                                        text = event.name,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Fisherman,
+                                value = "${item.summaryList.first().fishermanCount} Fishermen",
+                                contentColor = secondaryContentColor
+                            )
+                        }
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (item.summaryList.size == 1) {
+                            item.summaryList.first().let { eventSummary ->
+                                AssistChip(
+                                    onClick = { },
+                                    label = { Text("Limit: ${item.limit.count * eventSummary.fishermanCount}") },
+                                    modifier = Modifier.height(24.dp)
+                                )
+                                AssistChip(
+                                    onClick = { },
+                                    label = { Text("Kept: ${eventSummary.caughtCount}") },
+                                    modifier = Modifier.height(24.dp)
+                                )
+                            }
+                        } else {
+                            AssistChip(
+                                onClick = { },
+                                label = { Text("Base Limit: ${item.limit.count}") },
+                                modifier = Modifier.height(24.dp)
+                            )
+                        }
+                    }
+
+                    // Format & Display Size Range Constraints
+                    val sizeDetails = remember(item.limit) { formatSizeConstraint(item.limit) }
+                    if (sizeDetails.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = sizeDetails,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Display Associated Species List
+                    if (item.limit.species.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            item.limit.species.forEach { species ->
+                                Surface(
+                                    shape = MaterialTheme.shapes.small,
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        speciesThumbnailProvider(species)
+                                        Text(
+                                            text = species.name,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (allowMenu) {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Limit Options"
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onEdit(item.limit)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete(item.limit)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Expanded Section: Event Summaries Breakdown
+            if (isMultiEvent && isExpanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = secondaryContentColor.copy(alpha = 0.2f))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item.summaryList.forEach { eventSummary ->
+                        val isEventExceeded = eventSummary.caughtCount > (item.limit.count * eventSummary.fishermanCount)
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                            border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                StatusGumball(
+                                    status = if (isEventExceeded) GumballStatus.BAD else GumballStatus.GOOD,
+                                    size = 20.dp,
+                                    borderWidth = 1.dp,
+                                    borderColor = secondaryContentColor
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    eventSummary.event?.let { event ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            eventThumbnailProvider(event)
+                                            Text(
+                                                text = event.name,
+                                                style = MaterialTheme.typography.titleSmall
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.Fisherman,
+                                        value = "${eventSummary.fishermanCount} Fishermen",
+                                        contentColor = secondaryContentColor
+                                    )
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        AssistChip(
+                                            onClick = { },
+                                            label = { Text("Limit: ${item.limit.count * eventSummary.fishermanCount}") },
+                                            modifier = Modifier.height(22.dp)
+                                        )
+                                        AssistChip(
+                                            onClick = { },
+                                            label = { Text("Kept: ${eventSummary.caughtCount}") },
+                                            modifier = Modifier.height(22.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LimitSummaryCard2(
+    item: LimitSummary,
+    scope: LimitScope,
+    modifier: Modifier = Modifier,
+    eventThumbnailProvider: (@Composable (Event) -> Unit),
+    speciesThumbnailProvider: @Composable (Species) -> Unit,
+    index: Int = 0,
+    totalItems: Int = 0,
+    onEdit: (Limit) -> Unit,
+    onDelete: (Limit) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
@@ -602,18 +895,7 @@ fun LimitSummaryCard(
                 borderWidth = 2.dp,
                 borderColor = secondaryContentColor
             )
-            /*
-            Icon(
-                imageVector =
-                    if (item.isLimitExceeded)
-                        Icons.Default.GppBad
-                    else
-                        Icons.Default.VerifiedUser,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
-            */
+
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
@@ -626,36 +908,62 @@ fun LimitSummaryCard(
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-
-                if (item.event != null) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        eventThumbnailProvider(item.event)
-                        Text(
-                            text = item.event.name,
-                            style = MaterialTheme.typography.titleSmall
+                if (item.summaryList.size > 1) {
+                    CardItemWithValue(
+                        icon = AppIcons.Default.CanoeEmpty,
+                        value = "${item.summaryList.size} Events",
+                        contentColor = secondaryContentColor
+                    )
+                } else {
+                    item.summaryList.first().event?.let {
+                        Column() {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                eventThumbnailProvider(it)
+                                Text(
+                                    text = it.name,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
+                        CardItemWithValue(
+                            icon = AppIcons.Default.Fisherman,
+                            value = "${item.summaryList.first().fishermanCount} Fishermen",
+                            contentColor = secondaryContentColor
                         )
                     }
-
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    AssistChip(
-                        onClick = { },
-                        label = { Text("Limit: ${item.limit.count * item.fishermanCount}") },
-                        modifier = Modifier.height(24.dp)
-                    )
-                    AssistChip(
-                        onClick = { },
-                        label = { Text("Kept: ${item.caughtCount}") },
-                        modifier = Modifier.height(24.dp)
-                    )
+                    // When there is only 1 item in the summary list and the event is null,
+                    // the card is being displayed for the event details -- so, show both
+                    // the limit count and caught count
+                    if (item.summaryList.size == 1) {
+                        item.summaryList.first().let {
+                            AssistChip(
+                                onClick = { },
+                                label = { Text("Limit: ${item.limit.count * it.fishermanCount}") },
+                                modifier = Modifier.height(24.dp)
+                            )
+                            AssistChip(
+                                onClick = { },
+                                label = { Text("Kept: ${it.caughtCount}") },
+                                modifier = Modifier.height(24.dp)
+                            )
+                        }
+                    } else {
+                        AssistChip(
+                            onClick = { },
+                            label = { Text("Limit: ${item.limit.count}") },
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
                 }
 
                 // Format & Display Size Range Constraints

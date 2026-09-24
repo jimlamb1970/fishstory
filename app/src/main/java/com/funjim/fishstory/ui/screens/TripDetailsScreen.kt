@@ -54,7 +54,6 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
-import com.funjim.fishstory.ui.utils.AddLimitDialog
 import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog

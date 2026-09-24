@@ -209,11 +209,17 @@ class EventViewModel(
                 } else {
                     val countFlows = scopedLimits.map { (limit, scope) ->
                         fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                            val singleEventSummary = LimitEventSummary(
+                                limit = limit,
+                                event = null, // Or pass active event if available in scope
+                                fishermanCount = numFishermen,
+                                caughtCount = caught
+                            )
+
                             LimitSummary(
                                 limit = limit,
-                                caughtCount = caught,
-                                fishermanCount = numFishermen,
-                                scope = scope // Pass scope down to summary
+                                summaryList = listOf(singleEventSummary),
+                                scope = scope
                             )
                         }
                     }
@@ -228,7 +234,64 @@ class EventViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyList()
     )
+    /*
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val limitSummaries: StateFlow<List<LimitEventSummary>> = combine(
+        _selectedEventId,
+        _selectedTripId
+    ) { eventId, tripId ->
+        eventId to tripId
+    }.flatMapLatest { (eventId, tripId) ->
+        if (eventId.isNullOrBlank()) {
+            flowOf(emptyList())
+        } else {
+            val eventLimitsFlow = fishRepo.getLimitsForEvent(eventId)
+            val tripLimitsFlow = if (tripId.isNullOrBlank()) {
+                flowOf(emptyList())
+            } else {
+                fishRepo.getLimitsForTrip(tripId)
+            }
 
+            combine(
+                eventLimitsFlow,
+                tripLimitsFlow,
+                fishermanSummaries
+            ) { eventLimits, tripLimits, fishermen ->
+                // Map limits to Scoped items
+                val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }
+                val scopedTripLimits = tripLimits.map { it to LimitScope.TRIP }
+
+                val combinedScopedLimits = (scopedEventLimits + scopedTripLimits)
+                    .distinctBy { (limit, _) -> limit.id }
+
+                val numFishermen = fishermen.size.coerceAtLeast(1)
+
+                combinedScopedLimits to numFishermen
+            }.flatMapLatest { (scopedLimits, numFishermen) ->
+                if (scopedLimits.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    val countFlows = scopedLimits.map { (limit, scope) ->
+                        fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                            LimitEventSummary(
+                                limit = limit,
+                                caughtCount = caught,
+                                fishermanCount = numFishermen,
+                            )
+                        }
+                    }
+                    combine(countFlows) { summariesArray ->
+                        summariesArray.toList()
+                    }
+                }
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+*/
     fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
         return fishermanRepo.getFishermenForTrip(tripId)
     }
