@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
+import com.funjim.fishstory.model.LimitEventSummary
+import com.funjim.fishstory.model.LimitScope
+import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Trip
@@ -16,6 +19,7 @@ import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.repository.EnvironmentRepository
+import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -37,10 +41,13 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.collections.map
+import kotlin.collections.plus
 
 class DashboardViewModel(
     private val locationProvider: LocationProvider,
     private val envRepo: EnvironmentRepository,
+    private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
@@ -74,15 +81,15 @@ class DashboardViewModel(
         _hasLocationPermission.value = locationProvider.hasLocationPermission()
     }
 
-    private val selectedTripId = MutableStateFlow<String?>(null)
-    private val selectedEventId = MutableStateFlow<String?>(null)
+    private val _selectedTripId = MutableStateFlow<String?>(null)
+    private val _selectedEventId = MutableStateFlow<String?>(null)
 
     fun selectEvent(tripId: String, eventId: String) {
-        if (selectedTripId.value != tripId) {
-            selectedTripId.value = tripId
+        if (_selectedTripId.value != tripId) {
+            _selectedTripId.value = tripId
         }
-        if (selectedEventId.value != eventId) {
-            selectedEventId.value = eventId
+        if (_selectedEventId.value != eventId) {
+            _selectedEventId.value = eventId
         }
     }
 
@@ -112,8 +119,8 @@ class DashboardViewModel(
         tripRepo.getPreviousTripSummaries(),
         // Stream group B: Your dynamic time-sliced event buckets
         activeTripEvents,
-        selectedEventId,
-        selectedTripId
+        _selectedEventId,
+        _selectedTripId
     ) { arrayOfFlowResults ->
         val activeTrips = (arrayOfFlowResults[0] as? List<*>)
             ?.filterIsInstance<TripSummary>()
@@ -137,6 +144,13 @@ class DashboardViewModel(
             ?: tuple.eventGroups.active.firstOrNull()?.event?.id
         val targetTripId = tuple.selectedTripId
             ?: tuple.eventGroups.active.firstOrNull()?.event?.tripId
+
+        if (tuple.selectedEventId == null && targetEventId != null) {
+            _selectedEventId.value = targetEventId
+        }
+        if (tuple.selectedTripId == null && targetTripId != null) {
+            _selectedTripId.value = targetTripId
+        }
 
         if (targetEventId == null || targetTripId == null) {
             // No active events happening right now; emit the data lists immediately
@@ -176,10 +190,67 @@ class DashboardViewModel(
         initialValue = DashboardUiState(isLoading = true)
     )
 
-    private val _activeTripId = MutableStateFlow<String?>(null)
-    fun setActiveTripId(id: String) {
-        _activeTripId.value = id
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val limitSummaries: StateFlow<List<LimitSummary>> = combine(
+        _selectedEventId,
+        _selectedTripId,
+        uiState
+    ) { eventId, tripId, state ->
+        Triple(eventId, tripId, state)
+    }.flatMapLatest { (eventId, tripId, state) ->
+        if (eventId.isNullOrBlank()) {
+            flowOf(emptyList())
+        } else {
+            val eventLimitsFlow = fishRepo.getLimitsForEvent(eventId)
+            val tripLimitsFlow = if (tripId.isNullOrBlank()) {
+                flowOf(emptyList())
+            } else {
+                fishRepo.getLimitsForTrip(tripId)
+            }
+
+            val numFishermen = state.eventSummary?.fishermanCount?.coerceAtLeast(1) ?: 1
+
+            combine(
+                eventLimitsFlow,
+                tripLimitsFlow
+            ) { eventLimits, tripLimits ->
+                // Map limits to Scoped items
+                val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }
+                val scopedTripLimits = tripLimits.map { it to LimitScope.TRIP }
+
+                (scopedEventLimits + scopedTripLimits)
+                    .distinctBy { (limit, _) -> limit.id }
+            }.flatMapLatest { scopedLimits ->
+                if (scopedLimits.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    val countFlows = scopedLimits.map { (limit, scope) ->
+                        fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                            val singleEventSummary = LimitEventSummary(
+                                limit = limit,
+                                event = null,
+                                fishermanCount = numFishermen,
+                                caughtCount = caught
+                            )
+
+                            LimitSummary(
+                                limit = limit,
+                                summaryList = listOf(singleEventSummary),
+                                scope = scope
+                            )
+                        }
+                    }
+                    combine(countFlows) { summariesArray ->
+                        summariesArray.toList()
+                    }
+                }
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     fun tripPhotos(tripId: String): Flow<List<Photo>> {
         return photoRepo.getPhotosForTrip(tripId)
@@ -305,6 +376,7 @@ data class EventGroups(
 class DashboardViewModelFactory(
     private val locationProvider: LocationProvider,
     private val envRepo: EnvironmentRepository,
+    private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
@@ -314,6 +386,7 @@ class DashboardViewModelFactory(
             return DashboardViewModel(
                 locationProvider,
                 envRepo,
+                fishRepo,
                 photoRepo,
                 tripRepo) as T
         }

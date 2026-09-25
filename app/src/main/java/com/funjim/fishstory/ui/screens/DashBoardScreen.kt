@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -49,7 +48,6 @@ import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -113,9 +111,12 @@ import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.toDisplayString
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
+import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.GumballStatus
+import com.funjim.fishstory.ui.utils.StatusGumball
 
 private data class GridParams(
     val text: String,
@@ -140,6 +141,8 @@ fun DashboardScreen(
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
     var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
     var showMenu by remember { mutableStateOf(false) }
+
+    val limitSummaries by viewModel.limitSummaries.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -311,6 +314,7 @@ fun DashboardScreen(
                         viewModel = viewModel,
                         activeTrips = state.activeTrips,
                         activeEvents = activeTripEvents.active,
+                        limitSummaries = limitSummaries,
                         eventSummary = state.eventSummary,
                         tripSummary = state.tripSummary,
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
@@ -505,6 +509,7 @@ fun ActiveTripCard(
     viewModel: DashboardViewModel,
     activeTrips: List<TripSummary>,
     activeEvents: List<EventSummary>,
+    limitSummaries: List<LimitSummary>,
     eventSummary: EventDetailedSummary?,
     tripSummary: TripDetailedSummary?,
     onClick: (String, String) -> Unit,
@@ -519,6 +524,11 @@ fun ActiveTripCard(
     var tripExpanded by remember { mutableStateOf(false) }
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
     val trip = activeTrips.find { it.trip.id == currentEvent.event.tripId } ?: return
+
+    val isAnyLimitExceeded = remember(limitSummaries) {
+        limitSummaries.any { it.isLimitExceeded }
+    }
+    val hasLimits = limitSummaries.isNotEmpty()
 
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterDialog by remember { mutableStateOf(false) }
@@ -589,10 +599,20 @@ fun ActiveTripCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        AppIcons.Default.Boat,
-                        contentDescription = null,
-                        modifier = Modifier.size(28.dp))
+                    if (hasLimits) {
+                        StatusGumball(
+                            status = if (isAnyLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD,
+                            size = 28.dp,
+                            borderWidth = 2.dp,
+                            borderColor = MaterialTheme.colorScheme.onTertiary
+                        )
+                    } else {
+                        Icon(
+                            AppIcons.Default.Boat,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
                     Spacer(Modifier.width(8.dp))
                     Text("LIVE EVENT", style = MaterialTheme.typography.labelLarge)
                 }
