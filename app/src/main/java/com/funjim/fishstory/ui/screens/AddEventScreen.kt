@@ -624,27 +624,31 @@ Would you like to add another event?""",
                 )
             },
             confirmButton = {
-                // Option A: Save and reset screen to add another
-                Button(
+                OutlinedButton(
                     onClick = {
                         showSaveDialog = false
                         viewModel.saveEvent()
-                        viewModel.resetEventDraft() // Clears event name/state for new input
                     }
                 ) {
                     Text("Yes")
                 }
             },
             dismissButton = {
-                // Option B: Save and leave screen
-                OutlinedButton(
-                    onClick = {
+                Row {
+                    OutlinedButton(onClick = {
+                        showSaveDialog = false
+                        // Do nothing
+                    }) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    OutlinedButton( onClick = {
                         showSaveDialog = false
                         viewModel.saveEvent()
                         navigateBack()
+                    }) {
+                        Text("No")
                     }
-                ) {
-                    Text("No")
                 }
             }
         )

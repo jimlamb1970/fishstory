@@ -52,9 +52,7 @@ class AddEventViewModel(
     // --- Event Draft State ---
     private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
     val eventDraft = _eventDraft.asStateFlow()
-    fun clearEventDraft() {
-        _eventDraft.value = Event(id = UUID.randomUUID().toString(), name = "", tripId = "")
-    }
+
     fun updateEventDraft(update: (Event) -> Event) {
         _eventDraft.update(update)
         _selectedEventId.value = _eventDraft.value.id
@@ -121,11 +119,13 @@ class AddEventViewModel(
     }
 
     fun persistBodiesOfWater() {
+        val eventId = _selectedEventId.value ?: return
+
         _eventBodiesOfWater.value.forEach { item ->
             viewModelScope.launch {
                 envRepo.insertEventBodyOfWater(
                     EventBodyOfWater(
-                        eventId = eventDraft.value.id,
+                        eventId = eventId,
                         bodyOfWaterId = item.id)
                 )
             }
@@ -136,12 +136,15 @@ class AddEventViewModel(
             addFishermanToEvent(item.id, _eventTackleBoxMap.value[item.id])
         }
     }
+
     fun persistTargetSpecies() {
+        val eventId = _selectedEventId.value ?: return
+
         _eventTargetSpecies.value.forEach { species ->
             viewModelScope.launch {
                 tripRepo.insertEventTargetSpecies(
                     EventTargetSpecies(
-                        eventId = eventDraft.value.id,
+                        eventId = eventId,
                         speciesId = species.id
                     )
                 )
@@ -302,6 +305,8 @@ class AddEventViewModel(
         persistBodiesOfWater()
         persistFishermen()
         persistTargetSpecies()
+
+        resetEventDraft()
     }
 
     fun persistEvent(event: Event) {
@@ -325,7 +330,10 @@ class AddEventViewModel(
     }
 
     fun resetEventDraft() {
-        updateEventDraft { eventDraft.value.copy(name = "") }
+        updateEventDraft { eventDraft.value.copy(
+            id = UUID.randomUUID().toString(),
+            name = "")
+        }
     }
 
     fun selectTrip(id: String) {
