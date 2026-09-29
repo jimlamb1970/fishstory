@@ -75,8 +75,17 @@ data class LimitSummary(
     val isLimitExceeded: Boolean
         get() = summaryList.any { it.isLimitExceeded }
 
+    val limitExceededCount: Int
+        get() = summaryList.count { it.isLimitExceeded }
+
     val isLimitReached: Boolean
         get() = limit.count > 0 && summaryList.isNotEmpty() && summaryList.any { it.isLimitReached }
+
+    val limitReachedCount: Int
+        get() = summaryList.count { it.isLimitReached }
+
+    val limitCount: Int
+        get() = summaryList.size
 
     val isTripLimit: Boolean
         get() = scope == LimitScope.TRIP

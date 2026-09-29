@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -77,14 +76,17 @@ import com.funjim.fishstory.ui.utils.NotesDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
+import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterDialog
 import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.WeatherSummaryRow
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
+import com.funjim.fishstory.ui.utils.rememberGumballStatus
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.EventDetailsUiState
 import com.funjim.fishstory.viewmodels.EventViewModel
@@ -274,9 +276,20 @@ fun EventDetailsScreen(
                 weatherSummaries.sortedByDescending { it.weather.timestamp }
             }
 
+            val limitExceedCount = limitSummaries.sumOf { it.limitExceededCount }
+            val limitReachedCount = limitSummaries.sumOf { it.limitReachedCount }
+            val limitCount = limitSummaries.sumOf { it.limitCount }
+
+            val gumballStatus = rememberGumballStatus(
+                limitExceededCount = limitExceedCount,
+                limitReachedCount = limitReachedCount,
+                limitCount = limitCount
+            )
+
             val categoryConfigs = remember(
                 sortedBodyOfWaterList,
                 sortedFishermanList,
+                gumballStatus,
                 limitSummaries,
                 sortedNotes,
                 sortedTargetSpeciesList,
@@ -307,11 +320,14 @@ fun EventDetailsScreen(
                     ),
                     CategoryChipConfig(
                         category = CategoryType.LIMITS,
-                        icon = { Icon(
-                            Icons.Default.VerifiedUser,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        ) },
+                        icon = {
+                            StatusGumball(
+                                status = gumballStatus,
+                                size = 18.dp,
+                                borderWidth = 2.dp,
+                                borderColor = getOnCardSecondaryColor()
+                            )
+                        },
                         count = limitSummaries.size
                     ),
                     CategoryChipConfig(

@@ -115,8 +115,8 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.GumballStatus
 import com.funjim.fishstory.ui.utils.StatusGumball
+import com.funjim.fishstory.ui.utils.rememberGumballStatus
 
 private data class GridParams(
     val text: String,
@@ -525,37 +525,17 @@ fun ActiveTripCard(
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
     val trip = activeTrips.find { it.trip.id == currentEvent.event.tripId } ?: return
 
-    val isAnyLimitExceeded = remember(limitSummaries) {
-        limitSummaries.any { it.isLimitExceeded }
-    }
-    val isAnyLimitReached = remember(limitSummaries) {
-        limitSummaries.any { it.isLimitReached }
-    }
+    val limitExceedCount = limitSummaries.sumOf { it.limitExceededCount }
+    val limitReachedCount = limitSummaries.sumOf { it.limitReachedCount }
+    val limitCount = limitSummaries.sumOf { it.limitCount }
+
+    val gumballStatus = rememberGumballStatus(
+        limitExceededCount = limitExceedCount,
+        limitReachedCount = limitReachedCount,
+        limitCount = limitCount
+    )
+
     val hasLimits = limitSummaries.isNotEmpty()
-
-    // Base status: BAD (Red) if exceeded, otherwise GOOD (Green)
-    val primaryStatus = if (isAnyLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD
-
-    // Alternate state for blinking effect when a limit is reached
-    var showCautionState by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isAnyLimitReached) {
-        if (isAnyLimitReached) {
-            while (true) {
-                kotlinx.coroutines.delay(1000L) // Toggle interval (1 second)
-                showCautionState = !showCautionState
-            }
-        } else {
-            showCautionState = false
-        }
-    }
-
-    // Compute active status based on the toggle state
-    val currentGumballStatus = if (isAnyLimitReached && showCautionState) {
-        GumballStatus.CAUTION
-    } else {
-        primaryStatus
-    }
 
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterDialog by remember { mutableStateOf(false) }
@@ -628,7 +608,7 @@ fun ActiveTripCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (hasLimits) {
                         StatusGumball(
-                            status = currentGumballStatus,
+                            status = gumballStatus,
                             size = 28.dp,
                             borderWidth = 2.dp,
                             borderColor = MaterialTheme.colorScheme.onTertiary
