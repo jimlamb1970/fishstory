@@ -60,7 +60,7 @@ data class LimitEventSummary(
         get() = limit.count * fishermanCount
 
     val isLimitReached: Boolean
-        get() = caughtCount >= totalLimitCount
+        get() = caughtCount == totalLimitCount
 
     val isLimitExceeded: Boolean
         get() = caughtCount > totalLimitCount
@@ -74,6 +74,10 @@ data class LimitSummary(
 ) {
     val isLimitExceeded: Boolean
         get() = summaryList.any { it.isLimitExceeded }
+
+    val isLimitReached: Boolean
+        get() = limit.count > 0 && summaryList.isNotEmpty() && summaryList.any { it.isLimitReached }
+
     val isTripLimit: Boolean
         get() = scope == LimitScope.TRIP
 }
