@@ -528,7 +528,34 @@ fun ActiveTripCard(
     val isAnyLimitExceeded = remember(limitSummaries) {
         limitSummaries.any { it.isLimitExceeded }
     }
+    val isAnyLimitReached = remember(limitSummaries) {
+        limitSummaries.any { it.isLimitReached }
+    }
     val hasLimits = limitSummaries.isNotEmpty()
+
+    // Base status: BAD (Red) if exceeded, otherwise GOOD (Green)
+    val primaryStatus = if (isAnyLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD
+
+    // Alternate state for blinking effect when a limit is reached
+    var showCautionState by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isAnyLimitReached) {
+        if (isAnyLimitReached) {
+            while (true) {
+                kotlinx.coroutines.delay(1000L) // Toggle interval (1 second)
+                showCautionState = !showCautionState
+            }
+        } else {
+            showCautionState = false
+        }
+    }
+
+    // Compute active status based on the toggle state
+    val currentGumballStatus = if (isAnyLimitReached && showCautionState) {
+        GumballStatus.CAUTION
+    } else {
+        primaryStatus
+    }
 
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterDialog by remember { mutableStateOf(false) }
@@ -601,7 +628,7 @@ fun ActiveTripCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (hasLimits) {
                         StatusGumball(
-                            status = if (isAnyLimitExceeded) GumballStatus.BAD else GumballStatus.GOOD,
+                            status = currentGumballStatus,
                             size = 28.dp,
                             borderWidth = 2.dp,
                             borderColor = MaterialTheme.colorScheme.onTertiary
