@@ -23,7 +23,7 @@ enum class GumballStatus {
 val GumballStatus.color: Color
     get() = when (this) {
         GumballStatus.GOOD -> Color(0xFF4CAF50)    // Green
-        GumballStatus.CAUTION -> Color(0xFFFF9800) // Orange / Yellow
+        GumballStatus.CAUTION -> Color(0xFFFFEB3B) // Orange / Yellow
         GumballStatus.BAD -> Color(0xFFF44336)     // Red
     }
 
@@ -37,7 +37,7 @@ fun StatusGumball(
 ) {
     val fillColor = when (status) {
         GumballStatus.GOOD -> Color(0xFF4CAF50)    // Green
-        GumballStatus.CAUTION -> Color(0xFFFF9800) // Orange / Yellow
+        GumballStatus.CAUTION -> Color(0xFFFFEB3B) // Orange / Yellow
         GumballStatus.BAD -> Color(0xFFF44336)     // Red
     }
 
