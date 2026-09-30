@@ -33,6 +33,8 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_fish)
         val Lure: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_lure)
+        val Notes: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_notes)
         val Settings: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_settings)
         val Species: ImageVector

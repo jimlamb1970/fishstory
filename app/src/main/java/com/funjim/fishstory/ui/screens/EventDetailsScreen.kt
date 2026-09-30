@@ -333,7 +333,7 @@ fun EventDetailsScreen(
                     CategoryChipConfig(
                         category = CategoryType.NOTES,
                         icon = { Icon(
-                            Icons.AutoMirrored.Filled.StickyNote2,
+                            AppIcons.Default.Notes,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
@@ -470,7 +470,7 @@ fun EventDetailsScreen(
                                     IconButton(onClick = { showAddNoteDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
-                                                Icons.AutoMirrored.Filled.StickyNote2,
+                                                AppIcons.Default.Notes,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp))
 

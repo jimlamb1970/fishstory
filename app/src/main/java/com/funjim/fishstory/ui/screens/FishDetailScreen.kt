@@ -364,7 +364,7 @@ private fun FishDetailContent(
                 CategoryChipConfig(
                     category = CategoryType.NOTES,
                     icon = { Icon(
-                        Icons.AutoMirrored.Filled.StickyNote2,
+                        AppIcons.Default.Notes,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     ) },

@@ -362,7 +362,7 @@ fun TripDetailsScreen(
                     CategoryChipConfig(
                         category = CategoryType.NOTES,
                         icon = { Icon(
-                            Icons.AutoMirrored.Filled.StickyNote2,
+                            AppIcons.Default.Notes,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         ) },
@@ -501,7 +501,7 @@ fun TripDetailsScreen(
                                     IconButton(onClick = { showAddNoteDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
-                                                Icons.AutoMirrored.Filled.StickyNote2,
+                                                AppIcons.Default.Notes,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(28.dp))
 

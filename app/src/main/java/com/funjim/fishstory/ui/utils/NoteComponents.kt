@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Note
+import com.funjim.fishstory.ui.theme.AppIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,7 +73,7 @@ fun NotesIconButton(
             }
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.StickyNote2,
+                imageVector = AppIcons.Default.Notes,
                 contentDescription = "View Notes"
             )
         }
@@ -315,7 +316,7 @@ fun NoteCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.StickyNote2,
+                imageVector = AppIcons.Default.Notes,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
