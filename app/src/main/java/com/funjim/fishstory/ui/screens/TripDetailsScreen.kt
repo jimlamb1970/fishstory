@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
@@ -1388,7 +1387,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.WaterSet,
+                            imageVector = AppIcons.Default.WeatherSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },

@@ -1239,7 +1239,7 @@ fun EventDetailsScreen(
 
                         ThumbnailBox(
                             thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.WaterSet,
+                            imageVector = AppIcons.Default.WeatherSet,
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -1510,7 +1510,7 @@ fun EventDetailsScreen(
 
                 ThumbnailBox(
                     thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.BodyOfWater,
+                    imageVector = AppIcons.Default.WeatherSet,
                     modifier = Modifier.size(24.dp)
                 )
             },

@@ -357,7 +357,7 @@ fun AddTripScreen(
                     },
                     thumbnailProvider = { bodyOfWater ->
                         val thumbnailFlow = remember(bodyOfWater.id) {
-                            viewModel.speciesThumbnail(bodyOfWater.id)
+                            viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
