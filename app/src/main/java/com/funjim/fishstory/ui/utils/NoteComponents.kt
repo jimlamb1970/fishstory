@@ -74,7 +74,8 @@ fun NotesIconButton(
         ) {
             Icon(
                 imageVector = AppIcons.Default.Notes,
-                contentDescription = "View Notes"
+                contentDescription = "View Notes",
+                modifier = Modifier.size(24.dp)
             )
         }
     }
