@@ -217,6 +217,7 @@ class FishstoryApplication : Application() {
 
     fun getTripViewModelFactory() = TripViewModelFactory(
         locationProvider = locationProvider,
+        configurationRepository,
         environmentRepository,
         fishermanRepository,
         fishRepository,

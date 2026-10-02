@@ -166,6 +166,7 @@ fun EditEventDialog(
 @Composable
 fun EventItem(
     item: EventSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
@@ -307,23 +308,53 @@ fun EventItem(
                     }
 
                     if (item.fishermanCount > 0) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Fisherman,
-                                value = item.fishermanCount.toString(),
-                                onClick = onFishermanClick,
-                                contentColor = secondaryContentColor
-                            )
+                        if (verbose) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Fisherman,
+                                    value = item.fishermanCount.toString(),
+                                    description = if (item.fishermanCount == 1) "Fisherman" else "Fishermen",
+                                    onClick = onFishermanClick,
+                                    contentColor = secondaryContentColor
+                                )
+                            }
 
-                            CardItemWithValue(
-                                icon = AppIcons.Default.TackleBox,
-                                value = item.tackleBoxCount.toString(),
-                                onClick = onFishermanClick,
-                                contentColor = secondaryContentColor
-                            )
+                            if (item.tackleBoxCount > 0) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.TackleBox,
+                                        value = item.tackleBoxCount.toString(),
+                                        description = if (item.tackleBoxCount == 1) "Tackle Box" else "Tackle Boxes",
+                                        onClick = onFishermanClick,
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Fisherman,
+                                    value = item.fishermanCount.toString(),
+                                    onClick = onFishermanClick,
+                                    contentColor = secondaryContentColor
+                                )
+
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.TackleBox,
+                                    value = item.tackleBoxCount.toString(),
+                                    onClick = onFishermanClick,
+                                    contentColor = secondaryContentColor
+                                )
+                            }
                         }
                     }
 
@@ -332,6 +363,7 @@ fun EventItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(item.trip.id, item.event.id, false) }
                             },
@@ -345,6 +377,7 @@ fun EventItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(item.trip.id, item.event.id, true) }
                             },

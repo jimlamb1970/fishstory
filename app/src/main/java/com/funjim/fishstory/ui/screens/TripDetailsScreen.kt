@@ -112,7 +112,9 @@ fun TripDetailsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
@@ -919,6 +921,7 @@ fun TripDetailsScreen(
                                             eventSummaries.forEachIndexed { index, eventSummary ->
                                                 EventItem(
                                                     item = eventSummary,
+                                                    verbose = displaySettings.verboseCards,
                                                     modifier = Modifier.padding(
                                                         horizontal = 16.dp,
                                                         vertical = 4.dp

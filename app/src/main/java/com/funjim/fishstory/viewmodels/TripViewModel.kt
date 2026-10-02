@@ -9,6 +9,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
@@ -35,6 +36,7 @@ import kotlinx.coroutines.launch
 
 class TripViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
@@ -42,6 +44,12 @@ class TripViewModel(
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
     private val inputCategory: String? = savedStateHandle["category"]
     private val initialCategory: CategoryType = inputCategory?.let {
         try {
@@ -884,6 +892,7 @@ sealed interface TripDetailsUiState {
 
 class TripViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepository: ConfigurationRepository,
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -899,6 +908,7 @@ class TripViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return TripViewModel(
                 locationProvider,
+                configRepository,
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,
