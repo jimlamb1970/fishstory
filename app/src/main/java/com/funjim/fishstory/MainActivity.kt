@@ -454,11 +454,15 @@ fun AppNavigation(
         ) { backStackEntry ->
             val fishermanId = backStackEntry.arguments?.getString("fishermanId") ?: return@composable
 
-            val repository = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
+            val configRepo = (navController.context.applicationContext as FishstoryApplication).configurationRepository
+            val fishermanRepo = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
 
             val viewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanDetailsViewModelFactory(repository, photoRepo)
+                factory = FishermanDetailsViewModelFactory(
+                    configRepo,
+                    fishermanRepo,
+                    photoRepo)
             )
 
             FishermanDetailsScreen(

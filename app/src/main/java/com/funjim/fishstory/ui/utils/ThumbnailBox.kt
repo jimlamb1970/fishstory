@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -34,19 +35,23 @@ fun ThumbnailBox(
     thumbnail: ByteArray?,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     imageVector: ImageVector = AppIcons.Default.Species
 ) {
+    val clickModifier = if (onClick != null || onLongClick != null) {
+        Modifier.combinedClickable(
+            onClick = { onClick?.invoke() },
+            onLongClick = if (onLongClick != null) { { onLongClick() } } else null
+        )
+    } else {
+        Modifier
+    }
+
     Box(
         modifier = modifier
             .size(40.dp)
             .clip(RoundedCornerShape(12.dp))
-            .then(
-                if (onClick != null) {
-                    modifier.clickable { onClick() }
-                } else {
-                    modifier
-                }
-            ),
+            .then(clickModifier),
         contentAlignment = Alignment.Center
     ) {
         val bitmap = remember(thumbnail) {
@@ -56,7 +61,7 @@ fun ThumbnailBox(
         if (bitmap != null) {
             Image(
                 bitmap = bitmap,
-                contentDescription = "Fish thumbnail",
+                contentDescription = "Thumbnail",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
@@ -65,7 +70,6 @@ fun ThumbnailBox(
             Icon(
                 imageVector = imageVector,
                 contentDescription = "Fish",
-//                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

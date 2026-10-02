@@ -53,6 +53,8 @@ fun TripListScreen(
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
@@ -308,6 +310,7 @@ fun TripListScreen(
                             itemsIndexed(state.upcomingTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
+                                    verbose = displaySettings.verboseCards,
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -339,6 +342,7 @@ fun TripListScreen(
                             itemsIndexed(state.liveTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
+                                    verbose = displaySettings.verboseCards,
                                     index = index,
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -370,6 +374,7 @@ fun TripListScreen(
                             itemsIndexed(state.completedTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
+                                    verbose = displaySettings.verboseCards,
                                     index = index,
                                     totalItems = state.completedTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),

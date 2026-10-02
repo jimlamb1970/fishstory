@@ -2,6 +2,8 @@ package com.funjim.fishstory
 
 import android.app.Application
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.repository.ConfigurationRepository
+import com.funjim.fishstory.repository.ConfigurationRepositoryImpl
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
@@ -32,10 +34,13 @@ import kotlin.getValue
 class FishstoryApplication : Application() {
     val database: FishstoryDatabase by lazy { FishstoryDatabase.getDatabase(this) }
 
+    val configurationRepository: ConfigurationRepository by lazy {
+        ConfigurationRepositoryImpl(applicationContext)
+    }
+
     val locationRepository by lazy {
         LocationRepository(context = applicationContext)
     }
-
     val locationProvider by lazy {
         LocationProviderImpl(locationRepository)
     }
@@ -150,6 +155,7 @@ class FishstoryApplication : Application() {
 
     fun getDashboardViewModelFactory() = DashboardViewModelFactory(
         locationProvider = locationProvider,
+        configRepo = configurationRepository,
         envRepo = environmentRepository,
         fishRepo = fishRepository,
         photoRepo = photoRepository,
@@ -220,6 +226,7 @@ class FishstoryApplication : Application() {
 
     fun getTripListViewModelFactory() = TripListViewModelFactory(
         locationProvider = locationProvider,
+        configRepo = configurationRepository,
         photoRepo = photoRepository,
         tripRepo = tripRepository
     )

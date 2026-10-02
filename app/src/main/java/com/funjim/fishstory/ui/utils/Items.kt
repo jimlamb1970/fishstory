@@ -79,6 +79,7 @@ fun AchievementItem(
 fun CardItemWithValue(
     icon: ImageVector,
     value: String,
+    description: String? = null,
     onClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
@@ -101,7 +102,7 @@ fun CardItemWithValue(
                 )
         )
         Text(
-            text = value,
+            text = value + (if (description != null) " $description" else ""),
             style = MaterialTheme.typography.bodyMedium,
             color = contentColor,
         )
@@ -114,6 +115,7 @@ fun FishCaughtItem(
     caughtCount: Int,
     keptCount: Int,
     description: String = "Fish Caught",
+    extraText: String = "",
     onClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
@@ -136,7 +138,7 @@ fun FishCaughtItem(
                 )
         )
         BoldingNumbersText(
-            text = "Kept $keptCount of $caughtCount",
+            text = "Kept $keptCount of $caughtCount $extraText",
             style = MaterialTheme.typography.bodyMedium,
             color = contentColor
         )

@@ -144,6 +144,7 @@ fun EditTripDialog(
 @Composable
 fun TripItemWithMenu(
     tripSummary: TripSummary,
+    verbose: Boolean,
     index: Int,
     totalItems: Int,
     modifier: Modifier = Modifier,
@@ -151,6 +152,7 @@ fun TripItemWithMenu(
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     onNavigateToDetails: (String, CategoryType) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null,
     onEventClick: (() -> Unit)? = null,
     onFishClick: ((String, Boolean) -> Unit)? = null,
     onFishermanClick: (() -> Unit)? = null,
@@ -166,6 +168,7 @@ fun TripItemWithMenu(
 
     TripItem(
         trip = tripSummary,
+        verbose = verbose,
         index = index,
         totalItems = totalItems,
         modifier = modifier,
@@ -175,6 +178,7 @@ fun TripItemWithMenu(
         showPhotos = showPhotos,
         onClick = { onNavigateToDetails(tripSummary.trip.id, CategoryType.TARGET_SPECIES) },
         onLongClick = { onAction(TripAction.Menu(tripSummary)) },
+        onThumbnailLongClick = onThumbnailLongClick,
         onEventClick = onEventClick,
         onFishClick = onFishClick,
         onFishermanClick = onFishermanClick,
@@ -289,6 +293,7 @@ fun TripItemWithMenu(
 @Composable
 fun TripItem(
     trip: TripSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -298,6 +303,7 @@ fun TripItem(
     showPhotos: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null,
     onEventClick: (() -> Unit)? = null,
     onFishClick: ((String, Boolean) -> Unit)? = null,
     onFishermanClick: (() -> Unit)? = null,
@@ -353,7 +359,8 @@ fun TripItem(
                     modifier = Modifier.size(64.dp),
                     onClick =
                         if (allowPhotos) { onPhotoClick }
-                        else null
+                        else null,
+                    onLongClick = onThumbnailLongClick
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -409,44 +416,93 @@ fun TripItem(
                     val eventCount = trip.eventCount
                     val fishermanCount = trip.fishermanCount
                     val tackleBoxCount = trip.tackleBoxCount
-                    if (eventCount != 0 || fishermanCount != -1) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            if (eventCount != 0) {
+
+                    if (verbose) {
+                        if (eventCount != 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
                                 CardItemWithValue(
                                     icon = AppIcons.Default.CanoeEmpty,
                                     value = eventCount.toString(),
+                                    description = if (eventCount > 1) "Events" else "Event",
                                     onClick = onEventClick,
                                     contentColor = secondaryContentColor
                                 )
                             }
+                        }
 
-                            if (fishermanCount != -1) {
+                        if (fishermanCount >= 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
                                 CardItemWithValue(
                                     icon = AppIcons.Default.Fisherman,
                                     value = fishermanCount.toString(),
-                                    onClick = onFishermanClick,
-                                    contentColor = secondaryContentColor
-                                )
-
-                                CardItemWithValue(
-                                    icon = AppIcons.Default.TackleBox,
-                                    value = tackleBoxCount.toString(),
+                                    description = if (fishermanCount == 1) "Fisherman" else "Fishermen",
                                     onClick = onFishermanClick,
                                     contentColor = secondaryContentColor
                                 )
                             }
+
+                            if (tackleBoxCount > 0) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.TackleBox,
+                                        value = tackleBoxCount.toString(),
+                                        description = if (tackleBoxCount == 1) "Tackle Box" else "Tackle Boxes",
+                                        onClick = onFishermanClick,
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        if (eventCount != 0 || fishermanCount != -1) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                if (eventCount != 0) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.CanoeEmpty,
+                                        value = eventCount.toString(),
+                                        onClick = onEventClick,
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
+
+                                if (fishermanCount != -1) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.Fisherman,
+                                        value = fishermanCount.toString(),
+                                        onClick = onFishermanClick,
+                                        contentColor = secondaryContentColor
+                                    )
+
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.TackleBox,
+                                        value = tackleBoxCount.toString(),
+                                        onClick = onFishermanClick,
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    // Only show the fish caught counts when something has been caught
+                    // Verbose or not, the fish and target fish appear on their own lines
                     if (trip.fishCaught != 0) {
                         FishCaughtItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = trip.fishCaught,
                             keptCount = trip.fishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(trip.trip.id, false) }
                             },
@@ -461,6 +517,7 @@ fun TripItem(
                             description = "Target Fish Caught",
                             caughtCount = trip.targetFishCaught,
                             keptCount = trip.targetFishKept,
+                            extraText = if (verbose) "target fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(trip.trip.id, true) }
                             },

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.LimitEventSummary
@@ -18,6 +19,7 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -46,6 +48,7 @@ import kotlin.collections.plus
 
 class DashboardViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
@@ -60,6 +63,13 @@ class DashboardViewModel(
             delay(60_000)
         }
     }
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
         .stateIn(
@@ -342,6 +352,12 @@ class DashboardViewModel(
     fun deleteTripPhoto(tripId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
+
+    fun toggleVerboseCards() {
+        viewModelScope.launch {
+            configRepo.updateUseVerboseCards(displaySettings.value.verboseCards.not())
+        }
+    }
 }
 
 private data class DashboardStateTuple(
@@ -375,6 +391,7 @@ data class EventGroups(
 
 class DashboardViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
@@ -385,6 +402,7 @@ class DashboardViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return DashboardViewModel(
                 locationProvider,
+                configRepo,
                 envRepo,
                 fishRepo,
                 photoRepo,

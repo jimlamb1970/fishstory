@@ -134,6 +134,8 @@ fun DashboardScreen(
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val activeTripEvents by viewModel.activeTripEvents.collectAsStateWithLifecycle()
 
@@ -440,6 +442,7 @@ fun DashboardScreen(
             itemsIndexed(state.recentTrips) { index, trip ->
                 TripItemWithMenu(
                     tripSummary = trip,
+                    verbose = displaySettings.verboseCards,
                     index = index,
                     totalItems = totalItems,
                     modifier = Modifier.padding(),
@@ -448,6 +451,9 @@ fun DashboardScreen(
                     photosFlow = viewModel.tripPhotos(trip.trip.id),
                     onNavigateToDetails = { tripId, categoryType ->
                         onNavigate("trip_details/${tripId}?category=${categoryType.name}")
+                    },
+                    onThumbnailLongClick = {
+                        viewModel.toggleVerboseCards()
                     },
                     onEventClick = {
                         val category = CategoryType.EVENTS

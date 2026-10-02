@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -21,11 +22,19 @@ import kotlinx.coroutines.launch
 
 class TripListViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
     val tripFilter = _tripFilter.asStateFlow()
@@ -107,6 +116,7 @@ data class TripListUiState(
 
 class TripListViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
@@ -115,6 +125,7 @@ class TripListViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return TripListViewModel(
                 locationProvider,
+                configRepo,
                 photoRepo,
                 tripRepo) as T
         }

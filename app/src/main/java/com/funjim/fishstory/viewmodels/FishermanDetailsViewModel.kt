@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
@@ -29,11 +30,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FishermanDetailsViewModel(
+    private val configRepo: ConfigurationRepository,
     private val repository: FishermanRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     fun selectFisherman(id: String) { _selectedFishermanId.value = id }
@@ -150,13 +159,17 @@ data class FishermanDetailsUiState(
 )
 
 class FishermanDetailsViewModelFactory(
+    private val configRepo: ConfigurationRepository,
     private val repository: FishermanRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanDetailsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FishermanDetailsViewModel(repository, photoRepo) as T
+            return FishermanDetailsViewModel(
+                configRepo,
+                repository,
+                photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -76,6 +76,8 @@ fun FishermanDetailsScreen(
 ) {
     val context = LocalContext.current
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     LaunchedEffect(fishermanId) {
         viewModel.selectFisherman(fishermanId)
     }
@@ -507,6 +509,7 @@ fun FishermanDetailsScreen(
                             itemsIndexed(state.activeTrips) { index, trip ->
                                 TripItem(
                                     trip = trip,
+                                    verbose = displaySettings.verboseCards,
                                     index = index,
                                     totalItems = totalActiveItems,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -564,6 +567,7 @@ fun FishermanDetailsScreen(
                             itemsIndexed(state.recentTrips) { index, trip ->
                                 TripItem(
                                     trip = trip,
+                                    verbose = displaySettings.verboseCards,
                                     index = index,
                                     totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
