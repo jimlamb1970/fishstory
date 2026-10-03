@@ -42,6 +42,8 @@ fun LureListScreen(
     navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     var lureToDelete by remember { mutableStateOf<Lure?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -249,6 +251,7 @@ fun LureListScreen(
                         ) { index, item ->
                             LureItem(
                                 item = item,
+                                verbose = displaySettings.verboseCards,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 photosFlow = viewModel.lurePhotos(item.lure.id),
                                 index = index,

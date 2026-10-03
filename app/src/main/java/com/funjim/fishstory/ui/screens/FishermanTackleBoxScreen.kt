@@ -19,7 +19,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Visibility
@@ -35,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.EditTackleBoxDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -48,8 +48,8 @@ import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.sortLures
-import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.LureSortOrder
+import com.funjim.fishstory.viewmodels.LureUiState
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -74,24 +74,32 @@ fun FishermanTackleBoxScreen(
         viewModel.selectTackleBox(tackleBoxId)
     }
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
-    val luresInBox by viewModel.tackleBoxWithLures.collectAsState(initial = emptyList())
     val tackleBox by viewModel.selectedTackleBox.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
 
     var showRenameDialog by remember { mutableStateOf(false) }
 
-    // Build a set of IDs in the tackle box for 'inBox'' lookup
-    val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.lure.id }.toSet() }
+    val tackleBoxState by viewModel.tackleBoxUiState.collectAsStateWithLifecycle()
 
+    val luresInBox = (tackleBoxState as? LureUiState.Success)?.lures ?: emptyList()
+    val luresInBoxIds = remember(luresInBox) { luresInBox.map { it.lure.id }.toSet() }
     val inBoxCount = luresInBoxIds.size
+
+    var currentFilter by remember { mutableStateOf(LureFilterOption.SELECTED) }
+
+    LaunchedEffect(tackleBoxState) {
+        if (tackleBoxState is LureUiState.Success && (tackleBoxState as LureUiState.Success).lures.isEmpty()) {
+            currentFilter = LureFilterOption.ALL
+        }
+    }
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
-
-    var currentFilter by remember { mutableStateOf(LureFilterOption.ALL) }
 
     val sortedLures = remember(allLures, currentOrder, luresInBoxIds, currentFilter) {
         val filteredList = when (currentFilter) {
@@ -288,6 +296,7 @@ fun FishermanTackleBoxScreen(
                             val inBox = item.lure.id in luresInBoxIds
                             LureTackleBoxItem(
                                 item = item,
+                                verbose = displaySettings.verboseCards,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 photosFlow = viewModel.lurePhotos(item.lure.id),
                                 index = index,
@@ -365,6 +374,7 @@ fun FishermanTackleBoxScreen(
 @Composable
 private fun LureTackleBoxItem(
     item: LureWithColorsSummary,
+    verbose: Boolean,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     index: Int = 0,
@@ -437,11 +447,20 @@ private fun LureTackleBoxItem(
                         glows = item.lure.glows,
                         glow = item.glowColors
                     )
-                    Text(
-                        text = "Number of hooks: ${item.lure.hookCount}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
-                    )
+                    if (item.lure.hookCount > 0) {
+                        CardItemWithValue(
+                            icon =
+                                if (item.lure.hookCount == 1) AppIcons.Default.Hook
+                                else AppIcons.Default.Hooks,
+                            value = item.lure.hookCount.toString(),
+                            description =
+                                if (verbose) {
+                                    if (item.lure.hookCount == 1) "Hook"
+                                    else "Hooks"
+                                } else "",
+                            contentColor = secondaryContentColor
+                        )
+                    }
                 }
 
                 Box {

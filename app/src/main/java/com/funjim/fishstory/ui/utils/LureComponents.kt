@@ -111,6 +111,7 @@ fun EditColorDialog(
 @Composable
 fun LureItem(
     item: LureWithColorsSummary,
+    verbose: Boolean,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     index: Int = 0,
@@ -181,17 +182,27 @@ fun LureItem(
                         glow = item.glowColors
                     )
 
-                    Text(
-                        text = "Number of hooks: ${item.lure.hookCount}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = secondaryContentColor
-                    )
+                    if (item.lure.hookCount > 0) {
+                        CardItemWithValue(
+                            icon =
+                                if (item.lure.hookCount == 1) AppIcons.Default.Hook
+                                else AppIcons.Default.Hooks,
+                            value = item.lure.hookCount.toString(),
+                            description =
+                                if (verbose) {
+                                    if (item.lure.hookCount == 1) "Hook"
+                                    else "Hooks"
+                                } else "",
+                            contentColor = secondaryContentColor
+                        )
+                    }
 
                     if (item.fishCaught != 0) {
                         FishCaughtItem(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(item.lure.id, false) }
                             },
@@ -205,6 +216,7 @@ fun LureItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
+                            extraText = if (verbose) "target fish" else "",
                             onClick = onFishClick?.let { onClick ->
                                 { onClick(item.lure.id, true) }
                             },

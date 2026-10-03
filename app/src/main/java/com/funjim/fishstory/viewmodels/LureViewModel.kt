@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
@@ -19,19 +20,30 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class LureViewModel(
+    private val configRepo: ConfigurationRepository,
     private val repository: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     private val _sortOrder = MutableStateFlow(LureSortOrder.NAME)
     val sortOrder = _sortOrder.asStateFlow()
@@ -224,7 +236,7 @@ class LureViewModel(
             repository.updateTackleBox(tackleBox)
         }
     }
-
+/*
     @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxWithLures: StateFlow<List<LureWithColors>> = _selectedTackleBoxId
         .flatMapLatest { id ->
@@ -240,16 +252,61 @@ class LureViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+*/
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tackleBoxWithLures: StateFlow<List<LureWithColors>?> = _selectedTackleBoxId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(emptyList()) // Valid selection state with 0 items
+            } else {
+                repository.getLuresInTackleBox(id)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null // null means flow hasn't emitted from DB yet
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tackleBoxUiState: StateFlow<LureUiState> = _selectedTackleBoxId
+        .flatMapLatest { id ->
+            if (id == null) {
+                flowOf(LureUiState.Success(emptyList()))
+            } else {
+                repository.getLuresInTackleBox(id)
+                    .map<List<LureWithColors>, LureUiState> { lures ->
+                        LureUiState.Success(lures)
+                    }
+                    .onStart { emit(LureUiState.Loading) }
+                    .catch { emit(LureUiState.Error(it)) }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = LureUiState.Loading
+        )
+}
+
+sealed interface LureUiState {
+    data object Loading : LureUiState
+    data class Success(val lures: List<LureWithColors>) : LureUiState
+    data class Error(val throwable: Throwable) : LureUiState
 }
 
 class LureViewModelFactory(
-    private val repository: LureRepository,
+    private val configRepo: ConfigurationRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LureViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LureViewModel(repository, photoRepo) as T
+            return LureViewModel(
+                configRepo,
+                lureRepo,
+                photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
