@@ -1209,6 +1209,7 @@ fun TripDetailsScreen(
                                     CategoryType.WATER -> {
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
+                                            verbose = displaySettings.verboseCards,
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
                                                 navigateToFishList(FishFilter(
@@ -1224,6 +1225,7 @@ fun TripDetailsScreen(
                                     CategoryType.WEATHER -> {
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
+                                            verbose = displaySettings.verboseCards,
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
                                                 navigateToFishList(FishFilter(

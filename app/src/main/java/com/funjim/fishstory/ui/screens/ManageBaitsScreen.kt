@@ -79,6 +79,8 @@ fun ManageBaitsScreen(
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val verbose = displaySettings.verboseCards
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -282,6 +284,7 @@ fun ManageBaitsScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = item.fishCaught,
                                         keptCount = item.fishKept,
+                                        extraText = if (verbose) "fish" else "",
                                         onClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )
@@ -291,6 +294,7 @@ fun ManageBaitsScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = item.targetFishCaught,
                                         keptCount = item.targetFishKept,
+                                        extraText = if (verbose) "target fish" else "",
                                         onClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )

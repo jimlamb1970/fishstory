@@ -448,6 +448,7 @@ fun WeatherCard(
 @Composable
 fun WeatherSummaryCard(
     weather: WeatherSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -609,6 +610,7 @@ fun WeatherSummaryCard(
                         icon = AppIcons.Default.LeapingFishWithFins,
                         caughtCount = weather.fishCaught,
                         keptCount = weather.fishKept,
+                        extraText = if (verbose) "fish" else "",
                         onClick = {
                             onFishClick(weather.weather, false)
                         },
@@ -621,6 +623,7 @@ fun WeatherSummaryCard(
                         icon = AppIcons.Default.TargetFish,
                         caughtCount = weather.targetFishCaught,
                         keptCount = weather.targetFishKept,
+                        extraText = if (verbose) "target fish" else "",
                         onClick = {
                             onFishClick(weather.weather, true)
                         },
@@ -1062,6 +1065,7 @@ fun WeatherRow(
 @Composable
 fun WeatherSummaryRow(
     list: List<WeatherSummary>,
+    verbose: Boolean,
     onAdd: (() -> Unit)? = null,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
@@ -1140,6 +1144,7 @@ fun WeatherSummaryRow(
             ) {
                 WeatherSummaryCard(
                     weather = list.first(),
+                    verbose = verbose,
                     index = 0,
                     totalItems = list.size,
                     onEdit = onEdit,
@@ -1155,6 +1160,7 @@ fun WeatherSummaryRow(
                         list.drop(1).forEachIndexed { index, item ->
                             WeatherSummaryCard(
                                 weather = item,
+                                verbose = verbose,
                                 index = index,
                                 totalItems = list.size,
                                 onEdit = onEdit,

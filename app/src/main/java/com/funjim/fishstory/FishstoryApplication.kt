@@ -142,6 +142,7 @@ class FishstoryApplication : Application() {
     )
 
     fun getBaitViewModelFactory() = BaitViewModelFactory(
+        configurationRepository,
         fishRepository,
         lureRepository,
         photoRepository

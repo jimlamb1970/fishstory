@@ -78,6 +78,7 @@ fun ManageBodiesOfWaterScreen(
     navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
     val verbose = displaySettings.verboseCards
 
@@ -89,8 +90,6 @@ fun ManageBodiesOfWaterScreen(
     var itemToEdit by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var currentItemForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()

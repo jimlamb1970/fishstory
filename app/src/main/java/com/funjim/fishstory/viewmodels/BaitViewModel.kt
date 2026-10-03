@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
@@ -21,12 +22,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class BaitViewModel(
+    private val configRepo: ConfigurationRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     val allBaits: StateFlow<List<Bait>> = lureRepo.allBaits
         .stateIn(
@@ -98,6 +107,7 @@ class BaitViewModel(
 }
 
 class BaitViewModelFactory(
+    private val configRepo: ConfigurationRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
@@ -106,6 +116,7 @@ class BaitViewModelFactory(
         if (modelClass.isAssignableFrom(BaitViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return BaitViewModel(
+                configRepo = configRepo,
                 fishRepo = fishRepo,
                 lureRepo = lureRepo,
                 photoRepo = photoRepo

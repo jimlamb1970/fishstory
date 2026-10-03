@@ -332,6 +332,7 @@ fun WaterCard(
 @Composable
 fun WaterSummaryCard(
     water: WaterSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -438,6 +439,7 @@ fun WaterSummaryCard(
                         icon = AppIcons.Default.LeapingFishWithFins,
                         caughtCount = water.fishCaught,
                         keptCount = water.fishKept,
+                        extraText = if (verbose) "fish" else "",
                         onClick = {
                             onFishClick(water.water, false)
                         },
@@ -450,6 +452,7 @@ fun WaterSummaryCard(
                         icon = AppIcons.Default.TargetFish,
                         caughtCount = water.targetFishCaught,
                         keptCount = water.targetFishKept,
+                        extraText = if (verbose) "target fish" else "",
                         onClick = {
                             onFishClick(water.water, true)
                         },
@@ -755,6 +758,7 @@ fun WaterRow(
 @Composable
 fun WaterSummaryRow(
     waterList: List<WaterSummary>,
+    verbose: Boolean,
     onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
@@ -833,6 +837,7 @@ fun WaterSummaryRow(
             ) {
                 WaterSummaryCard(
                     water = waterList.first(),
+                    verbose = verbose,
                     index = 0,
                     totalItems = waterList.size,
                     onEdit = onEdit,
@@ -848,6 +853,7 @@ fun WaterSummaryRow(
                         waterList.drop(1).forEachIndexed { index, water ->
                             WaterSummaryCard(
                                 water = water,
+                                verbose = verbose,
                                 index = index,
                                 totalItems = waterList.size,
                                 onEdit = onEdit,

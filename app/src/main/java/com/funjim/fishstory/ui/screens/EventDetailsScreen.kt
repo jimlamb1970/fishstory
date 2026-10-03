@@ -1071,6 +1071,7 @@ fun EventDetailsScreen(
                                     CategoryType.WATER -> {
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
+                                            verbose = displaySettings.verboseCards,
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
@@ -1087,6 +1088,7 @@ fun EventDetailsScreen(
                                     CategoryType.WEATHER -> {
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
+                                            verbose = displaySettings.verboseCards,
                                             onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
