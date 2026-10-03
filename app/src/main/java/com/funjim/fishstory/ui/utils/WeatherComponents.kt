@@ -499,8 +499,7 @@ fun WeatherSummaryCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 if (weather.weather.temperature != null) {

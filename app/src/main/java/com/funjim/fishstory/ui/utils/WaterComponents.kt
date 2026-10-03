@@ -383,8 +383,7 @@ fun WaterSummaryCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 if (water.water.temperature != null || water.water.depth != null) {
