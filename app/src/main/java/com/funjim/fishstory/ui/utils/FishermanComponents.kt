@@ -463,6 +463,7 @@ fun FishermanRow(
 @Composable
 fun FishermanSummaryCard(
     item: FishermanSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -591,6 +592,9 @@ fun FishermanSummaryCard(
                                 CardItemWithValue(
                                     icon = AppIcons.Default.Lure,
                                     value = lureCount.toString(),
+                                    description = if (verbose) {
+                                        if (lureCount == 1) "Lure" else "Lures"
+                                    } else null,
                                     onClick = {
                                         onAddLuresToTackleBox(selectedTackleBox)
                                     },
@@ -606,6 +610,7 @@ fun FishermanSummaryCard(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = {
                                 onFishClick(item.fisherman, false)
                             },
@@ -618,6 +623,7 @@ fun FishermanSummaryCard(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
+                            extraText = if (verbose) "target fish" else "",
                             onClick = {
                                 onFishClick(item.fisherman, true)
                             },
@@ -792,6 +798,7 @@ fun FishermanSummaryCard(
 @Composable
 fun FishermanSummaries(
     list: List<FishermanSummary>,
+    verbose: Boolean,
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
@@ -870,6 +877,7 @@ fun FishermanSummaries(
 
                     FishermanSummaryCard(
                         item = item,
+                        verbose = verbose,
                         index = index,
                         totalItems = list.size,
                         thumbnailFlow = thumbnailFlow(item.fisherman),

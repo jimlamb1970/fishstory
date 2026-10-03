@@ -468,6 +468,7 @@ fun AddLimitDialog(
 @Composable
 fun LimitSummaryRow(
     itemList: List<LimitSummary>,
+    verbose: Boolean,
     scope: LimitScope,
     modifier: Modifier,
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
@@ -528,6 +529,7 @@ fun LimitSummaryRow(
             itemList.forEachIndexed { index, item ->
                 LimitSummaryCard(
                     item = item,
+                    verbose = verbose,
                     scope = scope,
                     eventThumbnailProvider = eventThumbnailProvider,
                     speciesThumbnailProvider = speciesThumbnailProvider,
@@ -556,6 +558,7 @@ fun LimitSummaryRow(
 @Composable
 fun LimitSummaryCard(
     item: LimitSummary,
+    verbose: Boolean,
     scope: LimitScope,
     modifier: Modifier = Modifier,
     eventThumbnailProvider: (@Composable (Event) -> Unit),
@@ -636,7 +639,8 @@ fun LimitSummaryCard(
                     if (item.summaryList.size > 1) {
                         CardItemWithValue(
                             icon = AppIcons.Default.CanoeEmpty,
-                            value = "${item.summaryList.size} Events",
+                            value = "${item.summaryList.size}",
+                            description = if (verbose) "Events" else null,
                             contentColor = secondaryContentColor
                         )
                     } else {
@@ -656,7 +660,8 @@ fun LimitSummaryCard(
                             }
                             CardItemWithValue(
                                 icon = AppIcons.Default.Fisherman,
-                                value = "${item.summaryList.first().fishermanCount} Fishermen",
+                                value = "${item.summaryList.first().fishermanCount}",
+                                description = if (verbose) "Fishermen" else null,
                                 contentColor = secondaryContentColor
                             )
                         }
@@ -829,7 +834,8 @@ fun LimitSummaryCard(
 
                                     CardItemWithValue(
                                         icon = AppIcons.Default.Fisherman,
-                                        value = "${eventSummary.fishermanCount} Fishermen",
+                                        value = "${eventSummary.fishermanCount}",
+                                        description = if (verbose) "Fishermen" else null,
                                         contentColor = secondaryContentColor
                                     )
 

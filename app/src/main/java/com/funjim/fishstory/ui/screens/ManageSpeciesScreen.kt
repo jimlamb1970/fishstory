@@ -82,6 +82,9 @@ fun ManageSpeciesScreen(
 ) {
     val context = LocalContext.current
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val verbose = displaySettings.verboseCards
+
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -293,6 +296,7 @@ fun ManageSpeciesScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = summary.fishCaught,
                                         keptCount = summary.fishKept,
+                                        extraText = if (verbose) "fish" else "",
                                         onClick = { navigateToFishList(summary.species.id, false) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
@@ -302,6 +306,7 @@ fun ManageSpeciesScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = summary.targetFishCaught,
                                         keptCount = summary.targetFishKept,
+                                        extraText = if (verbose) "target fish" else "",
                                         onClick = { navigateToFishList(summary.species.id, true) },
                                         contentColor = getOnCardSecondaryColor()
                                     )

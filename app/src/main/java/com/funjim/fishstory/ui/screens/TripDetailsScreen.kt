@@ -1041,6 +1041,7 @@ fun TripDetailsScreen(
                                             )
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
+                                                verbose = displaySettings.verboseCards,
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
@@ -1121,6 +1122,7 @@ fun TripDetailsScreen(
                                     CategoryType.LIMITS -> {
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
+                                            verbose = displaySettings.verboseCards,
                                             scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -1170,6 +1172,7 @@ fun TripDetailsScreen(
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
+                                            verbose = displaySettings.verboseCards,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

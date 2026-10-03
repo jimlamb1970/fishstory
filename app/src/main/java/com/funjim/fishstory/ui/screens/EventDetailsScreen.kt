@@ -917,6 +917,7 @@ fun EventDetailsScreen(
                                             )
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
+                                                verbose = displaySettings.verboseCards,
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
@@ -996,6 +997,7 @@ fun EventDetailsScreen(
                                     CategoryType.LIMITS -> {
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
+                                            verbose = displaySettings.verboseCards,
                                             scope = LimitScope.EVENT,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -1032,6 +1034,7 @@ fun EventDetailsScreen(
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
+                                            verbose = displaySettings.verboseCards,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

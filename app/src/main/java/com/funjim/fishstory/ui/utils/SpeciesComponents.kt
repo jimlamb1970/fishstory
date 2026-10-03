@@ -745,6 +745,7 @@ fun TargetSpeciesRow(
 @Composable
 fun TargetSpeciesColumn(
     items: List<Species>,
+    verbose: Boolean,
     onAdd: () -> Unit,
     onDelete: (Species) -> Unit,
     onClick: (Species) -> Unit,
@@ -810,6 +811,7 @@ fun TargetSpeciesColumn(
             species.forEachIndexed { index, item ->
                 TargetSpeciesItem(
                     summary = summaryProvider(item),
+                    verbose = verbose,
                     thumbnailFlow = thumbnailFlow(item),
                     index = index,
                     totalItems = items.size,
@@ -825,6 +827,7 @@ fun TargetSpeciesColumn(
 @Composable
 fun SpeciesSummaries(
     items: List<SpeciesSummary>,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
@@ -889,6 +892,7 @@ fun SpeciesSummaries(
             items.forEachIndexed { index, item ->
                 SpeciesItem(
                     summary = item,
+                    verbose = verbose,
                     thumbnailFlow = thumbnailFlow(item.species),
                     index = index,
                     totalItems = items.size,
@@ -906,6 +910,7 @@ fun SpeciesSummaries(
 @Composable
 fun SpeciesItem(
     summary: SpeciesSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
@@ -1021,6 +1026,7 @@ fun SpeciesItem(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = summary.targetFishCaught,
                             keptCount = summary.targetFishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = {
                                 onFishClick(species)
                             },
@@ -1095,6 +1101,7 @@ fun SpeciesItem(
 @Composable
 fun TargetSpeciesItem(
     summary: Flow<SpeciesSummary?>,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
@@ -1158,6 +1165,7 @@ fun TargetSpeciesItem(
                                 icon = AppIcons.Default.TargetFish,
                                 caughtCount = summary.targetFishCaught,
                                 keptCount = summary.targetFishKept,
+                                extraText = if (verbose) "target fish" else "",
                                 onClick = {
                                     onFishClick(species)
                                 },
