@@ -48,6 +48,7 @@ import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddTackleBoxDialog
+import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
@@ -351,6 +352,7 @@ fun FishermanDetailsScreen(
                                         if (tackleBox != null) {
                                             TackleBoxCard(
                                                 tackleBox,
+                                                verbose = displaySettings.verboseCards,
                                                 index = page,
                                                 totalItems = totalTackleBoxes,
                                                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -399,6 +401,7 @@ fun FishermanDetailsScreen(
                                 tackleBoxWithLures?.let {
                                     TackleBoxCard(
                                         tackleBoxWithLures,
+                                        verbose = displaySettings.verboseCards,
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
@@ -741,6 +744,7 @@ fun FishermanLoadingView() {
 @Composable
 fun TackleBoxCard(
     tackleBoxWithLures: TackleBoxWithLures,
+    verbose: Boolean,
     index: Int = 0,
     totalItems: Int = 0,
     modifier: Modifier,
@@ -792,7 +796,9 @@ fun TackleBoxCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    AppIcons.Default.TackleBox,
+                    imageVector =
+                        if (expanded) AppIcons.Default.TackleBox
+                        else AppIcons.Default.TackleBoxClosed,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)
                 )
@@ -807,10 +813,15 @@ fun TackleBoxCard(
                             imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                             contentDescription = "Toggle Lures"
                         )
-                        Text(
-                            "${tackleBoxWithLures.lures.size} Lures",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = secondaryContentColor
+                        CardItemWithValue(
+                            icon = AppIcons.Default.Lure,
+                            value = tackleBoxWithLures.lures.size.toString(),
+                            description = if (verbose) {
+                                if (tackleBoxWithLures.lures.size == 1) "Lure"
+                                else "Lures"
+                            } else null,
+                            onClick = null,
+                            contentColor = secondaryContentColor
                         )
                     }
                 }
