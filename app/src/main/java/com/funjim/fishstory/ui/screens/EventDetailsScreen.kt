@@ -1358,7 +1358,7 @@ fun EventDetailsScreen(
             }
             if (showNotesDialog) {
                 NotesDialog(
-                    notes = eventDetails.notes,
+                    notes = sortedNotes,
                     onDismiss = { showNotesDialog = false },
                     onSaveNote = { noteId, content ->
                         viewModel.addNote(noteId, content)

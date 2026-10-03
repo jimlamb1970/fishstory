@@ -157,9 +157,19 @@ fun NotesDialog(
         notes.getOrNull(currentIndex.coerceIn(0, notes.lastIndex))
     } else null
 
+    val dateTimeFormatter = remember {
+        SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+    }
+
+    val dateTime = if (currentNote != null) {
+        dateTimeFormatter.format(Date(currentNote.timestamp))
+    } else null
+
     var textBuffer by remember(currentNote, isCreatingNew) {
         mutableStateOf(currentNote?.content ?: "")
     }
+
+    val isValid = textBuffer.isNotBlank() && (currentNote?.content != textBuffer)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -171,10 +181,9 @@ fun NotesDialog(
             ) {
                 Text(
                     text = when {
-                        isCreatingNew -> "New Note"
-                        else -> "Note ${currentIndex + 1} of ${notes.size}"
-                    },
-                    style = MaterialTheme.typography.titleMedium
+                        isCreatingNew -> "Add Note"
+                        else -> "$dateTime"
+                    }
                 )
 
                 // '+' Icon to add an extra note when viewing existing ones
@@ -183,11 +192,16 @@ fun NotesDialog(
                         onClick = {
                             isCreatingNew = true
                             textBuffer = ""
-                        }
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add New Note"
+                            Icons.Default.Add,
+                            contentDescription = "Add Note"
                         )
                     }
                 }
@@ -242,16 +256,19 @@ fun NotesDialog(
         },
         confirmButton = {
             Button(
-                enabled = textBuffer.isNotBlank(),
+                enabled = isValid,
                 onClick = {
                     onSaveNote(currentNote?.id, textBuffer)
                     if (isCreatingNew) {
                         isCreatingNew = false
-                        currentIndex = notes.size // Jump focus to newly added note
+                        currentIndex = 0
                     }
                 }
             ) {
-                Text("Save")
+                if (isCreatingNew)
+                    Text("OK")
+                else
+                    Text("Update")
             }
         },
         dismissButton = {
@@ -266,9 +283,7 @@ fun NotesDialog(
                         Text("Delete", color = MaterialTheme.colorScheme.error)
                     }
                 }
-                TextButton(onClick = onDismiss) {
-                    Text("Close")
-                }
+                TextButton(onClick = onDismiss) { Text("Cancel") }
             }
         }
     )
@@ -327,15 +342,13 @@ fun NoteCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.content,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Normal
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }

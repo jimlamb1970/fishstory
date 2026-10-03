@@ -1516,7 +1516,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
             if (showNotesDialog) {
                 NotesDialog(
-                    notes = details.notes,
+                    notes = sortedNotes,
                     onDismiss = { showNotesDialog = false },
                     onSaveNote = { noteId, content ->
                         viewModel.addNote(noteId, content)
