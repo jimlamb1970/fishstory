@@ -739,6 +739,7 @@ fun BodiesOfWaterRow(
 @Composable
 fun BodyOfWaterSummaryCard(
     item: BodyOfWaterSummary,
+    verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
     index: Int = 0,
@@ -852,6 +853,7 @@ fun BodyOfWaterSummaryCard(
                             icon = AppIcons.Default.LeapingFishWithFins,
                             caughtCount = item.fishCaught,
                             keptCount = item.fishKept,
+                            extraText = if (verbose) "fish" else "",
                             onClick = {
                                 onFishClick(item.bodyOfWater, false)
                             },
@@ -864,6 +866,7 @@ fun BodyOfWaterSummaryCard(
                             icon = AppIcons.Default.TargetFish,
                             caughtCount = item.targetFishCaught,
                             keptCount = item.targetFishKept,
+                            extraText = if (verbose) "target fish" else "",
                             onClick = {
                                 onFishClick(item.bodyOfWater, true)
                             },
@@ -938,6 +941,7 @@ fun BodyOfWaterSummaryCard(
 @Composable
 fun BodyOfWaterSummaries(
     list: List<BodyOfWaterSummary>,
+    verbose: Boolean,
     thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
     onClick: (BodyOfWater) -> Unit,
@@ -1001,6 +1005,7 @@ fun BodyOfWaterSummaries(
                 list.forEachIndexed { index, item ->
                     BodyOfWaterSummaryCard(
                         item = item,
+                        verbose = verbose,
                         thumbnailFlow = thumbnailFlow(item.bodyOfWater),
                         index = index,
                         totalItems = list.size,

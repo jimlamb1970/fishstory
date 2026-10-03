@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.PhotoRepository
@@ -17,10 +18,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class BodyOfWaterViewModel(
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
+
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
         .stateIn(
             scope = viewModelScope,
@@ -71,6 +80,7 @@ class BodyOfWaterViewModel(
 }
 
 class BodyOfWaterViewModelFactory(
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository
@@ -78,7 +88,11 @@ class BodyOfWaterViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(BodyOfWaterViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return BodyOfWaterViewModel(envRepo, fishRepo, photoRepo) as T
+            return BodyOfWaterViewModel(
+                configRepo,
+                envRepo,
+                fishRepo,
+                photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

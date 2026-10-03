@@ -845,6 +845,7 @@ fun TripDetailsScreen(
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
+                                            verbose = displaySettings.verboseCards,
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                                             },

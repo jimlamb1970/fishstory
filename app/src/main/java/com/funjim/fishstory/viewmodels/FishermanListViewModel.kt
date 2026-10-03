@@ -5,9 +5,11 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
@@ -17,11 +19,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FishermanListViewModel(
+    private val configRepo: ConfigurationRepository,
     private val fishermanRepo: FishermanRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     private val _sortOrder = MutableStateFlow(FishermanSortOrder.NAME_AZ)
     val sortOrder = _sortOrder.asStateFlow()
@@ -97,6 +107,7 @@ class FishermanListViewModel(
 }
 
 class FishermanListViewModelFactory(
+    private val configRepo: ConfigurationRepository,
     private val fishermanRepo: FishermanRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
@@ -104,6 +115,7 @@ class FishermanListViewModelFactory(
         if (modelClass.isAssignableFrom(FishermanListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FishermanListViewModel(
+                configRepo = configRepo,
                 fishermanRepo = fishermanRepo,
                 photoRepo = photoRepo
             ) as T

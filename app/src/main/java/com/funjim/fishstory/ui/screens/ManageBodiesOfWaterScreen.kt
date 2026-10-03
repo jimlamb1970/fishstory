@@ -78,6 +78,9 @@ fun ManageBodiesOfWaterScreen(
     navigateToFishList: (String, Boolean) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val verbose = displaySettings.verboseCards
+
     val allItems by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
     var addItem by remember { mutableStateOf(false) }
 
@@ -276,6 +279,7 @@ fun ManageBodiesOfWaterScreen(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = item.fishCaught,
                                         keptCount = item.fishKept,
+                                        extraText = if (verbose) "fish" else "",
                                         onClick = { navigateToFishList(item.bodyOfWater.id, false) },
                                         contentColor = getOnCardSecondaryColor()
                                     )
@@ -285,6 +289,7 @@ fun ManageBodiesOfWaterScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = item.targetFishCaught,
                                         keptCount = item.targetFishKept,
+                                        extraText = if (verbose) "target fish" else "",
                                         onClick = { navigateToFishList(item.bodyOfWater.id, true) },
                                         contentColor = getOnCardSecondaryColor()
                                     )

@@ -136,6 +136,7 @@ fun EditFishermanDialog(
 @Composable
 fun FishermanItem(
     fisherman: FishermanSummary,
+    verbose: Boolean,
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
@@ -200,24 +201,50 @@ fun FishermanItem(
                     )
 
                     if (fisherman.totalTrips != 0 || fisherman.totalTackleBoxes != 0) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
+                        if (verbose) {
                             if (fisherman.totalTrips != 0) {
-                                CardItemWithValue(
-                                    icon = AppIcons.Default.Boat,
-                                    value = fisherman.totalTrips.toString(),
-                                    contentColor = secondaryContentColor
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.Boat,
+                                        value = fisherman.totalTrips.toString(),
+                                        description = if (fisherman.totalTrips == 1) "Trip" else "Trips",
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
                             }
                             if (fisherman.totalTackleBoxes != 0) {
                                 CardItemWithValue(
                                     icon = AppIcons.Default.TackleBox,
                                     value = fisherman.totalTackleBoxes.toString(),
+                                    description =
+                                        if (fisherman.totalTackleBoxes == 1) "Tackle Box"
+                                        else "Tackle Boxes",
                                     contentColor = secondaryContentColor
                                 )
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                if (fisherman.totalTrips != 0) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.Boat,
+                                        value = fisherman.totalTrips.toString(),
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
+                                if (fisherman.totalTackleBoxes != 0) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.TackleBox,
+                                        value = fisherman.totalTackleBoxes.toString(),
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
                             }
                         }
                     }
@@ -232,6 +259,7 @@ fun FishermanItem(
                                 icon = AppIcons.Default.LeapingFishWithFins,
                                 caughtCount = fisherman.fishCaught,
                                 keptCount = fisherman.fishKept,
+                                extraText = if (verbose) "fish" else "",
                                 onClick = { onFishClick(fisherman.fisherman.id, false) },
                                 contentColor = secondaryContentColor,
                             )
@@ -249,6 +277,7 @@ fun FishermanItem(
                                 icon = AppIcons.Default.TargetFish,
                                 caughtCount = fisherman.targetFishCaught,
                                 keptCount = fisherman.targetFishKept,
+                                extraText = if (verbose) "target fish" else "",
                                 onClick = { onFishClick(fisherman.fisherman.id, true) },
                                 contentColor = secondaryContentColor
                             )
@@ -1456,6 +1485,7 @@ fun FishermanItemPreview() {
                 largestFish = 0,
                 smallestFish = 0
             ),
+            verbose = true,
             thumbnailFlow = flowOf(null),
             photosFlow = flowOf(emptyList()),
             onClick = {},

@@ -490,11 +490,18 @@ fun AppNavigation(
         }
 
         composable("fishermen") {
-            val fishermanRepo = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
-            val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
+            val configRepo = (navController.context.applicationContext as FishstoryApplication)
+                .configurationRepository
+            val fishermanRepo = (navController.context.applicationContext as FishstoryApplication)
+                .fishermanRepository
+            val photoRepo = (navController.context.applicationContext as FishstoryApplication)
+                .photoRepository
 
             val viewModel: FishermanListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = FishermanListViewModelFactory(fishermanRepo, photoRepo)
+                factory = FishermanListViewModelFactory(
+                    configRepo,
+                    fishermanRepo,
+                    photoRepo)
             )
 
             FishermanListScreen(

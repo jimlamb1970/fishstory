@@ -50,6 +50,7 @@ class TripViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = DisplaySettings()
         )
+
     private val inputCategory: String? = savedStateHandle["category"]
     private val initialCategory: CategoryType = inputCategory?.let {
         try {

@@ -48,6 +48,8 @@ fun FishermanListScreen(
 ) {
     val context = LocalContext.current
 
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     var fishermanToDelete by remember { mutableStateOf<FishermanSummary?>(null) }
 
@@ -169,6 +171,7 @@ fun FishermanListScreen(
                     itemsIndexed(fishermanSummaries) { index, fisherman ->
                         FishermanItem(
                             fisherman = fisherman,
+                            verbose = displaySettings.verboseCards,
                             index = index,
                             totalItems = totalItems,
                             thumbnailFlow = viewModel.fishermanThumbnail(fisherman.fisherman.id),

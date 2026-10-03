@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOff
@@ -111,6 +110,7 @@ fun EventDetailsScreen(
     val context = LocalContext.current
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
@@ -873,6 +873,7 @@ fun EventDetailsScreen(
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
+                                            verbose = displaySettings.verboseCards,
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                                             },

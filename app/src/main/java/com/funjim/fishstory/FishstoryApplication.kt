@@ -148,6 +148,7 @@ class FishstoryApplication : Application() {
     )
 
     fun getBodyOfWaterViewModelFactory() = BodyOfWaterViewModelFactory(
+        configurationRepository,
         environmentRepository,
         fishRepository,
         photoRepository
@@ -164,6 +165,7 @@ class FishstoryApplication : Application() {
 
     fun getEventViewModelFactory() = EventViewModelFactory(
             locationProvider = locationProvider,
+            configurationRepository,
             environmentRepository,
             fishermanRepository,
             fishRepository,
