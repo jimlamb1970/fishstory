@@ -953,6 +953,7 @@ fun ActiveTripCard(
             initialDepth = sortedWaterList.firstOrNull()?.water?.depth,
             initialClarity = sortedWaterList.firstOrNull()?.water?.clarityId,
             allClarity = allWaterClarity,
+            useImperial = useImperial,
             title = if (sortedWaterList.isEmpty()) { "Set Water Conditions" } else {"Update Water Conditions"} ,
             thumbnailProvider = { clarity ->
                 val thumbnailFlow = remember(clarity.id) {

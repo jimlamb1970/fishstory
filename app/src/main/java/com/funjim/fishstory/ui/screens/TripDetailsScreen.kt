@@ -1352,6 +1352,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     initialDepth = water.depth,
                     initialClarity = water.clarityId,
                     allClarity = allWaterClarity,
+                    useImperial = displaySettings.useImperialUnits,
                     title = "Edit Water Conditions",
                     thumbnailProvider = { clarity ->
                         val thumbnailFlow = remember(clarity.id) {

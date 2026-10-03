@@ -1201,6 +1201,7 @@ fun EventDetailsScreen(
                     initialDepth = water.depth,
                     initialClarity = water.clarityId,
                     allClarity = allWaterClarity,
+                    useImperial = displaySettings.useImperialUnits,
                     title = "Edit Water Conditions",
                     thumbnailProvider = { clarity ->
                         val thumbnailFlow = remember(clarity.id) {
@@ -1460,6 +1461,7 @@ fun EventDetailsScreen(
             initialDepth = null,
             initialClarity = null,
             allClarity = allWaterClarity,
+            useImperial = displaySettings.useImperialUnits,
             title = "New Water Conditions",
             thumbnailProvider = { clarity ->
                 val thumbnailFlow = remember(clarity.id) {

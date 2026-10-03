@@ -513,19 +513,29 @@ fun WaterDialog(
     initialDepth: Long?,
     initialClarity: String?,
     allClarity: List<WaterClarity>,
+    useImperial: Boolean,
     title: String,
     thumbnailProvider: @Composable (WaterClarity) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: (Long?, Long?, WaterClarity?) -> Unit,
     onAddWaterClarity: () -> Unit
 ) {
-    val originalTemp = remember(initialTemp) {
+    val originalTemp = remember(initialTemp, useImperial) {
         initialTemp?.let {
-            val fahrenheit = it.toFahrenheitDouble()
-            if (fahrenheit == fahrenheit.toLong().toDouble()) {
-                fahrenheit.toLong().toString()
+            if (useImperial) {
+                val fahrenheit = it.toFahrenheitDouble()
+                if (fahrenheit == fahrenheit.toLong().toDouble()) {
+                    fahrenheit.toLong().toString()
+                } else {
+                    fahrenheit.toString()
+                }
             } else {
-                fahrenheit.toString()
+                val celsius = it.toCelsiusDouble()
+                if (celsius == celsius.toLong().toDouble()) {
+                    celsius.toLong().toString()
+                } else {
+                    celsius.toString()
+                }
             }
         } ?: ""
     }
@@ -542,7 +552,7 @@ fun WaterDialog(
         allClarity.find { it.id == initialClarity }
     }
 
-    var temp by remember { mutableStateOf(originalTemp) }
+    var temp by remember(useImperial) { mutableStateOf(originalTemp) }
     var depthFeet by remember { mutableStateOf(originalFeet) }
     var depthInches by remember { mutableStateOf(originalInches) }
     var clarity by remember { mutableStateOf(originalClarity) }
@@ -560,7 +570,7 @@ fun WaterDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Temperature field with Fahrenheit suffix indication
+                // Temperature
                 OutlinedTextField(
                     value = temp,
                     onValueChange = { input ->
@@ -569,7 +579,7 @@ fun WaterDialog(
                         }
                     },
                     label = { Text("Temperature") },
-                    suffix = { Text("°F") },
+                    suffix = { Text(if (useImperial) "°F" else "°C") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -582,8 +592,11 @@ fun WaterDialog(
                 ) {
                     OutlinedTextField(
                         value = depthFeet,
-                        onValueChange = { depthFeet = it },
-                        label = { Text("Depth (ft)") },
+                        onValueChange = { input ->
+                            if (input.isEmpty() || input.all { it.isDigit() }) {
+                                depthFeet = input
+                            }
+                        },                        label = { Text("Depth (ft)") },
                         suffix = { Text("ft") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
@@ -592,7 +605,11 @@ fun WaterDialog(
 
                     OutlinedTextField(
                         value = depthInches,
-                        onValueChange = { depthInches = it },
+                        onValueChange = { input ->
+                            if (input.isEmpty() || input.all { it.isDigit() }) {
+                                depthInches = input
+                            }
+                        },
                         label = { Text("Depth (in)") },
                         suffix = { Text("in") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -615,7 +632,9 @@ fun WaterDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val tempValue = temp.fahrenheitToDbValue()
+                    val tempValue =
+                        if (useImperial) temp.fahrenheitToDbValue()
+                        else temp.celsiusToDbValue()
 
                     val feetValue = depthFeet.toLongOrNull() ?: 0L
                     val inchesValue = depthInches.toLongOrNull() ?: 0L
