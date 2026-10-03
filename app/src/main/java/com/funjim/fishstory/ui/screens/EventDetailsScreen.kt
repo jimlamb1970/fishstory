@@ -1013,7 +1013,7 @@ fun EventDetailsScreen(
                                                 ThumbnailBox(
                                                     thumbnail = thumbnail,
                                                     imageVector = AppIcons.Default.LeapingFishWithFins,
-                                                    modifier = Modifier.size(18.dp)
+                                                    modifier = Modifier.size(24.dp)
                                                 )
                                             },
                                             onAdd = { showAddLimitDialog = true },

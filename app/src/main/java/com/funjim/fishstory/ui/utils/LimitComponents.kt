@@ -647,14 +647,14 @@ fun LimitSummaryCard(
                         item.summaryList.firstOrNull()?.event?.let { event ->
                             Column {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     eventThumbnailProvider(event)
                                     Text(
                                         text = event.name,
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = secondaryContentColor
                                     )
                                 }
                             }

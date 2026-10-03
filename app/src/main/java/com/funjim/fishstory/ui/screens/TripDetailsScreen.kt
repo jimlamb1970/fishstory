@@ -1138,7 +1138,7 @@ fun TripDetailsScreen(
                                                 ThumbnailBox(
                                                     thumbnail = thumbnail,
                                                     imageVector = AppIcons.Default.CanoeEmpty,
-                                                    modifier = Modifier.size(18.dp)
+                                                    modifier = Modifier.size(24.dp)
                                                 )
                                             },
                                             speciesThumbnailProvider = { species ->
