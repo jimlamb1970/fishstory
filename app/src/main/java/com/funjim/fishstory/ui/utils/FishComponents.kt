@@ -168,45 +168,57 @@ fun FishItem(
                     }
                 }
 
-                if (includeTrip)
-                    Text(
-                        "Trip: ${fish.trip.name}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = getOnCardSecondaryColor()
-                    )
-
-                if (includeEvent)
-                    Text(
-                        "Event: ${fish.event.name}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = getOnCardSecondaryColor()
-                    )
-
-                if (includeFisherman)
-                    Text(
-                        "Caught by: ${fish.fisherman.fullName}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = getOnCardSecondaryColor()
-                    )
-
-                fish.lure?.let { lure ->
-                    LureCompositionWithColors(
-                        name = lure.lure.name,
-                        lure.primaryColors,
-                        lure.secondaryColors,
-                        lure.lure.glows,
-                        lure.glowColors,
-                        style = MaterialTheme.typography.bodySmall,
-                        contentColor = getOnCardSecondaryColor(),
-                        colorBadgeSize = 20.dp
-                    )
-                }
-
                 Text(
                     "At: ${dateFormatter.format(Date(fish.fish.timestamp))}",
                     style = MaterialTheme.typography.bodySmall,
                     color = getOnCardSecondaryColor()
                 )
+
+                if (includeTrip)
+                    CardItemWithValue(
+                        icon = AppIcons.Default.Boat,
+                        value = fish.trip.name,
+                        contentColor = getOnCardSecondaryColor()
+                    )
+
+                if (includeEvent)
+                    CardItemWithValue(
+                        icon = AppIcons.Default.CanoeEmpty,
+                        value = fish.event.name,
+                        contentColor = getOnCardSecondaryColor()
+                    )
+
+                if (includeFisherman)
+                    CardItemWithValue(
+                        icon = AppIcons.Default.Fisherman,
+                        value = fish.fisherman.fullName,
+                        contentColor = getOnCardSecondaryColor()
+                    )
+
+                fish.lure?.let { lure ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.Lure,
+                            contentDescription = null,
+                            tint = getOnCardSecondaryColor(),
+                            modifier = Modifier
+                                .size(24.dp)
+                        )
+                        LureCompositionWithColors(
+                            name = lure.lure.name,
+                            lure.primaryColors,
+                            lure.secondaryColors,
+                            lure.lure.glows,
+                            lure.glowColors,
+                            style = MaterialTheme.typography.bodyMedium,
+                            contentColor = getOnCardSecondaryColor(),
+                            colorBadgeSize = 20.dp
+                        )
+                    }
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
