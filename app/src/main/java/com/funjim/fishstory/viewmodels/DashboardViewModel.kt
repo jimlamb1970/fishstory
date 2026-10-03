@@ -353,6 +353,12 @@ class DashboardViewModel(
         viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
     }
 
+    fun toggleImperialUnits() {
+        viewModelScope.launch {
+            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+        }
+    }
+
     fun toggleVerboseCards() {
         viewModelScope.launch {
             configRepo.updateUseVerboseCards(displaySettings.value.verboseCards.not())

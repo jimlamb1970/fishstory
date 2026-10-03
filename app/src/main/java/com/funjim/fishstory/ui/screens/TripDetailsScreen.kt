@@ -1210,6 +1210,7 @@ fun TripDetailsScreen(
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
                                                 navigateToFishList(FishFilter(
@@ -1226,6 +1227,7 @@ fun TripDetailsScreen(
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
                                                 navigateToFishList(FishFilter(
@@ -1387,6 +1389,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     initialAirVisibility = item.airVisibility,
                     initialAirHumidity = item.airHumidity,
                     allSkyConditions = allSkyConditions,
+                    useImperial = displaySettings.useImperialUnits,
                     title = "Edit Weather Conditions",
                     thumbnailProvider = { sky ->
                         val thumbnailFlow = remember(sky.id) {
@@ -1400,6 +1403,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                             modifier = Modifier.size(24.dp)
                         )
                     },
+                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                     onDismiss = { weatherToEdit = null },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                         viewModel.updateWeather(

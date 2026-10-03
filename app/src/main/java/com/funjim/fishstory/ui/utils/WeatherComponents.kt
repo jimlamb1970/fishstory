@@ -101,16 +101,16 @@ fun Long.toMiles(): Long = this / 1_609_344L
 private val MM_PER_MILE = BigDecimal("1609344")
 private val MM_PER_KM = BigDecimal("1000000")
 
-private val BASE_PER_MPH = BigDecimal("0.44704")
-private val BASE_PER_KMH = BigDecimal("0.277778")
+private val BASE_PER_MPH = BigDecimal("16093440")
+private val BASE_PER_KMH = BigDecimal("10000000")
 
 /**
  * Converts DB airVisibility (stored in Millimeters as Long) to UI string.
- * @param isMetric If true, converts to Kilometers (KM). If false, converts to Miles (mi).
+ * @param useImperial If false, converts to Kilometers (KM). If true, converts to Miles (mi).
  */
-fun Long?.airVisibilityDisplayString(isMetric: Boolean = false): String {
+fun Long?.airVisibilityDisplayString(useImperial: Boolean): String {
     if (this == null) return ""
-    val divisor = if (isMetric) MM_PER_KM else MM_PER_MILE
+    val divisor = if (!useImperial) MM_PER_KM else MM_PER_MILE
 
     return BigDecimal(this)
         .divide(divisor, 1, RoundingMode.HALF_UP)
@@ -120,11 +120,11 @@ fun Long?.airVisibilityDisplayString(isMetric: Boolean = false): String {
 
 /**
  * Converts UI input string to DB Millimeters (Long).
- * @param isMetric If true, treats input as KM. If false, treats input as Miles.
+ * @param useImperial If false, treats input as KM. If true, treats input as Miles.
  */
-fun String.visibilityInputToDbValueOrNull(isMetric: Boolean = false): Long? {
+fun String.visibilityInputToDbValueOrNull(useImperial: Boolean): Long? {
     val decimalInput = this.toBigDecimalOrNull() ?: return null
-    val multiplier = if (isMetric) MM_PER_KM else MM_PER_MILE
+    val multiplier = if (!useImperial) MM_PER_KM else MM_PER_MILE
 
     return decimalInput.multiply(multiplier)
         .setScale(0, RoundingMode.HALF_UP)
@@ -133,11 +133,11 @@ fun String.visibilityInputToDbValueOrNull(isMetric: Boolean = false): Long? {
 
 /**
  * Converts DB windSpeed (stored in base Long unit) to UI string.
- * @param isMetric If true, converts to KM/H. If false, converts to MPH.
+ * @param useImperial If false, converts to KM/H. If true, converts to MPH.
  */
-fun Long?.windSpeedDisplayString(isMetric: Boolean = false): String {
+fun Long?.windSpeedDisplayString(useImperial: Boolean): String {
     if (this == null) return ""
-    val divisor = if (isMetric) BASE_PER_KMH else BASE_PER_MPH
+    val divisor = if (!useImperial) BASE_PER_KMH else BASE_PER_MPH
 
     return BigDecimal(this)
         .divide(divisor, 1, RoundingMode.HALF_UP)
@@ -147,11 +147,11 @@ fun Long?.windSpeedDisplayString(isMetric: Boolean = false): String {
 
 /**
  * Converts UI input string to DB Wind Speed (Long).
- * @param isMetric If true, treats input as KM/H. If false, treats input as MPH.
+ * @param useImperial If false, treats input as KM/H. If true, treats input as MPH.
  */
-fun String.windSpeedInputToDbValueOrNull(isMetric: Boolean = false): Long? {
+fun String.windSpeedInputToDbValueOrNull(useImperial: Boolean): Long? {
     val decimalInput = this.toBigDecimalOrNull() ?: return null
-    val multiplier = if (isMetric) BASE_PER_KMH else BASE_PER_MPH
+    val multiplier = if (!useImperial) BASE_PER_KMH else BASE_PER_MPH
 
     return decimalInput.multiply(multiplier)
         .setScale(0, RoundingMode.HALF_UP)
@@ -162,28 +162,28 @@ private fun Weather.airHumidityDisplayString(): String? {
     val airHumidityDb = airHumidity ?: return null
     return String.format(Locale.getDefault(), "${airHumidityDb}%%")
 }
-private fun Weather.airVisibilityDisplayString(useKM: Boolean = false): String? {
+private fun Weather.airVisibilityDisplayString(useImperial: Boolean): String? {
     val visibilityDb = airVisibility ?: return null
-    return if (useKM) {
-        String.format(Locale.getDefault(), "%s km", visibilityDb.airVisibilityDisplayString())
+    return if (!useImperial) {
+        String.format(Locale.getDefault(), "%s km", visibilityDb.airVisibilityDisplayString(false))
     } else {
-        String.format(Locale.getDefault(), "%s m", visibilityDb.airVisibilityDisplayString())
+        String.format(Locale.getDefault(), "%s m", visibilityDb.airVisibilityDisplayString(true))
     }
 }
-private fun Weather.tempDisplayString(useCelsius: Boolean = false): String? {
+private fun Weather.tempDisplayString(useImperial: Boolean): String? {
     val tempDb = temperature ?: return null
-    return if (useCelsius) {
+    return if (!useImperial) {
         String.format(Locale.getDefault(), "%.1f°C", tempDb.toCelsiusDouble())
     } else {
         String.format(Locale.getDefault(), "%.1f°F", tempDb.toFahrenheitDouble())
     }
 }
-private fun Weather.windSpeedDisplayString(useKM: Boolean = false): String? {
+private fun Weather.windSpeedDisplayString(useImperial: Boolean): String? {
     val speedDb = windSpeed ?: return null
-    return if (useKM) {
-        String.format(Locale.getDefault(), "%s km/h", speedDb.windSpeedDisplayString())
+    return if (!useImperial) {
+        String.format(Locale.getDefault(), "%s km/h", speedDb.windSpeedDisplayString(false))
     } else {
-        String.format(Locale.getDefault(), "%s mph", speedDb.windSpeedDisplayString())
+        String.format(Locale.getDefault(), "%s mph", speedDb.windSpeedDisplayString(true))
     }
 }
 
@@ -238,6 +238,7 @@ fun EditSkyConditionDialog(
 @Composable
 fun WeatherCard(
     weather: WeatherWithDetails,
+    useImperial: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -297,7 +298,7 @@ fun WeatherCard(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        weather.weather.tempDisplayString()?.let { temp ->
+                        weather.weather.tempDisplayString(useImperial)?.let { temp ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Temperature: ",
@@ -327,7 +328,7 @@ fun WeatherCard(
                 }
                 if (weather.weather.windDirection != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windDirection?.let { direction ->
+                        weather.weather.windDirection.let { direction ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Wind Direction: ",
@@ -344,7 +345,7 @@ fun WeatherCard(
                 }
                 if (weather.weather.windSpeed != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windSpeedDisplayString()?.let { speed ->
+                        weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Wind Speed: ",
@@ -361,7 +362,7 @@ fun WeatherCard(
                 }
                 if (weather.weather.airVisibility != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airVisibilityDisplayString()?.let { visibility ->
+                        weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Air Visibility: ",
@@ -449,6 +450,7 @@ fun WeatherCard(
 fun WeatherSummaryCard(
     weather: WeatherSummary,
     verbose: Boolean,
+    useImperial: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -508,7 +510,7 @@ fun WeatherSummaryCard(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        weather.weather.tempDisplayString()?.let { temp ->
+                        weather.weather.tempDisplayString(useImperial)?.let { temp ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Temperature: ",
@@ -555,7 +557,7 @@ fun WeatherSummaryCard(
                 }
                 if (weather.weather.windSpeed != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windSpeedDisplayString()?.let { speed ->
+                        weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Wind Speed: ",
@@ -572,7 +574,7 @@ fun WeatherSummaryCard(
                 }
                 if (weather.weather.airVisibility != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airVisibilityDisplayString()?.let { visibility ->
+                        weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Air Visibility: ",
@@ -687,10 +689,11 @@ fun WeatherDialog(
     initialAirVisibility: Long?,
     initialAirHumidity: Long?,
     allSkyConditions: List<SkyCondition>,
+    useImperial: Boolean,
     title: String,
     thumbnailProvider: @Composable (SkyCondition) -> Unit,
-    isMetric: Boolean = false,
-    onDismiss: () -> Unit,
+    onToggleImperialUnits: () -> Unit,
+    onAddSkyCondition: () -> Unit,
     onConfirm: (
         temp: Long?,
         skyConditionId: String?,
@@ -700,16 +703,24 @@ fun WeatherDialog(
         airVisibility: Long?,
         airHumidity: Long?
     ) -> Unit,
-    onAddSkyCondition: () -> Unit
+    onDismiss: () -> Unit
 ) {
-    // 1. Initial Values
-    val originalTemp = remember(initialTemp) {
+    val originalTemp = remember(initialTemp, useImperial) {
         initialTemp?.let {
-            val fahrenheit = it.toFahrenheitDouble()
-            if (fahrenheit == fahrenheit.toLong().toDouble()) {
-                fahrenheit.toLong().toString()
+            if (useImperial) {
+                val fahrenheit = it.toFahrenheitDouble()
+                if (fahrenheit == fahrenheit.toLong().toDouble()) {
+                    fahrenheit.toLong().toString()
+                } else {
+                    fahrenheit.toString()
+                }
             } else {
-                fahrenheit.toString()
+                val celsius = it.toCelsiusDouble()
+                if (celsius == celsius.toLong().toDouble()) {
+                    celsius.toLong().toString()
+                } else {
+                    celsius.toString()
+                }
             }
         } ?: ""
     }
@@ -727,26 +738,24 @@ fun WeatherDialog(
     val originalHumidity = remember(initialAirHumidity) { initialAirHumidity?.toString() ?: "" }
 
     // Parse Initial Values using unit preference
-    val originalWindSpeed = remember(initialWindSpeed, isMetric) {
-        initialWindSpeed.windSpeedDisplayString(isMetric = isMetric)
+    val originalWindSpeed = remember(initialWindSpeed, useImperial) {
+        initialWindSpeed.windSpeedDisplayString(useImperial)
     }
 
-    val originalVisibility = remember(initialAirVisibility, isMetric) {
-        initialAirVisibility.airVisibilityDisplayString(isMetric = isMetric)
+    val originalVisibility = remember(initialAirVisibility, useImperial) {
+        initialAirVisibility.airVisibilityDisplayString(useImperial)
     }
 
-    // 2. Mutable State
-    var temp by remember { mutableStateOf(originalTemp) }
+    var temp by remember(useImperial) { mutableStateOf(originalTemp) }
     var skyCondition by remember { mutableStateOf(originalSkyCondition) }
     var windDirection by remember { mutableStateOf(originalWindDirection) }
-    var windSpeed by remember { mutableStateOf(originalWindSpeed) }
+    var windSpeed by remember(useImperial) { mutableStateOf(originalWindSpeed) }
     var pressure by remember { mutableStateOf(originalPressure) }
-    var visibility by remember { mutableStateOf(originalVisibility) }
+    var visibility by remember(useImperial) { mutableStateOf(originalVisibility) }
     var humidity by remember { mutableStateOf(originalHumidity) }
 
     var isWindDirectionExpanded by remember { mutableStateOf(false) }
 
-    // 3. Change Detection
     val isChanged = temp != originalTemp ||
             skyCondition != originalSkyCondition ||
             windDirection != originalWindDirection ||
@@ -757,7 +766,18 @@ fun WeatherDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = onToggleImperialUnits
+                    )
+            ) {
+                Text(title)
+            }
+        },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -774,7 +794,7 @@ fun WeatherDialog(
                         }
                     },
                     label = { Text("Temperature") },
-                    suffix = { Text("°F") },
+                    suffix = { Text(if (useImperial) "°F" else "°C") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -860,7 +880,7 @@ fun WeatherDialog(
                         }
                     },
                     label = { Text("Wind Speed") },
-                    suffix = { Text(if (isMetric) "km/h" else "mph") },
+                    suffix = { Text(if (!useImperial) "km/h" else "mph") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -890,7 +910,7 @@ fun WeatherDialog(
                         }
                     },
                     label = { Text("Air Visibility") },
-                    suffix = { Text(if (isMetric) "km" else "mi") },
+                    suffix = { Text(if (!useImperial) "km" else "mi") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -914,12 +934,13 @@ fun WeatherDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val tempValue = temp.fahrenheitToDbValue()
+                    val tempValue =
+                        if (useImperial) temp.fahrenheitToDbValue()
+                        else temp.celsiusToDbValue()
 
-                    // Convert UI inputs back to DB Long values using unit preference
-                    val speedValue = windSpeed.windSpeedInputToDbValueOrNull(isMetric = isMetric)
+                    val speedValue = windSpeed.windSpeedInputToDbValueOrNull(useImperial)
                     val pressureValue = pressure.toLongOrNull()
-                    val visibilityValue = visibility.visibilityInputToDbValueOrNull(isMetric = isMetric)
+                    val visibilityValue = visibility.visibilityInputToDbValueOrNull(useImperial)
                     val humidityValue = humidity.toLongOrNull()
 
                     onConfirm(
@@ -948,6 +969,7 @@ fun WeatherDialog(
 @Composable
 fun WeatherRow(
     weatherList: List<WeatherWithDetails>,
+    useImperial: Boolean,
     onAddWeather: () -> Unit,
     onEdit: (Weather) -> Unit,
     onDelete: (Weather) -> Unit
@@ -1023,6 +1045,7 @@ fun WeatherRow(
             ) {
                 WeatherCard(
                     weather = weatherList.first(),
+                    useImperial = useImperial,
                     index = 0,
                     totalItems = weatherList.size,
                     onEdit = onEdit,
@@ -1037,6 +1060,7 @@ fun WeatherRow(
                         weatherList.drop(1).forEachIndexed { index, weather ->
                             WeatherCard(
                                 weather = weather,
+                                useImperial = useImperial,
                                 index = index + 1,
                                 totalItems = weatherList.size,
                                 onEdit = onEdit,
@@ -1066,6 +1090,7 @@ fun WeatherRow(
 fun WeatherSummaryRow(
     list: List<WeatherSummary>,
     verbose: Boolean,
+    useImperial: Boolean,
     onAdd: (() -> Unit)? = null,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
@@ -1145,6 +1170,7 @@ fun WeatherSummaryRow(
                 WeatherSummaryCard(
                     weather = list.first(),
                     verbose = verbose,
+                    useImperial = useImperial,
                     index = 0,
                     totalItems = list.size,
                     onEdit = onEdit,
@@ -1161,6 +1187,7 @@ fun WeatherSummaryRow(
                             WeatherSummaryCard(
                                 weather = item,
                                 verbose = verbose,
+                                useImperial = useImperial,
                                 index = index,
                                 totalItems = list.size,
                                 onEdit = onEdit,

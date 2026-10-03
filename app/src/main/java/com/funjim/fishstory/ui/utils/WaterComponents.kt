@@ -103,9 +103,9 @@ fun Long.toFahrenheitDouble(): Double = this / 100.0
  */
 fun Long.toCelsiusDouble(): Double = (this - 3200.0) / 180.0
 
-private fun Water.tempDisplayString(useCelsius: Boolean = false): String? {
+private fun Water.tempDisplayString(useImperial: Boolean = true): String? {
     val tempDb = temperature ?: return null
-    return if (useCelsius) {
+    return if (!useImperial) {
         String.format(Locale.getDefault(), "%.1f°C", tempDb.toCelsiusDouble())
     } else {
         String.format(Locale.getDefault(), "%.1f°F", tempDb.toFahrenheitDouble())
@@ -176,6 +176,7 @@ fun EditWaterClarityDialog(
 @Composable
 fun WaterCard(
     water: WaterWithDetails,
+    useImperial: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -236,7 +237,7 @@ fun WaterCard(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        water.water.tempDisplayString()?.let { temp ->
+                        water.water.tempDisplayString(useImperial)?.let { temp ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Temperature: ",
@@ -333,6 +334,7 @@ fun WaterCard(
 fun WaterSummaryCard(
     water: WaterSummary,
     verbose: Boolean,
+    useImperial: Boolean,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
@@ -392,7 +394,7 @@ fun WaterSummaryCard(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        water.water.tempDisplayString()?.let { temp ->
+                        water.water.tempDisplayString(useImperial)?.let { temp ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Temperature: ",
@@ -641,6 +643,7 @@ fun WaterDialog(
 @Composable
 fun WaterRow(
     waterList: List<WaterWithDetails>,
+    useImperial: Boolean,
     onAddWater: () -> Unit,
     onEdit: (Water) -> Unit,
     onDelete: (Water) -> Unit
@@ -716,6 +719,7 @@ fun WaterRow(
             ) {
                 WaterCard(
                     water = waterList.first(),
+                    useImperial = useImperial,
                     index = 0,
                     totalItems = waterList.size,
                     onEdit = onEdit,
@@ -730,6 +734,7 @@ fun WaterRow(
                         waterList.drop(1).forEachIndexed { index, water ->
                             WaterCard(
                                 water = water,
+                                useImperial = useImperial,
                                 index = index + 1,
                                 totalItems = waterList.size,
                                 onEdit = onEdit,
@@ -759,6 +764,7 @@ fun WaterRow(
 fun WaterSummaryRow(
     waterList: List<WaterSummary>,
     verbose: Boolean,
+    useImperial: Boolean,
     onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
@@ -838,6 +844,7 @@ fun WaterSummaryRow(
                 WaterSummaryCard(
                     water = waterList.first(),
                     verbose = verbose,
+                    useImperial = useImperial,
                     index = 0,
                     totalItems = waterList.size,
                     onEdit = onEdit,
@@ -853,6 +860,7 @@ fun WaterSummaryRow(
                         waterList.drop(1).forEachIndexed { index, water ->
                             WaterSummaryCard(
                                 water = water,
+                                useImperial = useImperial,
                                 verbose = verbose,
                                 index = index,
                                 totalItems = waterList.size,

@@ -1072,6 +1072,7 @@ fun EventDetailsScreen(
                                         WaterSummaryRow(
                                             waterList = sortedWaterList,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
@@ -1089,6 +1090,7 @@ fun EventDetailsScreen(
                                         WeatherSummaryRow(
                                             list = sortedWeatherList,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
@@ -1236,6 +1238,7 @@ fun EventDetailsScreen(
                     initialAirVisibility = item.airVisibility,
                     initialAirHumidity = item.airHumidity,
                     allSkyConditions = allSkyConditions,
+                    useImperial = displaySettings.useImperialUnits,
                     title = "Edit Weather Conditions",
                     thumbnailProvider = { skyCondition ->
                         val thumbnailFlow = remember(skyCondition.id) {
@@ -1249,6 +1252,7 @@ fun EventDetailsScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     },
+                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                     onDismiss = { weatherToEdit = null },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                         viewModel.updateWeather(
@@ -1507,6 +1511,7 @@ fun EventDetailsScreen(
             initialAirVisibility = null,
             initialAirHumidity = null,
             allSkyConditions = allSkyConditions,
+            useImperial = displaySettings.useImperialUnits,
             title = "New Weather Conditions",
             thumbnailProvider = { skyCondition ->
                 val thumbnailFlow = remember(skyCondition.id) {
@@ -1520,6 +1525,7 @@ fun EventDetailsScreen(
                     modifier = Modifier.size(24.dp)
                 )
             },
+            onToggleImperialUnits = { viewModel.toggleImperialUnits() },
             onDismiss = { showAddWeatherDialog = false },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(

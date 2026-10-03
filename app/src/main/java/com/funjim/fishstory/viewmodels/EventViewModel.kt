@@ -747,6 +747,12 @@ class EventViewModel(
             fishermanRepo.insertTackleBox(tackleBox)
         }
     }
+
+    fun toggleImperialUnits() {
+        viewModelScope.launch {
+            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+        }
+    }
 }
 
 sealed interface EventDetailsUiState {

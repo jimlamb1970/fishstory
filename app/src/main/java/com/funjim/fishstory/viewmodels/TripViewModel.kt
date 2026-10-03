@@ -868,9 +868,14 @@ class TripViewModel(
     fun clearTrip() {
         _selectedTripId.value = null
     }
-
     fun selectTrip(id: String) {
         _selectedTripId.value = id
+    }
+
+    fun toggleImperialUnits() {
+        viewModelScope.launch {
+            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+        }
     }
 }
 

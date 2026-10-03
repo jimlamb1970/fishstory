@@ -14,6 +14,7 @@ object PreferencesKeys {
     val USE_IMPERIAL_UNITS = booleanPreferencesKey("use_imperial_units")
 }
 data class DisplaySettings(
-    val verboseCards: Boolean = true,
-    val cautionBlinkInterval: Long = 1000L
+    val cautionBlinkInterval: Long = 1000L,
+    val useImperialUnits: Boolean = true,
+    val verboseCards: Boolean = true
 )

@@ -789,7 +789,11 @@ private fun FishDetailContent(
                         Column(modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                         ) {
-                            WaterCard(water = fish.water)
+                            WaterCard(
+                                water = fish.water,
+                                useImperial = true
+//                                useImperial = displaySettings.useImperialUnits,
+                            )
                         }
                     }
                 }
@@ -798,7 +802,11 @@ private fun FishDetailContent(
                         Column(modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                         ) {
-                            WeatherCard(weather = fish.weather)
+                            WeatherCard(
+                                weather = fish.weather,
+                                useImperial = true
+  //                              useImperial = displaySettings.useImperialUnits,
+                            )
                         }
                     }
                 }

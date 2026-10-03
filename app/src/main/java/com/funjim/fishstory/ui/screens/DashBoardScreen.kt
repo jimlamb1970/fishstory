@@ -319,6 +319,8 @@ fun DashboardScreen(
                         limitSummaries = limitSummaries,
                         eventSummary = state.eventSummary,
                         tripSummary = state.tripSummary,
+                        useImperial = displaySettings.useImperialUnits,
+                        onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
@@ -518,6 +520,8 @@ fun ActiveTripCard(
     limitSummaries: List<LimitSummary>,
     eventSummary: EventDetailedSummary?,
     tripSummary: TripDetailedSummary?,
+    useImperial: Boolean,
+    onToggleImperialUnits: () -> Unit,
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
@@ -1017,6 +1021,7 @@ fun ActiveTripCard(
             initialAirVisibility = sortedWeatherList.firstOrNull()?.weather?.airVisibility,
             initialAirHumidity = sortedWeatherList.firstOrNull()?.weather?.airHumidity,
             allSkyConditions = allSkyConditions,
+            useImperial = useImperial,
             title = if (sortedWeatherList.isEmpty()) { "Set Weather Conditions" } else {"Update Weather Conditions"} ,
             thumbnailProvider = { skyCondition ->
                 val thumbnailFlow = remember(skyCondition.id) {
@@ -1030,7 +1035,8 @@ fun ActiveTripCard(
                     modifier = Modifier.size(24.dp)
                 )
             },
-            onDismiss = { showAddWeatherDialog = false },
+            onToggleImperialUnits = { onToggleImperialUnits() },
+            onAddSkyCondition = { addSkyCondition = true },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
                     Weather(
@@ -1046,7 +1052,7 @@ fun ActiveTripCard(
                 )
                 showAddWeatherDialog = false
             },
-            onAddSkyCondition = { addSkyCondition = true }
+            onDismiss = { showAddWeatherDialog = false }
         )
     }
 
