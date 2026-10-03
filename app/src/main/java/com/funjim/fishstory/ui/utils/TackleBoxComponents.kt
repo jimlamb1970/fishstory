@@ -159,7 +159,7 @@ fun TackleBoxBottomSheet(
     var isGridView by remember { mutableStateOf(true) }
 
     ModalBottomSheet(
-        onDismissRequest = { onDismissRequest },
+        onDismissRequest = { onDismissRequest() },
         containerColor = MaterialTheme.colorScheme.surface,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
     ) {
