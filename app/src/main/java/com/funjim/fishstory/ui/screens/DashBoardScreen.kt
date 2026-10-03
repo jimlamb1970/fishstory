@@ -967,6 +967,7 @@ fun ActiveTripCard(
                     modifier = Modifier.size(24.dp)
                 )
             },
+            onToggleImperialUnits = { onToggleImperialUnits() },
             onDismiss = { showAddWaterDialog = false },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(

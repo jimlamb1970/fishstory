@@ -1366,6 +1366,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                             modifier = Modifier.size(24.dp)
                         )
                     },
+                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                     onDismiss = { waterToEdit = null },
                     onConfirm = { temp, depth, clarity ->
                         viewModel.updateWater(

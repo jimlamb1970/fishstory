@@ -516,9 +516,10 @@ fun WaterDialog(
     useImperial: Boolean,
     title: String,
     thumbnailProvider: @Composable (WaterClarity) -> Unit,
-    onDismiss: () -> Unit,
+    onToggleImperialUnits: () -> Unit,
+    onAddWaterClarity: () -> Unit,
     onConfirm: (Long?, Long?, WaterClarity?) -> Unit,
-    onAddWaterClarity: () -> Unit
+    onDismiss: () -> Unit
 ) {
     val originalTemp = remember(initialTemp, useImperial) {
         initialTemp?.let {
@@ -548,6 +549,14 @@ fun WaterDialog(
         initialDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
     }
 
+    val originalMeters = remember(initialDepth) {
+        initialDepth?.let {
+            val totalMM = it.toMm()
+            val meters = totalMM / 1000
+            String.format(Locale.US, "%.2f", meters).trimEnd('0').trimEnd('.')
+        } ?: ""
+    }
+
     val originalClarity = remember(initialClarity, allClarity) {
         allClarity.find { it.id == initialClarity }
     }
@@ -555,16 +564,28 @@ fun WaterDialog(
     var temp by remember(useImperial) { mutableStateOf(originalTemp) }
     var depthFeet by remember { mutableStateOf(originalFeet) }
     var depthInches by remember { mutableStateOf(originalInches) }
+    var depthMeters by remember { mutableStateOf(originalMeters) }
     var clarity by remember { mutableStateOf(originalClarity) }
 
     val isChanged = temp != originalTemp ||
-            depthFeet != originalFeet ||
-            depthInches != originalInches ||
+            (useImperial && (depthFeet != originalFeet || depthInches != originalInches)) ||
+            (!useImperial && depthMeters != originalMeters) ||
             clarity != originalClarity
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = onToggleImperialUnits
+                    )
+            ) {
+                Text(title)
+            }
+        },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -585,35 +606,53 @@ fun WaterDialog(
                     singleLine = true
                 )
 
-                // Depth split into Feet and Inches
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = depthFeet,
-                        onValueChange = { input ->
-                            if (input.isEmpty() || input.all { it.isDigit() }) {
-                                depthFeet = input
-                            }
-                        },                        label = { Text("Depth (ft)") },
-                        suffix = { Text("ft") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
+                // Depth Field(s) based on system of measurement
+                if (useImperial) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = depthFeet,
+                            onValueChange = { input ->
+                                if (input.isEmpty() || input.all { it.isDigit() }) {
+                                    depthFeet = input
+                                }
+                            },
+                            label = { Text("Depth (ft)") },
+                            suffix = { Text("ft") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
 
+                        OutlinedTextField(
+                            value = depthInches,
+                            onValueChange = { input ->
+                                if (input.isEmpty() || input.all { it.isDigit() }) {
+                                    depthInches = input
+                                }
+                            },
+                            label = { Text("Depth (in)") },
+                            suffix = { Text("in") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
+                    }
+                } else {
                     OutlinedTextField(
-                        value = depthInches,
+                        value = depthMeters,
                         onValueChange = { input ->
-                            if (input.isEmpty() || input.all { it.isDigit() }) {
-                                depthInches = input
+                            // Allows up to 2 decimal places
+                            if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                                depthMeters = input
                             }
                         },
-                        label = { Text("Depth (in)") },
-                        suffix = { Text("in") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
+                        label = { Text("Depth (m)") },
+                        suffix = { Text("m") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
                 }
@@ -636,18 +675,24 @@ fun WaterDialog(
                         if (useImperial) temp.fahrenheitToDbValue()
                         else temp.celsiusToDbValue()
 
-                    val feetValue = depthFeet.toLongOrNull() ?: 0L
-                    val inchesValue = depthInches.toLongOrNull() ?: 0L
-
-                    val totalDepth = if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
-                        (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
+                    val totalDepth = if (useImperial) {
+                        if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
+                            val feetValue = depthFeet.toLongOrNull() ?: 0L
+                            val inchesValue = depthInches.toLongOrNull() ?: 0L
+                            (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
+                        } else {
+                            null
+                        }
                     } else {
-                        null
+                        depthMeters.toDoubleOrNull()?.let { meters ->
+                            val inches = meters / 0.0254
+                            inches.inchesToStorage()
+                        }
                     }
 
                     onConfirm(tempValue, totalDepth, clarity)
                 },
-                enabled = isChanged // Enabled only if user made a change
+                enabled = isChanged
             ) {
                 Text("Save")
             }
@@ -659,6 +704,7 @@ fun WaterDialog(
         }
     )
 }
+
 @Composable
 fun WaterRow(
     waterList: List<WaterWithDetails>,

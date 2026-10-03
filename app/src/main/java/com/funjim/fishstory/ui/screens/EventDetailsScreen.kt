@@ -1215,6 +1215,7 @@ fun EventDetailsScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     },
+                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                     onDismiss = { waterToEdit = null },
                     onConfirm = { temp, depth, clarity ->
                         viewModel.updateWater(
@@ -1475,6 +1476,7 @@ fun EventDetailsScreen(
                     modifier = Modifier.size(24.dp)
                 )
             },
+            onToggleImperialUnits = { viewModel.toggleImperialUnits() },
             onDismiss = { showAddWaterDialog = false },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(
