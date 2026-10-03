@@ -825,6 +825,7 @@ fun EventDetailsScreen(
                             if (eventSummary.fishCaught != 0 || now >= event.startTime) {
                                 EventHighlightCard(
                                     summary = eventSummary,
+                                    useImperial = displaySettings.useImperialUnits,
                                     onClick = {
                                         navigateToFishList(FishFilter(
                                             tripId = trip.id,
@@ -998,6 +999,7 @@ fun EventDetailsScreen(
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             scope = LimitScope.EVENT,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,

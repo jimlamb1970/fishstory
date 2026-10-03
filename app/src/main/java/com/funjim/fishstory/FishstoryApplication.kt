@@ -175,6 +175,7 @@ class FishstoryApplication : Application() {
 
     fun getFishDetailsViewModelFactory() = FishDetailsViewModelFactory(
         locationProvider = locationProvider,
+        configRepo = configurationRepository,
         envRepo = environmentRepository,
         fishRepo = fishRepository,
         lureRepo = lureRepository,

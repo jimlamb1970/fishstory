@@ -757,7 +757,7 @@ fun ActiveTripCard(
                                         if (trip.bigFishLength == null) ""
                                         else "(${
                                             trip.bigFishLength.toDisplayString(
-                                                useMetric = false,
+                                                useImperial = useImperial,
                                                 useFractions = true
                                             )
                                         } : ${trip.bigFishSpecies})",
@@ -892,7 +892,7 @@ fun ActiveTripCard(
                                         if (eventSummary.bigFishLength == null) ""
                                         else "(${
                                             eventSummary.bigFishLength.toDisplayString(
-                                                useMetric = false,
+                                                useImperial = useImperial,
                                                 useFractions = true
                                             )
                                         } : ${eventSummary.bigFishSpecies})",

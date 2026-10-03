@@ -799,6 +799,7 @@ fun TripDetailsScreen(
                             if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 TripHighlightCard(
                                     summary = summary,
+                                    useImperial = displaySettings.useImperialUnits,
                                     onClick = {
                                         navigateToFishList(FishFilter(
                                             tripId = trip.id)
@@ -1123,6 +1124,7 @@ fun TripDetailsScreen(
                                         LimitSummaryRow(
                                             itemList = limitSummaries,
                                             verbose = displaySettings.verboseCards,
+                                            useImperial = displaySettings.useImperialUnits,
                                             scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,

@@ -5,12 +5,12 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 // Centralized constants so there's only one source of truth for the math
 private const val IMPERIAL_MULTIPLIER = 254000.0
-private const val METRIC_MULTIPLIER = 10000.0
+private const val METRIC_MM_MULTIPLIER = 10000.0
+private const val METRIC_CM_MULTIPLIER = 100000.0
 
 // ==========================================
 // 1. INPUT LAYER: Double -> Database Long
@@ -27,7 +27,10 @@ fun Double.inchesToStorage(): Long {
  * Converts a raw UI Double value (Millimeters) to the universal database storage unit.
  */
 fun Double.mmToStorage(): Long {
-    return (this * METRIC_MULTIPLIER).roundToLong()
+    return (this * METRIC_MM_MULTIPLIER).roundToLong()
+}
+fun Double.cmToStorage(): Long {
+    return (this * METRIC_CM_MULTIPLIER).roundToLong()
 }
 
 // ==========================================
@@ -45,17 +48,20 @@ fun Long.toInches(): Double {
  * Converts the universal database storage unit back to a Metric Double for UI display.
  */
 fun Long.toMm(): Double {
-    return this / METRIC_MULTIPLIER
+    return this / METRIC_MM_MULTIPLIER
+}
+fun Long.toCm(): Double {
+    return this / METRIC_CM_MULTIPLIER
 }
 
 /**
  * Unified entry point for the UI. Returns the correct formatted string based on settings.
- * @param useMetric Current system setting toggle.
+ * @param useImperial Current system setting toggle.
  * @param useFractions If true and system is Imperial, displays "2 1/16\"". If false, displays "2.0625\"".
  */
-fun Long.toDisplayString(useMetric: Boolean, useFractions: Boolean = false): String {
-    return if (useMetric) {
-        this.toMmDisplayString()
+fun Long.toDisplayString(useImperial: Boolean, useFractions: Boolean = false): String {
+    return if (!useImperial) {
+        this.toCmDisplayString()
     } else {
         if (useFractions) this.toFractionalInchesDisplayString() else this.toDecimalInchesDisplayString()
     }
@@ -72,6 +78,10 @@ private val uiDecimalFormatter = DecimalFormat("#.####", DecimalFormatSymbols(Lo
 fun Long.toMmDisplayString(): String {
     val mmValue = this.toMm() // Uses your existing division logic
     return "${uiDecimalFormatter.format(mmValue)} mm"
+}
+fun Long.toCmDisplayString(): String {
+    val mmValue = this.toCm() // Uses your existing division logic
+    return "${uiDecimalFormatter.format(mmValue)} cm"
 }
 
 /**

@@ -469,6 +469,7 @@ fun AddLimitDialog(
 fun LimitSummaryRow(
     itemList: List<LimitSummary>,
     verbose: Boolean,
+    useImperial: Boolean,
     scope: LimitScope,
     modifier: Modifier,
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
@@ -530,6 +531,7 @@ fun LimitSummaryRow(
                 LimitSummaryCard(
                     item = item,
                     verbose = verbose,
+                    useImperial = useImperial,
                     scope = scope,
                     eventThumbnailProvider = eventThumbnailProvider,
                     speciesThumbnailProvider = speciesThumbnailProvider,
@@ -559,6 +561,7 @@ fun LimitSummaryRow(
 fun LimitSummaryCard(
     item: LimitSummary,
     verbose: Boolean,
+    useImperial: Boolean,
     scope: LimitScope,
     modifier: Modifier = Modifier,
     eventThumbnailProvider: (@Composable (Event) -> Unit),
@@ -694,7 +697,7 @@ fun LimitSummaryCard(
                     }
 
                     // Format & Display Size Range Constraints
-                    val sizeDetails = remember(item.limit) { formatSizeConstraint(item.limit) }
+                    val sizeDetails = remember(item.limit) { formatSizeConstraint(item.limit, useImperial = useImperial) }
                     if (sizeDetails.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
@@ -865,9 +868,12 @@ fun LimitSummaryCard(
 }
 
 
-private fun formatSizeConstraint(limit: Limit): String {
-    val lowerInches = limit.lowerSize?.toDisplayString(useMetric = false, useFractions = true)
-    val upperInches = limit.upperSize?.toDisplayString(useMetric = false, useFractions = true)
+private fun formatSizeConstraint(
+    limit: Limit,
+    useImperial: Boolean
+): String {
+    val lowerInches = limit.lowerSize?.toDisplayString(useImperial = useImperial, useFractions = true)
+    val upperInches = limit.upperSize?.toDisplayString(useImperial = useImperial, useFractions = true)
 
     return when (limit.type) {
         LimitType.BAG_LIMIT -> ""

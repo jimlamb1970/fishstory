@@ -269,7 +269,10 @@ fun FishermanDetailsScreen(
                                 }
                             }
 
-                            FishermanHighlightCard(stats!!) {
+                            FishermanHighlightCard(
+                                stats!!,
+                                useImperial = displaySettings.useImperialUnits
+                            ) {
                                 navigateToFishList(fishermanId, null, false)
                             }
 

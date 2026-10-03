@@ -64,10 +64,11 @@ fun FishListScreen(
         viewModel.selectWeather(filter.weatherId)
     }
 
-    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     val bodyOfWater by viewModel.selectedBodyOfWater.collectAsStateWithLifecycle()
     val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
@@ -316,6 +317,7 @@ fun FishListScreen(
                                 includeTrip = filter.tripId.isNullOrEmpty(),
                                 includeEvent = filter.eventId.isNullOrEmpty(),
                                 includeFisherman = filter.fishermanId.isNullOrEmpty(),
+                                useImperial = displaySettings.useImperialUnits,
                                 thumbnailFlow =
                                     if (fishDetails.photoCount == 0) viewModel.speciesThumbnail(fishDetails.fish.speciesId)
                                     else viewModel.fishThumbnail(fishDetails.fish.id),

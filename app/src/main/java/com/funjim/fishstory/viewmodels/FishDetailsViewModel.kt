@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
@@ -40,6 +41,7 @@ import kotlin.collections.sortedBy
 
 class FishDetailsViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
@@ -48,6 +50,13 @@ class FishDetailsViewModel(
 ) : ViewModel(), LocationProvider by locationProvider {
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DisplaySettings()
+        )
 
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
@@ -236,6 +245,7 @@ class FishDetailsViewModel(
 
 class FishDetailsViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
@@ -247,6 +257,7 @@ class FishDetailsViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return FishDetailsViewModel(
                 locationProvider,
+                configRepo,
                 envRepo,
                 fishRepo,
                 lureRepo,

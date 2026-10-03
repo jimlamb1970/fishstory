@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EventHighlightCard(
     summary: EventDetailedSummary,
+    useImperial: Boolean,
     onClick: () -> Unit,
     onFishClick: () -> Unit,
     onTargetFishClick: () -> Unit
@@ -122,7 +123,7 @@ fun EventHighlightCard(
                             name = summary.bigFishFisherman,
                             description = "(${
                                 summary.bigFishLength.toDisplayString(
-                                    useMetric = false,
+                                    useImperial = useImperial,
                                     useFractions = true
                                 )
                             } : ${summary.bigFishSpecies})",
@@ -189,7 +190,7 @@ fun EventHighlightCard(
                             name = summary.targetBigFishFisherman,
                             description = "(${
                                 summary.targetBigFishLength.toDisplayString(
-                                    useMetric = false,
+                                     useImperial = useImperial,
                                     useFractions = true
                                 )
                             } : ${summary.targetBigFishSpecies})",
@@ -207,6 +208,7 @@ fun EventHighlightCard(
 @Composable
 fun FishermanHighlightCard(
     stats: FishermanFullStatistics,
+    useImperial: Boolean,
     onClick: () -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -227,8 +229,8 @@ fun FishermanHighlightCard(
 
             HorizontalPager(state = pagerState) { page ->
                 when (page) {
-                    0 -> HighlightsPage(stats)
-                    1 -> LowlightsPage(stats)
+                    0 -> HighlightsPage(stats, useImperial)
+                    1 -> LowlightsPage(stats, useImperial)
                 }
             }
 
@@ -260,7 +262,10 @@ fun FishermanHighlightCard(
 }
 
 @Composable
-private fun HighlightsPage(stats: FishermanFullStatistics) {
+private fun HighlightsPage(
+    stats: FishermanFullStatistics,
+    useImperial: Boolean
+) {
     Column {
         Text(
             text = "HIGHLIGHTS",
@@ -277,7 +282,7 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
                 StatItem(
                     label = "LARGEST FISH",
                     value = stats.largestFishLength.toDisplayString(
-                        useMetric = false,
+                        useImperial = useImperial,
                         useFractions = true
                     ),
                     description = stats.largestFishSpecies,
@@ -327,7 +332,10 @@ private fun HighlightsPage(stats: FishermanFullStatistics) {
 }
 
 @Composable
-private fun LowlightsPage(stats: FishermanFullStatistics) {
+private fun LowlightsPage(
+    stats: FishermanFullStatistics,
+    useImperial: Boolean
+) {
     Column {
         Text(
             text = "LOWLIGHTS",
@@ -344,7 +352,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
                 StatItem(
                     label = "SMALLEST FISH",
                     value = stats.smallestFishLength.toDisplayString(
-                        useMetric = false,
+                        useImperial = useImperial,
                         useFractions = true
                     ),
                     description = stats.smallestFishSpecies,
@@ -396,6 +404,7 @@ private fun LowlightsPage(stats: FishermanFullStatistics) {
 @Composable
 fun TripHighlightCard(
     summary: TripDetailedSummary,
+    useImperial: Boolean,
     onClick: () -> Unit,
     onFishClick: () -> Unit,
     onTargetFishClick: () -> Unit
@@ -477,7 +486,7 @@ fun TripHighlightCard(
                             name = summary.bigFishFisherman,
                             description = "(${
                                 summary.bigFishLength.toDisplayString(
-                                    useMetric = false,
+                                    useImperial = useImperial,
                                     useFractions = true
                                 )
                             } : ${summary.bigFishSpecies})",
@@ -547,7 +556,7 @@ fun TripHighlightCard(
                             name = summary.targetBigFishFisherman,
                             description = "(${
                                 summary.targetBigFishLength.toDisplayString(
-                                    useMetric = false,
+                                    useImperial = useImperial,
                                     useFractions = true
                                 )
                             } : ${summary.targetBigFishSpecies})",

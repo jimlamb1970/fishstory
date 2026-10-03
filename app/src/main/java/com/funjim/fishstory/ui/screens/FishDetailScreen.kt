@@ -76,6 +76,8 @@ fun FishDetailScreen(
     onEditFish: (tripId: String, eventId: String, fishId: String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
 
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
@@ -247,6 +249,7 @@ fun FishDetailScreen(
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
+                    useImperial = displaySettings.useImperialUnits,
                     onSaveNote = { noteId, content ->
                         viewModel.addNote(fish.fish.id, noteId, content)
                     },
@@ -311,6 +314,7 @@ private fun FishDetailContent(
     fishermanThumbnailFlow: Flow<ByteArray?>,
     lureThumbnailFlow: Flow<ByteArray?>,
     tripThumbnailFlow: Flow<ByteArray?>,
+    useImperial: Boolean,
     onSaveNote: (noteId: String?, text: String) -> Unit,
     onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
@@ -431,7 +435,7 @@ private fun FishDetailContent(
             IconButton(
                 onClick = {
                     val status = if (fish.fish.keptCount == 0) "Released" else "Kept"
-                    val lengthStr = fish.fish.length?.toDisplayString(useMetric = false, useFractions = true) ?: ""
+                    val lengthStr = fish.fish.length?.toDisplayString(useImperial = useImperial, useFractions = true) ?: ""
                     val bodyOfWater = fish.bodyOfWater?.name ?: ""
                     val dateStr = dateFormatter.format(Date(fish.fish.timestamp))
                     val timeStr = timeFormatter.format(Date(fish.fish.timestamp))
@@ -522,7 +526,7 @@ private fun FishDetailContent(
                         DetailRow(
                             label = "Length",
                             value = fish.fish.length.toDisplayString(
-                                useMetric = false,
+                                useImperial = useImperial,
                                 useFractions = true
                             )
                         )

@@ -53,6 +53,7 @@ fun FishItem(
     includeTrip: Boolean = false,
     includeEvent: Boolean = false,
     includeFisherman: Boolean = false,
+    useImperial: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     onClick: () -> Unit,
@@ -130,7 +131,9 @@ fun FishItem(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val lengthStr = if (fish.fish.length != null)
-                        " - " + fish.fish.length.toDisplayString(useMetric = false, useFractions = true)
+                        " - " + fish.fish.length.toDisplayString(
+                            useImperial = useImperial,
+                            useFractions = true)
                     else ""
 
                     Text(
