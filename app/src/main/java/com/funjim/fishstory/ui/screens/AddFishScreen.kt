@@ -65,6 +65,9 @@ import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
+import com.funjim.fishstory.model.LimitType
+import com.funjim.fishstory.ui.utils.cmToStorage
+import com.funjim.fishstory.ui.utils.toCm
 
 fun Long.toUtcMidnight(): Long =
     Instant.ofEpochMilli(this)
@@ -86,6 +89,8 @@ fun AddFishScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val draftFish by viewModel.draftFish.collectAsStateWithLifecycle()
@@ -466,22 +471,60 @@ fun AddFishScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val currentTotalInches = fish.length?.toInches() ?: 0.0
-                            val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
-                            val remainingFraction = currentTotalInches - wholeInches
+                            if (displaySettings.useImperialUnits) {
+                                val currentTotalInches = fish.length?.toInches() ?: 0.0
+                                val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                                val remainingFraction = currentTotalInches - wholeInches
 
-                            FractionalLengthField(
-                                label = "Length (in)",
-                                wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
-                                fractionValue = remainingFraction,
-                                onLengthChanged = { newWhole, newFraction ->
-                                    val checkedWhole = newWhole.coerceAtLeast(0)
-                                    val computedDouble = checkedWhole.toDouble() + newFraction
-                                    viewModel.updateLength(computedDouble.inchesToStorage())
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
+                                FractionalLengthField(
+                                    label = "Length (in)",
+                                    wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                                    fractionValue = remainingFraction,
+                                    onLengthChanged = { newWhole, newFraction ->
+                                        val checkedWhole = newWhole.coerceAtLeast(0)
+                                        val computedDouble = checkedWhole.toDouble() + newFraction
+                                        viewModel.updateLength(computedDouble.inchesToStorage())
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    wholeWeight = 0.75f
+                                )
+                            } else {
+                                var lengthText by remember(fishId) {
+                                    mutableStateOf(
+                                        fish.length?.let { storageValue ->
+                                            val cm = storageValue.toCm()
+                                            if (cm > 0) String.format(Locale.US, "%.2f", cm).trimEnd('0').trimEnd('.') else ""
+                                        } ?: ""
+                                    )
+                                }
 
+                                OutlinedTextField(
+                                    value = lengthText,
+                                    onValueChange = { input ->
+                                        if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                                            lengthText = input
+
+                                            // Convert safely to Double and then to storage Long
+                                            val doubleCm = input.toDoubleOrNull()
+                                            viewModel.updateLength(doubleCm?.cmToStorage() ?: 0L)
+                                        }
+                                    },
+                                    label = {
+                                        Text("Length (cm)")
+                                    },
+                                    suffix = { Text("cm") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true
+                                )
+
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             StepperField(
                                 label = "Hole #",
                                 value = fish.holeNumber.toString(),
