@@ -1315,6 +1315,8 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
             limitToEdit?.let { limit ->
                 LimitDialog(
+                    limitToEdit = limit,
+                    useImperial = displaySettings.useImperialUnits,
                     species = allSpecies,
                     speciesThumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
@@ -1329,12 +1331,11 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                             modifier = Modifier.size(18.dp)
                         )
                     },
-                    onDismiss = { limitToEdit = null },
                     onConfirm = { limit ->
                         viewModel.addLimit(limit)
                         limitToEdit = null
                     },
-                    limitToEdit = limit
+                    onDismiss = { limitToEdit = null }
                 )
             }
 
@@ -1566,6 +1567,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
     }
     if (showAddLimitDialog) {
         LimitDialog(
+            useImperial = displaySettings.useImperialUnits,
             species = allSpecies,
             speciesThumbnailProvider = { species ->
                 val thumbnailFlow = remember(species.id) {

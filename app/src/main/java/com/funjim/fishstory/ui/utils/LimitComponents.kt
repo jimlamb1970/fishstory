@@ -26,6 +26,7 @@ import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
 import com.funjim.fishstory.ui.theme.AppIcons
+import java.util.Locale
 import kotlin.collections.minus
 import kotlin.collections.plus
 import kotlin.math.floor
@@ -33,11 +34,12 @@ import kotlin.math.floor
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimitDialog(
+    limitToEdit: Limit? = null,
+    useImperial: Boolean,
     species: List<Species>,
     speciesThumbnailProvider: @Composable (Species) -> Unit,
-    onDismiss: () -> Unit,
     onConfirm: (Limit) -> Unit,
-    limitToEdit: Limit? = null
+    onDismiss: () -> Unit
 ) {
     // Determine mode
     val isEditing = limitToEdit != null
@@ -149,53 +151,121 @@ fun LimitDialog(
 
                 if (selectedType == LimitType.MIN_SIZE ||
                     selectedType == LimitType.SLOT_LIMIT) {
-                    val currentTotalInches = lowerSize.toInches()
-                    val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
-                    val remainingFraction = currentTotalInches - wholeInches
+                    if (useImperial) {
+                        val currentTotalInches = lowerSize.toInches()
+                        val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                        val remainingFraction = currentTotalInches - wholeInches
 
-                    FractionalLengthField(
-                        label =
-                            if (selectedType == LimitType.MIN_SIZE)
-                                "Minimum Length Limit (in)"
-                            else
-                                "Lower Slot Length Limit (in)",
-                        wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
-                        fractionValue = remainingFraction,
-                        onLengthChanged = { newWhole, newFraction ->
-                            val checkedWhole = newWhole.coerceAtLeast(0)
-                            val computedDouble = checkedWhole.toDouble() + newFraction
-                            lowerSize = computedDouble.inchesToStorage()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        wholeWeight = 0.6f
-                    )
+                        FractionalLengthField(
+                            label =
+                                if (selectedType == LimitType.MIN_SIZE)
+                                    "Minimum Length Limit (in)"
+                                else
+                                    "Lower Slot Length Limit (in)",
+                            wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                            fractionValue = remainingFraction,
+                            onLengthChanged = { newWhole, newFraction ->
+                                val checkedWhole = newWhole.coerceAtLeast(0)
+                                val computedDouble = checkedWhole.toDouble() + newFraction
+                                lowerSize = computedDouble.inchesToStorage()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            wholeWeight = 0.6f
+                        )
+                    } else {
+                        var lowerSizeText by remember(limitToEdit) {
+                            mutableStateOf(
+                                limitToEdit?.lowerSize?.let { storageValue ->
+                                    val cm = storageValue.toCm()
+                                    if (cm > 0) String.format(Locale.US, "%.2f", cm).trimEnd('0').trimEnd('.') else ""
+                                } ?: ""
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = lowerSizeText,
+                            onValueChange = { input ->
+                                if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                                    lowerSizeText = input
+
+                                    // Convert safely to Double and then to storage Long
+                                    val doubleCm = input.toDoubleOrNull()
+                                    lowerSize = doubleCm?.cmToStorage() ?: 0L
+                                }
+                            },
+                            label = {
+                                if (selectedType == LimitType.MIN_SIZE)
+                                    Text("Minimum Length Limit (cm)")
+                                else
+                                    Text("Lower Slot Length Limit (cm)")
+                            },
+                            suffix = { Text("cm") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
                 }
 
                 if (selectedType == LimitType.MAX_SIZE ||
                     selectedType == LimitType.SLOT_LIMIT ||
                     selectedType == LimitType.TROPHY_LIMIT) {
-                    val currentTotalInches = upperSize.toInches()
-                    val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
-                    val remainingFraction = currentTotalInches - wholeInches
+                    if (useImperial) {
+                        val currentTotalInches = upperSize.toInches()
+                        val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
+                        val remainingFraction = currentTotalInches - wholeInches
 
-                    FractionalLengthField(
-                        label =
-                            if (selectedType == LimitType.MAX_SIZE)
-                                "Maximum Length Limit (in)"
-                            else if (selectedType == LimitType.SLOT_LIMIT)
-                                "Upper Slot Length Limit (in)"
-                            else
-                                "Trophy Length Limit (in)",
-                        wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
-                        fractionValue = remainingFraction,
-                        onLengthChanged = { newWhole, newFraction ->
-                            val checkedWhole = newWhole.coerceAtLeast(0)
-                            val computedDouble = checkedWhole.toDouble() + newFraction
-                            upperSize = computedDouble.inchesToStorage()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        wholeWeight = 0.6f
-                    )
+                        FractionalLengthField(
+                            label =
+                                when (selectedType) {
+                                    LimitType.MAX_SIZE -> "Maximum Length Limit (in)"
+                                    LimitType.SLOT_LIMIT -> "Upper Slot Length Limit (in)"
+                                    else -> "Trophy Length Limit (in)"
+                                },
+                            wholeValue = if (currentTotalInches == 0.0) "" else wholeInches.toString(),
+                            fractionValue = remainingFraction,
+                            onLengthChanged = { newWhole, newFraction ->
+                                val checkedWhole = newWhole.coerceAtLeast(0)
+                                val computedDouble = checkedWhole.toDouble() + newFraction
+                                upperSize = computedDouble.inchesToStorage()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            wholeWeight = 0.6f
+                        )
+                    } else {
+                        var upperSizeText by remember(limitToEdit) {
+                            mutableStateOf(
+                                limitToEdit?.upperSize?.let { storageValue ->
+                                    val cm = storageValue.toCm()
+                                    if (cm > 0) String.format(Locale.US, "%.2f", cm).trimEnd('0').trimEnd('.') else ""
+                                } ?: ""
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = upperSizeText,
+                            onValueChange = { input ->
+                                if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                                    upperSizeText = input
+
+                                    // Convert safely to Double and then to storage Long
+                                    val doubleCm = input.toDoubleOrNull()
+                                    upperSize = doubleCm?.cmToStorage() ?: 0L
+                                }
+                            },
+                            label = {
+                                when (selectedType) {
+                                    LimitType.MAX_SIZE -> Text("Maximum Length Limit (cm)")
+                                    LimitType.SLOT_LIMIT -> Text("Upper Slot Length Limit (cm)")
+                                    else -> Text("Trophy Length Limit (cm)")
+                                }
+                            },
+                            suffix = { Text("cm") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
                 }
             }
         },

@@ -1164,6 +1164,8 @@ fun EventDetailsScreen(
             }
             limitToEdit?.let { limit ->
                 LimitDialog(
+                    limitToEdit = limit,
+                    useImperial = displaySettings.useImperialUnits,
                     species = allSpecies,
                     speciesThumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
@@ -1178,12 +1180,11 @@ fun EventDetailsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                     },
-                    onDismiss = { limitToEdit = null },
                     onConfirm = { limit ->
                         viewModel.addLimit(limit)
                         limitToEdit = null
                     },
-                    limitToEdit = limit
+                    onDismiss = { limitToEdit = null }
                 )
             }
 
@@ -1407,7 +1408,8 @@ fun EventDetailsScreen(
         )
     }
     if (showAddLimitDialog) {
-        AddLimitDialog(
+        LimitDialog(
+            useImperial = displaySettings.useImperialUnits,
             species = allSpecies,
             speciesThumbnailProvider = { species ->
                 val thumbnailFlow = remember(species.id) {
