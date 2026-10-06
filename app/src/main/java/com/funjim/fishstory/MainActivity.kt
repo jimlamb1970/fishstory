@@ -43,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
+import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
@@ -81,9 +82,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var userThemeSelection by rememberSaveable { mutableStateOf<String?>("App Default") }
+            val context = LocalContext.current
+            val app = context.applicationContext as FishstoryApplication
+            val configRepo = app.configurationRepository
 
-            FishstoryTheme(selectedTheme = userThemeSelection) {
+            val displaySettings by configRepo.displaySettings.collectAsStateWithLifecycle(
+                initialValue = DisplaySettings()
+            )
+
+            var userThemeSelection by rememberSaveable(displaySettings.colorTheme) {
+                mutableStateOf<String?>(null)
+            }
+
+            val activeTheme = userThemeSelection ?: displaySettings.colorTheme
+
+            FishstoryTheme(selectedTheme = activeTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -15,6 +15,7 @@ interface ConfigurationRepository {
     val displaySettings: Flow<DisplaySettings>
 
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
+    suspend fun updateColorTheme(colorTheme: String)
     suspend fun updateUseImperialUnits(useImperial: Boolean)
     suspend fun updateUseVerboseCards(useVerbose: Boolean)
 }
@@ -35,6 +36,7 @@ class ConfigurationRepositoryImpl(
         .map { preferences ->
             DisplaySettings(
                 cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
+                colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
                 useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
                 verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
             )
@@ -43,6 +45,12 @@ class ConfigurationRepositoryImpl(
     override suspend fun updateCautionBlinkInterval(intervalMs: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] = intervalMs
+        }
+    }
+
+    override suspend fun updateColorTheme(colorTheme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.COLOR_THEME] = colorTheme
         }
     }
 

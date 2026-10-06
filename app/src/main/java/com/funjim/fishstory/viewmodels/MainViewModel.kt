@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.database.*
 import com.funjim.fishstory.database.dao.BaitDao
 import com.funjim.fishstory.database.dao.BodyOfWaterDao
@@ -16,6 +17,7 @@ import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +27,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.collections.List
@@ -66,6 +69,7 @@ data class DatabaseExportData(
 )
 
 class MainViewModel(
+    private val configRepo: ConfigurationRepository,
     private val locationProvider: LocationProvider,
     private val baitDao: BaitDao,
     private val bodyOfWaterDao: BodyOfWaterDao,
@@ -240,9 +244,16 @@ class MainViewModel(
             }
         }
     }
+
+    fun updateTheme(theme: String) {
+        viewModelScope.launch {
+            configRepo.updateColorTheme(theme)
+        }
+    }
 }
 
 class MainViewModelFactory(
+    private val configRepo: ConfigurationRepository,
     private val locationProvider: LocationProvider,
     private val baitDao: BaitDao,
     private val bodyOfWaterDao: BodyOfWaterDao,
@@ -258,7 +269,8 @@ class MainViewModelFactory(
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return MainViewModel(
-                locationProvider,
+                configRepo = configRepo,
+                locationProvider = locationProvider,
                 baitDao = baitDao,
                 bodyOfWaterDao = bodyOfWaterDao,
                 eventDao = eventDao,

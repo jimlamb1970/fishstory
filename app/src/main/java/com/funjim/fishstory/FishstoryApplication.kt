@@ -205,6 +205,7 @@ class FishstoryApplication : Application() {
     )
 
     fun getMainViewModelFactory() = MainViewModelFactory(
+        configRepo = configurationRepository,
         locationProvider = locationProvider,
         bodyOfWaterDao = database.bodyOfWaterDao(),
         baitDao = database.baitDao(),

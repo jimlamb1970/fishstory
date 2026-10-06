@@ -171,8 +171,14 @@ fun SettingsScreen(
                 selectedItem = null,
                 label = "Theme",
                 modifier = Modifier.fillMaxWidth(),
-                onSelected = { theme -> onThemeChange(theme) },
-                onClear = { onThemeChange("") }
+                onSelected = { theme ->
+                    onThemeChange(theme)
+                    viewModel.updateTheme(theme)
+                },
+                onClear = {
+                    onThemeChange("")
+                    viewModel.updateTheme("App Default")
+                }
             )
         }
     }
