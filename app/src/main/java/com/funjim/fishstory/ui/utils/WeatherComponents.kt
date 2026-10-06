@@ -289,34 +289,34 @@ fun WeatherCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                if (weather.weather.temperature != null) {
+
+                weather.weather.tempDisplayString(useImperial)?.let { temp ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        weather.weather.tempDisplayString(useImperial)?.let { temp ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Temperature: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = temp,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        Text(
+                            text = "Temperature:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = temp,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+
                 if (weather.skyCondition != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "Sky Condition: ",
+                            text = "Sky Condition:",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
@@ -326,72 +326,90 @@ fun WeatherCard(
                         )
                     }
                 }
-                if (weather.weather.windDirection != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windDirection.let { direction ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Wind Direction: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = direction.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.windDirection?.let { direction ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Wind Direction:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = direction.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.windSpeed != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Wind Speed: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = speed,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Wind Speed:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = speed,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.airVisibility != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Air Visibility: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = visibility,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.atmosphericPressure?.toPressureDisplayString(useImperial)?.let {
+                    pressureStr ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Atmospheric Pressure:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = pressureStr,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.airHumidity != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airHumidityDisplayString()?.let { humidity ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Air Humidity: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = humidity,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Air Visibility:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = visibility,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                weather.weather.airHumidityDisplayString()?.let { humidity ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Air Humidity:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = humidity,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -505,30 +523,31 @@ fun WeatherSummaryCard(
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                if (weather.weather.temperature != null) {
+
+                weather.weather.tempDisplayString(useImperial)?.let { temp ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        weather.weather.tempDisplayString(useImperial)?.let { temp ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Temperature: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = temp,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        Text(
+                            text = "Temperature:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = temp,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+
                 if (weather.skyCondition != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "Sky Condition: ",
+                            text = "Sky Condition:",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
@@ -538,74 +557,93 @@ fun WeatherSummaryCard(
                         )
                     }
                 }
-                if (weather.weather.windDirection != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windDirection?.let { direction ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Wind Direction: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = direction.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.windDirection?.let { direction ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Wind Direction:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = direction.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.windSpeed != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Wind Speed: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = speed,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.windSpeedDisplayString(useImperial)?.let { speed ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Wind Speed:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = speed,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.airVisibility != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Air Visibility: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = visibility,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.atmosphericPressure?.toPressureDisplayString(useImperial)?.let {
+                    pressureStr ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Atmospheric Pressure:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = pressureStr,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (weather.weather.airHumidity != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        weather.weather.airHumidityDisplayString()?.let { humidity ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Air Humidity: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = humidity,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+
+                weather.weather.airVisibilityDisplayString(useImperial)?.let { visibility ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Air Visibility:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = visibility,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+
+                weather.weather.airHumidityDisplayString()?.let { humidity ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Air Humidity:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = humidity,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
                 if (weather.fishCaught != 0) {
                     Spacer(Modifier.height(4.dp))
                     FishCaughtItem(
@@ -707,20 +745,17 @@ fun WeatherDialog(
 ) {
     val originalTemp = remember(initialTemp, useImperial) {
         initialTemp?.let {
-            if (useImperial) {
-                val fahrenheit = it.toFahrenheitDouble()
-                if (fahrenheit == fahrenheit.toLong().toDouble()) {
-                    fahrenheit.toLong().toString()
-                } else {
-                    fahrenheit.toString()
-                }
+            val rawDouble = if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
+
+            val roundedDouble = BigDecimal(rawDouble)
+                .setScale(1, RoundingMode.HALF_UP)
+                .toDouble()
+
+            // Strip trailing .0 for whole numbers (e.g., 72.0 -> "72")
+            if (roundedDouble % 1.0 == 0.0) {
+                roundedDouble.toLong().toString()
             } else {
-                val celsius = it.toCelsiusDouble()
-                if (celsius == celsius.toLong().toDouble()) {
-                    celsius.toLong().toString()
-                } else {
-                    celsius.toString()
-                }
+                roundedDouble.toString()
             }
         } ?: ""
     }
@@ -732,7 +767,7 @@ fun WeatherDialog(
     val originalWindDirection = remember(initialWindDirection) { initialWindDirection }
 
     // Wind Speed: Converts DB Long to MPH string for initial display
-    val originalPressure = remember(initialAtmosphericPressure) { initialAtmosphericPressure?.toString() ?: "" }
+    val originalPressure = remember(initialAtmosphericPressure) { initialAtmosphericPressure }
 
     // Visibility: Converts DB Millimeters to Miles string for initial display
     val originalHumidity = remember(initialAirHumidity) { initialAirHumidity?.toString() ?: "" }
@@ -886,16 +921,31 @@ fun WeatherDialog(
                     singleLine = true
                 )
 
+                var pressureText by remember(initialAtmosphericPressure, useImperial) {
+                    mutableStateOf(
+                        if (useImperial) initialAtmosphericPressure?.toInHg()?.toString() ?: ""
+                        else initialAtmosphericPressure?.toHPa()?.toString() ?: ""
+                    )
+                }
+
                 // Atmospheric Pressure
                 OutlinedTextField(
-                    value = pressure,
+                    value = pressureText,
                     onValueChange = { input ->
-                        if (input.isEmpty() || input.all { it.isDigit() }) {
-                            pressure = input
+                        if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                            pressureText = input
+                            val doubleVal = input.toDoubleOrNull()
+                            pressure = doubleVal?.let {
+                                if (useImperial) {
+                                    it.inHgToStorage()
+                                } else {
+                                    it.hPaToStorage()
+                                }
+                            }
                         }
                     },
                     label = { Text("Atmospheric Pressure") },
-                    suffix = { Text("inHg") },
+                    suffix = { Text(if (useImperial) "inHg" else "hPa") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -939,7 +989,7 @@ fun WeatherDialog(
                         else temp.celsiusToDbValue()
 
                     val speedValue = windSpeed.windSpeedInputToDbValueOrNull(useImperial)
-                    val pressureValue = pressure.toLongOrNull()
+                    val pressureValue = pressure
                     val visibilityValue = visibility.visibilityInputToDbValueOrNull(useImperial)
                     val humidityValue = humidity.toLongOrNull()
 

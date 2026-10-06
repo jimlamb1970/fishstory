@@ -60,7 +60,7 @@ data class LimitEventSummary(
         get() = limit.count * fishermanCount
 
     val isLimitReached: Boolean
-        get() = caughtCount == totalLimitCount
+        get() = (caughtCount == totalLimitCount) && (caughtCount > 0)
 
     val isLimitExceeded: Boolean
         get() = caughtCount > totalLimitCount
@@ -82,7 +82,7 @@ data class LimitSummary(
         get() = limit.count > 0 && summaryList.isNotEmpty() && summaryList.any { it.isLimitReached }
 
     val limitReachedCount: Int
-        get() = summaryList.count { it.isLimitReached }
+        get() = summaryList.count { it.isLimitReached && it.caughtCount > 0 }
 
     val limitCount: Int
         get() = summaryList.size

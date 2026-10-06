@@ -942,8 +942,8 @@ private fun formatSizeConstraint(
     limit: Limit,
     useImperial: Boolean
 ): String {
-    val lowerInches = limit.lowerSize?.toDisplayString(useImperial = useImperial, useFractions = true)
-    val upperInches = limit.upperSize?.toDisplayString(useImperial = useImperial, useFractions = true)
+    val lowerInches = limit.lowerSize?.toLengthDisplayString(useImperial = useImperial, useFractions = true)
+    val upperInches = limit.upperSize?.toLengthDisplayString(useImperial = useImperial, useFractions = true)
 
     return when (limit.type) {
         LimitType.BAG_LIMIT -> ""

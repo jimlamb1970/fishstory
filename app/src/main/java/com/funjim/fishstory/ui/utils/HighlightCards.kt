@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.TripDetailedSummary
-import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.launch
 
@@ -122,7 +121,7 @@ fun EventHighlightCard(
                             label = "Big Fish",
                             name = summary.bigFishFisherman,
                             description = "(${
-                                summary.bigFishLength.toDisplayString(
+                                summary.bigFishLength.toLengthDisplayString(
                                     useImperial = useImperial,
                                     useFractions = true
                                 )
@@ -189,7 +188,7 @@ fun EventHighlightCard(
                             label = "Big Fish",
                             name = summary.targetBigFishFisherman,
                             description = "(${
-                                summary.targetBigFishLength.toDisplayString(
+                                summary.targetBigFishLength.toLengthDisplayString(
                                      useImperial = useImperial,
                                     useFractions = true
                                 )
@@ -281,7 +280,7 @@ private fun HighlightsPage(
             if (stats.largestFishLength != null) {
                 StatItem(
                     label = "LARGEST FISH",
-                    value = stats.largestFishLength.toDisplayString(
+                    value = stats.largestFishLength.toLengthDisplayString(
                         useImperial = useImperial,
                         useFractions = true
                     ),
@@ -351,7 +350,7 @@ private fun LowlightsPage(
             if (stats.smallestFishLength != null) {
                 StatItem(
                     label = "SMALLEST FISH",
-                    value = stats.smallestFishLength.toDisplayString(
+                    value = stats.smallestFishLength.toLengthDisplayString(
                         useImperial = useImperial,
                         useFractions = true
                     ),
@@ -485,7 +484,7 @@ fun TripHighlightCard(
                             label = "Big Fish",
                             name = summary.bigFishFisherman,
                             description = "(${
-                                summary.bigFishLength.toDisplayString(
+                                summary.bigFishLength.toLengthDisplayString(
                                     useImperial = useImperial,
                                     useFractions = true
                                 )
@@ -555,7 +554,7 @@ fun TripHighlightCard(
                             label = "Big Fish",
                             name = summary.targetBigFishFisherman,
                             description = "(${
-                                summary.targetBigFishLength.toDisplayString(
+                                summary.targetBigFishLength.toLengthDisplayString(
                                     useImperial = useImperial,
                                     useFractions = true
                                 )

@@ -108,7 +108,7 @@ import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.ui.utils.toDisplayString
+import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
 import com.funjim.fishstory.model.LimitSummary
@@ -756,7 +756,7 @@ fun ActiveTripCard(
                                     description =
                                         if (trip.bigFishLength == null) ""
                                         else "(${
-                                            trip.bigFishLength.toDisplayString(
+                                            trip.bigFishLength.toLengthDisplayString(
                                                 useImperial = useImperial,
                                                 useFractions = true
                                             )
@@ -891,7 +891,7 @@ fun ActiveTripCard(
                                     description =
                                         if (eventSummary.bigFishLength == null) ""
                                         else "(${
-                                            eventSummary.bigFishLength.toDisplayString(
+                                            eventSummary.bigFishLength.toLengthDisplayString(
                                                 useImperial = useImperial,
                                                 useFractions = true
                                             )

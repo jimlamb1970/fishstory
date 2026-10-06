@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Share // Added for fallback if needed
@@ -49,7 +48,7 @@ import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.WaterCard
 import com.funjim.fishstory.ui.utils.WeatherCard
 import com.funjim.fishstory.ui.utils.getOnMainColor
-import com.funjim.fishstory.ui.utils.toDisplayString
+import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import com.funjim.fishstory.viewmodels.FishDetailsViewModel
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
@@ -435,7 +434,7 @@ private fun FishDetailContent(
             IconButton(
                 onClick = {
                     val status = if (fish.fish.keptCount == 0) "Released" else "Kept"
-                    val lengthStr = fish.fish.length?.toDisplayString(useImperial = useImperial, useFractions = true) ?: ""
+                    val lengthStr = fish.fish.length?.toLengthDisplayString(useImperial = useImperial, useFractions = true) ?: ""
                     val bodyOfWater = fish.bodyOfWater?.name ?: ""
                     val dateStr = dateFormatter.format(Date(fish.fish.timestamp))
                     val timeStr = timeFormatter.format(Date(fish.fish.timestamp))
@@ -525,7 +524,7 @@ private fun FishDetailContent(
                     if (fish.fish.length != null) {
                         DetailRow(
                             label = "Length",
-                            value = fish.fish.length.toDisplayString(
+                            value = fish.fish.length.toLengthDisplayString(
                                 useImperial = useImperial,
                                 useFractions = true
                             )

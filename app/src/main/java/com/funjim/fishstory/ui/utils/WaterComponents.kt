@@ -74,6 +74,8 @@ import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WaterWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -523,20 +525,17 @@ fun WaterDialog(
 ) {
     val originalTemp = remember(initialTemp, useImperial) {
         initialTemp?.let {
-            if (useImperial) {
-                val fahrenheit = it.toFahrenheitDouble()
-                if (fahrenheit == fahrenheit.toLong().toDouble()) {
-                    fahrenheit.toLong().toString()
-                } else {
-                    fahrenheit.toString()
-                }
+            val rawDouble = if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
+
+            val roundedDouble = BigDecimal(rawDouble)
+                .setScale(1, RoundingMode.HALF_UP)
+                .toDouble()
+
+            // Strip trailing .0 for whole numbers (e.g., 72.0 -> "72")
+            if (roundedDouble % 1.0 == 0.0) {
+                roundedDouble.toLong().toString()
             } else {
-                val celsius = it.toCelsiusDouble()
-                if (celsius == celsius.toLong().toDouble()) {
-                    celsius.toLong().toString()
-                } else {
-                    celsius.toString()
-                }
+                roundedDouble.toString()
             }
         } ?: ""
     }

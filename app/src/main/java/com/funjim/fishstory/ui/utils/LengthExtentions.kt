@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -12,6 +13,9 @@ private const val IMPERIAL_MULTIPLIER = 254000.0
 private const val METRIC_MM_MULTIPLIER = 10000.0
 private const val METRIC_CM_MULTIPLIER = 100000.0
 
+private const val IMPERIAL_inHg_MULTIPLIER = 3386400.0
+private const val METRIC_hPa_MULTIPLIER = 100000.0
+
 // ==========================================
 // 1. INPUT LAYER: Double -> Database Long
 // ==========================================
@@ -22,6 +26,9 @@ private const val METRIC_CM_MULTIPLIER = 100000.0
 fun Double.inchesToStorage(): Long {
     return (this * IMPERIAL_MULTIPLIER).roundToLong()
 }
+fun Double.inHgToStorage(): Long {
+    return (this * IMPERIAL_inHg_MULTIPLIER).roundToLong()
+}
 
 /**
  * Converts a raw UI Double value (Millimeters) to the universal database storage unit.
@@ -31,6 +38,9 @@ fun Double.mmToStorage(): Long {
 }
 fun Double.cmToStorage(): Long {
     return (this * METRIC_CM_MULTIPLIER).roundToLong()
+}
+fun Double.hPaToStorage(): Long {
+    return (this * METRIC_hPa_MULTIPLIER).roundToLong()
 }
 
 // ==========================================
@@ -43,6 +53,11 @@ fun Double.cmToStorage(): Long {
 fun Long.toInches(): Double {
     return this / IMPERIAL_MULTIPLIER
 }
+fun Long.toInHg(): Double {
+    return BigDecimal(this)
+        .divide(BigDecimal(IMPERIAL_inHg_MULTIPLIER), 2, RoundingMode.HALF_UP)
+        .toDouble()
+}
 
 /**
  * Converts the universal database storage unit back to a Metric Double for UI display.
@@ -53,17 +68,30 @@ fun Long.toMm(): Double {
 fun Long.toCm(): Double {
     return this / METRIC_CM_MULTIPLIER
 }
+fun Long.toHPa(): Double {
+    return BigDecimal(this)
+        .divide(BigDecimal(METRIC_hPa_MULTIPLIER), 2, RoundingMode.HALF_UP)
+        .toDouble()
+}
 
 /**
  * Unified entry point for the UI. Returns the correct formatted string based on settings.
  * @param useImperial Current system setting toggle.
  * @param useFractions If true and system is Imperial, displays "2 1/16\"". If false, displays "2.0625\"".
  */
-fun Long.toDisplayString(useImperial: Boolean, useFractions: Boolean = false): String {
+fun Long.toLengthDisplayString(useImperial: Boolean, useFractions: Boolean = false): String {
     return if (!useImperial) {
         this.toCmDisplayString()
     } else {
-        if (useFractions) this.toFractionalInchesDisplayString() else this.toDecimalInchesDisplayString()
+        if (useFractions) this.toFractionalInchesDisplayString()
+        else this.toDecimalInchesDisplayString()
+    }
+}
+fun Long.toPressureDisplayString(useImperial: Boolean): String {
+    return if (!useImperial) {
+        this.toHPaDisplayString()
+    } else {
+        this.toInHgDisplayString()
     }
 }
 
@@ -80,8 +108,12 @@ fun Long.toMmDisplayString(): String {
     return "${uiDecimalFormatter.format(mmValue)} mm"
 }
 fun Long.toCmDisplayString(): String {
-    val mmValue = this.toCm() // Uses your existing division logic
-    return "${uiDecimalFormatter.format(mmValue)} cm"
+    val cmValue = this.toCm() // Uses your existing division logic
+    return "${uiDecimalFormatter.format(cmValue)} cm"
+}
+fun Long.toHPaDisplayString(): String {
+    val hPaValue = this.toHPa() // Uses your existing division logic
+    return "${uiDecimalFormatter.format(hPaValue)} hPa"
 }
 
 /**
@@ -90,6 +122,10 @@ fun Long.toCmDisplayString(): String {
 fun Long.toDecimalInchesDisplayString(): String {
     val inchValue = this.toInches() // Uses your existing division logic
     return "${uiDecimalFormatter.format(inchValue)}\""
+}
+fun Long.toInHgDisplayString(): String {
+    val inHgValue = this.toInHg() // Uses your existing division logic
+    return "${uiDecimalFormatter.format(inHgValue)} inHg"
 }
 
 /**
