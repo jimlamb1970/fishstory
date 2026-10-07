@@ -161,8 +161,8 @@ interface FishDao {
         bait.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         
         -- Sums target species catches across all events where the fish was logged
         COALESCE(SUM(
@@ -194,7 +194,7 @@ interface FishDao {
         SUM(f.caughtCount) AS fishCaught,
         SUM(f.keptCount) AS fishKept,
         MAX(f.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -232,8 +232,8 @@ interface FishDao {
         bow.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish, 
+        COALESCE(MAX(f.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish, 
         COALESCE(SUM(
             CASE 
                 WHEN target.eventId IS NOT NULL THEN f.caughtCount 
@@ -264,8 +264,8 @@ interface FishDao {
         bow.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish, 
+        COALESCE(MAX(f.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish, 
         COALESCE(SUM(
             CASE 
                 WHEN target.eventId IS NOT NULL THEN f.caughtCount 
@@ -324,7 +324,7 @@ interface FishDao {
         s.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
         COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         COALESCE(SUM(
             CASE 
@@ -358,7 +358,7 @@ interface FishDao {
         s.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
         COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         COALESCE(SUM(
             CASE 
@@ -388,7 +388,7 @@ interface FishDao {
         s.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
         COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         COALESCE(SUM(
             CASE 
@@ -475,8 +475,8 @@ interface FishDao {
         water.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -525,8 +525,8 @@ interface FishDao {
         weather.*, 
         COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(f.keptCount), 0) AS fishKept,
-        COALESCE(MAX(f.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0.0) AS smallestFish,
+        COALESCE(MAX(f.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN f.length > 0 THEN f.length END), 0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 

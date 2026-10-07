@@ -95,7 +95,7 @@ interface FishermanDao {
         SUM(fish.caughtCount) AS fishCaught,
         SUM(fish.keptCount) AS fishKept,
         MAX(fish.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0.0) AS smallestFish,
+        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
         (
             SELECT COALESCE(SUM(
                 CASE 
@@ -136,8 +136,8 @@ interface FishermanDao {
         f.*, 
         COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(fish.keptCount), 0) AS fishKept,
-        COALESCE(MAX(fish.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0.0) AS smallestFish,
+        COALESCE(MAX(fish.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
         
         -- Target species catches strictly evaluated against eventId
         COALESCE(SUM(
@@ -181,8 +181,8 @@ interface FishermanDao {
         f.*, 
         COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
         COALESCE(SUM(fish.keptCount), 0) AS fishKept,
-        COALESCE(MAX(fish.length), 0.0) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0.0) AS smallestFish,
+        COALESCE(MAX(fish.length), 0) AS largestFish,
+        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
         
         -- Target species catches strictly evaluated against eventId
         COALESCE(SUM(

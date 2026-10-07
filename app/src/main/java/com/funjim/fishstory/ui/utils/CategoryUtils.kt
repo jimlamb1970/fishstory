@@ -63,7 +63,7 @@ fun CategoryCarousel(
                 label = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
                             text = config.category.label,
@@ -131,7 +131,7 @@ fun CategoryRow(
                     label = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             Text(
                                 text = config.category.label,
@@ -142,22 +142,12 @@ fun CategoryRow(
                             // Badge Count Indicator
                             config.count?.let { count ->
                                 if (count > 0) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = getMainButtonColor(),
-                                        modifier = Modifier.padding(start = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = count.toString(),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = getOnMainButtonColor(),
-                                            modifier = Modifier.padding(
-                                                horizontal = 6.dp,
-                                                vertical = 2.dp
-                                            )
-                                        )
-                                    }
+                                    CountBadge(
+                                        count = count,
+                                        badgeColor = getMainButtonColor(),
+                                        textColor = getOnMainButtonColor(),
+                                        selected = isSelected
+                                    )
                                 }
                             }
                         }
