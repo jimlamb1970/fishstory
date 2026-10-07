@@ -13,12 +13,24 @@ import androidx.compose.ui.unit.dp
 fun SortChip(
     label: String,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    count: Int? = null
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
-        label = { Text(text = label, style = MaterialTheme.typography.labelSmall) },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall)
+            count?.let { count ->
+                CountBadge(
+                    count = count,
+                    badgeColor = getOnChipColor(),
+                    textColor = getChipBackgroundColor(false)
+                )
+            }
+        },
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = selected,

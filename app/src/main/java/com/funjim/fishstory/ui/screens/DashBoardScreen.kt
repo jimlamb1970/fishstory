@@ -115,7 +115,10 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.StatusGumball
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.rememberGumballStatus
 
 private data class GridParams(
@@ -355,10 +358,10 @@ fun DashboardScreen(
                         ) {
                             Text("Upcoming Events", style = MaterialTheme.typography.titleSmall)
                             if (activeTripEvents.upcoming.size > 1) {
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    "(${activeTripEvents.upcoming.size})",
-                                    style = MaterialTheme.typography.titleSmall
+                                CountBadge(
+                                    count = activeTripEvents.upcoming.size,
+                                    badgeColor = getMainButtonColor(),
+                                    textColor = getOnMainButtonColor()
                                 )
                             }
                         }
@@ -380,10 +383,10 @@ fun DashboardScreen(
                         ) {
                             Text("Upcoming Trips", style = MaterialTheme.typography.titleSmall)
                             if (state.upcomingTrips.size > 1) {
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    "(${state.upcomingTrips.size})",
-                                    style = MaterialTheme.typography.titleSmall
+                                CountBadge(
+                                    count = state.upcomingTrips.size,
+                                    badgeColor = getMainButtonColor(),
+                                    textColor = getOnMainButtonColor()
                                 )
                             }
                         }
@@ -399,7 +402,7 @@ fun DashboardScreen(
                     HorizontalDivider(
                         modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                         thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.primary // Michigan Blue
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -431,10 +434,10 @@ fun DashboardScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Recent History", style = MaterialTheme.typography.titleLarge)
                     if (state.recentTrips.size > 1) {
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "(${state.recentTrips.size})",
-                            style = MaterialTheme.typography.titleSmall
+                        CountBadge(
+                            count = state.recentTrips.size,
+                            badgeColor = getMainButtonColor(),
+                            textColor = getOnMainButtonColor()
                         )
                     }
                 }

@@ -835,14 +835,12 @@ fun FishermanSummaries(
                 )
 
                 if (list.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${list.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = list.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
-                }
+               }
             }
 
             Spacer(modifier = Modifier.weight(1f))

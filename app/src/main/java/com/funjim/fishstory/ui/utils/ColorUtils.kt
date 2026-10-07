@@ -111,6 +111,15 @@ fun getChipColor(selected: Boolean = false): Color {
 }
 
 @Composable
+fun getChipBackgroundColor(selected: Boolean = false): Color {
+    return if (selected) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+}
+
+@Composable
 fun getOnChipColor(): Color {
     return MaterialTheme.colorScheme.primary
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -81,11 +82,11 @@ fun LureListScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Lures")
-                        Spacer(Modifier.width(4.dp))
                         val total = filteredLures.size
-                        Text(
-                            text = "($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -169,40 +170,46 @@ fun LureListScreen(
                 ) {
                     SortChip(
                         "Name",
-                        currentOrder == LureSortOrder.NAME
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.NAME)
-                    }
+                        currentOrder == LureSortOrder.NAME,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.NAME)
+                        }
+                    )
                     SortChip(
                         "Primary Color",
-                        currentOrder == LureSortOrder.PRIMARY_COLOR
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
-                    }
+                        currentOrder == LureSortOrder.PRIMARY_COLOR,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.PRIMARY_COLOR)
+                        }
+                    )
                     SortChip(
                         "Secondary Color",
-                        currentOrder == LureSortOrder.SECONDARY_COLOR
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
-                    }
+                        currentOrder == LureSortOrder.SECONDARY_COLOR,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.SECONDARY_COLOR)
+                        }
+                    )
                     SortChip(
                         "Glow Color",
-                        currentOrder == LureSortOrder.GLOW_COLOR
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
-                    }
+                        currentOrder == LureSortOrder.GLOW_COLOR,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.GLOW_COLOR)
+                        }
+                    )
                     SortChip(
                         "Glows",
-                        currentOrder == LureSortOrder.GLOW
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.GLOW)
-                    }
+                        currentOrder == LureSortOrder.GLOW,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.GLOW)
+                        }
+                    )
                     SortChip(
                         "Hook Type",
-                        currentOrder == LureSortOrder.HOOKS
-                    ) {
-                        viewModel.setSortOrder(LureSortOrder.HOOKS)
-                    }
+                        currentOrder == LureSortOrder.HOOKS,
+                        onClick = {
+                            viewModel.setSortOrder(LureSortOrder.HOOKS)
+                        }
+                    )
                 }
 
                 Spacer(Modifier.width(4.dp))

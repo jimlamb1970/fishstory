@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
@@ -220,13 +221,13 @@ fun TripListScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Trips")
-                        Spacer(Modifier.width(4.dp))
                         val total = state.liveTrips.size +
                                 state.upcomingTrips.size +
                                 state.completedTrips.size
-                        Text(
-                            text = "($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -282,15 +283,31 @@ fun TripListScreen(
                 Row(modifier = Modifier
                     .weight(1f)
                     .horizontalScroll(rememberScrollState())) {
-                    SortChip("Upcoming (${state.upcomingTrips.size})", filter == TripListFilter.UPCOMING) {
-                        viewModel.updateTripFilter(TripListFilter.UPCOMING)
-                    }
-                    SortChip("Live (${state.liveTrips.size})", filter == TripListFilter.LIVE) {
-                        viewModel.updateTripFilter(TripListFilter.LIVE)
-                    }
-                    SortChip("Completed (${state.completedTrips.size})", filter == TripListFilter.COMPLETED) {
-                        viewModel.updateTripFilter(TripListFilter.COMPLETED)
-                    }
+                    SortChip(
+                        "Upcoming",
+                        count = state.upcomingTrips.size,
+                        selected = (filter == TripListFilter.UPCOMING),
+                        onClick =  {
+                            viewModel.updateTripFilter(TripListFilter.UPCOMING)
+
+                        }
+                    )
+                    SortChip(
+                        "Live",
+                        count = state.liveTrips.size,
+                        selected = (filter == TripListFilter.LIVE),
+                        onClick = {
+                            viewModel.updateTripFilter(TripListFilter.LIVE)
+                        }
+                    )
+                    SortChip(
+                        "Completed",
+                        count = state.completedTrips.size,
+                        selected = (filter == TripListFilter.COMPLETED),
+                        onClick = {
+                            viewModel.updateTripFilter(TripListFilter.COMPLETED)
+                        }
+                    )
                 }
 
                 Icon(

@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBaitDialog
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.EditBaitDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -123,9 +124,10 @@ fun ManageBaitsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Baits")
                         val total = allItems.size
-                        Text(
-                            text = " ($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },

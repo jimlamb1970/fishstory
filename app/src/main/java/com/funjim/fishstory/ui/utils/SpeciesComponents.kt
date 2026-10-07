@@ -661,12 +661,10 @@ fun TargetSpeciesRow(
                     color = getOnMainColor()
                 )
                 if (items.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${items.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = items.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }
@@ -854,12 +852,10 @@ fun SpeciesSummaries(
                     color = getOnMainColor()
                 )
                 if (items.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${items.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = items.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }

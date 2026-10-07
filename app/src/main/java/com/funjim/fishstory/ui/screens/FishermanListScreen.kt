@@ -29,6 +29,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -72,9 +73,10 @@ fun FishermanListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Fishermen")
                         val total = fishermanSummaries.size
-                        Text(
-                            text = " ($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -128,18 +130,34 @@ fun FishermanListScreen(
                 Row(modifier = Modifier
                     .weight(1f)
                     .horizontalScroll(rememberScrollState())) {
-                    SortChip("Name", currentOrder == FishermanSortOrder.NAME_AZ) {
-                        viewModel.updateSortOrder(FishermanSortOrder.NAME_AZ)
-                    }
-                    SortChip("Caught", currentOrder == FishermanSortOrder.MOST_CATCHES) {
-                        viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
-                    }
-                    SortChip("Kept", currentOrder == FishermanSortOrder.MOST_KEPT) {
-                        viewModel.updateSortOrder(FishermanSortOrder.MOST_KEPT)
-                    }
-                    SortChip("Trips", currentOrder == FishermanSortOrder.MOST_TRIPS) {
-                        viewModel.updateSortOrder(FishermanSortOrder.MOST_TRIPS)
-                    }
+                    SortChip(
+                        "Name",
+                        currentOrder == FishermanSortOrder.NAME_AZ,
+                        onClick = {
+                            viewModel.updateSortOrder(FishermanSortOrder.NAME_AZ)
+                        }
+                    )
+                    SortChip(
+                        "Caught",
+                        currentOrder == FishermanSortOrder.MOST_CATCHES,
+                        onClick = {
+                            viewModel.updateSortOrder(FishermanSortOrder.MOST_CATCHES)
+                        }
+                    )
+                    SortChip(
+                        "Kept",
+                        currentOrder == FishermanSortOrder.MOST_KEPT,
+                        onClick = {
+                            viewModel.updateSortOrder(FishermanSortOrder.MOST_KEPT)
+                        }
+                    )
+                    SortChip(
+                        "Trips",
+                        currentOrder == FishermanSortOrder.MOST_TRIPS,
+                        onClick = {
+                            viewModel.updateSortOrder(FishermanSortOrder.MOST_TRIPS)
+                        }
+                    )
                 }
 
                 IconButton(

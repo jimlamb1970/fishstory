@@ -63,8 +63,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.EditWaterClarityDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -121,9 +121,10 @@ fun ManageWaterClarityScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Water Clarity")
                         val total = allItems.size
-                        Text(
-                            text = " ($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },

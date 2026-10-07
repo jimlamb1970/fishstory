@@ -567,12 +567,10 @@ fun LimitSummaryRow(
                 )
 
                 if (itemList.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${itemList.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = itemList.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }

@@ -61,6 +61,7 @@ import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.EditNoteDialog
 import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.EditTripDialog
@@ -896,10 +897,10 @@ fun TripDetailsScreen(
                                                         text = "Events",
                                                         style = MaterialTheme.typography.titleMedium
                                                     )
-                                                    Spacer(Modifier.width(4.dp))
-                                                    Text(
-                                                        text = "(${eventSummaries.size})",
-                                                        style = MaterialTheme.typography.titleSmall
+                                                    CountBadge(
+                                                        count = eventSummaries.size,
+                                                        badgeColor = getMainButtonColor(),
+                                                        textColor = getOnMainButtonColor()
                                                     )
                                                 }
 

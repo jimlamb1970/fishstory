@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.CountBadge
 import com.funjim.fishstory.ui.utils.FishItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.SortChip
@@ -130,11 +131,11 @@ fun FishListScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Fish Log")
-                        Spacer(Modifier.width(4.dp))
                         val total = fishForScope.size
-                        Text(
-                            text = "($total)",
-                            style = MaterialTheme.typography.bodyMedium
+                        CountBadge(
+                            count = total,
+                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                            textColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -225,56 +226,70 @@ fun FishListScreen(
                         .horizontalScroll(rememberScrollState())) {
                         SortChip(
                             "Time",
-                            currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST) {
-                            viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
-                        }
+                            currentOrder == FishSortOrder.TIMESTAMP_NEWEST_FIRST,
+                            onClick = {
+                                viewModel.updateSortOrder(FishSortOrder.TIMESTAMP_NEWEST_FIRST)
+                            }
+                        )
                         SortChip(
                             "Length",
-                            currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST) {
-                            viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
-                        }
+                            currentOrder == FishSortOrder.LENGTH_LONGEST_FIRST,
+                            onClick = {
+                                viewModel.updateSortOrder(FishSortOrder.LENGTH_LONGEST_FIRST)
+                            }
+                        )
                         if (filter.tripId.isNullOrEmpty()) {
                             SortChip(
                                 "Trip",
-                                currentOrder == FishSortOrder.TRIP_AZ) {
-                                viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
-                            }
+                                currentOrder == FishSortOrder.TRIP_AZ,
+                                onClick = {
+                                    viewModel.updateSortOrder(FishSortOrder.TRIP_AZ)
+                                }
+                            )
                         }
                         if (filter.eventId.isNullOrEmpty()) {
                             SortChip(
                                 "Event",
-                                currentOrder == FishSortOrder.EVENT_AZ) {
-                                viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
-                            }
+                                currentOrder == FishSortOrder.EVENT_AZ,
+                                onClick = {
+                                    viewModel.updateSortOrder(FishSortOrder.EVENT_AZ)
+                                }
+                            )
                         }
                         if (filter.speciesId.isNullOrEmpty()) {
                             SortChip(
                                 "Species",
-                                currentOrder == FishSortOrder.SPECIES_AZ
-                            ) {
+                                currentOrder == FishSortOrder.SPECIES_AZ,
+                                onClick = {
                                 viewModel.updateSortOrder(FishSortOrder.SPECIES_AZ)
-                            }
+                                }
+                            )
                         }
                         if (filter.fishermanId.isNullOrEmpty()) {
                             SortChip(
                                 "Fisherman",
-                                currentOrder == FishSortOrder.FISHERMAN_AZ) {
+                                currentOrder == FishSortOrder.FISHERMAN_AZ,
+                                onClick = {
                                 viewModel.updateSortOrder(FishSortOrder.FISHERMAN_AZ)
-                            }
+                                }
+                            )
                         }
                         if (filter.lureId.isNullOrEmpty()) {
                             SortChip(
                                 "Lure",
-                                currentOrder == FishSortOrder.LURE
-                            ) {
+                                currentOrder == FishSortOrder.LURE,
+                                onClick = {
                                 viewModel.updateSortOrder(FishSortOrder.LURE)
-                            }
+                                }
+                            )
                         }
                         SortChip(
                             "Kept",
-                            currentOrder == FishSortOrder.KEPT) {
-                            viewModel.updateSortOrder(FishSortOrder.KEPT)
-                        }
+                            currentOrder == FishSortOrder.KEPT,
+                            onClick = {
+                                viewModel.updateSortOrder(FishSortOrder.KEPT)
+                            }
+                        )
                     }
 
                     Spacer(Modifier.width(4.dp))

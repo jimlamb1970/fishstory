@@ -1060,12 +1060,10 @@ fun WeatherRow(
                 )
 
                 if (weatherList.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${weatherList.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = weatherList.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }
@@ -1182,12 +1180,10 @@ fun WeatherSummaryRow(
                 )
 
                 if (list.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${list.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = list.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }

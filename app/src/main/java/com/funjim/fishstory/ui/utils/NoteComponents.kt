@@ -440,12 +440,10 @@ fun NoteRow(
                 )
 
                 if (noteList.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${noteList.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    CountBadge(
+                        count = noteList.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }
