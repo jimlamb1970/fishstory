@@ -82,7 +82,7 @@ fun EventHighlightCard(
                     Icon(
                         imageVector = AppIcons.Default.LeapingFishWithFins,
                         contentDescription = "Fish",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -149,7 +149,7 @@ fun EventHighlightCard(
                     Icon(
                         imageVector = AppIcons.Default.TargetFish,
                         contentDescription = "Fish",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -446,7 +446,7 @@ fun TripHighlightCard(
                     Icon(
                         imageVector = AppIcons.Default.LeapingFishWithFins,
                         contentDescription = "Fish",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -515,7 +515,7 @@ fun TripHighlightCard(
                     Icon(
                         imageVector = AppIcons.Default.TargetFish,
                         contentDescription = "Fish",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

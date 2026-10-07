@@ -441,7 +441,7 @@ private fun FishVisual(
                         Icon(
                             imageVector = AppIcons.Default.LeapingFishWithFins,
                             contentDescription = "Fish",
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(32.dp),
                             tint = getOnCardColor()
                         )
                     }
@@ -471,7 +471,7 @@ private fun FishVisual(
                         Icon(
                             imageVector = AppIcons.Default.TargetFish,
                             contentDescription = "Fish",
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(32.dp),
                             tint = getOnCardColor()
                         )
                     }
