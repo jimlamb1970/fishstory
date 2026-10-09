@@ -635,6 +635,7 @@ fun BodiesOfWaterRow(
     onDelete: (BodyOfWater) -> Unit,
     thumbnailProvider: @Composable (BodyOfWater) -> Unit,
     modifier: Modifier = Modifier,
+    description: String = "No bodies of water are selected.",
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
@@ -682,7 +683,7 @@ fun BodiesOfWaterRow(
 
         if (items.isEmpty()) {
             Text(
-                text = "No bodies of water are set.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -940,6 +941,7 @@ fun BodyOfWaterSummaryCard(
 fun BodyOfWaterSummaries(
     list: List<BodyOfWaterSummary>,
     verbose: Boolean,
+    description: String = "No bodies of water are selected.",
     thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
     onClick: (BodyOfWater) -> Unit,
@@ -1020,7 +1022,7 @@ fun BodyOfWaterSummaries(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No bodies of water are set.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

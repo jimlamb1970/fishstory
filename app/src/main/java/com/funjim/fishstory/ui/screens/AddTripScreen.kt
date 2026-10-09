@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -82,7 +83,7 @@ fun AddTripScreen(
 
     var menuExpanded by remember { mutableStateOf(false) }
 
-    var showEventDialog by remember { mutableStateOf(false) }
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     // Location pickers
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
@@ -129,8 +130,8 @@ fun AddTripScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { showEventDialog = true }, // Intercept save to present choices
-                        enabled = tripDraft.name.isNotBlank()
+                        onClick = { showSaveDialog = true }, // Intercept save to present choices
+                        enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -211,15 +212,14 @@ fun AddTripScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier.padding(padding).fillMaxSize()
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -259,7 +259,9 @@ fun AddTripScreen(
                         )
                     }
                 }
+            }
 
+            item {
                 OutlinedTextField(
                     value = tripDraft.name,
                     onValueChange = { name ->
@@ -269,7 +271,9 @@ fun AddTripScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
+            }
 
+            item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -294,7 +298,9 @@ fun AddTripScreen(
                         }
                     }
                 }
+            }
 
+            item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -323,10 +329,20 @@ fun AddTripScreen(
                         }
                     }
                 }
+            }
 
+            item {
                 HorizontalDivider()
+            }
+
+            item {
                 TargetSpeciesRow(
                     items = targetSpecies,
+                    description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                     onAdd = { showSpeciesSelection = true },
                     onDelete = { species ->
                         viewModel.updateTripTargetSpecies(targetSpecies - species)
@@ -346,10 +362,20 @@ fun AddTripScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
 
+            item {
                 HorizontalDivider()
+            }
+
+            item {
                 BodiesOfWaterRow(
                     items = bodiesOfWater,
+                    description = """No bodies of water selected.
+
+Bodies of water are where you're actively fishing. 
+
+Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                     onAdd = { showBodyOfWaterSelection = true },
                     onClick = {},
                     onDelete = { bodyOfWater ->
@@ -370,10 +396,20 @@ fun AddTripScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
 
+            item {
                 HorizontalDivider()
+            }
+
+            item {
                 FishermanRow(
                     items = tripFishermen,
+                    description = """No fishermen selected.
+
+Fishermen are the people actively participating on this trip.
+
+When logging catches, options will be restricted to the fishermen selected here.""",
                     onAdd = { showFishermanSelection = true },
                     onClick = {},
                     onDelete = { item ->
@@ -522,9 +558,18 @@ fun AddTripScreen(
         )
     }
 
-    if (showEventDialog) {
+    if (showSaveDialog) {
+        // Track the currently selected option (0 = No events, 1 = Full trip event, 2 = Manual events)
+        var selectedOption by remember { mutableIntStateOf(0) }
+
+        val options = listOf(
+            "I do not want to add events at this time.",
+            "I want to add a single event spanning the entire trip.",
+            "I want to manually add events for this trip."
+        )
+
         AlertDialog(
-            onDismissRequest = { showEventDialog = false },
+            onDismissRequest = { showSaveDialog = false },
             title = {
                 Text(
                     text = "Save Trip",
@@ -532,56 +577,65 @@ fun AddTripScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "How would you like to add events for this trip?",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = """The trip will be saved.
+                            |
+                            |Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.
+                            |
+                            |Please select how you would like to handle events for this trip.""".trimMargin(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Option 1: Ignore for now
-                    OutlinedButton(
-                        onClick = {
-                            showEventDialog = false
-                            viewModel.saveTrip()
-                            navigateBack()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Save & don't add events")
-                    }
-
-                    // Option 2: Auto-create single event spanning full trip
-                    Button(
-                        onClick = {
-                            showEventDialog = false
-                            viewModel.saveTripWithEvent()
-                            navigateBack()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Save & add full trip event")
-                    }
-
-                    // Option 3: Navigate to custom event creation screen
-                    ElevatedButton(
-                        onClick = {
-                            showEventDialog = false
-                            val tripId = tripDraft.id
-                            viewModel.saveTrip()
-                            navigateBack()
-                            navigateToAddEvent(tripId)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Save & manually add event(s)")
+                    options.forEachIndexed { index, optionText ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedOption = index }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = (selectedOption == index),
+                                onClick = { selectedOption = index }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = optionText,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
             },
-            confirmButton = {}, // Actions are self-contained in the option buttons
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSaveDialog = false
+                        when (selectedOption) {
+                            0 -> {
+                                viewModel.saveTrip()
+                                navigateBack()
+                            }
+                            1 -> {
+                                viewModel.saveTripWithEvent()
+                                navigateBack()
+                            }
+                            2 -> {
+                                val tripId = tripDraft.id
+                                viewModel.saveTrip()
+                                navigateBack()
+                                navigateToAddEvent(tripId)
+                            }
+                        }
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
             dismissButton = {
-                TextButton(onClick = { showEventDialog = false }) {
+                TextButton(onClick = { showSaveDialog = false }) {
                     Text("Cancel")
                 }
             }

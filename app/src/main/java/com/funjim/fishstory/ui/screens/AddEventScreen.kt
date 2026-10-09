@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -182,7 +183,7 @@ fun AddEventScreen(
                                 onClick = {
                                     showSaveDialog = true
                                 },
-                                enabled = eventDraft.name.isNotBlank()
+                                enabled = eventDraft.name.isNotBlank() && eventFishermen.isNotEmpty()
                             ) {
                                 Icon(
                                     Icons.Default.Save,
@@ -263,15 +264,14 @@ fun AddEventScreen(
                     )
                 }
             ) { padding ->
-                Column(
-                    modifier = Modifier.padding(padding).fillMaxSize()
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
+                    item {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -308,17 +308,21 @@ fun AddEventScreen(
                                                 ).show()
                                             }
                                         }
-                                        .alpha(if (eventDraft.latitude == null) 0.6f else 1f )
+                                        .alpha(if (eventDraft.latitude == null) 0.6f else 1f)
                                 )
                             }
                         }
+                    }
 
+                    item {
                         Text(
                             "An event is a single fishing session — e.g. morning run, afternoon drift.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = getOnVariantColor()
                         )
+                    }
 
+                    item {
                         OutlinedTextField(
                             value = eventDraft.name,
                             onValueChange = { name ->
@@ -328,7 +332,9 @@ fun AddEventScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
+                    }
 
+                    item {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -371,7 +377,9 @@ fun AddEventScreen(
                                 }
                             }
                         }
+                    }
 
+                    item {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -408,10 +416,20 @@ fun AddEventScreen(
                                 }
                             }
                         }
+                    }
 
+                    item {
                         HorizontalDivider()
+                    }
+
+                    item {
                         TargetSpeciesRow(
                             items = targetSpecies,
+                            description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                             onAdd = { showSpeciesSelection = true },
                             onDelete = { species ->
                                 viewModel.updateEventTargetSpecies(targetSpecies - species)
@@ -431,10 +449,20 @@ fun AddEventScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+                    }
 
+                    item {
                         HorizontalDivider()
+                    }
+
+                    item {
                         BodiesOfWaterRow(
                             items = bodiesOfWater,
+                            description = """No bodies of water selected.
+
+Bodies of water are where you're actively fishing. 
+
+Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                             onAdd = { showBodyOfWaterSelection = true },
                             onClick = {},
                             onDelete = { bodyOfWater ->
@@ -455,10 +483,20 @@ fun AddEventScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+                    }
 
+                    item {
                         HorizontalDivider()
+                    }
+
+                    item {
                         FishermanRow(
                             items = eventFishermen,
+                            description = """No fishermen selected.
+
+Fishermen are the people actively participating on this event.
+
+When logging catches, options will be restricted to the fishermen selected here.""",
                             onAdd = { showFishermanSelection = true },
                             onClick = {},
                             onDelete = { item ->

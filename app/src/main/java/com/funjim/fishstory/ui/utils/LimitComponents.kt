@@ -71,7 +71,7 @@ fun LimitDialog(
         mutableStateOf(limitToEdit?.upperInclusive ?: true)
     }
 
-    val isValid = selectedSpecies.isNotEmpty()
+    val isValid = selectedSpecies.isNotEmpty() && countText.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -132,6 +132,7 @@ fun LimitDialog(
                 TargetSpeciesRow(
                     items = selectedSpecies,
                     name = "Species",
+                    description = "No species selected",
                     onAdd = { showSpeciesSelection = true },
                     onDelete = { species ->
                         selectedSpecies = selectedSpecies - species
@@ -406,6 +407,7 @@ fun AddLimitDialog(
                 TargetSpeciesRow(
                     items = selectedSpecies,
                     name = "Species",
+                    description = "No species selected",
                     onAdd = { showSpeciesSelection = true },
                     onDelete = { species ->
                         selectedSpecies = selectedSpecies - species

@@ -361,6 +361,7 @@ fun FishermanRow(
     onDelete: (Fisherman) -> Unit,
     thumbnailProvider: @Composable (Fisherman) -> Unit,
     modifier: Modifier = Modifier,
+    description: String = "No fishermen are selected.",
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
@@ -410,7 +411,7 @@ fun FishermanRow(
 
         if (items.isEmpty()) {
             Text(
-                text = "No fishermen are set.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -799,6 +800,7 @@ fun FishermanSummaryCard(
 fun FishermanSummaries(
     list: List<FishermanSummary>,
     verbose: Boolean,
+    description: String = "No fishermen are selected.",
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
@@ -904,7 +906,7 @@ fun FishermanSummaries(
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No fisherman are set.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

@@ -51,7 +51,6 @@ import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
-import com.funjim.fishstory.ui.utils.AddLimitDialog
 import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
@@ -875,6 +874,11 @@ fun EventDetailsScreen(
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
                                             verbose = displaySettings.verboseCards,
+                                            description = """No bodies of water selected.
+
+Bodies of water are where you're actively fishing. 
+
+Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                                             },
@@ -919,6 +923,11 @@ fun EventDetailsScreen(
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
+                                                description = """No fishermen selected.
+
+Fishermen are the people actively participating on this event.
+
+When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
@@ -1037,6 +1046,11 @@ fun EventDetailsScreen(
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
                                             verbose = displaySettings.verboseCards,
+                                            description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

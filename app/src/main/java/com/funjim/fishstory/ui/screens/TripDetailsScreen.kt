@@ -847,6 +847,11 @@ fun TripDetailsScreen(
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
+                                            description = """No bodies of water selected.
+
+Bodies of water are where you're actively fishing. 
+
+Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                             verbose = displaySettings.verboseCards,
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
@@ -1044,6 +1049,11 @@ fun TripDetailsScreen(
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
+                                                description = """No fishermen selected.
+
+Fishermen are the people actively participating on this trip.
+
+When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
@@ -1176,6 +1186,11 @@ fun TripDetailsScreen(
                                         SpeciesSummaries(
                                             items = sortedTargetSpeciesList,
                                             verbose = displaySettings.verboseCards,
+                                            description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp

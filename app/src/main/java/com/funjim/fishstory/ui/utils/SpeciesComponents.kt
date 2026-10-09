@@ -638,6 +638,7 @@ fun TargetSpeciesRow(
     items: List<Species>,
     modifier: Modifier = Modifier,
     name: String = "Target Species",
+    description: String = "No target species have been selected.",
     onAdd: () -> Unit,
     onDelete: (Species) -> Unit,
     thumbnailProvider: @Composable (Species) -> Unit,
@@ -681,14 +682,14 @@ fun TargetSpeciesRow(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Target Species"
+                    contentDescription = "Add ${name.lowercase()}"
                 )
             }
         }
 
         if (items.isEmpty()) {
             Text(
-                text = "No ${name.lowercase()} are set.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -748,6 +749,7 @@ fun TargetSpeciesColumn(
     onDelete: (Species) -> Unit,
     onClick: (Species) -> Unit,
     modifier: Modifier = Modifier,
+    description: String = "No target species have been selected.",
     summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) }
 ) {
@@ -798,7 +800,7 @@ fun TargetSpeciesColumn(
 
         if (items.isEmpty()) {
             Text(
-                text = "No target species are set.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -827,6 +829,7 @@ fun SpeciesSummaries(
     items: List<SpeciesSummary>,
     verbose: Boolean,
     modifier: Modifier = Modifier,
+    description: String = "No target species have been selected.",
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
     onClick: (Species) -> Unit,
@@ -879,7 +882,7 @@ fun SpeciesSummaries(
 
         if (items.isEmpty()) {
             Text(
-                text = "No target species are set.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 16.dp)
