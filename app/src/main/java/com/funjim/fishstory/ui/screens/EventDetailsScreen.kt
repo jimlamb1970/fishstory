@@ -914,12 +914,6 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     }
                                     CategoryType.FISHERMEN -> {
                                         Column() {
-                                            FishermanSummary(
-                                                fishermanCount = eventSummary.fishermanCount,
-                                                tackleBoxCount = eventSummary.tackleBoxCount,
-                                                allowOverride = true,
-                                                onClick = { navigateToSelectEventCrew() }
-                                            )
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
@@ -1037,6 +1031,9 @@ When logging catches, options will be restricted to the fishermen selected here.
                                     CategoryType.NOTES -> {
                                         NoteRow(
                                             noteList = sortedNotes,
+                                            description = """No notes created.
+
+Notes help you remember specific details and conditions during this event.""",
                                             onAdd = { showAddNoteDialog = true },
                                             onEdit = { noteToEdit = it },
                                             onDelete = { noteToDelete = it }
@@ -1089,6 +1086,9 @@ Selecting them places those species at the top of the list when logging catches 
                                             waterList = sortedWaterList,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,
+                                            description = """No water conditions specified.
+
+Adding water conditions will automatically apply them to any new catches logged for this event.""",
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
@@ -1107,6 +1107,9 @@ Selecting them places those species at the top of the list when logging catches 
                                             list = sortedWeatherList,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,
+                                            description = """No weather conditions specified.
+
+Adding weather conditions will automatically apply them to any new catches logged for this event.""",
                                             onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
@@ -1171,9 +1174,9 @@ Selecting them places those species at the top of the list when logging catches 
                     message = "Are you sure you want to delete these Weather conditions?",
                     onConfirm = {
                         viewModel.deleteWeather(item.id)
-                        waterToDelete = null
+                        weatherToDelete = null
                     },
-                    onDismiss = { waterToDelete = null }
+                    onDismiss = { weatherToDelete = null }
                 )
             }
             limitToEdit?.let { limit ->

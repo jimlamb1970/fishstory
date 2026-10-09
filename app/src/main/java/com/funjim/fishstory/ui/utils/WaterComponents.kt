@@ -827,6 +827,7 @@ fun WaterSummaryRow(
     waterList: List<WaterSummary>,
     verbose: Boolean,
     useImperial: Boolean,
+    description: String = "No water conditions are specified.",
     onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
@@ -838,7 +839,7 @@ fun WaterSummaryRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -899,7 +900,7 @@ fun WaterSummaryRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 WaterSummaryCard(
                     water = waterList.first(),
@@ -937,7 +938,7 @@ fun WaterSummaryRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No water conditions are set.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

@@ -1139,6 +1139,7 @@ fun WeatherSummaryRow(
     list: List<WeatherSummary>,
     verbose: Boolean,
     useImperial: Boolean,
+    description: String = "No weather conditions are specified.",
     onAdd: (() -> Unit)? = null,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
@@ -1150,7 +1151,7 @@ fun WeatherSummaryRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1211,7 +1212,7 @@ fun WeatherSummaryRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 WeatherSummaryCard(
                     weather = list.first(),
@@ -1249,7 +1250,7 @@ fun WeatherSummaryRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No weather conditions are set.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

@@ -400,6 +400,7 @@ fun NoteCard(
 @Composable
 fun NoteRow(
     noteList: List<Note>,
+    description: String = "No notes created.",
     onAdd: (() -> Unit)? = null,
     onEdit: (Note) -> Unit,
     onDelete: (Note) -> Unit
@@ -410,7 +411,7 @@ fun NoteRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -471,7 +472,7 @@ fun NoteRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 NoteCard(
                     item = noteList.first(),
@@ -503,7 +504,7 @@ fun NoteRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No notes exist.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

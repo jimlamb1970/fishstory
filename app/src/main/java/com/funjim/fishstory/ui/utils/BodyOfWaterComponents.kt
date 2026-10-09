@@ -954,7 +954,7 @@ fun BodyOfWaterSummaries(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1000,7 +1000,7 @@ fun BodyOfWaterSummaries(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 list.forEachIndexed { index, item ->
                     BodyOfWaterSummaryCard(

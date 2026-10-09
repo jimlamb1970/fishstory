@@ -543,6 +543,10 @@ fun LimitSummaryRow(
     verbose: Boolean,
     useImperial: Boolean,
     scope: LimitScope,
+    description: String = """No limits created.
+        |
+        |Limits track your total catches to help ensure compliance with local fishing regulations.
+    """.trimMargin(),
     modifier: Modifier,
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
@@ -613,10 +617,9 @@ fun LimitSummaryRow(
             }
         } else {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "No limits are set.",
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)
