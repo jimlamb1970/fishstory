@@ -628,7 +628,7 @@ fun ActiveTripCard(
                         )
                     } else {
                         Icon(
-                            AppIcons.Default.Boat,
+                            AppIcons.Default.CanoeEmpty,
                             contentDescription = null,
                             modifier = Modifier.size(28.dp)
                         )
