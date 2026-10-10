@@ -62,7 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -118,7 +118,7 @@ fun ManageBodiesOfWaterScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Bodies of Water")
                         val total = allItems.size
-                        CountBadge(
+                        BadgeCount(
                             count = total,
                             badgeColor = MaterialTheme.colorScheme.onPrimary,
                             textColor = MaterialTheme.colorScheme.primary

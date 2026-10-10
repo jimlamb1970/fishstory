@@ -31,7 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.TripAction
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
@@ -224,7 +224,7 @@ fun TripListScreen(
                         val total = state.liveTrips.size +
                                 state.upcomingTrips.size +
                                 state.completedTrips.size
-                        CountBadge(
+                        BadgeCount(
                             count = total,
                             badgeColor = MaterialTheme.colorScheme.onPrimary,
                             textColor = MaterialTheme.colorScheme.primary

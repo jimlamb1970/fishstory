@@ -71,7 +71,7 @@ import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.ui.utils.AddColorDialog
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.EditColorDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -119,7 +119,7 @@ fun ManageColorsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Colors")
                         val total = colorsList.size
-                        CountBadge(
+                        BadgeCount(
                             count = total,
                             badgeColor = MaterialTheme.colorScheme.onPrimary,
                             textColor = MaterialTheme.colorScheme.primary

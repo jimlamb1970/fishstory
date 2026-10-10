@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -74,7 +72,7 @@ fun CategoryCarousel(
                         // Badge Count Indicator
                         config.count?.let { count ->
                             if (count > 0) {
-                                CountBadge(
+                                BadgeCount(
                                     count = count,
                                     badgeColor = getMainButtonColor(),
                                     textColor = getOnMainButtonColor(),
@@ -142,7 +140,7 @@ fun CategoryRow(
                             // Badge Count Indicator
                             config.count?.let { count ->
                                 if (count > 0) {
-                                    CountBadge(
+                                    BadgeCount(
                                         count = count,
                                         badgeColor = getMainButtonColor(),
                                         textColor = getOnMainButtonColor(),

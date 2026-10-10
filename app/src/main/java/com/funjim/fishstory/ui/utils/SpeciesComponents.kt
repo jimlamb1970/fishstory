@@ -663,7 +663,7 @@ fun TargetSpeciesRow(
                     color = getOnMainColor()
                 )
                 if (items.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = items.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()
@@ -856,7 +856,7 @@ fun SpeciesSummaries(
                     color = getOnMainColor()
                 )
                 if (items.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = items.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

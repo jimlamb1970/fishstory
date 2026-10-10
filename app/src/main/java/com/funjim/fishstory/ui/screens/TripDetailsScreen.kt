@@ -61,9 +61,8 @@ import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.EditNoteDialog
-import com.funjim.fishstory.ui.utils.FishermanSummary
 import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
@@ -928,7 +927,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                         style = MaterialTheme.typography.titleMedium
                                                     )
                                                     if (eventSummaries.size > 1) {
-                                                        CountBadge(
+                                                        BadgeCount(
                                                             count = eventSummaries.size,
                                                             badgeColor = getMainButtonColor(),
                                                             textColor = getOnMainButtonColor()

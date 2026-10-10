@@ -748,7 +748,7 @@ fun WaterRow(
                 )
 
                 if (waterList.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = waterList.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()
@@ -869,7 +869,7 @@ fun WaterSummaryRow(
                 )
 
                 if (waterList.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = waterList.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

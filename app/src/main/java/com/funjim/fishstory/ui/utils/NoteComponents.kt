@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -49,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -441,7 +439,7 @@ fun NoteRow(
                 )
 
                 if (noteList.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = noteList.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

@@ -656,7 +656,7 @@ fun BodiesOfWaterRow(
                     color = getOnMainColor()
                 )
                 if (items.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = items.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

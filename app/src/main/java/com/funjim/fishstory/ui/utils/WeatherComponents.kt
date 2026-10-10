@@ -1060,7 +1060,7 @@ fun WeatherRow(
                 )
 
                 if (weatherList.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = weatherList.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()
@@ -1181,7 +1181,7 @@ fun WeatherSummaryRow(
                 )
 
                 if (list.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = list.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

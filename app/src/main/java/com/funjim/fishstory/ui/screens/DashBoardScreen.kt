@@ -115,7 +115,7 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
@@ -359,7 +359,7 @@ fun DashboardScreen(
                         ) {
                             Text("Upcoming Events", style = MaterialTheme.typography.titleSmall)
                             if (activeTripEvents.upcoming.size > 1) {
-                                CountBadge(
+                                BadgeCount(
                                     count = activeTripEvents.upcoming.size,
                                     badgeColor = getMainButtonColor(),
                                     textColor = getOnMainButtonColor()
@@ -384,7 +384,7 @@ fun DashboardScreen(
                         ) {
                             Text("Upcoming Trips", style = MaterialTheme.typography.titleSmall)
                             if (state.upcomingTrips.size > 1) {
-                                CountBadge(
+                                BadgeCount(
                                     count = state.upcomingTrips.size,
                                     badgeColor = getMainButtonColor(),
                                     textColor = getOnMainButtonColor()
@@ -435,7 +435,7 @@ fun DashboardScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Recent History", style = MaterialTheme.typography.titleLarge)
                     if (state.recentTrips.size > 1) {
-                        CountBadge(
+                        BadgeCount(
                             count = state.recentTrips.size,
                             badgeColor = getMainButtonColor(),
                             textColor = getOnMainButtonColor()

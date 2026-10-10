@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -83,7 +83,7 @@ fun LureListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Lures")
                         val total = filteredLures.size
-                        CountBadge(
+                        BadgeCount(
                             count = total,
                             badgeColor = MaterialTheme.colorScheme.onPrimary,
                             textColor = MaterialTheme.colorScheme.primary

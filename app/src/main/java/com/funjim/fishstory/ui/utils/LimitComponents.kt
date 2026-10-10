@@ -578,7 +578,7 @@ fun LimitSummaryRow(
                 )
 
                 if (itemList.size > 1) {
-                    CountBadge(
+                    BadgeCount(
                         count = itemList.size,
                         badgeColor = getMainButtonColor(),
                         textColor = getOnMainButtonColor()

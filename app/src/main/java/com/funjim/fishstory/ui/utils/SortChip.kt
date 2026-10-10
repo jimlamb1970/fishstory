@@ -24,7 +24,7 @@ fun SortChip(
                 text = label,
                 style = MaterialTheme.typography.labelSmall)
             count?.let { count ->
-                CountBadge(
+                BadgeCount(
                     count = count,
                     badgeColor = getOnChipColor(),
                     textColor = getChipBackgroundColor(false)

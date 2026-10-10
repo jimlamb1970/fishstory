@@ -29,7 +29,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddFishermanDialog
-import com.funjim.fishstory.ui.utils.CountBadge
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
@@ -37,7 +37,6 @@ import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import com.funjim.fishstory.viewmodels.FishermanListViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +72,7 @@ fun FishermanListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Fishermen")
                         val total = fishermanSummaries.size
-                        CountBadge(
+                        BadgeCount(
                             count = total,
                             badgeColor = MaterialTheme.colorScheme.onPrimary,
                             textColor = MaterialTheme.colorScheme.primary

@@ -11,11 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.compose.cartesian.marker.ColumnCartesianLayerMarkerTarget
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CountBadge(
+fun BadgeCount(
     count: Int,
     badgeColor: Color,
     textColor: Color,
