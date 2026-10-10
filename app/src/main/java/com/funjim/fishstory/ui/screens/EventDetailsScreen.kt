@@ -1214,7 +1214,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                     limitToEdit = limit,
                     useImperial = displaySettings.useImperialUnits,
                     species = allSpecies,
-                    speciesThumbnailProvider = { species ->
+                    speciesThumbnailProvider = { species, size ->
                         val thumbnailFlow = remember(species.id) {
                             viewModel.speciesThumbnail(species.id)
                         }
@@ -1224,7 +1224,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.LeapingFishWithFins,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(size)
                         )
                     },
                     onConfirm = { limit ->
@@ -1458,7 +1458,7 @@ Adding weather conditions will automatically apply them to any new catches logge
         LimitDialog(
             useImperial = displaySettings.useImperialUnits,
             species = allSpecies,
-            speciesThumbnailProvider = { species ->
+            speciesThumbnailProvider = { species, size ->
                 val thumbnailFlow = remember(species.id) {
                     viewModel.speciesThumbnail(species.id)
                 }
@@ -1468,7 +1468,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(size)
                 )
             },
             onDismiss = { showAddLimitDialog = false },

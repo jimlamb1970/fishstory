@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
@@ -641,7 +642,7 @@ fun TargetSpeciesRow(
     description: String = "No target species have been selected.",
     onAdd: () -> Unit,
     onDelete: (Species) -> Unit,
-    thumbnailProvider: @Composable (Species) -> Unit,
+    thumbnailProvider: @Composable (Species, Dp) -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
@@ -707,7 +708,7 @@ fun TargetSpeciesRow(
                         selected = true,
                         onClick = {},
                         label = { Text(species.name) },
-                        avatar = { thumbnailProvider(species) },
+                        avatar = { thumbnailProvider(species, 18.dp) },
                         colors = InputChipDefaults.inputChipColors(
                             selectedContainerColor = getCardColor().copy(alpha = 0.15f),
                             selectedLabelColor = getOnCardColor(),

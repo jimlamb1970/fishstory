@@ -1391,7 +1391,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     limitToEdit = limit,
                     useImperial = displaySettings.useImperialUnits,
                     species = allSpecies,
-                    speciesThumbnailProvider = { species ->
+                    speciesThumbnailProvider = { species, size ->
                         val thumbnailFlow = remember(species.id) {
                             viewModel.speciesThumbnail(species.id)
                         }
@@ -1401,7 +1401,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.LeapingFishWithFins,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(size)
                         )
                     },
                     onConfirm = { limit ->
@@ -1642,7 +1642,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
         LimitDialog(
             useImperial = displaySettings.useImperialUnits,
             species = allSpecies,
-            speciesThumbnailProvider = { species ->
+            speciesThumbnailProvider = { species, size ->
                 val thumbnailFlow = remember(species.id) {
                     viewModel.speciesThumbnail(species.id)
                 }
@@ -1652,7 +1652,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(size)
                 )
             },
             onDismiss = { showAddLimitDialog = false },

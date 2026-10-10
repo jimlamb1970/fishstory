@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Limit
@@ -37,7 +38,7 @@ fun LimitDialog(
     limitToEdit: Limit? = null,
     useImperial: Boolean,
     species: List<Species>,
-    speciesThumbnailProvider: @Composable (Species) -> Unit,
+    speciesThumbnailProvider: @Composable (Species, Dp) -> Unit,
     onConfirm: (Limit) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -321,7 +322,9 @@ fun LimitDialog(
             onAdd = null,
             onDone = { showSpeciesSelection = false },
             modifier = Modifier.fillMaxWidth(),
-            thumbnailProvider = speciesThumbnailProvider
+            thumbnailProvider = { species ->
+                speciesThumbnailProvider(species, 48.dp)
+            }
         )
     }
 }
@@ -330,7 +333,7 @@ fun LimitDialog(
 @Composable
 fun AddLimitDialog(
     species: List<Species>,
-    speciesThumbnailProvider: @Composable (Species) -> Unit,
+    speciesThumbnailProvider: @Composable (Species, Dp) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: (Limit) -> Unit
 ) {
@@ -532,7 +535,9 @@ fun AddLimitDialog(
             onAdd = null,
             onDone = { showSpeciesSelection = false },
             modifier = Modifier.fillMaxWidth(),
-            thumbnailProvider = speciesThumbnailProvider
+            thumbnailProvider = { species ->
+                speciesThumbnailProvider(species, 48.dp)
+            }
         )
     }
 }

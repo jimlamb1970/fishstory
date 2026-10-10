@@ -434,7 +434,7 @@ Selecting them places those species at the top of the list when logging catches 
                             onDelete = { species ->
                                 viewModel.updateEventTargetSpecies(targetSpecies - species)
                             },
-                            thumbnailProvider = { species ->
+                            thumbnailProvider = { species, size ->
                                 val thumbnailFlow = remember(species.id) {
                                     viewModel.speciesThumbnail(species.id)
                                 }
@@ -444,7 +444,7 @@ Selecting them places those species at the top of the list when logging catches 
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
                                     imageVector = AppIcons.Default.TargetFish,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(size)
                                 )
                             },
                             modifier = Modifier.fillMaxWidth()
