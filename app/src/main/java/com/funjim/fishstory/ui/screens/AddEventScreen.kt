@@ -645,6 +645,9 @@ When logging catches, options will be restricted to the fishermen selected here.
     }
 
     if (showSaveDialog) {
+        // Track whether the user wants to add another event after saving
+        var addAnotherEvent by remember { mutableStateOf(false) }
+
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
             title = {
@@ -654,39 +657,47 @@ When logging catches, options will be restricted to the fishermen selected here.
                 )
             },
             text = {
-                Text(
-                    text = """The current event will be saved.
-                        
-Would you like to add another event?""",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "The event will be saved.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { addAnotherEvent = !addAnotherEvent }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Checkbox(
+                            checked = addAnotherEvent,
+                            onCheckedChange = { addAnotherEvent = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add another event after saving",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             },
             confirmButton = {
-                OutlinedButton(
+                Button(
                     onClick = {
                         showSaveDialog = false
                         viewModel.saveEvent()
+                        if (!addAnotherEvent) {
+                            navigateBack()
+                        }
                     }
                 ) {
-                    Text("Yes")
+                    Text("OK")
                 }
             },
             dismissButton = {
-                Row {
-                    OutlinedButton(onClick = {
-                        showSaveDialog = false
-                        // Do nothing
-                    }) {
-                        Text("Cancel")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedButton( onClick = {
-                        showSaveDialog = false
-                        viewModel.saveEvent()
-                        navigateBack()
-                    }) {
-                        Text("No")
-                    }
+                TextButton(onClick = { showSaveDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )
