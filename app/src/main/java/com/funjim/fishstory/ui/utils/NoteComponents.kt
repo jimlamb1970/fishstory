@@ -136,7 +136,7 @@ fun EditNoteDialog(
 fun NotesDialog(
     notes: List<Note>,
     onDismiss: () -> Unit,
-    onSaveNote: (noteId: String?, text: String) -> Unit,
+    onAddNote: (noteId: String?, text: String) -> Unit,
     onDeleteNote: (noteId: String) -> Unit
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -258,7 +258,7 @@ fun NotesDialog(
             Button(
                 enabled = isValid,
                 onClick = {
-                    onSaveNote(currentNote?.id, textBuffer)
+                    onAddNote(currentNote?.id, textBuffer)
                     if (isCreatingNew) {
                         isCreatingNew = false
                         currentIndex = 0

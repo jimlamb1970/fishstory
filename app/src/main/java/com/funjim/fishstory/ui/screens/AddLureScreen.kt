@@ -372,7 +372,7 @@ fun AddLureScreen(
                 newColorName = ""
                 newColorHex = null
             },
-            onSave = { hexCode ->
+            onAdd = { hexCode ->
                 val newColor = LureColor(name = newColorName, hexCode = hexCode)
                 viewModel.addLureColor(newColor) { color ->
                     when (showAddColorDialog) {

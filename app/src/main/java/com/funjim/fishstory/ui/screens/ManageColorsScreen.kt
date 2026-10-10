@@ -742,7 +742,7 @@ fun AdvancedColorPickerDialog(
 fun AdvancedColorPickerDialog(
     initialColor: String?, // e.g., "#FF0000" or null
     onDismiss: () -> Unit,
-    onSave: (String) -> Unit
+    onAdd: (String) -> Unit
 ) {
     val predefinedColors = listOf(
         // --- High-Visibility & Attractors ---
@@ -890,11 +890,11 @@ fun AdvancedColorPickerDialog(
                 onClick = {
                     // Format back into a clean standard hex string before saving to database
                     val finalHex = "#${hexInput.uppercase().padEnd(6, '0')}"
-                    onSave(finalHex)
+                    onAdd(finalHex)
                 },
                 enabled = hexInput.length == 6 // Only allow saving if it's a complete color
             ) {
-                Text("Save")
+                Text("OK")
             }
         },
         dismissButton = {

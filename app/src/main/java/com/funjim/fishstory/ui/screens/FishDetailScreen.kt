@@ -249,7 +249,7 @@ fun FishDetailScreen(
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
                     useImperial = displaySettings.useImperialUnits,
-                    onSaveNote = { noteId, content ->
+                    onAddNote = { noteId, content ->
                         viewModel.addNote(fish.fish.id, noteId, content)
                     },
                     onDeleteNote = { noteId ->
@@ -314,7 +314,7 @@ private fun FishDetailContent(
     lureThumbnailFlow: Flow<ByteArray?>,
     tripThumbnailFlow: Flow<ByteArray?>,
     useImperial: Boolean,
-    onSaveNote: (noteId: String?, text: String) -> Unit,
+    onAddNote: (noteId: String?, text: String) -> Unit,
     onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
@@ -826,7 +826,7 @@ Notes help you remember specific details about this fish.""",
         AddNoteDialog(
             onDismiss = { showAddNoteDialog = false },
             onConfirm = { content ->
-                onSaveNote(null, content)
+                onAddNote(null, content)
                 showAddNoteDialog = false
             }
         )
@@ -836,7 +836,7 @@ Notes help you remember specific details about this fish.""",
             item = note,
             onDismiss = { noteToEdit = null },
             onConfirm = { note ->
-                onSaveNote(note.id, note.content)
+                onAddNote(note.id, note.content)
                 noteToEdit = null
             }
         )
