@@ -1153,6 +1153,12 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             itemList = limitSummaries,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,
+                                            description = """No limits created.
+        |
+        |Limits track your total catches to help ensure compliance with local fishing regulations.
+        |
+        |Limits set here automatically apply to all events on this trip.
+    """.trimMargin(),
                                             scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -1571,7 +1577,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                 NotesDialog(
                     notes = sortedNotes,
                     onDismiss = { showNotesDialog = false },
-                    onSaveNote = { noteId, content ->
+                    onAddNote = { noteId, content ->
                         viewModel.addNote(noteId, content)
                     },
                     onDeleteNote = { noteId ->

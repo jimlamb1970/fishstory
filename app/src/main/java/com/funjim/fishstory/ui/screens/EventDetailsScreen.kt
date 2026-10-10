@@ -1003,6 +1003,12 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             itemList = limitSummaries,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,
+                                            description = """No limits created.
+        |
+        |Limits track your total catches to help ensure compliance with local fishing regulations.
+        |
+        |Limits set here apply only to this event.
+    """.trimMargin(),
                                             scope = LimitScope.EVENT,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -1388,7 +1394,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 NotesDialog(
                     notes = sortedNotes,
                     onDismiss = { showNotesDialog = false },
-                    onSaveNote = { noteId, content ->
+                    onAddNote = { noteId, content ->
                         viewModel.addNote(noteId, content)
                     },
                     onDeleteNote = { noteId ->
