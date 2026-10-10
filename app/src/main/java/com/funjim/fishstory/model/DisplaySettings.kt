@@ -14,10 +14,13 @@ object PreferencesKeys {
     val COLOR_THEME = stringPreferencesKey("color_theme")
     val USE_IMPERIAL_UNITS = booleanPreferencesKey("use_imperial_units")
     val VERBOSE_CARDS = booleanPreferencesKey("verbose_cards")
+    val SCROLLBAR_ON_LEFT = booleanPreferencesKey("scrollbar_on_left") // Added
 }
+
 data class DisplaySettings(
     val cautionBlinkInterval: Long = 1000L,
     val colorTheme: String = "App Default",
     val useImperialUnits: Boolean = true,
-    val verboseCards: Boolean = true
+    val verboseCards: Boolean = true,
+    val scrollbarOnLeft: Boolean = false // Added (false = right side by default)
 )

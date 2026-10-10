@@ -16,6 +16,7 @@ interface ConfigurationRepository {
 
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
     suspend fun updateColorTheme(colorTheme: String)
+    suspend fun updateScrollBarOnLeft(onLeft: Boolean)
     suspend fun updateUseImperialUnits(useImperial: Boolean)
     suspend fun updateUseVerboseCards(useVerbose: Boolean)
 }
@@ -37,6 +38,7 @@ class ConfigurationRepositoryImpl(
             DisplaySettings(
                 cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
                 colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
+                scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
                 useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
                 verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
             )
@@ -51,6 +53,12 @@ class ConfigurationRepositoryImpl(
     override suspend fun updateColorTheme(colorTheme: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.COLOR_THEME] = colorTheme
+        }
+    }
+
+    override suspend fun updateScrollBarOnLeft(onLeft: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] = onLeft
         }
     }
 

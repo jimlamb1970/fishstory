@@ -104,6 +104,12 @@ class FishermanListViewModel(
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }
+
+    fun updateScrollbarOnLeft() {
+        viewModelScope.launch {
+            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+        }
+    }
 }
 
 class FishermanListViewModelFactory(

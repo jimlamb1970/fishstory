@@ -105,6 +105,12 @@ class TripListViewModel(
         return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
+
+    fun updateScrollbarOnLeft() {
+        viewModelScope.launch {
+            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+        }
+    }
 }
 
 data class TripListUiState(

@@ -287,6 +287,12 @@ class LureViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = LureUiState.Loading
         )
+
+    fun updateScrollbarOnLeft() {
+        viewModelScope.launch {
+            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+        }
+    }
 }
 
 sealed interface LureUiState {

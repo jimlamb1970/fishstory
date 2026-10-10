@@ -460,6 +460,12 @@ class FishViewModel(
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
     }
+
+    fun updateScrollbarOnLeft() {
+        viewModelScope.launch {
+            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+        }
+    }
 }
 
 class FishViewModelFactory(

@@ -218,14 +218,15 @@ fun FishermanListScreen(
                         )
                     }
                 }
-                var isLeftAligned by remember { mutableStateOf(false) }
 
                 VerticalScrollToItemBar(
                     state = listState,
                     imageVector = AppIcons.Default.Fisherman,
-                    onToggleAlignment = { isLeftAligned = !isLeftAligned },
+                    onToggleAlignment = {
+                        viewModel.updateScrollbarOnLeft()
+                    },
                     modifier = Modifier
-                        .align(if (isLeftAligned) Alignment.CenterStart else Alignment.CenterEnd)
+                        .align(if (displaySettings.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
                         .fillMaxHeight()
                         .padding(vertical = 4.dp, horizontal = 0.dp)
                 )
