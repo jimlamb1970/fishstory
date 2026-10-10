@@ -1,16 +1,17 @@
 package com.funjim.fishstory.ui.utils
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -33,7 +34,8 @@ fun StatusGumball(
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
     borderWidth: Dp = 2.dp,
-    borderColor: Color = MaterialTheme.colorScheme.surface // Matches card/screen background
+    borderColor: Color = MaterialTheme.colorScheme.surface, // Matches card/screen background
+    onClick: (() -> Unit)? = null
 ) {
     val fillColor = when (status) {
         GumballStatus.GOOD -> Color(0xFF4CAF50)    // Green
@@ -41,7 +43,18 @@ fun StatusGumball(
         GumballStatus.BAD -> Color(0xFFF44336)     // Red
     }
 
-    Canvas(modifier = modifier.size(size)) {
+    val clickableModifier = if (onClick != null) {
+        modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = ripple(bounded = false, radius = size / 2 + borderWidth),
+            role = Role.Button,
+            onClick = onClick
+        )
+    } else {
+        modifier
+    }
+
+    Canvas(modifier = clickableModifier.size(size)) {
         // 1. Solid filled color gumball
         drawCircle(color = fillColor)
 

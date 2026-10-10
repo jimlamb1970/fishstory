@@ -326,6 +326,7 @@ fun DashboardScreen(
                         onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
+                        onLimitClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId?category=${CategoryType.LIMITS}") },
                         onClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
                         onFishClick = { tripId, eventId, targetOnly ->
                             onFishListNavigate(FishListRoute(
@@ -528,6 +529,7 @@ fun ActiveTripCard(
     onClick: (String, String) -> Unit,
     onTripClick: (String) -> Unit,
     onEventClick: (String, String) -> Unit,
+    onLimitClick: (String, String) -> Unit,
     onFishClick: (String?, String?, Boolean) -> Unit,
     onSwipe: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
@@ -624,7 +626,13 @@ fun ActiveTripCard(
                             status = gumballStatus,
                             size = 28.dp,
                             borderWidth = 2.dp,
-                            borderColor = MaterialTheme.colorScheme.onTertiary
+                            borderColor = MaterialTheme.colorScheme.onTertiary,
+                            onClick = {
+                                onLimitClick(
+                                    activeEvents[currentIndex].event.tripId,
+                                    activeEvents[currentIndex].event.id
+                                )
+                            }
                         )
                     } else {
                         Icon(
