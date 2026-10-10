@@ -56,7 +56,6 @@ import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
-import com.funjim.fishstory.ui.utils.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
@@ -67,14 +66,12 @@ import com.funjim.fishstory.ui.utils.EditTripDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
-import com.funjim.fishstory.ui.utils.FishermanSelection
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.LimitDialog
 import com.funjim.fishstory.ui.utils.LimitSummaryRow
 import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesDialog
 import com.funjim.fishstory.ui.utils.NotesIconButton
-import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -91,6 +88,9 @@ import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import com.funjim.fishstory.ui.utils.rememberGumballStatus
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
+import com.funjim.fishstory.ui.utils.selection.BodyOfWaterSelection
+import com.funjim.fishstory.ui.utils.selection.FishermanSelection
+import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
 import com.funjim.fishstory.viewmodels.TripDetailsUiState
 import com.funjim.fishstory.viewmodels.TripViewModel
 import kotlinx.coroutines.launch

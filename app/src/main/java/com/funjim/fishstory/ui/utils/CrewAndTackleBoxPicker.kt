@@ -11,23 +11,18 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.viewmodels.EventViewModel
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.ui.utils.selection.TackleBoxSelectionField
 
 // ---------------------------------------------------------------------------
 // Data model for a single fisherman's crew entry

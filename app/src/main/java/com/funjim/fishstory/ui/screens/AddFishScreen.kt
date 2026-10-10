@@ -41,7 +41,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.database.toPhotoDomainList
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.FishWithPhotos
@@ -50,14 +49,14 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AddBaitDialog
 import com.funjim.fishstory.ui.utils.AddSpeciesDialog
-import com.funjim.fishstory.ui.utils.BaitSelectionField
-import com.funjim.fishstory.ui.utils.BodyOfWaterSelectionField
-import com.funjim.fishstory.ui.utils.FishermanSelectionField
-import com.funjim.fishstory.ui.utils.LureSelectionField
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.SpeciesSelection
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
+import com.funjim.fishstory.ui.utils.selection.BaitSelectionField
+import com.funjim.fishstory.ui.utils.selection.BodyOfWaterSelectionField
+import com.funjim.fishstory.ui.utils.selection.FishermanSelectionField
+import com.funjim.fishstory.ui.utils.selection.LureSelectionField
+import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
 import com.funjim.fishstory.ui.utils.sortLures
 import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.AddFishUiState
@@ -65,7 +64,6 @@ import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
-import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.utils.toCm
 

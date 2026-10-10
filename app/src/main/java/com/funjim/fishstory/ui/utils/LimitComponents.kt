@@ -27,6 +27,7 @@ import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
 import java.util.Locale
 import kotlin.collections.minus
 import kotlin.collections.plus
