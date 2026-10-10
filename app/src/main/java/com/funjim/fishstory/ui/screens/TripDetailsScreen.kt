@@ -435,7 +435,7 @@ fun TripDetailsScreen(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
-                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                                    .offset(x = 4.dp, y = 4.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
@@ -461,7 +461,7 @@ fun TripDetailsScreen(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
-                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                                    .offset(x = 4.dp, y = 4.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
@@ -486,7 +486,7 @@ fun TripDetailsScreen(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
-                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                                    .offset(x = 4.dp, y = 4.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
@@ -498,7 +498,32 @@ fun TripDetailsScreen(
                                         }
                                     }
                                 }
-                                CategoryType.LIMITS -> {}
+                                CategoryType.LIMITS -> {
+                                    IconButton(onClick = { showAddLimitDialog = true }) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            StatusGumball(
+                                                status = gumballStatus,
+                                                size = 28.dp,
+                                                borderWidth = 2.dp,
+                                                borderColor = getOnCardSecondaryColor()
+                                            )
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .offset(x = 4.dp, y = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                                 CategoryType.NOTES -> {
                                     IconButton(onClick = { showAddNoteDialog = true }) {
                                         Box(contentAlignment = Alignment.Center) {
@@ -512,7 +537,7 @@ fun TripDetailsScreen(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
-                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                                    .offset(x = 4.dp, y = 4.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
@@ -537,7 +562,7 @@ fun TripDetailsScreen(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
-                                                    .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                                    .offset(x = 4.dp, y = 4.dp)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
