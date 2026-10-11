@@ -136,7 +136,7 @@ fun FishermanSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search fishermen ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -375,7 +375,7 @@ fun FishermanSelection(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search fishermen ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

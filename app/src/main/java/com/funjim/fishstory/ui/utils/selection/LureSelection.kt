@@ -214,7 +214,7 @@ fun LureColorSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search colors ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -453,7 +453,7 @@ fun LureSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search lures ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

@@ -134,7 +134,7 @@ fun SkyConditionSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search Sky Condition ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

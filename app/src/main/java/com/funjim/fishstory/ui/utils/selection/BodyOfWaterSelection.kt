@@ -136,7 +136,7 @@ fun BodyOfWaterSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search bodies of water ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -395,7 +395,7 @@ fun BodyOfWaterSelection(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search bodies of water ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

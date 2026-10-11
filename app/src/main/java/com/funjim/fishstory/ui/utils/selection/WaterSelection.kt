@@ -134,7 +134,7 @@ fun WaterClaritySelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search Water Clarity ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

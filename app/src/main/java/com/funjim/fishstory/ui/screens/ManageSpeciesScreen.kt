@@ -185,7 +185,7 @@ fun ManageSpeciesScreen(
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = { searchQuery = it.trimStart() },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 placeholder = { Text("Search or add new species ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },

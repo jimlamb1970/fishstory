@@ -136,7 +136,7 @@ fun BaitSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search baits ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -395,7 +395,7 @@ fun BaitSelection(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search baits ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

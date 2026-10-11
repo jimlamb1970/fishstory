@@ -100,7 +100,7 @@ fun ThemeSelectionField(
             Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxHeight(0.8f)) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search themes ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

@@ -132,7 +132,7 @@ fun EventSelectionField(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search events ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

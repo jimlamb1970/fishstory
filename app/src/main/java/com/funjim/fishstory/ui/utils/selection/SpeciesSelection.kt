@@ -137,7 +137,7 @@ fun SpeciesSelection(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search species ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -396,7 +396,7 @@ fun SpeciesSelection(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.trimStart() },
                     label = { Text("Search species ...") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

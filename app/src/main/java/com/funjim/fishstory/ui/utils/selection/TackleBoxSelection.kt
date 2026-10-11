@@ -161,7 +161,7 @@ fun TackleBoxBottomSheet(
         ) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = { searchQuery = it.trimStart() },
                 label = { Text("Search tackle boxes ...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
