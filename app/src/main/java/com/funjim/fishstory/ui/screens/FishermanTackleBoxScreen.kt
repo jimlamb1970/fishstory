@@ -19,8 +19,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -81,6 +83,8 @@ fun FishermanTackleBoxScreen(
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
     val tackleBox by viewModel.selectedTackleBox.collectAsStateWithLifecycle()
 
+    var searchQuery by remember { mutableStateOf("") }
+
     val scope = rememberCoroutineScope()
 
     var showRenameDialog by remember { mutableStateOf(false) }
@@ -102,17 +106,33 @@ fun FishermanTackleBoxScreen(
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
-    val sortedLures = remember(allLures, currentOrder, luresInBoxIds, currentFilter) {
+    val filteredLures = remember(allLures, luresInBoxIds, currentFilter, searchQuery) {
         val filteredList = when (currentFilter) {
             LureFilterOption.ALL -> allLures
             LureFilterOption.SELECTED -> allLures.filter { it.lure.id in luresInBoxIds }
             LureFilterOption.UNSELECTED -> allLures.filter { it.lure.id !in luresInBoxIds }
         }
 
-        sortLures(
-            lureList = filteredList,
-            order = currentOrder
-        )
+        if (searchQuery.isBlank()) {
+            filteredList
+        } else {
+            val query = searchQuery.trim()
+            filteredList.filter { item ->
+                item.lure.name.contains(query, ignoreCase = true) ||
+                        // Check primary colors list
+                        item.primaryColors.any { color ->
+                            color.name.contains(query, ignoreCase = true)
+                        } ||
+                        // Check secondary colors list
+                        item.secondaryColors.any { color ->
+                            color.name.contains(query, ignoreCase = true)
+                        } ||
+                        // Check glow colors list
+                        item.glowColors.any { color ->
+                            color.name.contains(query, ignoreCase = true)
+                        }
+            }
+        }
     }
 
     Scaffold(
@@ -175,11 +195,36 @@ fun FishermanTackleBoxScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it.trimStart() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                placeholder = { Text("Search lures...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Search Icon")
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
             // Summary chip
             Surface(
                 modifier = Modifier
-                    .padding(top = 12.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 0.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
                 shape = MaterialTheme.shapes.small,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
@@ -274,7 +319,9 @@ fun FishermanTackleBoxScreen(
                             ).size(34.dp)
                     ) {
                         Icon(
-                            imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            imageVector =
+                                if (reversed) Icons.Default.ArrowUpward
+                                else Icons.Default.ArrowDownward,
                             contentDescription = "Reverse Sort",
                             tint = getOnChipColor(),
                         )
@@ -296,9 +343,9 @@ fun FishermanTackleBoxScreen(
                         state = listState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        val totalItems = sortedLures.size
+                        val totalItems = filteredLures.size
                         itemsIndexed(
-                            sortedLures,
+                            filteredLures,
                             key = { _, item -> item.lure.id }) { index, item ->
                             val inBox = item.lure.id in luresInBoxIds
                             LureTackleBoxItem(

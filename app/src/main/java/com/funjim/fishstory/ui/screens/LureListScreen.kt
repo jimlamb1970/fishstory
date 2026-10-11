@@ -134,7 +134,6 @@ fun LureListScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Search / Filter Field
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it.trimStart() },
@@ -225,7 +224,9 @@ fun LureListScreen(
                         .size(34.dp)
                 ) {
                     Icon(
-                        imageVector = if (reversed) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                        imageVector =
+                            if (reversed) Icons.Default.ArrowUpward
+                            else Icons.Default.ArrowDownward,
                         contentDescription = "Reverse Sort",
                         tint = getOnChipColor(),
                     )
