@@ -29,120 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-@Composable
-fun EditEventDialog(
-    event: Event,
-    trip: Trip,
-    onConfirm: (Event) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-
-    var origName by remember { mutableStateOf(event.name) }
-    var origStart by remember { mutableLongStateOf(event.startTime) }
-    var origEnd by remember { mutableLongStateOf(event.endTime) }
-    var tripStart by remember { mutableLongStateOf(trip.startDate) }
-    var tripEnd by remember { mutableLongStateOf(trip.endDate) }
-
-    var name by remember { mutableStateOf(origName) }
-    var startTime by remember { mutableStateOf(origStart) }
-    var endTime by remember { mutableStateOf(origEnd) }
-
-    val isChanged = name != origName ||
-            startTime != origStart ||
-            endTime != origEnd
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Event") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Text("Start", style = MaterialTheme.typography.labelLarge)
-                DateTimePickerButton(
-                    label = "Start",
-                    millis = startTime,
-                    modifier = Modifier.fillMaxWidth()
-                ) { newTime ->
-                    if (newTime < tripStart) {
-                        Toast.makeText(
-                            context,
-                            "Start date and time cannot be before trip start date and time",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    } else if (newTime > tripEnd) {
-                        Toast.makeText(
-                            context,
-                            "Start date and time cannot be after trip end date and time",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    } else {
-                        startTime = newTime
-                        if (startTime > endTime)
-                            endTime = startTime
-                    }
-                }
-
-                Text("End", style = MaterialTheme.typography.labelLarge)
-                DateTimePickerButton(
-                    label = "End",
-                    millis = endTime,
-                    modifier = Modifier.fillMaxWidth()
-                ) { newTime ->
-                    if (newTime < startTime) {
-                        Toast.makeText(
-                            context,
-                            "End date and time must be after start date and time",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else if (newTime > tripEnd) {
-                        Toast.makeText(
-                            context,
-                            "End date and time cannot be after trip end date and time",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        endTime = newTime
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(event.copy(
-                        name = name.trim(),
-                        startTime = startTime,
-                        endTime = endTime)
-                    )
-                },
-                enabled = name.isNotBlank() && isChanged
-            ) { Text("OK") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
-}
 
 @Composable
 fun EventItem(

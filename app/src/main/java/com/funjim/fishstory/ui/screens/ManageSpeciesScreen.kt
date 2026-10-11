@@ -63,11 +63,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.crud.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor

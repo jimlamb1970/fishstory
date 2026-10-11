@@ -47,8 +47,6 @@ import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddBaitDialog
-import com.funjim.fishstory.ui.utils.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
@@ -65,6 +63,8 @@ import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
 import com.funjim.fishstory.ui.utils.cmToStorage
+import com.funjim.fishstory.ui.utils.crud.AddBaitDialog
+import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.toCm
 
 fun Long.toUtcMidnight(): Long =

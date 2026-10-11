@@ -100,8 +100,6 @@ import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.TripItemWithMenu
-import com.funjim.fishstory.ui.utils.WaterDialog
-import com.funjim.fishstory.ui.utils.WeatherDialog
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -112,11 +110,13 @@ import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalLocale
 import com.funjim.fishstory.model.LimitSummary
-import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
-import com.funjim.fishstory.ui.utils.AddWaterClarityDialog
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.StatusGumball
+import com.funjim.fishstory.ui.utils.crud.AddSkyConditionDialog
+import com.funjim.fishstory.ui.utils.crud.AddWaterClarityDialog
+import com.funjim.fishstory.ui.utils.crud.WaterDialog
+import com.funjim.fishstory.ui.utils.crud.WeatherDialog
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.rememberGumballStatus

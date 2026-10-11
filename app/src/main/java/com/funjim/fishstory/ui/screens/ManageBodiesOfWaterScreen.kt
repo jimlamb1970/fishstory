@@ -61,14 +61,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.crud.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.utils.crud.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.BodyOfWaterViewModel
 

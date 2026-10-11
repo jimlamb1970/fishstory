@@ -1,7 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -24,11 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
@@ -46,86 +43,6 @@ sealed class TripAction {
     data class SelectPhoto(val tripSummary: TripSummary) : TripAction()
     data class TakePhoto(val tripSummary: TripSummary) : TripAction()
     data class Delete(val tripSummary: TripSummary) : TripAction()
-}
-
-@Composable
-fun EditTripDialog(
-    item: Trip,
-    onConfirm: (Trip) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-
-    var origName by remember { mutableStateOf(item.name) }
-    var origStart by remember { mutableLongStateOf(item.startDate) }
-    var origEnd by remember { mutableLongStateOf(item.endDate) }
-
-    var name by remember { mutableStateOf(origName) }
-    var startTime by remember { mutableStateOf(origStart) }
-    var endTime by remember { mutableStateOf(origEnd) }
-
-    val isChanged = name != origName ||
-            startTime != origStart ||
-            endTime != origEnd
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Trip") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Text("Start", style = MaterialTheme.typography.labelLarge)
-                DateTimePickerButton(
-                    label = "Start",
-                    millis = startTime,
-                    modifier = Modifier.fillMaxWidth()
-                ) { newTime ->
-                    startTime = newTime
-                    if (startTime > endTime)
-                        endTime = startTime
-                }
-
-                Text("End", style = MaterialTheme.typography.labelLarge)
-                DateTimePickerButton(
-                    label = "End",
-                    millis = endTime,
-                    modifier = Modifier.fillMaxWidth()
-                ) { newTime ->
-                    if (newTime < startTime) {
-                        Toast.makeText(
-                            context,
-                            "End date and time must be after start date and time",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        endTime = newTime
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(item.copy(
-                        name = name.trim(),
-                        startDate = startTime,
-                        endDate = endTime)
-                    )
-                },
-               enabled = name.isNotBlank() && isChanged
-            ) { Text("OK") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
 }
 
 @Composable

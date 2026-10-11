@@ -23,8 +23,6 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.HideImage
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -37,8 +35,6 @@ import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,60 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-
-@Composable
-fun AddSpeciesDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String) -> Unit
-) {
-    EditSpeciesDialog(
-        item = Species(name = ""),
-        title = "Add",
-        onConfirm = { onConfirm(it.name) },
-        onDismiss = onDismiss
-    )
-}
-
-@Composable
-fun EditSpeciesDialog(
-    item: Species,
-    title: String = "Rename",
-    onDismiss: () -> Unit,
-    onConfirm: (Species) -> Unit
-) {
-    val origName = remember(BodyOfWater) { item.name }
-    var name by remember { mutableStateOf(origName) }
-
-    val isValid = name.isNotBlank() && (origName != name)
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("$title Species") },
-        text = {
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                placeholder = { Text("Species Name (e.g. Walleye)") }
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(item.copy(name = name.trim())) },
-                enabled = isValid
-            ) { Text("OK") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
-}
 
 @Composable
 fun TargetSpeciesRow(

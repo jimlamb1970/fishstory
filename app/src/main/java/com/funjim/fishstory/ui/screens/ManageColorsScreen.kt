@@ -70,9 +70,9 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
-import com.funjim.fishstory.ui.utils.AddColorDialog
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.EditColorDialog
+import com.funjim.fishstory.ui.utils.crud.AddColorDialog
+import com.funjim.fishstory.ui.utils.crud.EditColorDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 

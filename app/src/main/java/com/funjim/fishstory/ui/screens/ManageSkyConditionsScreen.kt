@@ -62,13 +62,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddSkyConditionDialog
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.EditSkyConditionDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.crud.AddSkyConditionDialog
+import com.funjim.fishstory.ui.utils.crud.EditSkyConditionDialog
 import com.funjim.fishstory.viewmodels.SkyConditionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
