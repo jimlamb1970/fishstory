@@ -55,8 +55,10 @@ import com.funjim.fishstory.ui.utils.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.utils.crud.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.flow.flowOf
@@ -443,8 +445,8 @@ fun FishermanDetailsScreen(
                                             state.upcomingTrips.size
                                     BadgeCount(
                                         count = total,
-                                        badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                        textColor = MaterialTheme.colorScheme.primary
+                                        badgeColor = getMainButtonColor(),
+                                        textColor = getOnMainButtonColor()
                                     )
                                 }
                             }
@@ -463,8 +465,8 @@ fun FishermanDetailsScreen(
                                     if (state.upcomingTrips.size > 1) {
                                         BadgeCount(
                                             count = state.upcomingTrips.size,
-                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                            textColor = MaterialTheme.colorScheme.primary
+                                            badgeColor = getMainButtonColor(),
+                                            textColor = getOnMainButtonColor()
                                         )
                                     }
                                 }
@@ -496,8 +498,8 @@ fun FishermanDetailsScreen(
                                     if (state.activeTrips.size > 1) {
                                         BadgeCount(
                                             count = state.activeTrips.size,
-                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                            textColor = MaterialTheme.colorScheme.primary
+                                            badgeColor = getMainButtonColor(),
+                                            textColor = getOnMainButtonColor()
                                         )
                                     }
                                 }
@@ -552,8 +554,8 @@ fun FishermanDetailsScreen(
                                     if (state.recentTrips.size > 1) {
                                         BadgeCount(
                                             count = state.recentTrips.size,
-                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                            textColor = MaterialTheme.colorScheme.primary
+                                            badgeColor = getMainButtonColor(),
+                                            textColor = getOnMainButtonColor()
                                         )
                                     }
                                 }
