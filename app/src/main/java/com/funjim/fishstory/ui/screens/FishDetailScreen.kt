@@ -43,8 +43,8 @@ import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.WaterCard
-import com.funjim.fishstory.ui.utils.WeatherCard
+import com.funjim.fishstory.ui.utils.cards.WaterCard
+import com.funjim.fishstory.ui.utils.cards.WeatherCard
 import com.funjim.fishstory.ui.utils.crud.AddNoteDialog
 import com.funjim.fishstory.ui.utils.crud.EditNoteDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -797,8 +797,7 @@ Notes help you remember specific details about this fish.""",
                         ) {
                             WaterCard(
                                 water = fish.water,
-                                useImperial = true
-//                                useImperial = displaySettings.useImperialUnits,
+                                useImperial = useImperial,
                             )
                         }
                     }
@@ -810,8 +809,7 @@ Notes help you remember specific details about this fish.""",
                         ) {
                             WeatherCard(
                                 weather = fish.weather,
-                                useImperial = true
-  //                              useImperial = displaySettings.useImperialUnits,
+                                useImperial = useImperial,
                             )
                         }
                     }

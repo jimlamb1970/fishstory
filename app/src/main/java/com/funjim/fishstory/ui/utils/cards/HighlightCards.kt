@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.utils
+package com.funjim.fishstory.ui.utils.cards
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +37,12 @@ import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.AchievementItem
+import com.funjim.fishstory.ui.utils.StatItem
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
+import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import kotlinx.coroutines.launch
 
 @Composable
@@ -74,7 +80,8 @@ fun EventHighlightCard(
                     label = "CAUGHT",
                     value = "${summary.fishCaught}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
 
                 IconButton(
                     onClick = { onFishClick() }
@@ -91,7 +98,8 @@ fun EventHighlightCard(
                     label = "KEPT",
                     value = "${summary.fishKept}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
             }
 
             // Bottom Row: The Achievements
@@ -141,7 +149,8 @@ fun EventHighlightCard(
                     label = "CAUGHT",
                     value = "${summary.targetFishCaught}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
 
                 IconButton(
                     onClick = { onTargetFishClick() }
@@ -158,7 +167,8 @@ fun EventHighlightCard(
                     label = "KEPT",
                     value = "${summary.targetFishKept}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
             }
 
             // Bottom Row: The Achievements
@@ -189,7 +199,7 @@ fun EventHighlightCard(
                             name = summary.targetBigFishFisherman,
                             description = "(${
                                 summary.targetBigFishLength.toLengthDisplayString(
-                                     useImperial = useImperial,
+                                    useImperial = useImperial,
                                     useFractions = true
                                 )
                             } : ${summary.targetBigFishSpecies})",
@@ -438,7 +448,8 @@ fun TripHighlightCard(
                     label = "CAUGHT",
                     value = "${summary.fishCaught}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
 
                 IconButton(
                     onClick = { onFishClick() }
@@ -455,7 +466,8 @@ fun TripHighlightCard(
                     label = "KEPT",
                     value = "${summary.fishKept}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
             }
 
             // Bottom Row: The Achievements
@@ -507,7 +519,8 @@ fun TripHighlightCard(
                     label = "CAUGHT",
                     value = "${summary.targetFishCaught}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
 
                 IconButton(
                     onClick = { onTargetFishClick() }
@@ -524,7 +537,8 @@ fun TripHighlightCard(
                     label = "KEPT",
                     value = "${summary.targetFishKept}",
                     labelColor = getOnCardSecondaryColor(),
-                    color = getOnCardColor())
+                    color = getOnCardColor()
+                )
             }
 
             // Bottom Row: The Achievements

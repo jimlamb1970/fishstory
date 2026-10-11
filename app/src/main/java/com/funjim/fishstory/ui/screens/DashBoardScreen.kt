@@ -44,7 +44,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Person
@@ -92,14 +91,14 @@ import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
-import com.funjim.fishstory.ui.utils.TripAction
+import com.funjim.fishstory.ui.utils.cards.TripAction
 import com.funjim.fishstory.viewmodels.DashboardViewModel
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.AchievementItem
 import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.TripItemWithMenu
+import com.funjim.fishstory.ui.utils.cards.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor

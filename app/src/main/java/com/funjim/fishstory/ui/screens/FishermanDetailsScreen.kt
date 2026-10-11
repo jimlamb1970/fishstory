@@ -45,12 +45,12 @@ import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.CardItemWithValue
-import com.funjim.fishstory.ui.utils.FishermanHighlightCard
+import com.funjim.fishstory.ui.utils.cards.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.TripAction
-import com.funjim.fishstory.ui.utils.TripItem
+import com.funjim.fishstory.ui.utils.cards.TripAction
+import com.funjim.fishstory.ui.utils.cards.TripItem
 import com.funjim.fishstory.ui.utils.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.utils.crud.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor

@@ -56,7 +56,7 @@ import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.EventItem
+import com.funjim.fishstory.ui.utils.cards.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.LimitSummaryRow
@@ -65,7 +65,7 @@ import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.TripHighlightCard
+import com.funjim.fishstory.ui.utils.cards.TripHighlightCard
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.utils.WaterSummaryRow
 import com.funjim.fishstory.ui.utils.WeatherSummaryRow

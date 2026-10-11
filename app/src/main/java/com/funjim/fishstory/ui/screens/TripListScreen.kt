@@ -33,8 +33,8 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.SortChip
-import com.funjim.fishstory.ui.utils.TripAction
-import com.funjim.fishstory.ui.utils.TripItemWithMenu
+import com.funjim.fishstory.ui.utils.cards.TripAction
+import com.funjim.fishstory.ui.utils.cards.TripItemWithMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getOnChipColor

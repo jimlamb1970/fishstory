@@ -29,9 +29,9 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.FishermanItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.cards.FishermanItem
 import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnChipColor

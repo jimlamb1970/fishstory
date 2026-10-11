@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.utils
+package com.funjim.fishstory.ui.utils.cards
 
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
@@ -28,6 +28,15 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.CardItemWithValue
+import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.FishCaughtItem
+import com.funjim.fishstory.ui.utils.PhotoPickerRow
+import com.funjim.fishstory.ui.utils.ThumbnailBox
+import com.funjim.fishstory.ui.utils.getCardBorderColor
+import com.funjim.fishstory.ui.utils.getCardColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -262,8 +271,9 @@ fun TripItem(
                     imageVector = AppIcons.Default.Boat,
                     modifier = Modifier.size(64.dp),
                     onClick =
-                        if (allowPhotos) { onPhotoClick }
-                        else null,
+                        if (allowPhotos) {
+                            onPhotoClick
+                        } else null,
                     onLongClick = onThumbnailLongClick
                 )
 

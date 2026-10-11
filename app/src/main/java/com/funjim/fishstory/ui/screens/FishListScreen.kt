@@ -29,7 +29,7 @@ import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.FishItem
+import com.funjim.fishstory.ui.utils.cards.FishItem
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar

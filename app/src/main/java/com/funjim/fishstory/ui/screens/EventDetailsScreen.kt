@@ -53,7 +53,7 @@ import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.EventHighlightCard
+import com.funjim.fishstory.ui.utils.cards.EventHighlightCard
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.LimitSummaryRow

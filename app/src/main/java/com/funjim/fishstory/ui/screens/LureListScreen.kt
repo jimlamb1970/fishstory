@@ -26,9 +26,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.LureItem
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
+import com.funjim.fishstory.ui.utils.cards.LureItem
 import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.LureSortOrder
