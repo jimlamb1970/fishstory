@@ -13,6 +13,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.theme.themeMap
 import com.funjim.fishstory.ui.utils.selection.ThemeSelectionField
 import com.funjim.fishstory.viewmodels.ImportViewModel
@@ -33,6 +35,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val hostState = remember { SnackbarHostState() }
+
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     // Launcher for saving a file (Export to JSON)
     val saveFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
@@ -161,7 +165,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             ThemeSelectionField(
                 items = themeMap,
-                selectedItem = null,
+                selectedItem = displaySettings.colorTheme,
                 label = "Theme",
                 modifier = Modifier.fillMaxWidth(),
                 onSelected = { theme ->

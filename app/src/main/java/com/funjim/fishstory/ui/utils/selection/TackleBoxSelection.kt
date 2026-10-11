@@ -3,12 +3,14 @@ package com.funjim.fishstory.ui.utils.selection
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.ModalAddButton
 import com.funjim.fishstory.ui.utils.ModalResetButton
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -209,21 +212,42 @@ fun TackleBoxBottomSheet(
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp, horizontal = 4.dp)
                                 ) {
-                                    ThumbnailBox(
-                                        thumbnail = null,
-                                        imageVector = AppIcons.Default.TackleBox,
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                    Text(
-                                        text = item.name,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight =
-                                            if (isSelected) FontWeight.Bold
-                                            else FontWeight.Normal,
-                                        maxLines = 2,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                    Box(
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        ThumbnailBox(
+                                            thumbnail = null,
+                                            imageVector = AppIcons.Default.TackleBox,
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                        if (isSelected) {
+                                            BadgeSelected(
+                                                badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                borderColor = MaterialTheme.colorScheme.surface,
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .offset(x = 4.dp, y = (-4).dp)
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = item.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight =
+                                                if (isSelected) FontWeight.Bold
+                                                else FontWeight.Normal,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+
                                 }
                             },
                             colors = ListItemDefaults.colors(
@@ -282,14 +306,28 @@ fun TackleBoxBottomSheet(
                                 )
                             },
                             headlineContent = {
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight =
-                                        if (isSelected) FontWeight.Bold
-                                        else FontWeight.Normal,
-                                    color = getOnCardColor()
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getOnCardColor()
+                                    )
+                                }
+                            },
+                            trailingContent = {
+                                if (isSelected) {
+                                    BadgeSelected(
+                                        badgeColor = getOnCardColor(),
+                                        contentColor = MaterialTheme.colorScheme.surface
+                                    )
+                                }
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = getCardColor(index, filteredSize, isSelected),

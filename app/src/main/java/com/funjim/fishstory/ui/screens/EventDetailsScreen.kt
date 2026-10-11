@@ -1261,7 +1261,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.WaterSet,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
@@ -1300,7 +1300,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.WeatherSet,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
@@ -1523,7 +1523,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.WaterSet,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(48.dp)
                 )
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },
@@ -1576,7 +1576,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.WeatherSet,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(48.dp)
                 )
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },

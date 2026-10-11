@@ -3,13 +3,16 @@ package com.funjim.fishstory.ui.utils.selection
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -142,9 +145,7 @@ fun FishermanSelectionField(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val filtered = items.filter {
-                    it.fullName.contains(searchQuery, ignoreCase = true)
-                }
+                val filtered = items.filter { it.fullName.contains(searchQuery, ignoreCase = true) }
                 val filteredSize = filtered.size
 
                 if (isGridView) {
@@ -184,7 +185,21 @@ fun FishermanSelectionField(
                                             .fillMaxWidth()
                                             .padding(vertical = 4.dp, horizontal = 4.dp)
                                     ) {
-                                        thumbnailProvider(item)
+                                        Box(
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            thumbnailProvider(item)
+                                            if (isSelected) {
+                                                BadgeSelected(
+                                                    badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    borderColor = MaterialTheme.colorScheme.surface,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 4.dp, y = (-4).dp)
+                                                )
+                                            }
+                                        }
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
@@ -200,13 +215,6 @@ fun FishermanSelectionField(
                                                 maxLines = 2,
                                                 textAlign = TextAlign.Center
                                             )
-
-                                            if (isSelected) {
-                                                BadgeSelected(
-                                                    badgeColor = getOnCardColor(),
-                                                    contentColor = MaterialTheme.colorScheme.surface
-                                                )
-                                            }
                                         }
                                     }
                                 },
@@ -261,16 +269,16 @@ fun FishermanSelectionField(
                                             fontWeight =
                                                 if (isSelected) FontWeight.Bold
                                                 else FontWeight.Normal,
-                                            maxLines = 2,
-                                            textAlign = TextAlign.Center
+                                            color = getOnCardColor()
                                         )
-
-                                        if (isSelected) {
-                                            BadgeSelected(
-                                                badgeColor = getOnCardColor(),
-                                                contentColor = MaterialTheme.colorScheme.surface
-                                            )
-                                        }
+                                    }
+                                },
+                                trailingContent = {
+                                    if (isSelected) {
+                                        BadgeSelected(
+                                            badgeColor = getOnCardColor(),
+                                            contentColor = MaterialTheme.colorScheme.surface
+                                        )
                                     }
                                 },
                                 colors = ListItemDefaults.colors(
@@ -410,12 +418,12 @@ fun FishermanSelection(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
                                             when (state) {
-                                                ToggleableState.On -> getOnCardColor()
-                                                ToggleableState.Indeterminate -> getOnCardColor().copy(
-                                                    alpha = 0.5f
-                                                )
-
-                                                else -> Color.Transparent
+                                                ToggleableState.On ->
+                                                    getOnCardColor()
+                                                ToggleableState.Indeterminate ->
+                                                    getOnCardColor().copy(alpha = 0.5f)
+                                                else ->
+                                                    Color.Transparent
                                             },
                                         shape = MaterialTheme.shapes.medium
                                     )
@@ -431,7 +439,23 @@ fun FishermanSelection(
                                             .fillMaxWidth() // Forces the column to span the whole grid cell width
                                             .padding(vertical = 8.dp, horizontal = 4.dp)
                                     ) {
-                                        thumbnailProvider(item)
+                                        Box(
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            thumbnailProvider(item)
+                                            if (isChecked) {
+                                                BadgeSelected(
+                                                    badgeColor =
+                                                        if (state == ToggleableState.On) MaterialTheme.colorScheme.primaryContainer
+                                                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    borderColor = MaterialTheme.colorScheme.surface,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 4.dp, y = (-4).dp)
+                                                )
+                                            }
+                                        }
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
@@ -445,17 +469,7 @@ fun FishermanSelection(
                                                 maxLines = 2,
                                                 textAlign = TextAlign.Center
                                             )
-
-                                            if (isChecked) {
-                                                BadgeSelected(
-                                                    badgeColor =
-                                                        if (state == ToggleableState.On) getOnCardColor()
-                                                        else getOnCardColor().copy(alpha = 0.5f),
-                                                    contentColor = MaterialTheme.colorScheme.surface
-                                                )
-                                            }
                                         }
-
                                         if (isChecked && maxUsage != null && maxUsage > 0) {
                                             val usage = usageMap?.get(item.id) ?: 0
                                             Text(
@@ -516,12 +530,12 @@ fun FishermanSelection(
                                         width = if (isChecked) 2.dp else 0.dp,
                                         color =
                                             when (state) {
-                                                ToggleableState.On -> getOnCardColor()
-                                                ToggleableState.Indeterminate -> getOnCardColor().copy(
-                                                    alpha = 0.5f
-                                                )
-
-                                                else -> Color.Transparent
+                                                ToggleableState.On ->
+                                                    getOnCardColor()
+                                                ToggleableState.Indeterminate ->
+                                                    getOnCardColor().copy(alpha = 0.5f)
+                                                else ->
+                                                    Color.Transparent
                                             },
                                         shape = MaterialTheme.shapes.medium
                                     )

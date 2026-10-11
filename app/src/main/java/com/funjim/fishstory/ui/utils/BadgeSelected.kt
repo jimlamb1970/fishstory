@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,12 +21,17 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BadgeSelected(
     badgeColor: Color,
-    contentColor: Color
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+    borderColor: Color = Color.Transparent,
 ) {
     Surface(
         shape = CircleShape,
         color = badgeColor,
-        modifier = Modifier.padding(start = 2.dp)
+        border = BorderStroke(
+            width = 1.dp,
+            color = borderColor),
+        modifier = modifier.padding(start = 2.dp)
     ) {
         Box(
             contentAlignment = Alignment.Center,

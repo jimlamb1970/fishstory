@@ -1438,7 +1438,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.WaterSet,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
@@ -1477,7 +1477,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         ThumbnailBox(
                             thumbnail = thumbnail,
                             imageVector = AppIcons.Default.WeatherSet,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },

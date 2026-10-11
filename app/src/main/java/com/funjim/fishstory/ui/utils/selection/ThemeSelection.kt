@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.utils.selection
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 
@@ -110,23 +113,47 @@ fun ThemeSelectionField(
                     key.contains(searchQuery, ignoreCase = true)
                 }
 
-                LazyColumn {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val filteredSize = filteredMap.size
                     filteredMap.entries.forEachIndexed { index, item ->
+                        val isSelected = item.key == selectedItem
                         item {
                             ListItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color =
+                                            if (isSelected) getOnCardColor()
+                                            else Color.Transparent,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item.key)
                                         showSheet = false
                                         searchQuery = ""
                                     },
-                                headlineContent = { Text(item.key) },
+                                headlineContent = {
+                                    Text(
+                                        item.key,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal,
+                                        color = getOnCardColor()
+                                    )
+                                },
+                                trailingContent = {
+                                    if (isSelected) {
+                                        BadgeSelected(
+                                            badgeColor = getOnCardColor(),
+                                            contentColor = MaterialTheme.colorScheme.surface
+                                        )
+                                    }
+                                },
                                 colors = ListItemDefaults.colors(
-                                    containerColor = getCardColor(index, filteredSize),
+                                    containerColor = getCardColor(index, filteredSize, isSelected),
                                     headlineColor = getOnCardColor()
                                 )
                             )

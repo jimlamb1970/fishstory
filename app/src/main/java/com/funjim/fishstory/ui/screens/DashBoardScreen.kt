@@ -975,7 +975,7 @@ fun ActiveTripCard(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.WaterSet,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(48.dp)
                 )
             },
             onToggleImperialUnits = { onToggleImperialUnits() },
@@ -1045,7 +1045,7 @@ fun ActiveTripCard(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.Weather,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(48.dp)
                 )
             },
             onToggleImperialUnits = { onToggleImperialUnits() },

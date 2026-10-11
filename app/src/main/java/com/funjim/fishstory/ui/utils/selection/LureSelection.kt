@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,12 +48,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
+import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.LureColorCompositionMultiLine
 import com.funjim.fishstory.ui.utils.ModalAddButton
@@ -82,26 +85,50 @@ private fun AddColorButton(onAdd: () -> Unit) {
     )
 }
 @Composable
-private fun ColorPreviewIcon(item: LureColor, borderColor: Color, isGrid: Boolean) {
+private fun ColorPreviewIcon(
+    item: LureColor,
+    borderColor: Color,
+    isGrid: Boolean,
+    isChecked: Boolean = false
+) {
     val size = if (isGrid) 32.dp else 48.dp
     if (item.hexCode.isNullOrBlank()) {
-        ThumbnailBox(
-            thumbnail = null,
-            imageVector = Icons.Default.Palette,
+        Box(
             modifier = Modifier.size(size)
-        )
+        ) {
+            ThumbnailBox(
+                thumbnail = null,
+                imageVector = Icons.Default.Palette,
+                modifier = Modifier.size(size)
+            )
+        }
     } else {
         val hexList = remember(item.hexCode) {
             item.hexCode.split(",").filter { it.isNotBlank() }
         }
+
         Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .border(if (isGrid) 1.5.dp else 2.dp, borderColor, CircleShape),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.size(size)
         ) {
-            MultiColorCirclePreview(hexList = hexList)
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .clip(CircleShape)
+                    .border(if (isGrid) 1.5.dp else 2.dp, borderColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                MultiColorCirclePreview(hexList = hexList)
+            }
+            if (isChecked) {
+                BadgeSelected(
+                    badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    borderColor = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                )
+            }
         }
     }
 }
@@ -239,16 +266,23 @@ fun LureColorSelectionField(
                                         ColorPreviewIcon(
                                             item,
                                             getGridCardBorderColor(index, filteredSize),
-                                            isGrid = true)
-
-                                        Text(
-                                            text = item.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
-                                            maxLines = 2,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth()
+                                            isGrid = true,
+                                            isChecked = isChecked
                                         )
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = item.name,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Normal,
+                                                maxLines = 2,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
                                 },
                                 trailingContent = null,
@@ -428,9 +462,7 @@ fun LureSelectionField(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val filtered = items.filter {
-                    it.lure.name.contains(searchQuery, ignoreCase = true)
-                }
+                val filtered = items.filter { it.lure.name.contains(searchQuery, ignoreCase = true) }
                 val filteredSize = filtered.size
 
                 if (isGridView) {
@@ -470,18 +502,37 @@ fun LureSelectionField(
                                             .fillMaxWidth()
                                             .padding(vertical = 4.dp, horizontal = 4.dp)
                                     ) {
-                                        thumbnailProvider(item)
+                                        Box(
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            thumbnailProvider(item)
+                                            if (isSelected) {
+                                                BadgeSelected(
+                                                    badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    borderColor = MaterialTheme.colorScheme.surface,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 4.dp, y = (-4).dp)
+                                                )
+                                            }
+                                        }
 
-                                        Text(
-                                            text = item.lure.name,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontWeight =
-                                                if (isSelected) FontWeight.Bold
-                                                else FontWeight.Normal,
-                                            maxLines = 2,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = item.lure.name,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight =
+                                                    if (isSelected) FontWeight.Bold
+                                                    else FontWeight.Normal,
+                                                maxLines = 2,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
 
                                         LureColorCompositionMultiLine(
                                             primary = item.primaryColors,
@@ -501,7 +552,6 @@ fun LureSelectionField(
 
                         if (onClear != null && selectedItem != null) {
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
-
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Lure",
@@ -541,28 +591,39 @@ fun LureSelectionField(
                                         showSheet = false
                                         searchQuery = ""
                                     },
-                                leadingContent = {
-                                    thumbnailProvider(item)
-                                },
+                                leadingContent = { thumbnailProvider(item) },
                                 headlineContent = {
                                     Column(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        Text(
-                                            text = item.lure.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight =
-                                                if (isSelected) FontWeight.Bold
-                                                else FontWeight.Normal,
-                                            color = getOnCardColor()
-                                        )
-
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Start,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = item.lure.name,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight =
+                                                    if (isSelected) FontWeight.Bold
+                                                    else FontWeight.Normal,
+                                                color = getOnCardColor()
+                                            )
+                                        }
                                         LureColorComposition(
                                             primary = item.primaryColors,
                                             secondary = item.secondaryColors,
                                             glows = item.lure.glows,
                                             glow = item.glowColors
+                                        )
+                                    }
+                                },
+                                trailingContent = {
+                                    if (isSelected) {
+                                        BadgeSelected(
+                                            badgeColor = getOnCardColor(),
+                                            contentColor = MaterialTheme.colorScheme.surface
                                         )
                                     }
                                 },
