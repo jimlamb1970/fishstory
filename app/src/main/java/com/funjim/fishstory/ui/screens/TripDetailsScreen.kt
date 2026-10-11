@@ -1092,7 +1092,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 verbose = displaySettings.verboseCards,
                                                 description = """No fishermen selected.
 
-Fishermen are the people actively participating on this trip.
+Fishermen are the people actively participating on this trip, and there must be at least one selected.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
@@ -1166,9 +1166,11 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                         photo.id
                                                     )
                                                 },
-                                                onDelete = { fisherman ->
-                                                    viewModel.removeTripFisherman(fisherman.id)
-                                                }
+                                                onDelete =
+                                                    if (sortedFishermanList.size > 1) { fisherman ->
+                                                        viewModel.removeTripFisherman(fisherman.id)
+                                                    }
+                                                    else null
                                             )
                                         }
                                     }

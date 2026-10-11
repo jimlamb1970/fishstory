@@ -405,9 +405,9 @@ Selecting them places those bodies of water at the top of the list when logging 
             item {
                 FishermanRow(
                     items = tripFishermen,
-                    description = """No fishermen selected.
+                    description = """No fishermen selected. 
 
-Fishermen are the people actively participating on this trip.
+Fishermen are the people actively participating on this trip, and there must be at least one selected. 
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                     onAdd = { showFishermanSelection = true },

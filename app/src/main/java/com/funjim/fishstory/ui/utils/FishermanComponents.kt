@@ -388,7 +388,7 @@ fun FishermanSummaryCard(
     onPhotoTaken: (Uri) -> Unit,
     onSetThumbnail: (Photo) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
-    onDelete: (Fisherman) -> Unit
+    onDelete: ((Fisherman) -> Unit)? = null
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
@@ -604,20 +604,22 @@ fun FishermanSummaryCard(
                             )
                         }
 
-                        DropdownMenuItem(
-                            text = { Text("Remove") },
-                            onClick = {
-                                expanded = false
-                                onDelete(item.fisherman)
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        )
+                        onDelete?.let {
+                            DropdownMenuItem(
+                                text = { Text("Remove") },
+                                onClick = {
+                                    expanded = false
+                                    onDelete(item.fisherman)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -722,7 +724,7 @@ fun FishermanSummaries(
     onPhotoTaken: (Fisherman, Uri) -> Unit,
     onSetThumbnail: (Fisherman, Photo) -> Unit,
     onPhotoDeleted: (Fisherman, Photo) -> Unit,
-    onDelete: (Fisherman) -> Unit
+    onDelete: ((Fisherman) -> Unit)? = null
 ) {
     Column() {
         Row(

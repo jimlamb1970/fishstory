@@ -494,7 +494,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                             items = eventFishermen,
                             description = """No fishermen selected.
 
-Fishermen are the people actively participating on this event.
+Fishermen are the people actively participating on this event, and there must be at least one selected.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                             onAdd = { showFishermanSelection = true },

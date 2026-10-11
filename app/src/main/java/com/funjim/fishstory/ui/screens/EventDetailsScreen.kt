@@ -942,7 +942,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 verbose = displaySettings.verboseCards,
                                                 description = """No fishermen selected.
 
-Fishermen are the people actively participating on this event.
+Fishermen are the people actively participating on this event, and there must be at least one selected.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
@@ -1015,9 +1015,11 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                         photo.id
                                                     )
                                                 },
-                                                onDelete = { fisherman ->
-                                                    viewModel.deleteFishermanFromEvent(fisherman.id)
-                                                }
+                                                onDelete =
+                                                    if (sortedFishermanList.size > 1) { fisherman ->
+                                                        viewModel.deleteFishermanFromEvent(fisherman.id)
+                                                    }
+                                                    else null
                                             )
                                         }
                                     }
