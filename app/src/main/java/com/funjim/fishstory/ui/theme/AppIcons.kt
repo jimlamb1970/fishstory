@@ -39,6 +39,12 @@ object AppIcons {
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_lure)
         val Notes: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_notes)
+        val Palette: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_palette)
+        val Reports: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_reports)
+        val Save: ImageVector
+            @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_save)
         val Settings: ImageVector
             @Composable get() = ImageVector.vectorResource(id = R.drawable.ic_settings)
         val Species: ImageVector

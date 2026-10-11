@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.LureColorCompositionMultiLine
@@ -98,7 +99,7 @@ private fun ColorPreviewIcon(
         ) {
             ThumbnailBox(
                 thumbnail = null,
-                imageVector = Icons.Default.Palette,
+                imageVector = AppIcons.Default.Palette,
                 modifier = Modifier.size(size)
             )
         }

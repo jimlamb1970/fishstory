@@ -134,8 +134,9 @@ fun AddTripScreen(
                         enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Save,
-                            contentDescription = "Save Trip"
+                            imageVector = AppIcons.Default.Save,
+                            contentDescription = "Save Trip",
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 

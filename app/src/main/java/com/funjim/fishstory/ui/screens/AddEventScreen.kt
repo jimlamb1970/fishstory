@@ -186,8 +186,9 @@ fun AddEventScreen(
                                 enabled = eventDraft.name.isNotBlank() && eventFishermen.isNotEmpty()
                             ) {
                                 Icon(
-                                    Icons.Default.Save,
-                                    contentDescription = "Save Event"
+                                    imageVector = AppIcons.Default.Save,
+                                    contentDescription = "Save Event",
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
 

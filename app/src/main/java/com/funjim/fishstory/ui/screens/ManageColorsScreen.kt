@@ -70,6 +70,7 @@ import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.crud.AddColorDialog
 import com.funjim.fishstory.ui.utils.crud.EditColorDialog
@@ -143,7 +144,7 @@ fun ManageColorsScreen(
                     IconButton(onClick = { addItem = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Default.Palette,
+                                AppIcons.Default.Palette,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
 
@@ -224,7 +225,7 @@ fun ManageColorsScreen(
                                 if (item.hexCode.isNullOrBlank()) {
                                     ThumbnailBox(
                                         thumbnail = null,
-                                        imageVector = Icons.Default.Palette,
+                                        imageVector = AppIcons.Default.Palette,
                                         modifier = Modifier.size(48.dp)
                                     )
                                 } else {
@@ -321,7 +322,10 @@ fun ManageColorsScreen(
                                             colorToPickFor = item
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Palette, contentDescription = "Edit")
+                                            Icon(
+                                                imageVector = AppIcons.Default.Palette,
+                                                contentDescription = "Select Color"
+                                            )
                                         }
                                     )
                                     DropdownMenuItem(
@@ -332,7 +336,10 @@ fun ManageColorsScreen(
                                             colorToPickFor = item
                                         },
                                         leadingIcon = {
-                                            Icon(Icons.Default.Palette, contentDescription = "Edit")
+                                            Icon(
+                                                imageVector = AppIcons.Default.Palette,
+                                                contentDescription = "Select Colors"
+                                            )
                                         }
                                     )
 // Disable the clearing of the HEXCODE for the color

@@ -1129,7 +1129,7 @@ fun DashboardGrid(
         GridParams("Species", AppIcons.Default.Species, onClink = onSpeciesClick),
         GridParams("Lures", AppIcons.Default.Lure, onClink = onLuresClick),
         GridParams("Baits", AppIcons.Default.Worm, onClink = onBaitsClick),
-        GridParams("Reports", Icons.Default.AutoGraph, onClink = onReportsClick),
+        GridParams("Reports", AppIcons.Default.Reports, onClink = onReportsClick),
         GridParams("Settings", AppIcons.Default.Settings, onClink = onSettingsClick)
     )
 
