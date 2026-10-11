@@ -445,14 +445,13 @@ fun FishermanSelection(
                                             thumbnailProvider(item)
                                             if (isChecked) {
                                                 BadgeSelected(
-                                                    badgeColor =
-                                                        if (state == ToggleableState.On) MaterialTheme.colorScheme.primaryContainer
-                                                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                    badgeColor = MaterialTheme.colorScheme.primaryContainer,
                                                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                                     borderColor = MaterialTheme.colorScheme.surface,
                                                     modifier = Modifier
                                                         .align(Alignment.TopEnd)
-                                                        .offset(x = 4.dp, y = (-4).dp)
+                                                        .offset(x = 4.dp, y = (-4).dp),
+                                                    state = state
                                                 )
                                             }
                                         }
