@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.EditTackleBoxDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
@@ -432,12 +433,26 @@ private fun LureTackleBoxItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ThumbnailBox(
-                    thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.Lure,
-                    modifier = Modifier.size(48.dp),
-                    onClick = { showPhotos = !showPhotos }
-                )
+                Box(
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.Lure,
+                        modifier = Modifier.size(48.dp),
+                        onClick = { showPhotos = !showPhotos }
+                    )
+                    if (inTackleBox) {
+                        BadgeSelected(
+                            badgeColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            borderColor = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp, y = (-4).dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
