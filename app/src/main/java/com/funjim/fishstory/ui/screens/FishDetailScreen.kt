@@ -35,11 +35,9 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.AddNoteDialog
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.EditNoteDialog
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -47,6 +45,8 @@ import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.WaterCard
 import com.funjim.fishstory.ui.utils.WeatherCard
+import com.funjim.fishstory.ui.utils.crud.AddNoteDialog
+import com.funjim.fishstory.ui.utils.crud.EditNoteDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import com.funjim.fishstory.viewmodels.FishDetailsViewModel

@@ -43,6 +43,7 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 import com.funjim.fishstory.ui.theme.AppIcons
+import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.FishermanHighlightCard
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
@@ -437,15 +438,13 @@ fun FishermanDetailsScreen(
                                 )
 
                                 if (state.recentTrips.size + state.activeTrips.size + state.upcomingTrips.size > 1) {
-                                    Spacer(modifier = Modifier.width(4.dp))
-
                                     val total = state.recentTrips.size +
                                             state.activeTrips.size +
                                             state.upcomingTrips.size
-                                    Text(
-                                        text = "(${total})",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                    BadgeCount(
+                                        count = total,
+                                        badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                        textColor = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
@@ -462,12 +461,10 @@ fun FishermanDetailsScreen(
                                         style = MaterialTheme.typography.titleSmall,
                                     )
                                     if (state.upcomingTrips.size > 1) {
-                                        Spacer(modifier = Modifier.width(4.dp))
-
-                                        Text(
-                                            text = "(${state.upcomingTrips.size})",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                        BadgeCount(
+                                            count = state.upcomingTrips.size,
+                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                            textColor = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
@@ -497,12 +494,10 @@ fun FishermanDetailsScreen(
                                         style = MaterialTheme.typography.titleSmall,
                                     )
                                     if (state.activeTrips.size > 1) {
-                                        Spacer(modifier = Modifier.width(4.dp))
-
-                                        Text(
-                                            text = "(${state.activeTrips.size})",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                        BadgeCount(
+                                            count = state.activeTrips.size,
+                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                            textColor = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
@@ -555,12 +550,10 @@ fun FishermanDetailsScreen(
                                         style = MaterialTheme.typography.titleSmall,
                                     )
                                     if (state.recentTrips.size > 1) {
-                                        Spacer(modifier = Modifier.width(4.dp))
-
-                                        Text(
-                                            text = "(${state.recentTrips.size})",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                        BadgeCount(
+                                            count = state.recentTrips.size,
+                                            badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                            textColor = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
