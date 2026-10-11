@@ -345,7 +345,7 @@ fun FishSummaryScreen(
                         modifier = Modifier.fillMaxWidth(),
                         thumbnailProvider = { bodyOfWater ->
                             val thumbnailFlow = remember(bodyOfWater.id) {
-                                viewModel.lureThumbnail(bodyOfWater.id)
+                                viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                             }
 
                             val thumbnail by thumbnailFlow.collectAsState(initial = null)
