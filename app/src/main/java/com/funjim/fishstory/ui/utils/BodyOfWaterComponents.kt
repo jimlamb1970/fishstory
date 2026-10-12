@@ -241,29 +241,26 @@ fun BodyOfWaterSummaries(
 
 @Composable
 fun UpdateAllCatchesDialog(
-    bodyOfWater: BodyOfWater?,
+    bodyOfWater: BodyOfWater,
     content: String,
     onDismiss: () -> Unit,
-    onConfirm: (BodyOfWater) -> Unit
+    onConfirm: () -> Unit
 ) {
-    // Only render the AlertDialog if there is a valid body of water target
-    if (bodyOfWater != null) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(text = "Update Catches?") },
-            text = { Text(text = content) },
-            confirmButton = {
-                TextButton(onClick = { onConfirm(bodyOfWater) }
-                ) {
-                    Text("Update")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss
-                ) {
-                    Text("Cancel")
-                }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Update Catches?") },
+        text = { Text(text = content) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm() }
+            ) {
+                Text("Update")
             }
-        )
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }

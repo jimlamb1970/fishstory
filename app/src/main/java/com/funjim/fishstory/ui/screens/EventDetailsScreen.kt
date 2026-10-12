@@ -152,7 +152,6 @@ fun EventDetailsScreen(
     var showAddSkyConditionDialog by remember { mutableStateOf(false) }
 
     // Dialog state for updating all catches for this body of water
-    var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
@@ -906,7 +905,6 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             onAdd = { showBodiesOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
-                                                showUpdateAllCatchesDialog = true
                                             },
                                             onFishClick = { bodyOfWater, target ->
                                                 navigateToFishList(FishFilter(
@@ -1607,20 +1605,20 @@ Adding weather conditions will automatically apply them to any new catches logge
     }
 
     // Confirmation Dialog for long pressing a Body of Water
-    if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
+    bodyOfWaterToUpdateAll?.let { bodyOfWater ->
         UpdateAllCatchesDialog(
-            bodyOfWater = bodyOfWaterToUpdateAll,
-            content = "Do you want to update all the fish logged for this event to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            bodyOfWater = bodyOfWater,
+            content = "Do you want to update all the fish logged for this event to the body of water: ${bodyOfWater.name}?",
             onDismiss = {
                 bodyOfWaterToUpdateAll = null
             },
-            onConfirm = { targetBody ->
+            onConfirm = {
                 scope.launch {
                     viewModel.updateBodyOfWaterForEvent(
-                        newBodyOfWaterId = targetBody.id,
+                        newBodyOfWaterId = bodyOfWater.id,
                         eventId = eventId
                     )
-                    Toast.makeText(context, "Catches updated to ${targetBody.name}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Catches updated to ${bodyOfWater.name}", Toast.LENGTH_SHORT).show()
                     bodyOfWaterToUpdateAll = null
                 }
             }

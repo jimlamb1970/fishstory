@@ -142,7 +142,6 @@ fun TripDetailsScreen(
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
-    var showUpdateAllCatchesDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
@@ -883,7 +882,6 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             onAdd = { showBodiesOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
-                                                showUpdateAllCatchesDialog = true
                                             },
                                             onFishClick = { bodyOfWater, target ->
                                                 navigateToFishList(FishFilter(
@@ -1708,25 +1706,20 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
 
 
     // Confirmation Dialog for long pressing a Body of Water
-    if (showUpdateAllCatchesDialog && bodyOfWaterToUpdateAll != null) {
+    bodyOfWaterToUpdateAll?.let { bodyOfWater ->
         UpdateAllCatchesDialog(
-            bodyOfWater = bodyOfWaterToUpdateAll,
-            content = "Do you want to update all the fish logged for this trip to the body of water: ${bodyOfWaterToUpdateAll?.name}?",
+            bodyOfWater = bodyOfWater,
+            content = "Do you want to update all the fish logged for this trip to the body of water: ${bodyOfWater.name}?",
             onDismiss = {
                 bodyOfWaterToUpdateAll = null
             },
-            onConfirm = { targetBody ->
+            onConfirm = {
                 scope.launch {
-                    // UI waits for the database operation to finish
                     viewModel.updateBodyOfWaterForTrip(
-                        newBodyOfWaterId = targetBody.id,
+                        newBodyOfWaterId = bodyOfWater.id,
                         tripId = tripId
                     )
-
-                    // Runs only after the batch update successfully completes
-                    Toast.makeText(context, "Catches updated to ${targetBody.name}", Toast.LENGTH_SHORT).show()
-
-                    // Dismiss the dialog by clearing the state inside the coroutine block
+                    Toast.makeText(context, "Catches updated to ${bodyOfWater.name}", Toast.LENGTH_SHORT).show()
                     bodyOfWaterToUpdateAll = null
                 }
             }
