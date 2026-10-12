@@ -250,8 +250,6 @@ fun EventDetailsScreen(
 
             val activeLat = eventLat ?: tripLat
 
-            // Sort water snapshots descending (most recent first)
-
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
