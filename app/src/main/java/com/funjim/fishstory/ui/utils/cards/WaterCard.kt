@@ -131,7 +131,7 @@ fun WaterCard(
                         )
                     }
                 }
-                water.water.depthDisplayString()?.let { depth ->
+                water.water.depthDisplayString(useImperial)?.let { depth ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Depth: ",
@@ -294,7 +294,7 @@ fun WaterSummaryCard(
                         )
                     }
                 }
-                water.water.depthDisplayString()?.let { depth ->
+                water.water.depthDisplayString(useImperial)?.let { depth ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Depth: ",

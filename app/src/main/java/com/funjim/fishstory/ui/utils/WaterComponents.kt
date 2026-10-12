@@ -67,15 +67,28 @@ fun Water.tempDisplayString(useImperial: Boolean = true): String? {
     }
 }
 
-fun Water.depthDisplayString(): String? {
-    return depth?.let { totalInches ->
-        val feet = totalInches.toInches().toLong() / 12
-        val inches = totalInches.toInches().toLong() % 12
+fun Water.depthDisplayString(useImperial: Boolean = true): String? {
+    return depth?.let { depth ->
+        if (useImperial) {
+            val feet = depth.toInches().toLong() / 12
+            val inches = depth.toInches().toLong() % 12
 
-        when {
-            feet > 0 && inches > 0 -> "${feet}' ${inches}\""
-            feet > 0 -> "${feet}'"
-            else -> "${inches}\""
+            when {
+                feet > 0 && inches > 0 -> "${feet}' ${inches}\""
+                feet > 0 -> "${feet}'"
+                else -> "${inches}\""
+            }
+        } else {
+            val totalCm = depth.toCm()
+            val meters = totalCm / 100.0
+
+            if (meters >= 1.0) {
+                String.format(Locale.US, "%.1fm", meters).let {
+                    if (it.endsWith(".0m")) it.replace(".0m", "m") else it
+                }
+            } else {
+                "${totalCm.toLong()}cm"
+            }
         }
     }
 }
