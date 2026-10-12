@@ -19,27 +19,27 @@ import java.util.UUID
     tableName = "fish_table",
     foreignKeys = [
         ForeignKey(
-            entity = SpeciesEntity::class,
+            entity = BaitEntity::class,
             parentColumns = ["id"],
-            childColumns = ["speciesId"],
-            onDelete = ForeignKey.RESTRICT
+            childColumns = ["baitId"],
+            onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
-            entity = FishermanEntity::class,
+            entity = BodyOfWaterEntity::class,
             parentColumns = ["id"],
-            childColumns = ["fishermanId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = TripEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["tripId"],
-            onDelete = ForeignKey.CASCADE
+            childColumns = ["bodyOfWaterId"],
+            onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
             entity = EventEntity::class,
             parentColumns = ["id"],
             childColumns = ["eventId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = FishermanEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["fishermanId"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
@@ -49,10 +49,16 @@ import java.util.UUID
             onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
-            entity = BodyOfWaterEntity::class,
+            entity = SpeciesEntity::class,
             parentColumns = ["id"],
-            childColumns = ["bodyOfWaterId"],
-            onDelete = ForeignKey.SET_NULL
+            childColumns = ["speciesId"],
+            onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = TripEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["tripId"],
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = WaterEntity::class,
@@ -68,12 +74,13 @@ import java.util.UUID
         )
     ],
     indices = [
-        Index(value = ["speciesId"]),
-        Index(value = ["fishermanId"]),
-        Index(value = ["tripId"]),
-        Index(value = ["eventId"]),
-        Index(value = ["lureId"]),
+        Index(value = ["baitId"]),
         Index(value = ["bodyOfWaterId"]),
+        Index(value = ["eventId"]),
+        Index(value = ["fishermanId"]),
+        Index(value = ["lureId"]),
+        Index(value = ["speciesId"]),
+        Index(value = ["tripId"]),
         Index(value = ["waterId"]),
         Index(value = ["weatherId"])
     ]
@@ -90,6 +97,7 @@ data class FishEntity(
     val lureId: String? = null,
     val baitId: String? = null,
     val length: Long? = null,
+    val weight: Long? = null,
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
