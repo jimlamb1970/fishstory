@@ -263,6 +263,9 @@ fun FishDetailScreen(
                     },
                     onPhotoDeleted = { photo ->
                         viewModel.deleteFishPhoto(fishId = fish.fish.id, photo.id)
+                    },
+                    onThumbnailLongClick = {
+                        viewModel.toggleImperialUnits()
                     }
                 )
             }
@@ -318,7 +321,8 @@ private fun FishDetailContent(
     onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit
+    onPhotoDeleted: (Photo) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -334,7 +338,6 @@ private fun FishDetailContent(
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
 
-
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
     val bodyOfWaterThumbnail by bodyOfWaterThumbnailFlow.collectAsState(initial = null)
     val fishThumbnail by fishThumbnailFlow.collectAsState(initial = null)
@@ -348,7 +351,6 @@ private fun FishDetailContent(
     val trip = fish.trip
     val event = fish.event
 
-    val eventLat = event.latitude
     val fishLat = fish.fish.latitude
 
     // Precedence logic: Use Event if it exists, otherwise use Trip
@@ -798,6 +800,7 @@ Notes help you remember specific details about this fish.""",
                             WaterCard(
                                 water = fish.water,
                                 useImperial = useImperial,
+                                onThumbnailLongClick = onThumbnailLongClick
                             )
                         }
                     }
@@ -810,6 +813,7 @@ Notes help you remember specific details about this fish.""",
                             WeatherCard(
                                 weather = fish.weather,
                                 useImperial = useImperial,
+                                onThumbnailLongClick = onThumbnailLongClick
                             )
                         }
                     }

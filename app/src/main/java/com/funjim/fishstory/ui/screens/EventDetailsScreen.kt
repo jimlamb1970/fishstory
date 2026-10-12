@@ -1130,7 +1130,10 @@ Adding water conditions will automatically apply them to any new catches logged 
                                                     targetOnly = target)
                                                 )
                                             },
-                                            onDelete = { waterToDelete = it }
+                                            onDelete = { waterToDelete = it },
+                                            onThumbnailLongClick = {
+                                                viewModel.toggleImperialUnits()
+                                            }
                                         )
                                     }
                                     CategoryType.WEATHER -> {
@@ -1151,10 +1154,12 @@ Adding weather conditions will automatically apply them to any new catches logge
                                                     targetOnly = target)
                                                 )
                                             },
-                                            onDelete = { weatherToDelete = it }
+                                            onDelete = { weatherToDelete = it },
+                                            onThumbnailLongClick = {
+                                                viewModel.toggleImperialUnits()
+                                            }
                                         )
                                     }
-
                                     else -> {
                                         // DO NOTHING FOR NOW
                                     }

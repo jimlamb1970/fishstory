@@ -241,6 +241,12 @@ class FishDetailsViewModel(
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
     }
+
+    fun toggleImperialUnits() {
+        viewModelScope.launch {
+            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+        }
+    }
 }
 
 class FishDetailsViewModelFactory(

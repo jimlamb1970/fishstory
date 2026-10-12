@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Weather
@@ -60,7 +61,8 @@ fun WeatherCard(
     index: Int = 0,
     totalItems: Int = 0,
     onEdit: ((Weather) -> Unit)? = null,
-    onDelete: ((Weather) -> Unit)? = null
+    onDelete: ((Weather) -> Unit)? = null,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -94,12 +96,23 @@ fun WeatherCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = AppIcons.Default.WeatherSet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .combinedClickable(
+                        onClick = { /* Do nothing */ },
+                        onLongClick = onThumbnailLongClick,
+                        role = Role.Button
+                    )
+            ) {
+                Icon(
+                    imageVector = AppIcons.Default.WeatherSet,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -290,7 +303,8 @@ fun WeatherSummaryCard(
     totalItems: Int = 0,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
-    onDelete: (Weather) -> Unit
+    onDelete: (Weather) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -325,12 +339,23 @@ fun WeatherSummaryCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = AppIcons.Default.WeatherSet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .combinedClickable(
+                        onClick = { /* Do nothing */ },
+                        onLongClick = onThumbnailLongClick,
+                        role = Role.Button
+                    )
+            ) {
+                Icon(
+                    imageVector = AppIcons.Default.WeatherSet,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

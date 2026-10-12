@@ -207,7 +207,8 @@ fun WaterSummaryRow(
     onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
-    onDelete: (Water) -> Unit
+    onDelete: (Water) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var isWaterSectionExpanded by remember { mutableStateOf(false) }
 
@@ -286,7 +287,8 @@ fun WaterSummaryRow(
                     totalItems = waterList.size,
                     onEdit = onEdit,
                     onFishClick= onFishClick,
-                    onDelete = onDelete
+                    onDelete = onDelete,
+                    onThumbnailLongClick = onThumbnailLongClick
                 )
 
                 AnimatedVisibility(visible = isWaterSectionExpanded && waterList.size > 1) {
@@ -303,7 +305,8 @@ fun WaterSummaryRow(
                                 totalItems = waterList.size,
                                 onEdit = onEdit,
                                 onFishClick= onFishClick,
-                                onDelete = onDelete
+                                onDelete = onDelete,
+                                onThumbnailLongClick = onThumbnailLongClick
                             )
                         }
                     }

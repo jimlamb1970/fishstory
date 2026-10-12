@@ -3,7 +3,6 @@ package com.funjim.fishstory.ui.utils.cards
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Water
@@ -57,7 +57,8 @@ fun WaterCard(
     index: Int = 0,
     totalItems: Int = 0,
     onEdit: ((Water) -> Unit)? = null,
-    onDelete: ((Water) -> Unit)? = null
+    onDelete: ((Water) -> Unit)? = null,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -70,7 +71,6 @@ fun WaterCard(
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
-    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = modifier
@@ -92,12 +92,23 @@ fun WaterCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = AppIcons.Default.WaterSet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .combinedClickable(
+                        onClick = { /* Do nothing */ },
+                        onLongClick = onThumbnailLongClick,
+                        role = Role.Button
+                    )
+            ) {
+                Icon(
+                    imageVector = AppIcons.Default.WaterSet,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -107,41 +118,33 @@ fun WaterCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                if (water.water.temperature != null || water.water.depth != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        water.water.tempDisplayString(useImperial)?.let { temp ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Temperature: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = temp,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                        water.water.depthDisplayString()?.let { depth ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Depth: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = depth,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                water.water.tempDisplayString(useImperial)?.let { temp ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Temperature: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = temp,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (water.clarity != null) {
+                water.water.depthDisplayString()?.let { depth ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Depth: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = depth,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                water.clarity?.let {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Clarity: ",
@@ -216,7 +219,8 @@ fun WaterSummaryCard(
     totalItems: Int = 0,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
-    onDelete: (Water) -> Unit
+    onDelete: (Water) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -251,12 +255,24 @@ fun WaterSummaryCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = AppIcons.Default.WaterSet,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .combinedClickable(
+                        onClick = { /* Do nothing */ },
+                        onLongClick = onThumbnailLongClick,
+                        role = Role.Button
+                    )
+            ) {
+                Icon(
+                    imageVector = AppIcons.Default.WaterSet,
+                    contentDescription = "Water Conditions",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -265,40 +281,33 @@ fun WaterSummaryCard(
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                if (water.water.temperature != null || water.water.depth != null) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        water.water.tempDisplayString(useImperial)?.let { temp ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Temperature: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = temp,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                        water.water.depthDisplayString()?.let { depth ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Depth: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = depth,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                water.water.tempDisplayString(useImperial)?.let { temp ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Temperature: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = temp,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-                if (water.clarity != null) {
+                water.water.depthDisplayString()?.let { depth ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Depth: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = depth,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                water.clarity?.let {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Clarity: ",
@@ -311,6 +320,7 @@ fun WaterSummaryCard(
                         )
                     }
                 }
+
                 if (water.fishCaught != 0) {
                     Spacer(Modifier.height(4.dp))
                     FishCaughtItem(

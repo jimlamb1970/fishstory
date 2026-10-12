@@ -263,7 +263,8 @@ fun WeatherSummaryRow(
     onAdd: (() -> Unit)? = null,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
-    onDelete: (Weather) -> Unit
+    onDelete: (Weather) -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -342,7 +343,8 @@ fun WeatherSummaryRow(
                     totalItems = list.size,
                     onEdit = onEdit,
                     onFishClick= onFishClick,
-                    onDelete = onDelete
+                    onDelete = onDelete,
+                    onThumbnailLongClick = onThumbnailLongClick
                 )
 
                 AnimatedVisibility(visible = isExpanded && list.size > 1) {
@@ -359,7 +361,8 @@ fun WeatherSummaryRow(
                                 totalItems = list.size,
                                 onEdit = onEdit,
                                 onFishClick= onFishClick,
-                                onDelete = onDelete
+                                onDelete = onDelete,
+                                onThumbnailLongClick = onThumbnailLongClick
                             )
                         }
                     }
