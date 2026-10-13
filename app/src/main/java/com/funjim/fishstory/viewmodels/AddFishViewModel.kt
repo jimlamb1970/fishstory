@@ -482,7 +482,34 @@ class AddFishViewModel(
             _draftFish.value = transform(current)
         }
     }
-}
+
+    fun saveFish(
+        fish: Fish,
+        currentPhotos: List<Photo>,
+        onComplete: () -> Unit
+    ) {
+        viewModelScope.launch {
+            fishRepo.upsertFish(fish)
+            clearDraftFish()
+
+            val originalPhotos = _originalFish.value?.photos ?: emptyList()
+            val newPhotos = currentPhotos.filter { current ->
+                originalPhotos.none { it.id == current.id }
+            }
+            val deletedPhotos = originalPhotos.filter { original ->
+                currentPhotos.none { it.id == original.id }
+            }
+
+            if (newPhotos.isNotEmpty()) {
+                photoRepo.addFishPhotos(fish.id, newPhotos)
+            }
+            if (deletedPhotos.isNotEmpty()) {
+                photoRepo.deleteFishPhotos(fish.id, deletedPhotos)
+            }
+
+            onComplete()
+        }
+    }}
 
 sealed interface AddFishUiState {
     object Loading : AddFishUiState

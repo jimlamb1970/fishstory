@@ -336,6 +336,26 @@ fun AddFishScreen(
                                     contentDescription = "Back"
                                 )
                             }
+                        },
+                        actions = {
+                            IconButton(
+                                onClick = {
+                                    draftFish?.let { fish ->
+                                        viewModel.saveFish(
+                                            fish = fish,
+                                            currentPhotos = photos,
+                                            onComplete = navigateBack
+                                        )
+                                    }
+                                },
+                                enabled = hasChanges
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Default.Save,
+                                    modifier = Modifier.size(28.dp),
+                                    contentDescription = "Save Lure"
+                                )
+                            }
                         }
                     )
                 }
@@ -665,27 +685,11 @@ fun AddFishScreen(
 
                         Button(
                             onClick = {
-                                scope.launch {
-                                    viewModel.upsertFish(fish)
-                                    viewModel.clearDraftFish()
-
-                                    // Logic to identify the changes
-                                    val originalPhotos = originalFish?.photos ?: emptyList()
-                                    val currentPhotos = photos
-
-                                    val newPhotos = currentPhotos.filter { current ->
-                                        originalPhotos.none { it.id == current.id }
-                                    }
-
-                                    val deletedPhotos = originalPhotos.filter { original ->
-                                        currentPhotos.none { it.id == original.id }
-                                    }
-
-                                    viewModel.addFishPhotos(fish.id, newPhotos)
-                                    viewModel.deleteFishPhotos(fish.id, deletedPhotos)
-
-                                    navigateBack()
-                                }
+                                viewModel.saveFish(
+                                    fish = fish,
+                                    currentPhotos = photos,
+                                    onComplete = navigateBack
+                                )
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
@@ -694,7 +698,7 @@ fun AddFishScreen(
                             enabled = hasChanges,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(if (fishId == null) "Add Fish" else "Edit Fish")
+                            Text(if (fishId == null) "Add Fish" else "Update Fish")
                         }
                     }
                 }

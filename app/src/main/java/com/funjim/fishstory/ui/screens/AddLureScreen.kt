@@ -127,7 +127,6 @@ fun AddLureScreen(
                                 currentPhotos = photos,
                                 onComplete = onNavigateBack
                             )
-                            onNavigateBack()
                         },
                         enabled = name.isNotBlank() && hasChanges
                     ) {
@@ -299,12 +298,11 @@ fun AddLureScreen(
                         currentPhotos = photos,
                         onComplete = onNavigateBack
                     )
-                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = name.isNotBlank() && hasChanges
             ) {
-                Text("Save Lure")
+                Text(if (lureId == null) "Add Lure" else "Update Lure")
             }
         }
     }
