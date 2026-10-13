@@ -29,10 +29,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class LureViewModel(
     private val configRepo: ConfigurationRepository,
-    private val repository: LureRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
@@ -51,12 +52,12 @@ class LureViewModel(
     private val _isReversed = MutableStateFlow(false)
     val isReversed = _isReversed.asStateFlow()
 
-    private val _lureColors = repository.allLureColors
+    private val _lureColors = lureRepo.allLureColors
     val lureColors = _lureColors
 
     // Combine lures, colors, and photos into the UI model
     val luresWithDisplay: StateFlow<List<LureWithColorsSummary>> = combine(
-        repository.getLureSummariesWithColors(),
+        lureRepo.getLureSummariesWithColors(),
         _sortOrder,
         _isReversed
     ) { lures, sort, reversed ->
@@ -83,25 +84,25 @@ class LureViewModel(
 
     fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
         viewModelScope.launch {
-            repository.addLureToTackleBox(tackleBoxId, lureId)
+            lureRepo.addLureToTackleBox(tackleBoxId, lureId)
         }
     }
 
     fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
         viewModelScope.launch {
-            repository.removeLureFromTackleBox(tackleBoxId, lureId)
+            lureRepo.removeLureFromTackleBox(tackleBoxId, lureId)
         }
     }
 
     fun upsertLure(lure: Lure) {
         viewModelScope.launch {
-            repository.upsertLure(lure)
+            lureRepo.upsertLure(lure)
         }
     }
 
     fun deleteLure(lure: Lure) {
         viewModelScope.launch {
-            repository.deleteLure(lure)
+            lureRepo.deleteLure(lure)
         }
     }
 
@@ -111,7 +112,7 @@ class LureViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repository.insertLureColor(item)
+                lureRepo.insertLureColor(item)
                 onSuccess(item)
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Color '${item.name}' already exists.")
@@ -127,7 +128,7 @@ class LureViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repository.updateLureColor(item)
+                lureRepo.updateLureColor(item)
                 onSuccess()
             } catch (e: SQLiteConstraintException) {
                 _toastMessage.emit("Color '${item.name}' already exists.")
@@ -139,22 +140,22 @@ class LureViewModel(
 
     fun deleteLureColor(color: LureColor) {
         viewModelScope.launch {
-            repository.deleteLureColor(color)
+            lureRepo.deleteLureColor(color)
         }
     }
 
     suspend fun getLureWithDetails(id: String): LureWithDetails? {
-        return repository.getLureWithDetails(id)
+        return lureRepo.getLureWithDetails(id)
     }
 
     suspend fun upsertLurePrimaryColor(crossRef: LurePrimaryColor) {
-        repository.upsertLurePrimaryColor(crossRef)
+        lureRepo.upsertLurePrimaryColor(crossRef)
     }
     suspend fun upsertLureSecondaryColor(crossRef: LureSecondaryColor) {
-        repository.upsertLureSecondaryColor(crossRef)
+        lureRepo.upsertLureSecondaryColor(crossRef)
     }
     suspend fun upsertLureGlowColor(crossRef: LureGlowColor) {
-        repository.upsertLureGlowColor(crossRef)
+        lureRepo.upsertLureGlowColor(crossRef)
     }
 
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {
@@ -208,7 +209,7 @@ class LureViewModel(
 
     fun selectFisherman(id: String) {
         viewModelScope.launch {
-            val fisherman = repository.getFishermanById(id)
+            val fisherman = lureRepo.getFishermanById(id)
             _selectedFisherman.value = fisherman
         }
     }
@@ -219,7 +220,7 @@ class LureViewModel(
     val selectedTackleBox: StateFlow<TackleBox?> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
-            else repository.getTackleBoxById(id) // Room DAO should return Flow<TackleBox>
+            else lureRepo.getTackleBoxById(id) // Room DAO should return Flow<TackleBox>
         }
         .stateIn(
             scope = viewModelScope,
@@ -233,33 +234,17 @@ class LureViewModel(
 
     fun updateTackleBox(tackleBox: TackleBox) {
         viewModelScope.launch {
-            repository.updateTackleBox(tackleBox)
+            lureRepo.updateTackleBox(tackleBox)
         }
     }
-/*
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxWithLures: StateFlow<List<LureWithColors>> = _selectedTackleBoxId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList())
-            } else {
-                // This query only runs for the currently selected trip
-                repository.getLuresInTackleBox(id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-*/
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxWithLures: StateFlow<List<LureWithColors>?> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
                 flowOf(emptyList()) // Valid selection state with 0 items
             } else {
-                repository.getLuresInTackleBox(id)
+                lureRepo.getLuresInTackleBox(id)
             }
         }
         .stateIn(
@@ -274,7 +259,7 @@ class LureViewModel(
             if (id == null) {
                 flowOf(LureUiState.Success(emptyList()))
             } else {
-                repository.getLuresInTackleBox(id)
+                lureRepo.getLuresInTackleBox(id)
                     .map<List<LureWithColors>, LureUiState> { lures ->
                         LureUiState.Success(lures)
                     }
@@ -287,6 +272,64 @@ class LureViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = LureUiState.Loading
         )
+
+    fun saveLure(
+        lureId: String?,
+        name: String,
+        hookCount: Int,
+        glows: Boolean,
+        primaryColors: List<LureColor>,
+        secondaryColors: List<LureColor>,
+        glowColors: List<LureColor>,
+        originalLure: LureWithDetails?,
+        currentPhotos: List<Photo>,
+        onComplete: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val id = lureId ?: UUID.randomUUID().toString()
+            val newLure = Lure(
+                id = id,
+                name = name,
+                hookCount = hookCount,
+                glows = glows
+            )
+            lureRepo.upsertLure(newLure)
+
+            primaryColors.forEach { primaryColor ->
+                lureRepo.upsertLurePrimaryColor(
+                    LurePrimaryColor(id, primaryColor.id)
+                )
+            }
+            secondaryColors.forEach { secondaryColor ->
+                lureRepo.upsertLureSecondaryColor(
+                    LureSecondaryColor(id, secondaryColor.id)
+                )
+            }
+            glowColors.forEach { glowColor ->
+                lureRepo.upsertLureGlowColor(
+                    LureGlowColor(id, glowColor.id)
+                )
+            }
+
+            // Identify photo additions and deletions
+            val originalPhotos = originalLure?.photos ?: emptyList()
+            val newPhotos = currentPhotos.filter { current ->
+                originalPhotos.none { it.id == current.id }
+            }
+            val deletedPhotos = originalPhotos.filter { original ->
+                currentPhotos.none { it.id == original.id }
+            }
+
+            if (newPhotos.isNotEmpty()) {
+                photoRepo.addLurePhotos(id, newPhotos)
+            }
+            if (deletedPhotos.isNotEmpty()) {
+                photoRepo.deleteLurePhotos(id, deletedPhotos)
+            }
+
+            onComplete()
+        }
+    }
 
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {

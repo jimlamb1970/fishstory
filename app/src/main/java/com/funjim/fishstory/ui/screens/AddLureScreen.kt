@@ -12,20 +12,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureGlowColor
-import com.funjim.fishstory.model.LurePrimaryColor
-import com.funjim.fishstory.model.LureSecondaryColor
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.crud.AddColorDialog
 import com.funjim.fishstory.ui.utils.selection.LureColorSelectionField
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,6 +110,32 @@ fun AddLureScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.saveLure(
+                                lureId = lureId,
+                                name = name,
+                                hookCount = hookCount,
+                                glows = glows,
+                                primaryColors = selectedPrimaryColors,
+                                secondaryColors = selectedSecondaryColors,
+                                glowColors = selectedGlowColors,
+                                originalLure = originalLure,
+                                currentPhotos = photos,
+                                onComplete = onNavigateBack
+                            )
+                            onNavigateBack()
+                        },
+                        enabled = name.isNotBlank() && hasChanges
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Default.Save,
+                            modifier = Modifier.size(28.dp),
+                            contentDescription = "Save Lure"
+                        )
                     }
                 }
             )
@@ -265,56 +287,19 @@ fun AddLureScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        val newLure = Lure(
-                            id = lureId ?: UUID.randomUUID().toString(),
-                            name = name,
-                            hookCount = hookCount,
-                            glows = glows,
-                        )
-                        viewModel.upsertLure(newLure)
-
-                        selectedPrimaryColors.forEach { primaryColor ->
-                            viewModel.upsertLurePrimaryColor(
-                                LurePrimaryColor(
-                                    newLure.id,
-                                    primaryColor.id
-                                )
-                            )
-                        }
-                        selectedSecondaryColors.forEach { secondaryColor ->
-                            viewModel.upsertLureSecondaryColor(
-                                LureSecondaryColor(
-                                    newLure.id,
-                                    secondaryColor.id
-                                )
-                            )
-                        }
-                        selectedGlowColors.forEach { glowColor ->
-                            viewModel.upsertLureGlowColor(
-                                LureGlowColor(
-                                    newLure.id,
-                                    glowColor.id
-                                )
-                            )
-                        }
-
-                        // Logic to identify the changes
-                        val originalPhotos = originalLure?.photos ?: emptyList()
-                        val currentPhotos = photos
-
-                        val newPhotos = currentPhotos.filter { current ->
-                            originalPhotos.none { it.id == current.id }
-                        }
-
-                        val deletedPhotos = originalPhotos.filter { original ->
-                            currentPhotos.none { it.id == original.id }
-                        }
-                        viewModel.addLurePhotos(newLure.id, newPhotos)
-                        viewModel.deleteLurePhotos(newLure.id, deletedPhotos)
-
-                        onNavigateBack()
-                    }
+                    viewModel.saveLure(
+                        lureId = lureId,
+                        name = name,
+                        hookCount = hookCount,
+                        glows = glows,
+                        primaryColors = selectedPrimaryColors,
+                        secondaryColors = selectedSecondaryColors,
+                        glowColors = selectedGlowColors,
+                        originalLure = originalLure,
+                        currentPhotos = photos,
+                        onComplete = onNavigateBack
+                    )
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = name.isNotBlank() && hasChanges
