@@ -13,6 +13,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -107,6 +109,7 @@ fun WeatherDialog(
     initialAirVisibility: Long?,
     initialAirHumidity: Long?,
     allSkyConditions: List<SkyCondition>,
+    pendingSkyCondition: String?,
     useImperial: Boolean,
     title: String,
     thumbnailProvider: @Composable (SkyCondition) -> Unit,
@@ -168,6 +171,15 @@ fun WeatherDialog(
     var pressure by remember { mutableStateOf(originalPressure) }
     var visibility by remember(useImperial) { mutableStateOf(originalVisibility) }
     var humidity by remember { mutableStateOf(originalHumidity) }
+
+    // Automatically select the pending clarity once it arrives in allClarity
+    LaunchedEffect(pendingSkyCondition, allSkyConditions) {
+        if (pendingSkyCondition != null) {
+            allSkyConditions.find { it.id == pendingSkyCondition }?.let { match ->
+                skyCondition = match
+            }
+        }
+    }
 
     var isWindDirectionExpanded by remember { mutableStateOf(false) }
 
@@ -241,7 +253,7 @@ fun WeatherDialog(
                         },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth()
                     )
 

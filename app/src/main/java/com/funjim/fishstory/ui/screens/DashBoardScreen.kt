@@ -553,11 +553,13 @@ fun ActiveTripCard(
 
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterDialog by remember { mutableStateOf(false) }
-    var addWaterClarity by remember { mutableStateOf(false) }
+    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
+    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     var showAddWeatherDialog by remember { mutableStateOf(false) }
-    var addSkyCondition by remember { mutableStateOf(false) }
+    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
+    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
@@ -963,6 +965,7 @@ fun ActiveTripCard(
             initialDepth = sortedWaterList.firstOrNull()?.water?.depth,
             initialClarity = sortedWaterList.firstOrNull()?.water?.clarityId,
             allClarity = allWaterClarity,
+            pendingClarity = pendingWaterClarityId,
             useImperial = useImperial,
             title = if (sortedWaterList.isEmpty()) { "Set Water Conditions" } else {"Update Water Conditions"} ,
             thumbnailProvider = { clarity ->
@@ -991,30 +994,32 @@ fun ActiveTripCard(
                 viewModel.addWater(newWater)
                 showAddWaterDialog = false
             },
-            onAddWaterClarity = { addWaterClarity = true }
+            onAddWaterClarity = { showAddWaterClarityDialog = true }
         )
     }
 
-    if (addWaterClarity) {
+    if (showAddWaterClarityDialog) {
         AddWaterClarityDialog(
-            onDismiss = { addWaterClarity = false },
+            onDismiss = { showAddWaterClarityDialog = false },
             onConfirm = { name ->
-                viewModel.addWaterClarity(WaterClarity(name = name)) {
-                    // Do nothing on success
+                val newWaterClarity = WaterClarity(name = name)
+                viewModel.addWaterClarity(newWaterClarity) {
+                    pendingWaterClarityId = newWaterClarity.id
                 }
-                addWaterClarity = false
+                showAddWaterClarityDialog = false
             }
         )
     }
 
-    if (addSkyCondition) {
+    if (showAddSkyConditionDialog) {
         AddSkyConditionDialog(
-            onDismiss = { addSkyCondition = false },
+            onDismiss = { showAddSkyConditionDialog = false },
             onConfirm = { name ->
-                viewModel.addSkyCondition(SkyCondition(name = name)) {
-                    // Do nothing on success
+                val newSkyCondition = SkyCondition(name = name)
+                viewModel.addSkyCondition(newSkyCondition) {
+                    pendingSkyConditionId = newSkyCondition.id
                 }
-                addSkyCondition = false
+                showAddSkyConditionDialog = false
             }
         )
     }
@@ -1033,6 +1038,7 @@ fun ActiveTripCard(
             initialAirVisibility = sortedWeatherList.firstOrNull()?.weather?.airVisibility,
             initialAirHumidity = sortedWeatherList.firstOrNull()?.weather?.airHumidity,
             allSkyConditions = allSkyConditions,
+            pendingSkyCondition = pendingSkyConditionId,
             useImperial = useImperial,
             title = if (sortedWeatherList.isEmpty()) { "Set Weather Conditions" } else {"Update Weather Conditions"} ,
             thumbnailProvider = { skyCondition ->
@@ -1048,7 +1054,10 @@ fun ActiveTripCard(
                 )
             },
             onToggleImperialUnits = { onToggleImperialUnits() },
-            onAddSkyCondition = { addSkyCondition = true },
+            onAddSkyCondition = {
+                showAddSkyConditionDialog = true
+                pendingSkyConditionId = null
+            },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
                     Weather(
@@ -1063,6 +1072,7 @@ fun ActiveTripCard(
                         airHumidity = airHumidity)
                 )
                 showAddWeatherDialog = false
+                pendingSkyConditionId = null
             },
             onDismiss = { showAddWeatherDialog = false }
         )

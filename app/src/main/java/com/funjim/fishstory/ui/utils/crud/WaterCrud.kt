@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,6 +88,7 @@ fun WaterDialog(
     initialTemp: Long?,
     initialDepth: Long?,
     initialClarity: String?,
+    pendingClarity: String?,
     allClarity: List<WaterClarity>,
     useImperial: Boolean,
     title: String,
@@ -138,6 +140,15 @@ fun WaterDialog(
     var depthInches by remember { mutableStateOf(originalInches) }
     var depthMeters by remember { mutableStateOf(originalMeters) }
     var clarity by remember { mutableStateOf(originalClarity) }
+
+    // Automatically select the pending clarity once it arrives in allClarity
+    LaunchedEffect(pendingClarity, allClarity) {
+        if (pendingClarity != null) {
+            allClarity.find { it.id == pendingClarity }?.let { match ->
+                clarity = match
+            }
+        }
+    }
 
     val isChanged = temp != originalTemp ||
             (useImperial && (depthFeet != originalFeet || depthInches != originalInches)) ||

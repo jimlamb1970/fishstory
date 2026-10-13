@@ -163,11 +163,13 @@ fun TripDetailsScreen(
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterClarityDialog by remember { mutableStateOf(false) }
+    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     var showAddSkyConditionDialog by remember { mutableStateOf(false) }
+    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -1428,6 +1430,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     initialTemp = water.temperature,
                     initialDepth = water.depth,
                     initialClarity = water.clarityId,
+                    pendingClarity = pendingWaterClarityId,
                     allClarity = allWaterClarity,
                     useImperial = displaySettings.useImperialUnits,
                     title = "Edit Water Conditions",
@@ -1467,6 +1470,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     initialAtmosphericPressure = item.atmosphericPressure,
                     initialAirVisibility = item.airVisibility,
                     initialAirHumidity = item.airHumidity,
+                    pendingSkyCondition = pendingSkyConditionId,
                     allSkyConditions = allSkyConditions,
                     useImperial = displaySettings.useImperialUnits,
                     title = "Edit Weather Conditions",
@@ -1483,7 +1487,10 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-                    onDismiss = { weatherToEdit = null },
+                    onDismiss = {
+                        weatherToEdit = null
+                        pendingSkyConditionId = null
+                    },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                         viewModel.updateWeather(
                             item.copy(
@@ -1497,6 +1504,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                             )
                         )
                         weatherToEdit = null
+                        pendingSkyConditionId = null
                     },
                     onAddSkyCondition = { showAddSkyConditionDialog = true }
                 )
@@ -1676,8 +1684,9 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
         AddSkyConditionDialog(
             onDismiss = { showAddSkyConditionDialog = false },
             onConfirm = { name ->
-                viewModel.addSkyCondition(SkyCondition(name = name)) {
-                    // Do nothing on success
+                val newSkyCondition = SkyCondition(name = name)
+                viewModel.addSkyCondition(newSkyCondition) {
+                    pendingSkyConditionId = newSkyCondition.id
                 }
                 showAddSkyConditionDialog = false
             }
@@ -1696,8 +1705,9 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
         AddWaterClarityDialog(
             onDismiss = { showAddWaterClarityDialog = false },
             onConfirm = { name ->
-                viewModel.addWaterClarity(WaterClarity(name = name)) {
-                    // Do nothing on success
+                val newWaterClarity = WaterClarity(name = name)
+                viewModel.addWaterClarity(newWaterClarity) {
+                    pendingWaterClarityId = newWaterClarity.id
                 }
                 showAddWaterClarityDialog = false
             }

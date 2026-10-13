@@ -144,12 +144,14 @@ fun EventDetailsScreen(
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterClarityDialog by remember { mutableStateOf(false) }
+    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     var showAddWeatherDialog by remember { mutableStateOf(false) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     var showAddSkyConditionDialog by remember { mutableStateOf(false) }
+    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
 
     // Dialog state for updating all catches for this body of water
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
@@ -1252,6 +1254,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                     initialTemp = water.temperature,
                     initialDepth = water.depth,
                     initialClarity = water.clarityId,
+                    pendingClarity = pendingWaterClarityId,
                     allClarity = allWaterClarity,
                     useImperial = displaySettings.useImperialUnits,
                     title = "Edit Water Conditions",
@@ -1268,7 +1271,10 @@ Adding weather conditions will automatically apply them to any new catches logge
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-                    onDismiss = { waterToEdit = null },
+                    onDismiss = {
+                        waterToEdit = null
+                        pendingWaterClarityId = null
+                    },
                     onConfirm = { temp, depth, clarity ->
                         viewModel.updateWater(
                             water.copy(
@@ -1278,6 +1284,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                             )
                         )
                         waterToEdit = null
+                        pendingWaterClarityId = null
                     },
                     onAddWaterClarity = { showAddWaterClarityDialog = true }
                 )
@@ -1292,6 +1299,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                     initialAirVisibility = item.airVisibility,
                     initialAirHumidity = item.airHumidity,
                     allSkyConditions = allSkyConditions,
+                    pendingSkyCondition = pendingSkyConditionId,
                     useImperial = displaySettings.useImperialUnits,
                     title = "Edit Weather Conditions",
                     thumbnailProvider = { skyCondition ->
@@ -1307,7 +1315,10 @@ Adding weather conditions will automatically apply them to any new catches logge
                         )
                     },
                     onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-                    onDismiss = { weatherToEdit = null },
+                    onDismiss = {
+                        weatherToEdit = null
+                        pendingSkyConditionId = null
+                    },
                     onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                         viewModel.updateWeather(
                             item.copy(
@@ -1321,6 +1332,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                             )
                         )
                         weatherToEdit = null
+                        pendingSkyConditionId = null
                     },
                     onAddSkyCondition = { showAddSkyConditionDialog = true }
                 )
@@ -1493,8 +1505,9 @@ Adding weather conditions will automatically apply them to any new catches logge
         AddSkyConditionDialog(
             onDismiss = { showAddSkyConditionDialog = false },
             onConfirm = { name ->
-                viewModel.addSkyCondition(SkyCondition(name = name)) {
-                    // Do nothing on success
+                val newSkyCondition = SkyCondition(name = name)
+                viewModel.addSkyCondition(newSkyCondition) {
+                    pendingSkyConditionId = newSkyCondition.id
                 }
                 showAddSkyConditionDialog = false
             }
@@ -1515,6 +1528,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             initialDepth = null,
             initialClarity = null,
             allClarity = allWaterClarity,
+            pendingClarity = pendingWaterClarityId,
             useImperial = displaySettings.useImperialUnits,
             title = "New Water Conditions",
             thumbnailProvider = { clarity ->
@@ -1530,7 +1544,10 @@ Adding weather conditions will automatically apply them to any new catches logge
                 )
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-            onDismiss = { showAddWaterDialog = false },
+            onDismiss = {
+                showAddWaterDialog = false
+                pendingWaterClarityId = null
+            },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(
                     tripId = tripId,
@@ -1542,7 +1559,7 @@ Adding weather conditions will automatically apply them to any new catches logge
 
                 viewModel.addWater(newWater)
                 showAddWaterDialog = false
-
+                pendingWaterClarityId = null
             },
             onAddWaterClarity = { showAddWaterClarityDialog = true}
         )
@@ -1551,8 +1568,9 @@ Adding weather conditions will automatically apply them to any new catches logge
         AddWaterClarityDialog(
             onDismiss = { showAddWaterClarityDialog = false },
             onConfirm = { name ->
-                viewModel.addWaterClarity(WaterClarity(name = name)) {
-                    // Do nothing on success
+                val newWaterClarity = WaterClarity(name = name)
+                viewModel.addWaterClarity(newWaterClarity) {
+                    pendingWaterClarityId = newWaterClarity.id
                 }
                 showAddWaterClarityDialog = false
             }
@@ -1568,6 +1586,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             initialAirVisibility = null,
             initialAirHumidity = null,
             allSkyConditions = allSkyConditions,
+            pendingSkyCondition = pendingSkyConditionId,
             useImperial = displaySettings.useImperialUnits,
             title = "New Weather Conditions",
             thumbnailProvider = { skyCondition ->
@@ -1583,7 +1602,10 @@ Adding weather conditions will automatically apply them to any new catches logge
                 )
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-            onDismiss = { showAddWeatherDialog = false },
+            onDismiss = {
+                showAddWeatherDialog = false
+                pendingSkyConditionId = null
+            },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
                     Weather(
@@ -1598,7 +1620,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         airHumidity = airHumidity)
                 )
                 showAddWeatherDialog = false
-
+                pendingSkyConditionId = null
             },
             onAddSkyCondition = { showAddSkyConditionDialog = true }
         )
