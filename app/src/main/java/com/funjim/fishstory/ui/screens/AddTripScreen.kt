@@ -565,7 +565,7 @@ When logging catches, options will be restricted to the fishermen selected here.
 
         val options = listOf(
             "I do not want to add events at this time for this trip.",
-            "I want to add a single event spanning the entire trip.",
+            "I want to add a single event spanning this entire trip.",
             "I want to manually add events for this trip."
         )
 
