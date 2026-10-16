@@ -233,6 +233,16 @@ class AddTripViewModel(
         }
     }
 
+    fun createTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            fishermanRepo.createTackleBox(tackleBox)
+            onSuccess(tackleBox)
+        }
+    }
+
     fun persistBodiesOfWater() {
         _tripBodiesOfWater.value.forEach { item ->
             viewModelScope.launch {

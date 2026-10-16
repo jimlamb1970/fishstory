@@ -1,7 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,15 +29,19 @@ import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.utils.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.utils.selection.BodyOfWaterSelection
 import com.funjim.fishstory.ui.utils.selection.FishermanSelection
 import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
+import com.funjim.fishstory.ui.utils.selection.TackleBoxBottomSheet
 import com.funjim.fishstory.viewmodels.AddEventUiState
 import com.funjim.fishstory.viewmodels.AddEventViewModel
 import kotlinx.coroutines.launch
+import kotlin.collections.plus
+import androidx.core.net.toUri
 
 // ---------------------------------------------------------------------------
 // AddEventScreen
@@ -70,16 +73,14 @@ fun AddEventScreen(
     val targetSpecies by viewModel.eventTargetSpecies.collectAsStateWithLifecycle()
     var addNewSpecies by remember { mutableStateOf(false) }
 
-    // tripFishermen and eventFishermen are not really used. But they are being collected
-    // because when selecting a trip and/or event, those flows have a side effect of updating
-    // the tripFishermenIds and eventFishermenIds to reflect the trip and event selections
-    val tripFishermenIds by viewModel.tripFishermenIds.collectAsStateWithLifecycle()
-    val eventFishermenIds by viewModel.eventFishermenIds.collectAsStateWithLifecycle()
-
     var showFishermanSelection by remember { mutableStateOf(false) }
     val eventFishermen by viewModel.eventFishermen.collectAsStateWithLifecycle()
     val allFishermen by viewModel.allFishermen.collectAsStateWithLifecycle()
     var addNewFisherman by remember { mutableStateOf(false) }
+
+    var showTackleBoxSelection by remember { mutableStateOf(false) }
+    var addNewTackleBox by remember { mutableStateOf(false) }
+    var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
 
     var showSaveDialog by remember { mutableStateOf(false) }
 
@@ -93,7 +94,6 @@ fun AddEventScreen(
         }
     }
 
-    val tripTackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
     val eventTackleBoxMap by viewModel.eventTackleBoxMap.collectAsState()
 
     var isDraftInitialized by rememberSaveable { mutableStateOf(false) }
@@ -318,11 +318,11 @@ fun AddEventScreen(
                                         .size(24.dp)
                                         .clickable {
                                             val mapUri =
-                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}")
+                                                "https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}".toUri()
                                             val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                             try {
                                                 context.startActivity(intent)
-                                            } catch (e: Exception) {
+                                            } catch (_: Exception) {
                                                 Toast.makeText(
                                                     context,
                                                     "Could not open map",
@@ -518,9 +518,14 @@ Selecting them places those bodies of water at the top of the list when logging 
 
 Fishermen are the people actively participating on this event, and there must be at least one selected.
 
+After selecting fishermen, you can click on a fisherman to assign a tackle box.  Adding lures to the tackle box is not allowed at this time.  You will be allowed to add lures to the tackle box later.
+
 When logging catches, options will be restricted to the fishermen selected here.""",
                             onAdd = { showFishermanSelection = true },
-                            onClick = {},
+                            onClick = { item ->
+                                selectedFisherman = item
+                                showTackleBoxSelection = true
+                            },
                             onDelete = { item ->
                                 viewModel.updateEventFishermen(eventFishermen - item)
                                 viewModel.updateEventTackleBoxMap(eventTackleBoxMap - item.id)
@@ -537,6 +542,15 @@ When logging catches, options will be restricted to the fishermen selected here.
                                     imageVector = AppIcons.Default.Fisherman,
                                     modifier = Modifier.size(18.dp)
                                 )
+                            },
+                            tackleBoxProvider = { item ->
+                                if (eventTackleBoxMap.containsKey(item.id)) {
+                                    ThumbnailBox(
+                                        thumbnail = null,
+                                        imageVector = AppIcons.Default.TackleBoxClosed,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -722,6 +736,44 @@ When logging catches, options will be restricted to the fishermen selected here.
                     Text("Cancel")
                 }
             }
+        )
+    }
+
+    selectedFisherman?.let { selectedFisherman ->
+        val availableBoxes = viewModel.getTackleBoxesForFisherman(selectedFisherman.id)
+            .collectAsState(initial = emptyList()).value
+
+        if (addNewTackleBox) {
+            AddTackleBoxDialog(
+                fishermanId = selectedFisherman.id,
+                onDismiss = { addNewTackleBox = false },
+                onConfirm = { tackleBox ->
+                    viewModel.createTackleBox(tackleBox) { createdBox ->
+                        viewModel.updateEventTackleBoxMap(
+                            eventTackleBoxMap + (selectedFisherman.id to createdBox.id)
+                        )
+                    }
+                    addNewTackleBox = false
+                }
+            )
+        }
+
+        TackleBoxBottomSheet(
+            showSheet = showTackleBoxSelection,
+            items = availableBoxes,
+            selectedItem = availableBoxes.find {
+                it.id == eventTackleBoxMap[selectedFisherman.id]
+            },
+            onSelected = { tackleBox ->
+                viewModel.updateEventTackleBoxMap(
+                    eventTackleBoxMap + (selectedFisherman.id to tackleBox.id)
+                )
+            },
+            onAdd = { addNewTackleBox = true },
+            onClear = {
+                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - selectedFisherman.id)
+            },
+            onDismissRequest = { showTackleBoxSelection = false }
         )
     }
 }

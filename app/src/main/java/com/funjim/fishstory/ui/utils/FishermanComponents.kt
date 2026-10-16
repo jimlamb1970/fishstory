@@ -1,9 +1,8 @@
 package com.funjim.fishstory.ui.utils
 
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -35,9 +34,9 @@ fun FishermanRow(
     onClick: (Fisherman) -> Unit,
     onDelete: (Fisherman) -> Unit,
     thumbnailProvider: @Composable (Fisherman) -> Unit,
+    tackleBoxProvider: @Composable (Fisherman) -> Unit,
     modifier: Modifier = Modifier,
-    description: String = "No fishermen are selected.",
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    description: String = "No fishermen are selected."
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -101,7 +100,12 @@ fun FishermanRow(
                     InputChip(
                         selected = true,
                         onClick = { onClick(item) },
-                        label = { Text(item.fullName) },
+                        label = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(item.fullName)
+                                tackleBoxProvider(item)
+                            }
+                        },
                         avatar = { thumbnailProvider(item) },
                         colors = InputChipDefaults.inputChipColors(
                             selectedContainerColor = getCardColor().copy(alpha = 0.15f),
@@ -253,82 +257,6 @@ fun FishermanSummaries(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun FishermanSummary(
-    fishermanCount: Int,
-    tackleBoxCount: Int,
-    modifier: Modifier = Modifier,
-    allowOverride: Boolean = false,
-    onClick: () -> Unit) {
-    OutlinedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = getCardColor(),
-            contentColor = getOnCardColor()
-        ),
-        border = BorderStroke(1.dp, color = getCardBorderColor())
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                AppIcons.Default.Fisherman,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "THE CREW AND TACKLE BOXES",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    textAlign = TextAlign.Center, // Centers the text within the middle space
-                )
-                if (fishermanCount == 0 && allowOverride) {
-                    Text(
-                        "Trip Crew is being used\nTap to override",
-                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                } else {
-                    Text(
-                        "$fishermanCount ${if (fishermanCount == 1) "fisherman" else "fishermen"} on board",
-                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        "$tackleBoxCount ${if (tackleBoxCount == 1) "tackle box" else "tackle boxes"} assigned",
-                        color = getOnCardSecondaryColor().copy(alpha = 0.8f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                AppIcons.Default.TackleBox,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp)
-            )
         }
     }
 }

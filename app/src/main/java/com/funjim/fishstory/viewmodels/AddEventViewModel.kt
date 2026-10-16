@@ -118,6 +118,16 @@ class AddEventViewModel(
         }
     }
 
+    fun createTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            fishermanRepo.createTackleBox(tackleBox)
+            onSuccess(tackleBox)
+        }
+    }
+
     fun persistBodiesOfWater() {
         val eventId = _selectedEventId.value ?: return
 
