@@ -138,6 +138,40 @@ fun AddLureScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Surface(
+                tonalElevation = 3.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        .fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            viewModel.saveLure(
+                                lureId = lureId,
+                                name = name,
+                                hookCount = hookCount,
+                                glows = glows,
+                                primaryColors = selectedPrimaryColors,
+                                secondaryColors = selectedSecondaryColors,
+                                glowColors = selectedGlowColors,
+                                originalLure = originalLure,
+                                currentPhotos = photos,
+                                onComplete = onNavigateBack
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = name.isNotBlank() && hasChanges
+                    ) {
+                        Text(if (lureId == null) "Add Lure" else "Update Lure")
+                    }
+                }
+            }
         }
     ) { padding ->
         Column(
@@ -281,29 +315,6 @@ fun AddLureScreen(
                 },
                 onPhotoDeleted = { photo -> photos = photos.filter { it != photo } },
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    viewModel.saveLure(
-                        lureId = lureId,
-                        name = name,
-                        hookCount = hookCount,
-                        glows = glows,
-                        primaryColors = selectedPrimaryColors,
-                        secondaryColors = selectedSecondaryColors,
-                        glowColors = selectedGlowColors,
-                        originalLure = originalLure,
-                        currentPhotos = photos,
-                        onComplete = onNavigateBack
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotBlank() && hasChanges
-            ) {
-                Text(if (lureId == null) "Add Lure" else "Update Lure")
-            }
         }
     }
 

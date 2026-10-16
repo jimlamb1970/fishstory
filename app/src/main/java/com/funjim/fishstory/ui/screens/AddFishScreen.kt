@@ -358,6 +358,39 @@ fun AddFishScreen(
                             }
                         }
                     )
+                },
+                bottomBar = {
+                    draftFish?.let { fish ->
+                        Surface(
+                            tonalElevation = 3.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .navigationBarsPadding()
+                                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Button(
+                                    onClick = {
+                                        viewModel.saveFish(
+                                            fish = fish,
+                                            currentPhotos = photos,
+                                            onComplete = navigateBack
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    enabled = hasChanges,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(if (fishId == null) "Add Fish" else "Update Fish")
+                                }
+                            }
+                        }
+                    }
                 }
             ) { padding ->
                 draftFish?.let { fish ->
@@ -680,26 +713,6 @@ fun AddFishScreen(
                                 viewModel.deletePhoto(photo)
                             }
                         )
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Button(
-                            onClick = {
-                                viewModel.saveFish(
-                                    fish = fish,
-                                    currentPhotos = photos,
-                                    onComplete = navigateBack
-                                )
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            enabled = hasChanges,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(if (fishId == null) "Add Fish" else "Update Fish")
-                        }
                     }
                 }
             }
