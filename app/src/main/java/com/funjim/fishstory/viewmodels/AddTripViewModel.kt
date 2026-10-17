@@ -5,14 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.model.*
-import com.funjim.fishstory.repository.EnvironmentRepository
-import com.funjim.fishstory.repository.FishRepository
-import com.funjim.fishstory.repository.FishermanRepository
-import com.funjim.fishstory.repository.PhotoRepository
-import com.funjim.fishstory.repository.TripRepository
-import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.LocationProvider
+import java.util.UUID
+import kotlin.collections.forEach
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,18 +15,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
-import kotlin.collections.forEach
-import kotlin.collections.map
+import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.EnvironmentRepository
+import com.funjim.fishstory.repository.FishRepository
+import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TripRepository
+import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.LocationProvider
 
 class AddTripViewModel(
     private val locationProvider: LocationProvider,
@@ -67,9 +62,9 @@ class AddTripViewModel(
             initialValue = emptyList()
         )
 
+    // Category Items
     private val _selectedCategory = MutableStateFlow(CategoryType.FISHERMEN)
     val selectedCategory: StateFlow<CategoryType> = _selectedCategory.asStateFlow()
-
     fun onCategorySelected(category: CategoryType) {
         _selectedCategory.value = category
     }
@@ -173,23 +168,15 @@ class AddTripViewModel(
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
 
-    fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
-        return photoRepo.fetchBodyOfWaterThumbnail(id)
-            .flowOn(Dispatchers.IO)
-    }
-    fun fishermanThumbnail(id: String): Flow<ByteArray?> {
-        return photoRepo.fetchFishermanThumbnail(id)
-            .flowOn(Dispatchers.IO)
-    }
-    fun speciesThumbnail(id: String): Flow<ByteArray?> {
-        return photoRepo.fetchSpeciesThumbnail(id)
-            .flowOn(Dispatchers.IO)
-    }
-
+    // Thumbnail and Photo Functions
     fun deleteBodyOfWaterThumbnail(id: String) {
         viewModelScope.launch {
             photoRepo.deleteBodyOfWaterThumbnail(id)
         }
+    }
+    fun getBodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchBodyOfWaterThumbnail(id)
+            .flowOn(Dispatchers.IO)
     }
     fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -207,6 +194,14 @@ class AddTripViewModel(
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }
+    fun getFishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForFisherman(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+    fun getFishermanThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(id)
+            .flowOn(Dispatchers.IO)
+    }
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {
         viewModelScope.launch {
             photoRepo.setFishermanThumbnail(fishermanId, photoId)
@@ -217,6 +212,10 @@ class AddTripViewModel(
         viewModelScope.launch {
             photoRepo.deleteSpeciesThumbnail(speciesId)
         }
+    }
+    fun getSpeciesThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchSpeciesThumbnail(id)
+            .flowOn(Dispatchers.IO)
     }
     fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {

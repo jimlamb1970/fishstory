@@ -462,7 +462,7 @@ Bodies of water are where you're actively fishing.
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                 verbose = false,
                                 thumbnailFlow = { bodyOfWater ->
-                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                    viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                                 },
                                 onAdd = { showBodyOfWaterSelection = true },
                                 onSetThumbnail = { bodyOfWater ->
@@ -472,7 +472,6 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     )
                                 },
                                 onClearThumbnail = { bodyOfWater ->
-
                                     viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
                                 },
                                 onDelete = { bodyOfWater ->
@@ -498,7 +497,10 @@ After selecting fishermen, you can assign a tackle box and add lures.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                     thumbnailFlow = { fisherman ->
-                                        viewModel.fishermanThumbnail(fisherman.id)
+                                        viewModel.getFishermanThumbnail(fisherman.id)
+                                    },
+                                    photosFlow = { fisherman ->
+                                        viewModel.getFishermanPhotos(fisherman.id)
                                     },
                                     tackleBoxSelections = tripTackleBoxMap,
                                     getTackleBoxesForFisherman = { fishermanId ->
@@ -581,7 +583,7 @@ Target species are what you're actively fishing for.
 
 Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                 thumbnailFlow = { species ->
-                                    viewModel.speciesThumbnail(species.id)
+                                    viewModel.getSpeciesThumbnail(species.id)
                                 },
                                 onAdd = { showSpeciesSelection = true },
                                 onClick = { /* Do nothing */ },
@@ -623,7 +625,7 @@ Selecting them places those species at the top of the list when logging catches 
                 modifier = Modifier.fillMaxWidth(),
                 thumbnailProvider = { item ->
                     val thumbnailFlow = remember(item.id) {
-                        viewModel.bodyOfWaterThumbnail(item.id)
+                        viewModel.getBodyOfWaterThumbnail(item.id)
                     }
 
                     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -654,7 +656,7 @@ Selecting them places those species at the top of the list when logging catches 
                 modifier = Modifier.fillMaxWidth(),
                 thumbnailProvider = { item ->
                     val thumbnailFlow = remember(item.id) {
-                        viewModel.fishermanThumbnail(item.id)
+                        viewModel.getFishermanThumbnail(item.id)
                     }
 
                     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -684,7 +686,7 @@ Selecting them places those species at the top of the list when logging catches 
                 modifier = Modifier.fillMaxWidth(),
                 thumbnailProvider = { species ->
                     val thumbnailFlow = remember(species.id) {
-                        viewModel.speciesThumbnail(species.id)
+                        viewModel.getSpeciesThumbnail(species.id)
                     }
 
                     val thumbnail by thumbnailFlow.collectAsState(initial = null)
