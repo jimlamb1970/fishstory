@@ -5,141 +5,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.ui.utils.cards.FishermanItem
 import com.funjim.fishstory.ui.utils.cards.FishermanSummaryCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-
-@Composable
-fun FishermanRow(
-    items: List<Fisherman>,
-    onAdd: () -> Unit,
-    onClick: (Fisherman) -> Unit,
-    onDelete: (Fisherman) -> Unit,
-    thumbnailProvider: @Composable (Fisherman) -> Unit,
-    tackleBoxProvider: @Composable (Fisherman) -> Unit,
-    modifier: Modifier = Modifier,
-    description: String = "No fishermen are selected."
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Fishermen",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = getOnMainColor()
-                )
-                if (items.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${items.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            IconButton(
-                onClick = { onAdd() },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = getMainButtonColor(),
-                    contentColor = getOnMainButtonColor()
-                ),
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add Fisherman"
-                )
-            }
-        }
-
-        if (items.isEmpty()) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = getOnSecondaryColor(),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        } else {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val sortedItems = items.sortedBy { it.fullName }
-                sortedItems.forEach { item ->
-                    InputChip(
-                        selected = true,
-                        onClick = { onClick(item) },
-                        label = {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(item.fullName)
-                                tackleBoxProvider(item)
-                            }
-                        },
-                        avatar = { thumbnailProvider(item) },
-                        colors = InputChipDefaults.inputChipColors(
-                            selectedContainerColor = getCardColor().copy(alpha = 0.15f),
-                            selectedLabelColor = getOnCardColor(),
-                            selectedLeadingIconColor = getOnCardColor(),
-                            selectedTrailingIconColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = true,
-                            selectedBorderColor = getCardBorderColor(),
-                            selectedBorderWidth = 1.dp,
-                            borderColor = getOnChipColor(),
-                            borderWidth = 1.dp
-                        ),
-                        trailingIcon = {
-                            IconButton(
-                                onClick = { onDelete(item) },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Remove",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
 
 @Composable
 fun FishermanSummaries(

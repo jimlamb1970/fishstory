@@ -28,10 +28,7 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
-import com.funjim.fishstory.ui.utils.FishermanRow
-import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog

@@ -34,7 +34,7 @@ import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
-import com.funjim.fishstory.ui.utils.TargetSpeciesRow
+import com.funjim.fishstory.ui.rows.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.utils.inchesToStorage
 import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
