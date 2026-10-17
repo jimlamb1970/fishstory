@@ -710,7 +710,7 @@ fun TripDetailsScreen(
                     modifier = Modifier.padding(padding).fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    val thumbnail by viewModel.tripThumbnail().collectAsState(initial = null)
+                    val thumbnail by viewModel.getTripThumbnail().collectAsState(initial = null)
 
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
@@ -881,7 +881,7 @@ Bodies of water are where you're actively fishing.
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                             thumbnailFlow = { bodyOfWater ->
-                                                viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                                viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                                             },
                                             onAdd = { showBodiesOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
@@ -979,10 +979,10 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                         ),
                                                         index = index,
                                                         totalItems = totalItems,
-                                                        thumbnailFlow = viewModel.eventThumbnail(
+                                                        thumbnailFlow = viewModel.getEventThumbnail(
                                                             eventSummary.event.id
                                                         ),
-                                                        photosFlow = viewModel.eventPhotos(
+                                                        photosFlow = viewModel.getEventPhotos(
                                                             eventSummary.event.id
                                                         ),
                                                         showPhotoPicker = true,
@@ -1102,10 +1102,10 @@ Fishermen are the people actively participating on this trip, and there must be 
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
-                                                    viewModel.fishermanThumbnail(fisherman.id)
+                                                    viewModel.getFishermanThumbnail(fisherman.id)
                                                 },
                                                 photosFlow = { fisherman ->
-                                                    viewModel.fishermanPhotos(fisherman.id)
+                                                    viewModel.getFishermanPhotos(fisherman.id)
                                                 },
                                                 tackleBoxSelections = tackleBoxMap,
                                                 getTackleBoxesForFisherman = { fishermanId ->
@@ -1198,7 +1198,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             ),
                                             eventThumbnailProvider = { event ->
                                                 val thumbnailFlow = remember(event.id) {
-                                                    viewModel.eventThumbnail(event.id)
+                                                    viewModel.getEventThumbnail(event.id)
                                                 }
 
                                                 val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1211,7 +1211,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             },
                                             speciesThumbnailProvider = { species ->
                                                 val thumbnailFlow = remember(species.id) {
-                                                    viewModel.speciesThumbnail(species.id)
+                                                    viewModel.getSpeciesThumbnail(species.id)
                                                 }
 
                                                 val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1254,7 +1254,7 @@ Selecting them places those species at the top of the list when logging catches 
                                                 horizontal = 16.dp
                                             ),
                                             thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
+                                                viewModel.getSpeciesThumbnail(species.id)
                                             },
                                             onAdd = { showSpeciesSelection = true },
                                             onClick = { species ->
@@ -1402,7 +1402,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     species = allSpecies,
                     speciesThumbnailProvider = { species, size ->
                         val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
+                            viewModel.getSpeciesThumbnail(species.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1442,7 +1442,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     title = "Edit Water Conditions",
                     thumbnailProvider = { clarity ->
                         val thumbnailFlow = remember(clarity.id) {
-                            viewModel.waterClarityThumbnail(clarity.id)
+                            viewModel.getWaterClarityThumbnail(clarity.id)
                         }
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
@@ -1482,7 +1482,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     title = "Edit Weather Conditions",
                     thumbnailProvider = { sky ->
                         val thumbnailFlow = remember(sky.id) {
-                            viewModel.skyConditionThumbnail(sky.id)
+                            viewModel.getSkyConditionThumbnail(sky.id)
                         }
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
@@ -1535,7 +1535,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     maxUsage = details.events.size,
                     thumbnailProvider = { bodyOfWater ->
                         val thumbnailFlow = remember(bodyOfWater.id) {
-                            viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                            viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1567,7 +1567,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     maxUsage = details.events.size,
                     thumbnailProvider = { fisherman ->
                         val thumbnailFlow = remember(fisherman.id) {
-                            viewModel.fishermanThumbnail(fisherman.id)
+                            viewModel.getFishermanThumbnail(fisherman.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1599,7 +1599,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     maxUsage = details.events.size,
                     thumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
+                            viewModel.getSpeciesThumbnail(species.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1659,7 +1659,7 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
             species = allSpecies,
             speciesThumbnailProvider = { species, size ->
                 val thumbnailFlow = remember(species.id) {
-                    viewModel.speciesThumbnail(species.id)
+                    viewModel.getSpeciesThumbnail(species.id)
                 }
 
                 val thumbnail by thumbnailFlow.collectAsState(initial = null)

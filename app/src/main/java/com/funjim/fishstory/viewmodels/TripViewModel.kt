@@ -457,31 +457,43 @@ class TripViewModel(
         )
 
     // Body of Water Thumbnails and Photos
-    fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
+    fun deleteBodyOfWaterThumbnail(id: String) {
+        viewModelScope.launch {
+            photoRepo.deleteBodyOfWaterThumbnail(id)
+        }
+    }
+    fun getBodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
         return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
             .flowOn(Dispatchers.IO)
     }
-
+    fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateBodyOfWaterThumbnail(id, uri)
+        }
+    }
     // Event Thumbnails and Photos
-    fun eventPhotos(eventId: String): Flow<List<Photo>> {
+    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addEventPhoto(eventId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+    fun deleteEventPhoto(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
+    }
+    fun getEventPhotos(eventId: String): Flow<List<Photo>> {
         return photoRepo.getPhotosForEvent(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-
-    fun eventThumbnail(eventId: String): Flow<ByteArray?> {
+    fun getEventThumbnail(eventId: String): Flow<ByteArray?> {
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-
+    fun setEventThumbnail(eventId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
+    }
     // Fisherman Thumbnails and Photos
-    fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
-        return photoRepo.getPhotosForFisherman(fishermanId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
-    }
-    fun fishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
-        return photoRepo.fetchFishermanThumbnail(fishermanId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
-    }
     fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
             photoRepo.addFishermanPhoto(fishermanId, uri, selected)
@@ -492,22 +504,60 @@ class TripViewModel(
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
     }
+    fun getFishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+        return photoRepo.getPhotosForFisherman(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
+    fun getFishermanThumbnail(fishermanId: String): Flow<ByteArray?> {
+        return photoRepo.fetchFishermanThumbnail(fishermanId)
+            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+    }
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }
 
     // Sky Condition Thumbnails and Photos
-    fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
+    fun getSkyConditionThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
-
-    // Species Thumbnails and Photos
-    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
+    // Species Thumbnails
+    fun deleteSpeciesThumbnail(speciesId: String) {
+        viewModelScope.launch {
+            photoRepo.deleteSpeciesThumbnail(speciesId)
+        }
+    }
+    fun getSpeciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
     }
+    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateSpeciesThumbnail(speciesId, uri)
+        }
+    }
+    // Trip Thumbnails and Photos
+    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addTripPhoto(tripId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+    fun deleteTripPhoto(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    }
+    fun getTripThumbnail(): Flow<ByteArray?> {
+        val tripId = _selectedTripId.value ?: return(flowOf(null))
 
-    fun waterClarityThumbnail(id: String): Flow<ByteArray?> {
+        return photoRepo.fetchTripThumbnail(tripId)
+            .flowOn(Dispatchers.IO)
+    }
+    fun setTripThumbnail(tripId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    }
+
+    // Water Thumbnails
+    fun getWaterClarityThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }
 
@@ -662,67 +712,6 @@ class TripViewModel(
                 )
             )
         }
-    }
-
-    fun deleteBodyOfWaterThumbnail(id: String) {
-        viewModelScope.launch {
-            photoRepo.deleteBodyOfWaterThumbnail(id)
-        }
-    }
-    fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            photoRepo.updateBodyOfWaterThumbnail(id, uri)
-        }
-    }
-
-    fun deleteSpeciesThumbnail(speciesId: String) {
-        viewModelScope.launch {
-            photoRepo.deleteSpeciesThumbnail(speciesId)
-        }
-    }
-    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            photoRepo.updateSpeciesThumbnail(speciesId, uri)
-        }
-    }
-
-    fun tripThumbnail(): Flow<ByteArray?> {
-        val tripId = _selectedTripId.value ?: return(flowOf(null))
-
-        return photoRepo.fetchTripThumbnail(tripId)
-            .flowOn(Dispatchers.IO)
-    }
-
-    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
-        viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri, selected)
-                .onSuccess {  }
-                .onFailure {  }
-        }
-    }
-
-    fun setTripThumbnail(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
-    }
-
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
-    }
-
-    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
-        viewModelScope.launch {
-            photoRepo.addEventPhoto(eventId, uri, selected)
-                .onSuccess {  }
-                .onFailure {  }
-        }
-    }
-
-    fun setEventThumbnail(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
-    }
-
-    fun deleteEventPhoto(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
     }
 
     fun addSpecies(
