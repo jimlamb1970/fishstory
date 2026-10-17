@@ -145,7 +145,6 @@ fun TripDetailsScreen(
 
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
 
-    var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
     var showFishermanSelection by remember { mutableStateOf(false) }
@@ -156,19 +155,25 @@ fun TripDetailsScreen(
 
     var showAddNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
-    var noteToDelete by remember { mutableStateOf<Note?>(null) }
 
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
-    var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterClarityDialog by remember { mutableStateOf(false) }
     var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
-    var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     var showAddSkyConditionDialog by remember { mutableStateOf(false) }
     var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
+
+    var bodyOfWaterToDelete by remember { mutableStateOf<BodyOfWater?>(null) }
+    var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
+    var fishermanToDelete by remember { mutableStateOf<Fisherman?>(null) }
+    var limitToDelete by remember { mutableStateOf<Limit?>(null) }
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+    var speciesToDelete by remember { mutableStateOf<Species?>(null) }
+    var waterToDelete by remember { mutableStateOf<Water?>(null) }
+    var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -904,10 +909,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
                                             },
                                             onDelete = { bodyOfWater ->
-                                                viewModel.removeTripBodyOfWater(
-                                                    tripId,
-                                                    bodyOfWater.id
-                                                )
+                                                bodyOfWaterToDelete = bodyOfWater
                                             }
                                         )
                                     }
@@ -1174,7 +1176,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                 },
                                                 onDelete =
                                                     if (sortedFishermanList.size > 1) { fisherman ->
-                                                        viewModel.removeTripFisherman(fisherman.id)
+                                                        fishermanToDelete = fisherman
                                                     }
                                                     else null
                                             )
@@ -1225,7 +1227,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             onAdd = { showAddLimitDialog = true },
                                             onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
-                                                viewModel.deleteLimit(limit)
+                                                limitToDelete = limit
                                             }
                                         )
                                     }
@@ -1274,10 +1276,7 @@ Selecting them places those species at the top of the list when logging catches 
                                                 viewModel.deleteSpeciesThumbnail(species.id)
                                             },
                                             onDelete = { species ->
-                                                viewModel.removeTripTargetSpecies(
-                                                    tripId,
-                                                    species.id
-                                                )
+                                                speciesToDelete = species
                                             }
                                         )
                                     }
@@ -1346,19 +1345,95 @@ Adding weather conditions will automatically apply them to any new catches logge
             }
 
             // DELETE CONFIRMATION
+            bodyOfWaterToDelete?.let { bodyOfWater ->
+                val summary = bodyOfWaterSummaries.find { it.bodyOfWater.id == bodyOfWater.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Body of Water",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this body of water for this trip.
+                                    |
+                                    |Removing this body of water will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this body of water? 
+                                    |
+                                    |No fish are currently associated with this body of water for this trip.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.removeTripBodyOfWater(
+                                tripId,
+                                bodyOfWater.id
+                            )
+                            bodyOfWaterToDelete = null
+                        },
+                        onDismiss = { bodyOfWaterToDelete = null }
+                    )
+                }
+            }
             eventToDelete?.let { item ->
                 DeleteConfirmationDialog(
                     title = "Delete Event",
-                    message = """Are you sure you want to delete '${item.event.name}'?
-
-This cannot be undone.
-
-All fish (${item.fishCaught}) associated with this event will also be deleted.""",
+                    message =
+                        if (item.fishCaught > 0)
+                            """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this event.
+                                |
+                                |Deleting this event will delete all fish associated with it. 
+                                |
+                                |Are you sure you want to proceed?
+                            """.trimMargin()
+                        else
+                            """Are you sure you want to delete this event? 
+                                |
+                                |No fish are currently associated with this event.
+                                """.trimMargin(),
                     onConfirm = {
                         viewModel.deleteEvent(item.event)
                         eventToDelete = null
                     },
                     onDismiss = { eventToDelete = null }
+                )
+            }
+            fishermanToDelete?.let { fisherman ->
+                val summary = fishermanSummaries.find { it.fisherman.id == fisherman.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Fisherman",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this fisherman for this trip.
+                                    |
+                                    |Removing this fisherman will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this fisherman? 
+                                    |
+                                    |No fish are currently associated with this fisherman for this trip.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.removeTripFisherman(fisherman.id)
+                            fishermanToDelete = null
+                        },
+                        onDismiss = { fishermanToDelete = null }
+                    )
+                }
+            }
+            limitToDelete?.let { limit ->
+                DeleteConfirmationDialog(
+                    title = "Delete Limit",
+                    message = "Are you sure you want to delete this limit?",
+                    onConfirm = {
+                        viewModel.deleteLimit(limit)
+                        limitToDelete = null
+                    },
+                    onDismiss = { limitToDelete = null }
                 )
             }
             noteToDelete?.let { note ->
@@ -1372,27 +1447,88 @@ All fish (${item.fishCaught}) associated with this event will also be deleted.""
                     onDismiss = { noteToDelete = null }
                 )
             }
+            speciesToDelete?.let { species ->
+                val summary = targetSpeciesSummaries.find { it.species.id == species.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Species",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this species for this trip.
+                                    |
+                                    |Removing this species will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this species? 
+                                    |
+                                    |No fish are currently associated with this species for this trip.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.removeTripTargetSpecies(
+                                tripId,
+                                species.id
+                            )
+                            speciesToDelete = null
+                        },
+                        onDismiss = { speciesToDelete = null }
+                    )
+                }
+
+            }
             waterToDelete?.let { water ->
-                DeleteConfirmationDialog(
-                    title = "Delete Water Conditions",
-                    message = "Are you sure you want to delete these water conditions?",
-                    onConfirm = {
-                        viewModel.deleteWater(water.id)
-                        waterToDelete = null
-                    },
-                    onDismiss = { waterToDelete = null }
-                )
+                val summary = waterSummaries.find { it.water.id == water.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Delete Water Conditions",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with these water conditions for this trip.
+                                    |
+                                    |Deleting these water conditions will remove its data from those fish.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to delete these water conditions? 
+                                    |
+                                    |No fish are currently associated with these water conditions.
+                                """.trimMargin(),
+                        onConfirm = {
+                            viewModel.deleteWater(water.id)
+                            waterToDelete = null
+                        },
+                        onDismiss = { waterToDelete = null }
+                    )
+                }
             }
             weatherToDelete?.let { item ->
-                DeleteConfirmationDialog(
-                    title = "Delete Weather Conditions",
-                    message = "Are you sure you want to delete these Weather conditions?",
-                    onConfirm = {
-                        viewModel.deleteWeather(item.id)
-                        waterToDelete = null
-                    },
-                    onDismiss = { waterToDelete = null }
-                )
+                val summary = weatherSummaries.find { it.weather.id == item.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Delete Weather Conditions",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with these weather conditions for this trip.
+                                    |
+                                    |Deleting these weather conditions will remove its data from those fish.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to delete these weather conditions? 
+                                    |
+                                    |No fish are currently associated with these weather conditions.
+                                """.trimMargin(),
+                        onConfirm = {
+                            viewModel.deleteWeather(item.id)
+                            weatherToDelete = null
+                        },
+                        onDismiss = { weatherToDelete = null }
+                    )
+                }
             }
 
             limitToEdit?.let { limit ->
