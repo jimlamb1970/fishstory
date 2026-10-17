@@ -775,9 +775,6 @@ fun AppNavigation(
                 viewModel = viewModel,
                 tripId = tripId,
                 eventId = eventId,
-                navigateToSelectEventCrew = {  ->
-                    navController.navigate("select_event_crew/$eventId/$tripId")
-                },
                 navigateToFishList = { filter ->
                     navController.navigate(FishFilter.toRoute(filter))
                 },

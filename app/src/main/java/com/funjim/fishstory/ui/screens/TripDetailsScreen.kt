@@ -112,9 +112,6 @@ fun TripDetailsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
-
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
     }
@@ -130,41 +127,12 @@ fun TripDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
-    var showEditTripDialog by remember { mutableStateOf(false) }
-    var showNotesDialog by remember { mutableStateOf(false) }
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+
     var menuExpanded by remember { mutableStateOf(false) }
 
-    var showSpeciesSelection by remember { mutableStateOf(false) }
-    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
-    var showAddSpeciesDialog by remember { mutableStateOf(false) }
-
-    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
-    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
-    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
-    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
-
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
-
-    var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
-
-    var showFishermanSelection by remember { mutableStateOf(false) }
-    var showAddFishermanDialog by remember { mutableStateOf(false) }
-
-    var showAddLimitDialog by remember { mutableStateOf(false) }
-    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
-
-    var showAddNoteDialog by remember { mutableStateOf(false) }
-    var noteToEdit by remember { mutableStateOf<Note?>(null) }
-
-    var waterToEdit by remember { mutableStateOf<Water?>(null) }
-    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
-    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
-    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
-
-    var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
-    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
-    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
-    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
 
     var bodyOfWaterToDelete by remember { mutableStateOf<BodyOfWater?>(null) }
     var eventToDelete by remember { mutableStateOf<EventSummary?>(null) }
@@ -175,8 +143,35 @@ fun TripDetailsScreen(
     var waterToDelete by remember { mutableStateOf<Water?>(null) }
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
 
-    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
+    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
+    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var waterToEdit by remember { mutableStateOf<Water?>(null) }
+    var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
 
+    var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
+
+    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
+
+    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
+    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
+
+    var showAddLimitDialog by remember { mutableStateOf(false) }
+    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
+    var showAddFishermanDialog by remember { mutableStateOf(false) }
+    var showAddNoteDialog by remember { mutableStateOf(false) }
+    var showAddSpeciesDialog by remember { mutableStateOf(false) }
+    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
+    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
+
+    var showEditTripDialog by remember { mutableStateOf(false) }
+
+    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
+    var showFishermanSelection by remember { mutableStateOf(false) }
+    var showSpeciesSelection by remember { mutableStateOf(false) }
+
+    var showNotesDialog by remember { mutableStateOf(false) }
+
+    val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
         deviceLocation = deviceLocation?.let { it.latitude to it.longitude },
         existingLat = selectedTrip?.latitude,  // Passed from your DB object
@@ -207,14 +202,18 @@ fun TripDetailsScreen(
 
     val uiState by viewModel.uiDetailState.collectAsStateWithLifecycle()
 
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    val allFishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
+    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
+    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
+    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
+
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     val limitSummaries by viewModel.limitSummaries.collectAsStateWithLifecycle()
     val targetSpeciesSummaries by viewModel.targetSpeciesSummaries.collectAsStateWithLifecycle()
     val waterSummaries by viewModel.waterSummaries.collectAsStateWithLifecycle()
     val weatherSummaries by viewModel.weatherSummaries.collectAsStateWithLifecycle()
-
-    val fishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
 
     val tackleBoxMap by viewModel.tripTackleBoxMap.collectAsState()
 
@@ -282,8 +281,8 @@ fun TripDetailsScreen(
             val sortedBodyOfWaterList = remember(bodyOfWaterSummaries) {
                 bodyOfWaterSummaries.sortedBy { it.bodyOfWater.name }
             }
-            val sortedFishermen = remember(fishermen) {
-                fishermen.sortedBy { it.fullName }
+            val sortedFishermen = remember(allFishermen) {
+                allFishermen.sortedBy { it.fullName }
             }
             val sortedNotes = remember(details.notes) {
                 details.notes.sortedByDescending { it.timestamp }
@@ -1100,7 +1099,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 ),
                                                 description = """No fishermen selected.
 
-Fishermen are the people actively participating on this trip, and there must be at least one selected.
+Fishermen are the people actively participating on this trip.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
@@ -1174,11 +1173,9 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                         photo.id
                                                     )
                                                 },
-                                                onDelete =
-                                                    if (sortedFishermanList.size > 1) { fisherman ->
-                                                        fishermanToDelete = fisherman
-                                                    }
-                                                    else null
+                                                onDelete = { fisherman ->
+                                                    fishermanToDelete = fisherman
+                                                }
                                             )
                                         }
                                     }
@@ -1660,7 +1657,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addTripBodyOfWater(tripId, selectedBodyOfWater.id)
                     },
                     onUnselected = { selectedBodyOfWater ->
-                        viewModel.removeTripBodyOfWater(tripId, selectedBodyOfWater.id)
+                        bodyOfWaterToDelete = selectedBodyOfWater
                     },
                     onAdd = {
                         showAddBodyOfWaterDialog = true
@@ -1692,7 +1689,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addTripFisherman(fishermanId = fisherman.id, null)
                     },
                     onUnselected = { fisherman ->
-                        viewModel.removeTripFisherman(fishermanId = fisherman.id)
+                        fishermanToDelete = fisherman
                     },
                     onAdd = {
                         showAddFishermanDialog = true
@@ -1724,7 +1721,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addTripTargetSpecies(tripId, selectedSpecies.id)
                     },
                     onUnselected = { selectedSpecies ->
-                        viewModel.removeTripTargetSpecies(tripId, selectedSpecies.id)
+                        speciesToDelete = selectedSpecies
                     },
                     onAdd = {
                         showAddSpeciesDialog = true

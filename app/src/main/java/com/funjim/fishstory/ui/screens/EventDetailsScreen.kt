@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitScope
@@ -98,7 +99,6 @@ fun EventDetailsScreen(
     viewModel: EventViewModel,
     tripId: String,
     eventId: String,
-    navigateToSelectEventCrew: () -> Unit,
     navigateToAddFish: () -> Unit,
     navigateToFishList: (FishFilter) -> Unit,
     navigateToAddLures: (TackleBox) -> Unit,
@@ -106,9 +106,6 @@ fun EventDetailsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
@@ -121,52 +118,52 @@ fun EventDetailsScreen(
         }
     }
 
-    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
-    var showAddSpeciesDialog by remember { mutableStateOf(false) }
-    var showSpeciesSelection by remember { mutableStateOf(false) }
-
-    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
-    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
-    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
-
-    var showFishermanSelection by remember { mutableStateOf(false) }
-    var showAddFishermanDialog by remember { mutableStateOf(false) }
-
-    var showAddLimitDialog by remember { mutableStateOf(false) }
-    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
-
-    var showAddNoteDialog by remember { mutableStateOf(false) }
-    var noteToEdit by remember { mutableStateOf<Note?>(null) }
-    var noteToDelete by remember { mutableStateOf<Note?>(null) }
-
-    var showAddWaterDialog by remember { mutableStateOf(false) }
-    var waterToEdit by remember { mutableStateOf<Water?>(null) }
-    var waterToDelete by remember { mutableStateOf<Water?>(null) }
-    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
-    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
-    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
-
-    var showAddWeatherDialog by remember { mutableStateOf(false) }
-    var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
-    var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
-    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
-    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
-    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
-
-    // Dialog state for updating all catches for this body of water
-    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    var selectedEvent by remember { mutableStateOf<Event?>(null) }
-
-    var showEditEventDialog by remember { mutableStateOf(false) }
-    var showNotesDialog by remember { mutableStateOf(false) }
-    var menuExpanded by remember { mutableStateOf(false) }
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     }
-
     val now = System.currentTimeMillis()
+
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    var selectedEvent by remember { mutableStateOf<Event?>(null) }
+
+    var bodyOfWaterToDelete by remember { mutableStateOf<BodyOfWater?>(null) }
+    var fishermanToDelete by remember { mutableStateOf<Fisherman?>(null) }
+    var limitToDelete by remember { mutableStateOf<Limit?>(null) }
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+    var speciesToDelete by remember { mutableStateOf<Species?>(null) }
+    var waterToDelete by remember { mutableStateOf<Water?>(null) }
+    var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
+
+    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
+    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var waterToEdit by remember { mutableStateOf<Water?>(null) }
+    var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
+
+    var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
+
+    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
+    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
+
+    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
+    var showAddFishermanDialog by remember { mutableStateOf(false) }
+    var showAddLimitDialog by remember { mutableStateOf(false) }
+    var showAddNoteDialog by remember { mutableStateOf(false) }
+    var showAddSpeciesDialog by remember { mutableStateOf(false) }
+    var showAddSkyConditionDialog by remember { mutableStateOf(false) }
+    var showAddWaterDialog by remember { mutableStateOf(false) }
+    var showAddWaterClarityDialog by remember { mutableStateOf(false) }
+    var showAddWeatherDialog by remember { mutableStateOf(false) }
+    var showEditEventDialog by remember { mutableStateOf(false) }
+
+    var showNotesDialog by remember { mutableStateOf(false) }
+
+    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
+    var showFishermanSelection by remember { mutableStateOf(false) }
+    var showSpeciesSelection by remember { mutableStateOf(false) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -191,6 +188,11 @@ fun EventDetailsScreen(
     )
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
+    val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
+    val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
 
     val bodyOfWaterSummaries by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle()
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
@@ -930,10 +932,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
                                             },
                                             onDelete = { bodyOfWater ->
-                                                viewModel.removeEventBodyOfWater(
-                                                    eventId,
-                                                    bodyOfWater.id
-                                                )
+                                                bodyOfWaterToDelete = bodyOfWater
                                             }
                                         )
                                     }
@@ -948,7 +947,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 ),
                                                 description = """No fishermen selected.
 
-Fishermen are the people actively participating on this event, and there must be at least one selected.
+Fishermen are the people actively participating on this event.
 
 When logging catches, options will be restricted to the fishermen selected here.""",
                                                 thumbnailFlow = { fisherman ->
@@ -1021,11 +1020,9 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                         photo.id
                                                     )
                                                 },
-                                                onDelete =
-                                                    if (sortedFishermanList.size > 1) { fisherman ->
-                                                        viewModel.deleteFishermanFromEvent(fisherman.id)
-                                                    }
-                                                    else null
+                                                onDelete = { fisherman ->
+                                                    fishermanToDelete = fisherman
+                                                }
                                             )
                                         }
                                     }
@@ -1061,7 +1058,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                             onAdd = { showAddLimitDialog = true },
                                             onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
-                                                viewModel.deleteLimit(limit)
+                                                limitToDelete = limit
                                             }
                                         )
                                     }
@@ -1111,10 +1108,7 @@ Selecting them places those species at the top of the list when logging catches 
                                                 viewModel.deleteSpeciesThumbnail(species.id)
                                             },
                                             onDelete = { species ->
-                                                viewModel.removeEventTargetSpecies(
-                                                    event.id,
-                                                    species.id
-                                                )
+                                                speciesToDelete = species
                                             }
                                         )
                                     }
@@ -1188,6 +1182,71 @@ Adding weather conditions will automatically apply them to any new catches logge
                 }
             }
 
+            bodyOfWaterToDelete?.let { bodyOfWater ->
+                val summary = bodyOfWaterSummaries.find { it.bodyOfWater.id == bodyOfWater.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Body of Water",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this body of water for this event.
+                                    |
+                                    |Removing this body of water will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this body of water? 
+                                    |
+                                    |No fish are currently associated with this body of water for this event.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
+                            bodyOfWaterToDelete = null
+                        },
+                        onDismiss = { bodyOfWaterToDelete = null }
+                    )
+                }
+            }
+            fishermanToDelete?.let { fisherman ->
+                val summary = fishermanSummaries.find { it.fisherman.id == fisherman.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Fisherman",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this fisherman for this event.
+                                    |
+                                    |Removing this fisherman will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this fisherman? 
+                                    |
+                                    |No fish are currently associated with this fisherman for this event.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.deleteFishermanFromEvent(fisherman.id)
+                            fishermanToDelete = null
+                        },
+                        onDismiss = { fishermanToDelete = null }
+                    )
+                }
+            }
+            limitToDelete?.let { limit ->
+                DeleteConfirmationDialog(
+                    title = "Delete Limit",
+                    message = "Are you sure you want to delete this limit?",
+                    onConfirm = {
+                        viewModel.deleteLimit(limit)
+                        limitToDelete = null
+                    },
+                    onDismiss = { limitToDelete = null }
+                )
+            }
             noteToDelete?.let { note ->
                 DeleteConfirmationDialog(
                     title = "Delete Note",
@@ -1199,28 +1258,86 @@ Adding weather conditions will automatically apply them to any new catches logge
                     onDismiss = { noteToDelete = null }
                 )
             }
+            speciesToDelete?.let { species ->
+                val summary = targetSpeciesSummaries.find { it.species.id == species.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Remove Species",
+                        message =
+                            if (fishCaught > 0)
+                                """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this species for this event.
+                                    |
+                                    |Removing this species will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to remove this species? 
+                                    |
+                                    |No fish are currently associated with this species for this event.
+                                """.trimMargin(),
+                        confirmButtonText = "Remove",
+                        onConfirm = {
+                            viewModel.removeEventTargetSpecies(
+                                eventId,
+                                species.id
+                            )
+                            speciesToDelete = null
+                        },
+                        onDismiss = { speciesToDelete = null }
+                    )
+                }
+
+            }
             waterToDelete?.let { water ->
-                DeleteConfirmationDialog(
-                    title = "Delete Water Conditions",
-                    message = "Are you sure you want to delete these water conditions?",
-                    onConfirm = {
-                        viewModel.deleteWater(water.id)
-                        waterToDelete = null
-                    },
-                    onDismiss = { waterToDelete = null }
-                )
+                val summary = waterSummaries.find { it.water.id == water.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Delete Water Conditions",
+                        message =
+                            if (fishCaught > 0)
+                                """Deleting this water condition will remove its data from $fishCaught ${if (fishCaught == 1) "fish record" else "fish records"}.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to delete these water conditions? 
+                                    |
+                                    |No fish are currently associated with this condition.
+                                """.trimMargin(),
+                        onConfirm = {
+                            viewModel.deleteWater(water.id)
+                            waterToDelete = null
+                        },
+                        onDismiss = { waterToDelete = null }
+                    )
+                }
             }
             weatherToDelete?.let { item ->
-                DeleteConfirmationDialog(
-                    title = "Delete Weather Conditions",
-                    message = "Are you sure you want to delete these Weather conditions?",
-                    onConfirm = {
-                        viewModel.deleteWeather(item.id)
-                        weatherToDelete = null
-                    },
-                    onDismiss = { weatherToDelete = null }
-                )
+                val summary = weatherSummaries.find { it.weather.id == item.id }
+                summary?.fishCaught?.let { fishCaught ->
+                    DeleteConfirmationDialog(
+                        title = "Delete Weather Conditions",
+                        message =
+                            if (fishCaught > 0)
+                                """Deleting this weather condition will remove its data from $fishCaught ${if (fishCaught == 1) "fish record" else "fish records"}.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                            else
+                                """Are you sure you want to delete these weather conditions? 
+                                    |
+                                    |No fish are currently associated with this condition.
+                                """.trimMargin(),
+                        onConfirm = {
+                            viewModel.deleteWeather(item.id)
+                            weatherToDelete = null
+                        },
+                        onDismiss = { weatherToDelete = null }
+                    )
+                }
             }
+
             limitToEdit?.let { limit ->
                 LimitDialog(
                     limitToEdit = limit,
@@ -1354,7 +1471,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addEventBodyOfWater(eventId, selectedBodyOfWater.id)
                     },
                     onUnselected = { selectedBodyOfWater ->
-                        viewModel.removeEventBodyOfWater(eventId, selectedBodyOfWater.id)
+                        bodyOfWaterToDelete = selectedBodyOfWater
                     },
                     onAdd = {
                         showAddBodyOfWaterDialog = true
@@ -1384,7 +1501,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addFishermanToEvent(fishermanId = fisherman.id)
                     },
                     onUnselected = { fisherman ->
-                        viewModel.deleteFishermanFromEvent(fishermanId = fisherman.id)
+                        fishermanToDelete = fisherman
                     },
                     onAdd = {
                         showAddFishermanDialog = true
@@ -1414,7 +1531,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                         viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
                     },
                     onUnselected = { selectedSpecies ->
-                        viewModel.removeEventTargetSpecies(eventId, selectedSpecies.id)
+                        speciesToDelete = selectedSpecies
                     },
                     onAdd = {
                         showAddSpeciesDialog = true
