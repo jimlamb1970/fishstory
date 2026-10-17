@@ -1,7 +1,12 @@
 package com.funjim.fishstory.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,6 +47,17 @@ import com.funjim.fishstory.viewmodels.AddEventViewModel
 import kotlinx.coroutines.launch
 import kotlin.collections.plus
 import androidx.core.net.toUri
+import com.funjim.fishstory.model.BodyOfWaterSummary
+import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.SpeciesSummary
+import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
+import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryRow
+import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.SpeciesSummaries
+import kotlin.collections.minus
 
 // ---------------------------------------------------------------------------
 // AddEventScreen
@@ -51,7 +67,7 @@ import androidx.core.net.toUri
 fun AddEventScreen(
     viewModel: AddEventViewModel,
     tripId: String,
-    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
+    navigateToAddLures: (TackleBox) -> Unit,
     navigateBack: () -> Unit
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -115,8 +131,70 @@ fun AddEventScreen(
         }
     )
 
+    var bodyOfWaterForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = bodyOfWaterForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateBodyOfWaterThumbnail(item.id, uri)
+        }
+        bodyOfWaterForPhoto = null
+    }
+
+    var speciesForPhoto by remember { mutableStateOf<Species?>(null) }
+    val speciesPhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = speciesForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateSpeciesThumbnail(item.id, uri)
+        }
+        speciesForPhoto = null
+    }
+
     fun cancelAndExit() {
         navigateBack()
+    }
+
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val categoryConfigs = remember(
+        allBodiesOfWater,
+        bodiesOfWater,
+        allFishermen,
+        eventFishermen,
+        allSpecies,
+        targetSpecies
+    ) {
+        listOf(
+            CategoryChipConfig(
+                category = CategoryType.BODIES_OF_WATER,
+                icon = { Icon(
+                    AppIcons.Default.BodyOfWater,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = bodiesOfWater.size
+            ),
+            CategoryChipConfig(
+                category = CategoryType.FISHERMEN,
+                icon = { Icon(
+                    AppIcons.Default.Fisherman,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = eventFishermen.size
+            ),
+            CategoryChipConfig(
+                category = CategoryType.TARGET_SPECIES,
+                icon = { Icon(
+                    AppIcons.Default.TargetFish,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = targetSpecies.size
+            )
+        )
     }
 
     when (val state = uiState) {
@@ -440,120 +518,183 @@ fun AddEventScreen(
                         }
                     }
 
-                    item {
-                        HorizontalDivider()
-                    }
+                    item { HorizontalDivider() }
 
                     item {
-                        TargetSpeciesRow(
-                            items = targetSpecies,
-                            description = """No target species selected.
-
-Target species are what you're actively fishing for. 
-
-Selecting them places those species at the top of the list when logging catches for quicker entry.""",
-                            onAdd = { showSpeciesSelection = true },
-                            onDelete = { species ->
-                                viewModel.updateEventTargetSpecies(targetSpecies - species)
-                            },
-                            thumbnailProvider = { species, size ->
-                                val thumbnailFlow = remember(species.id) {
-                                    viewModel.speciesThumbnail(species.id)
-                                }
-
-                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.TargetFish,
-                                    modifier = Modifier.size(size)
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        CategoryRow(
+                            categories = categoryConfigs,
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = viewModel::onCategorySelected,
+                            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                         )
                     }
 
-                    item {
-                        HorizontalDivider()
-                    }
+                    item { HorizontalDivider() }
 
                     item {
-                        BodiesOfWaterRow(
-                            items = bodiesOfWater,
-                            description = """No bodies of water selected.
+                        Crossfade(
+                            targetState = selectedCategory,
+                            label = "CategoryTransition",
+                            modifier = Modifier.fillMaxWidth()
+                        ) { category ->
+                            when (category) {
+                                CategoryType.BODIES_OF_WATER -> {
+                                    val bowSummaries: List<BodyOfWaterSummary> = bodiesOfWater.map { bow ->
+                                        BodyOfWaterSummary(bodyOfWater = bow)
+                                    }.sortedBy { it.bodyOfWater.name.lowercase() }
+
+                                    BodyOfWaterSummaries(
+                                        list = bowSummaries,
+                                        description = """No bodies of water selected.
 
 Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
-                            onAdd = { showBodyOfWaterSelection = true },
-                            onClick = {},
-                            onDelete = { bodyOfWater ->
-                                viewModel.updateEventBodiesOfWater(bodiesOfWater - bodyOfWater)
-                            },
-                            thumbnailProvider = { bodyOfWater ->
-                                val thumbnailFlow = remember(bodyOfWater.id) {
-                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
-                                }
-
-                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.BodyOfWater,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    item {
-                        HorizontalDivider()
-                    }
-
-                    item {
-                        FishermanRow(
-                            items = eventFishermen,
-                            description = """No fishermen selected.
-
-Fishermen are the people actively participating on this event, and there must be at least one selected.
-
-After selecting fishermen, you can click on a fisherman to assign a tackle box.  Adding lures to the tackle box is not allowed at this time.  You will be allowed to add lures to the tackle box later.
-
-When logging catches, options will be restricted to the fishermen selected here.""",
-                            onAdd = { showFishermanSelection = true },
-                            onClick = { item ->
-                                selectedFisherman = item
-                                showTackleBoxSelection = true
-                            },
-                            onDelete = { item ->
-                                viewModel.updateEventFishermen(eventFishermen - item)
-                                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - item.id)
-                            },
-                            thumbnailProvider = { item ->
-                                val thumbnailFlow = remember(item.id) {
-                                    viewModel.fishermanThumbnail(item.id)
-                                }
-
-                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.Fisherman,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            tackleBoxProvider = { item ->
-                                if (eventTackleBoxMap.containsKey(item.id)) {
-                                    ThumbnailBox(
-                                        thumbnail = null,
-                                        imageVector = AppIcons.Default.TackleBoxClosed,
-                                        modifier = Modifier.size(18.dp)
+                                        verbose = false,
+                                        thumbnailFlow = { bodyOfWater ->
+                                            viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
+                                        },
+                                        onAdd = { showBodyOfWaterSelection = true },
+                                        onSetThumbnail = { bodyOfWater ->
+                                            bodyOfWaterForPhoto = bodyOfWater
+                                            photoPickerLauncher.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        },
+                                        onClearThumbnail = { bodyOfWater ->
+                                            viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
+                                        },
+                                        onDelete = { bodyOfWater ->
+                                            viewModel.updateEventBodiesOfWater(bodiesOfWater - bodyOfWater)
+                                        }
                                     )
                                 }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+
+                                CategoryType.FISHERMEN -> {
+                                    val fishermanSummaries: List<FishermanSummary> = eventFishermen.map { fisherman ->
+                                        FishermanSummary(fisherman = fisherman)
+                                    }.sortedBy { it.fisherman.fullName }
+
+                                    Column() {
+                                        FishermanSummaries(
+                                            list = fishermanSummaries,
+                                            verbose = false,
+                                            description = """No fishermen selected. 
+
+Fishermen are the people actively participating on this event, and there must be at least one selected. 
+
+After selecting fishermen, you can assign a tackle box and add lures.
+
+When logging catches, options will be restricted to the fishermen selected here.""",
+                                            thumbnailFlow = { fisherman ->
+                                                viewModel.getFishermanThumbnail(fisherman.id)
+                                            },
+                                            photosFlow = { fisherman ->
+                                                viewModel.getFishermanPhotos(fisherman.id)
+                                            },
+                                            tackleBoxSelections = eventTackleBoxMap,
+                                            getTackleBoxesForFisherman = { fishermanId ->
+                                                viewModel.getTackleBoxesForFisherman(fishermanId)
+                                                    .collectAsState(initial = emptyList()).value
+                                            },
+                                            getLureCount = { tackleBoxId ->
+                                                viewModel.getLureCountForTackleBox(tackleBoxId)
+                                                    .collectAsState(initial = 0).value
+                                            },
+                                            getLuresInTacklebox = { tackleBoxId ->
+                                                viewModel.getLuresInTackleBox(tackleBoxId)
+                                                    .collectAsState(initial = emptyList()).value
+                                            },
+                                            onAdd = {
+                                                showFishermanSelection = true
+                                            },
+                                            onAddTackleBox = { tackleBox ->
+                                                viewModel.createTackleBox(tackleBox) { tackleBox ->
+                                                    viewModel.updateEventTackleBoxMap(
+                                                        eventTackleBoxMap + (tackleBox.fishermanId to tackleBox.id)
+                                                    )
+                                                }
+                                            },
+                                            onAddLuresToTackleBox = { tackleBox ->
+                                                navigateToAddLures(tackleBox)
+                                            },
+                                            onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                viewModel.updateEventTackleBoxMap(
+                                                    eventTackleBoxMap + (fisherman.id to tackleBoxId)
+                                                )
+                                            },
+                                            onPhotoTaken = { fisherman, uri ->
+                                                viewModel.addFishermanPhoto(
+                                                    fisherman.id,
+                                                    uri,
+                                                    false
+                                                )
+                                            },
+                                            onPhotoAdded = { fisherman, uri ->
+                                                viewModel.addFishermanPhoto(
+                                                    fisherman.id,
+                                                    uri,
+                                                    true
+                                                )
+                                            },
+                                            onSetThumbnail = { fisherman, photo ->
+                                                viewModel.setFishermanThumbnail(
+                                                    fisherman.id,
+                                                    photo.id
+                                                )
+                                            },
+                                            onPhotoDeleted = { fisherman, photo ->
+                                                viewModel.deleteFishermanPhoto(
+                                                    fisherman.id,
+                                                    photo.id
+                                                )
+                                            },
+                                            onDelete =
+                                                if (fishermanSummaries.size > 1) { fisherman ->
+                                                    viewModel.updateEventFishermen(eventFishermen - fisherman)
+                                                    viewModel.updateEventTackleBoxMap(eventTackleBoxMap - fisherman.id)
+                                                }
+                                                else null
+                                        )
+                                    }
+                                }
+
+                                CategoryType.TARGET_SPECIES -> {
+                                    val speciesSummaries: List<SpeciesSummary> = targetSpecies.map { species ->
+                                        SpeciesSummary(species = species)
+                                    }.sortedBy { it.species.name.lowercase() }
+
+                                    SpeciesSummaries(
+                                        items = speciesSummaries,
+                                        verbose = false,
+                                        description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
+                                        thumbnailFlow = { species ->
+                                            viewModel.getSpeciesThumbnail(species.id)
+                                        },
+                                        onAdd = { showSpeciesSelection = true },
+                                        onClick = { /* Do nothing */ },
+                                        onSetThumbnail = { species ->
+                                            speciesForPhoto = species
+                                            speciesPhotoPicker.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        },
+                                        onClearThumbnail = { species ->
+                                            viewModel.deleteSpeciesThumbnail(species.id)
+                                        },
+                                        onDelete = { species ->
+                                            viewModel.updateEventTargetSpecies(targetSpecies - species)
+                                        }
+                                    )
+                                }
+
+                                else -> {}
+                            }
+                        }
                     }
                 }
 
@@ -574,7 +715,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                         modifier = Modifier.fillMaxWidth(),
                         thumbnailProvider = { item ->
                             val thumbnailFlow = remember(item.id) {
-                                viewModel.bodyOfWaterThumbnail(item.id)
+                                viewModel.getBodyOfWaterThumbnail(item.id)
                             }
 
                             val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -605,7 +746,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                         modifier = Modifier.fillMaxWidth(),
                         thumbnailProvider = { item ->
                             val thumbnailFlow = remember(item.id) {
-                                viewModel.fishermanThumbnail(item.id)
+                                viewModel.getFishermanThumbnail(item.id)
                             }
 
                             val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -635,7 +776,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                         modifier = Modifier.fillMaxWidth(),
                         thumbnailProvider = { species ->
                             val thumbnailFlow = remember(species.id) {
-                                viewModel.speciesThumbnail(species.id)
+                                viewModel.getSpeciesThumbnail(species.id)
                             }
 
                             val thumbnail by thumbnailFlow.collectAsState(initial = null)

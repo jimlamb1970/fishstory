@@ -330,8 +330,8 @@ fun AppNavigation(
             AddEventScreen(
                 viewModel = viewModel,
                 tripId = tripId,
-                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
-                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                navigateToAddLures = { tackleBox ->
+                    navController.navigate("select_lures/$${tackleBox.fishermanId}/${tackleBox.id}")
                 },
                 navigateBack = {
                     navController.popBackStack()
