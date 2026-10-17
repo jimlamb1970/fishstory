@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Visibility
@@ -557,7 +558,7 @@ fun FishermanSummaryCard(
                                 },
                                 leadingIcon = {
                                     Icon(
-                                        Icons.Default.Delete,
+                                        Icons.Default.Clear,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.error
                                     )
