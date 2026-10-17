@@ -519,6 +519,33 @@ fun FishermanSummaryCard(
                                     )
                                 }
                             )
+
+                            if (lureCount > 0) {
+                                DropdownMenuItem(
+                                    text = {
+                                        if (luresExpanded) Text("Hide Lures")
+                                        else Text("Show Lures")
+                                    },
+                                    onClick = {
+                                        expanded = false
+                                        if (!luresExpanded) {
+                                            showPhotos = false
+                                            tackleBoxOpen = true
+                                            luresExpanded = true
+                                        } else {
+                                            tackleBoxOpen = false
+                                            luresExpanded = false
+                                        }
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            if (showPhotos) Icons.Default.VisibilityOff
+                                            else Icons.Default.Visibility,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
 
                         onDelete?.let {
