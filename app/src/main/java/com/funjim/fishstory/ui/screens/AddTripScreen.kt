@@ -10,6 +10,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -52,6 +53,8 @@ import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
+import com.funjim.fishstory.ui.utils.StatusGumball
+import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 
 // ---------------------------------------------------------------------------
 // AddTripScreen
@@ -204,6 +207,85 @@ fun AddTripScreen(
                     }
                 },
                 actions = {
+                    when (selectedCategory) {
+                        CategoryType.BODIES_OF_WATER -> {
+                            IconButton(onClick = { showBodyOfWaterSelection = true }) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Default.BodyOfWater,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp))
+
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = 4.dp, y = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        CategoryType.FISHERMEN -> {
+                            IconButton(onClick = { showFishermanSelection = true }) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Default.Fisherman,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp))
+
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = 4.dp, y = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        CategoryType.TARGET_SPECIES -> {
+                            IconButton(onClick = { showSpeciesSelection = true }) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Default.TargetFish,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp))
+
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = 4.dp, y = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                        }
+                        else -> {}
+                    }
                     IconButton(
                         onClick = { showSaveDialog = true }, // Intercept save to present choices
                         enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
