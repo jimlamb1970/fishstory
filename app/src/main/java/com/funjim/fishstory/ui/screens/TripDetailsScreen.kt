@@ -50,7 +50,13 @@ import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
+import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
+import com.funjim.fishstory.ui.sections.FishermanSummarySection
+import com.funjim.fishstory.ui.sections.LimitSummarySection
+import com.funjim.fishstory.ui.sections.NoteSection
+import com.funjim.fishstory.ui.sections.SpeciesSummarySection
+import com.funjim.fishstory.ui.sections.WaterSummarySection
+import com.funjim.fishstory.ui.sections.WeatherSummarySection
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
@@ -58,17 +64,11 @@ import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.cards.EventItem
 import com.funjim.fishstory.ui.utils.FishFilter
-import com.funjim.fishstory.ui.utils.FishermanSummaries
-import com.funjim.fishstory.ui.utils.LimitSummaryRow
-import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.NotesIconButton
-import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.cards.TripHighlightCard
 import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
-import com.funjim.fishstory.ui.utils.WaterSummaryRow
-import com.funjim.fishstory.ui.utils.WeatherSummaryRow
 import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.crud.AddNoteDialog
@@ -872,7 +872,7 @@ fun TripDetailsScreen(
                             ) { category ->
                                 when (category) {
                                     CategoryType.BODIES_OF_WATER -> {
-                                        BodyOfWaterSummaries(
+                                        BodyOfWaterSummarySection(
                                             list = sortedBodyOfWaterList,
                                             verbose = displaySettings.verboseCards,
                                             modifier = Modifier.padding(
@@ -1090,7 +1090,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
 
                                     CategoryType.FISHERMEN -> {
                                         Column() {
-                                            FishermanSummaries(
+                                            FishermanSummarySection(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
                                                 modifier = Modifier.padding(
@@ -1180,7 +1180,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                         }
                                     }
                                     CategoryType.LIMITS -> {
-                                        LimitSummaryRow(
+                                        LimitSummarySection(
                                             itemList = limitSummaries,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,
@@ -1229,7 +1229,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                         )
                                     }
                                     CategoryType.NOTES -> {
-                                        NoteRow(
+                                        NoteSection(
                                             noteList = sortedNotes,
                                             description = """No notes created.
 
@@ -1240,7 +1240,7 @@ Notes help you remember specific details and conditions during this trip.""",
                                         )
                                     }
                                     CategoryType.TARGET_SPECIES -> {
-                                        SpeciesSummaries(
+                                        SpeciesSummarySection(
                                             items = sortedTargetSpeciesList,
                                             verbose = displaySettings.verboseCards,
                                             description = """No target species selected.
@@ -1279,7 +1279,7 @@ Selecting them places those species at the top of the list when logging catches 
                                     }
 
                                     CategoryType.WATER -> {
-                                        WaterSummaryRow(
+                                        WaterSummarySection(
                                             waterList = sortedWaterList,
                                             verbose = displaySettings.verboseCards,
                                             description = """No water conditions specified.
@@ -1302,7 +1302,7 @@ Adding water conditions will automatically apply them to any new catches logged 
                                     }
 
                                     CategoryType.WEATHER -> {
-                                        WeatherSummaryRow(
+                                        WeatherSummarySection(
                                             list = sortedWeatherList,
                                             verbose = displaySettings.verboseCards,
                                             useImperial = displaySettings.useImperialUnits,

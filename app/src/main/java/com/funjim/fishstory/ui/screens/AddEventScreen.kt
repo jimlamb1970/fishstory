@@ -49,12 +49,12 @@ import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
+import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
+import com.funjim.fishstory.ui.sections.FishermanSummarySection
+import com.funjim.fishstory.ui.sections.SpeciesSummarySection
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.FishermanSummaries
-import com.funjim.fishstory.ui.utils.SpeciesSummaries
 import kotlin.collections.minus
 
 // ---------------------------------------------------------------------------
@@ -620,7 +620,7 @@ fun AddEventScreen(
                                         BodyOfWaterSummary(bodyOfWater = bow)
                                     }.sortedBy { it.bodyOfWater.name.lowercase() }
 
-                                    BodyOfWaterSummaries(
+                                    BodyOfWaterSummarySection(
                                         list = bowSummaries,
                                         description = """No bodies of water selected.
 
@@ -653,7 +653,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     }.sortedBy { it.fisherman.fullName }
 
                                     Column() {
-                                        FishermanSummaries(
+                                        FishermanSummarySection(
                                             list = fishermanSummaries,
                                             verbose = false,
                                             description = """No fishermen selected. 
@@ -741,7 +741,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                         SpeciesSummary(species = species)
                                     }.sortedBy { it.species.name.lowercase() }
 
-                                    SpeciesSummaries(
+                                    SpeciesSummarySection(
                                         items = speciesSummaries,
                                         verbose = false,
                                         description = """No target species selected.

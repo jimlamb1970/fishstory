@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.utils
+package com.funjim.fishstory.ui.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,11 +23,16 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.ui.cards.SpeciesItem
 import com.funjim.fishstory.ui.cards.TargetSpeciesItem
+import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainColor
+import com.funjim.fishstory.ui.utils.getOnSecondaryColor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
-fun TargetSpeciesColumn(
+fun TargetSpeciesSection(
     items: List<Species>,
     verbose: Boolean,
     onAdd: () -> Unit,
@@ -110,7 +115,7 @@ fun TargetSpeciesColumn(
 }
 
 @Composable
-fun SpeciesSummaries(
+fun SpeciesSummarySection(
     items: List<SpeciesSummary>,
     verbose: Boolean,
     modifier: Modifier = Modifier,

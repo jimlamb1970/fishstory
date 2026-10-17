@@ -34,12 +34,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.ui.sections.NoteSection
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LureColorComposition
-import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
@@ -782,7 +782,7 @@ private fun FishDetailContent(
         ) { category ->
             when (category) {
                 CategoryType.NOTES -> {
-                    NoteRow(
+                    NoteSection(
                         noteList = sortedNotes ?: emptyList(),
                         description = """No notes created.
 
