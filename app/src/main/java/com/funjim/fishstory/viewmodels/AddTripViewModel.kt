@@ -1,6 +1,7 @@
 package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,9 +11,9 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
+import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +66,13 @@ class AddTripViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    private val _selectedCategory = MutableStateFlow(CategoryType.FISHERMEN)
+    val selectedCategory: StateFlow<CategoryType> = _selectedCategory.asStateFlow()
+
+    fun onCategorySelected(category: CategoryType) {
+        _selectedCategory.value = category
+    }
 
     fun addBodyOfWater(
         item: BodyOfWater,
@@ -154,8 +162,15 @@ class AddTripViewModel(
         _tripTargetSpecies.value = ids
     }
 
+    // Tackle Box and Lure Functions
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
+    }
+    fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
+        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
+    }
+    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
+        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
     }
 
     fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
@@ -169,6 +184,44 @@ class AddTripViewModel(
     fun speciesThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(id)
             .flowOn(Dispatchers.IO)
+    }
+
+    fun deleteBodyOfWaterThumbnail(id: String) {
+        viewModelScope.launch {
+            photoRepo.deleteBodyOfWaterThumbnail(id)
+        }
+    }
+    fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateBodyOfWaterThumbnail(id, uri)
+        }
+    }
+
+    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+        viewModelScope.launch {
+            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+                .onSuccess {  }
+                .onFailure {  }
+        }
+    }
+    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+    }
+    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
+        viewModelScope.launch {
+            photoRepo.setFishermanThumbnail(fishermanId, photoId)
+        }
+    }
+
+    fun deleteSpeciesThumbnail(speciesId: String) {
+        viewModelScope.launch {
+            photoRepo.deleteSpeciesThumbnail(speciesId)
+        }
+    }
+    fun updateSpeciesThumbnail(speciesId: String, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            photoRepo.updateSpeciesThumbnail(speciesId, uri)
+        }
     }
 
     // --- Actions ---

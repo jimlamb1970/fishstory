@@ -456,11 +456,13 @@ class TripViewModel(
             initialValue = null
         )
 
+    // Body of Water Thumbnails and Photos
     fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {
         return photoRepo.fetchBodyOfWaterThumbnail(bodyOfWaterId)
             .flowOn(Dispatchers.IO)
     }
 
+    // Event Thumbnails and Photos
     fun eventPhotos(eventId: String): Flow<List<Photo>> {
         return photoRepo.getPhotosForEvent(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -471,6 +473,7 @@ class TripViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
+    // Fisherman Thumbnails and Photos
     fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
@@ -493,14 +496,12 @@ class TripViewModel(
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }
 
+    // Sky Condition Thumbnails and Photos
     fun skyConditionThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchSkyConditionThumbnail(id).flowOn(Dispatchers.IO)
     }
 
-    fun speciesSummary(tripId: String, speciesId: String): Flow<SpeciesSummary?> {
-        return fishRepo.getSpeciesSummary(tripId = tripId, speciesId = speciesId)
-    }
-
+    // Species Thumbnails and Photos
     fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
@@ -648,7 +649,6 @@ class TripViewModel(
             fishermanRepo.insertTackleBox(tackleBox)
         }
     }
-
 
     fun createAndAssignTackleBox(tackleBox: TackleBox) {
         val tripId = _selectedTripId.value ?: return

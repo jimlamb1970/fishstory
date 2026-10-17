@@ -145,6 +145,7 @@ fun FishermanRow(
 fun FishermanSummaries(
     list: List<FishermanSummary>,
     verbose: Boolean,
+    modifier: Modifier = Modifier,
     description: String = "No fishermen are selected.",
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
@@ -155,20 +156,21 @@ fun FishermanSummaries(
     onAdd: () -> Unit,
     onAddTackleBox: (TackleBox) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
-    onClick: (Fisherman) -> Unit,
-    onFishClick: (Fisherman, Boolean) -> Unit,
+    onClick: (Fisherman) -> Unit = { _ -> },
+    onFishClick: (Fisherman, Boolean) -> Unit = { _, _ -> },
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
-    onPhotoAdded: (Fisherman, Uri) -> Unit,
-    onPhotoTaken: (Fisherman, Uri) -> Unit,
+    onPhotoAdded: (Fisherman, Uri) -> Unit = { _, _ -> },
+    onPhotoTaken: (Fisherman, Uri) -> Unit = { _, _ -> },
     onSetThumbnail: (Fisherman, Photo) -> Unit,
-    onPhotoDeleted: (Fisherman, Photo) -> Unit,
+    onPhotoDeleted: (Fisherman, Photo) -> Unit = { _, _ -> },
     onDelete: ((Fisherman) -> Unit)? = null
 ) {
-    Column() {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -210,9 +212,7 @@ fun FishermanSummaries(
         if (list.isNotEmpty()) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 list.forEachIndexed { index, item ->
                     val selectedTackleBoxId = tackleBoxSelections[item.fisherman.id]
@@ -245,18 +245,12 @@ fun FishermanSummaries(
                 }
             }
         } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
     }
 }

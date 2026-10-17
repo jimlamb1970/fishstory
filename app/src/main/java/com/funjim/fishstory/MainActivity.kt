@@ -347,8 +347,8 @@ fun AppNavigation(
 
             AddTripScreen(
                 viewModel = viewModel,
-                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
-                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
+                navigateToAddLures = { tackleBox ->
+                    navController.navigate("select_lures/$${tackleBox.fishermanId}/${tackleBox.id}")
                 },
                 navigateToAddEvent = { id ->
                     navController.navigate("add_event/$id")
@@ -536,7 +536,7 @@ fun AppNavigation(
             )
         }
 
-        composable(route = "lures") { backStackEntry ->
+        composable("lures") {
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: LureViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = app.getLureViewModelFactory()
@@ -843,9 +843,6 @@ fun AppNavigation(
             TripDetailsScreen(
                 viewModel = viewModel,
                 tripId = tripId,
-                navigateToSelectTripCrew = { id ->
-                    navController.navigate("select_trip_crew/$id")
-                },
                 navigateToFishList = { fishFilter ->
                     navController.navigate(FishFilter.toRoute(fishFilter))
                 },

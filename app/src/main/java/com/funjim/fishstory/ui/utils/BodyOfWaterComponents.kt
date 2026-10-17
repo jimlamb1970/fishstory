@@ -147,22 +147,24 @@ fun BodiesOfWaterRow(
 fun BodyOfWaterSummaries(
     list: List<BodyOfWaterSummary>,
     verbose: Boolean,
+    modifier: Modifier = Modifier,
     description: String = "No bodies of water are selected.",
     thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
-    onClick: (BodyOfWater) -> Unit,
-    onFishClick: (BodyOfWater, Boolean) -> Unit,
+    onClick: (BodyOfWater) -> Unit = { _ -> },
+    onFishClick: (BodyOfWater, Boolean) -> Unit = { _, _ -> },
     onSetThumbnail: (BodyOfWater) -> Unit,
     onClearThumbnail: (BodyOfWater) -> Unit,
     onDelete: (BodyOfWater) -> Unit
 ) {
-    Column() {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -204,9 +206,7 @@ fun BodyOfWaterSummaries(
         if (list.isNotEmpty()) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 list.forEachIndexed { index, item ->
                     BodyOfWaterSummaryCard(
@@ -224,18 +224,13 @@ fun BodyOfWaterSummaries(
                 }
             }
         } else {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

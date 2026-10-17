@@ -896,6 +896,10 @@ fun EventDetailsScreen(
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
                                             verbose = displaySettings.verboseCards,
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            ),
                                             description = """No bodies of water selected.
 
 Bodies of water are where you're actively fishing. 
@@ -938,6 +942,10 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
+                                                modifier = Modifier.padding(
+                                                    vertical = 8.dp,
+                                                    horizontal = 16.dp
+                                                ),
                                                 description = """No fishermen selected.
 
 Fishermen are the people actively participating on this event, and there must be at least one selected.

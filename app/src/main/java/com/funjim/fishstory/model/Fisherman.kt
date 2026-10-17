@@ -29,16 +29,14 @@ data class FishermanWithTrips(
 
 data class FishermanSummary(
     val fisherman: Fisherman,
-    val totalTrips: Int,
-    val totalTackleBoxes: Int,
-
-    val fishCaught: Int,
-    val fishKept: Int,
-    val targetFishCaught: Int,
-    val targetFishKept: Int,
-
-    val largestFish: Long,
-    val smallestFish: Long
+    val totalTrips: Int = 0,
+    val totalTackleBoxes: Int = 0,
+    val fishCaught: Int = 0,
+    val fishKept: Int = 0,
+    val targetFishCaught: Int = 0,
+    val targetFishKept: Int = 0,
+    val largestFish: Long = 0,
+    val smallestFish: Long = 0
 ) {
     @get:Ignore
     val fullName: String

@@ -3,6 +3,7 @@ package com.funjim.fishstory.ui.utils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -111,12 +112,13 @@ fun CategoryRow(
     categories: List<CategoryChipConfig>,
     selectedCategory: CategoryType,
     onCategorySelected: (CategoryType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 ) {
     FlowRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {

@@ -117,7 +117,7 @@ fun EventItem(
                 ThumbnailBox(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.CanoeEmpty,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(48.dp),
                     onClick =
                         if (showPhotoPicker) {
                             { showPhotos = !showPhotos }

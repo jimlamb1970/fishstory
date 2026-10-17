@@ -103,7 +103,6 @@ import java.util.Locale
 fun TripDetailsScreen(
     viewModel: TripViewModel,
     tripId: String,
-    navigateToSelectTripCrew: (String) -> Unit,
     navigateToFishList: (FishFilter) -> Unit,
     navigateToAddEvent: (String) -> Unit,
     navigateToEventDetails: (String, CategoryType) -> Unit,
@@ -446,7 +445,6 @@ fun TripDetailsScreen(
                                             }
                                         }
                                     }
-
                                 }
                                 CategoryType.EVENTS -> {
                                     IconButton(onClick = { navigateToAddEvent(tripId) }) {
@@ -872,12 +870,16 @@ fun TripDetailsScreen(
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummaries(
                                             list = sortedBodyOfWaterList,
+                                            verbose = displaySettings.verboseCards,
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp,
+                                                horizontal = 16.dp
+                                            ),
                                             description = """No bodies of water selected.
 
 Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
-                                            verbose = displaySettings.verboseCards,
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                                             },
@@ -1090,6 +1092,10 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                             FishermanSummaries(
                                                 list = sortedFishermanList,
                                                 verbose = displaySettings.verboseCards,
+                                                modifier = Modifier.padding(
+                                                    vertical = 8.dp,
+                                                    horizontal = 16.dp
+                                                ),
                                                 description = """No fishermen selected.
 
 Fishermen are the people actively participating on this trip, and there must be at least one selected.

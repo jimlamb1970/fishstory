@@ -3,6 +3,10 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +16,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,10 +28,7 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.BodiesOfWaterRow
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
-import com.funjim.fishstory.ui.utils.FishermanRow
-import com.funjim.fishstory.ui.utils.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
@@ -39,6 +41,17 @@ import com.funjim.fishstory.viewmodels.AddTripViewModel
 import kotlinx.coroutines.launch
 import kotlin.collections.minus
 import kotlin.collections.plus
+import androidx.core.net.toUri
+import com.funjim.fishstory.model.BodyOfWaterSummary
+import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.SpeciesSummary
+import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.utils.BodyOfWaterSummaries
+import com.funjim.fishstory.ui.utils.CategoryChipConfig
+import com.funjim.fishstory.ui.utils.CategoryRow
+import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.FishermanSummaries
+import com.funjim.fishstory.ui.utils.SpeciesSummaries
 
 // ---------------------------------------------------------------------------
 // AddTripScreen
@@ -47,7 +60,7 @@ import kotlin.collections.plus
 @Composable
 fun AddTripScreen(
     viewModel: AddTripViewModel,
-    navigateToEditTackleBox: ((fishermanId: String, tackleBoxId: String) -> Unit),
+    navigateToAddLures: (TackleBox) -> Unit,
     navigateToAddEvent: ((tripId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
@@ -100,8 +113,70 @@ fun AddTripScreen(
         }
     )
 
+    var bodyOfWaterForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = bodyOfWaterForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateBodyOfWaterThumbnail(item.id, uri)
+        }
+        bodyOfWaterForPhoto = null
+    }
+
+    var speciesForPhoto by remember { mutableStateOf<Species?>(null) }
+    val speciesPhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = speciesForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateSpeciesThumbnail(item.id, uri)
+        }
+        speciesForPhoto = null
+    }
+
     fun cancelAndExit() {
         navigateBack()
+    }
+
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val categoryConfigs = remember(
+        allBodiesOfWater,
+        bodiesOfWater,
+        allFishermen,
+        tripFishermen,
+        allSpecies,
+        targetSpecies
+    ) {
+        listOf(
+            CategoryChipConfig(
+                category = CategoryType.BODIES_OF_WATER,
+                icon = { Icon(
+                    AppIcons.Default.BodyOfWater,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = bodiesOfWater.size
+            ),
+            CategoryChipConfig(
+                category = CategoryType.FISHERMEN,
+                icon = { Icon(
+                    AppIcons.Default.Fisherman,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = tripFishermen.size
+            ),
+            CategoryChipConfig(
+                category = CategoryType.TARGET_SPECIES,
+                icon = { Icon(
+                    AppIcons.Default.TargetFish,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                ) },
+                count = targetSpecies.size
+            )
+        )
     }
 
     Scaffold(
@@ -226,7 +301,8 @@ fun AddTripScreen(
                     Button(
                         onClick = { showSaveDialog = true },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()                    ) {
+                        enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
+                    ) {
                         Text("Add Trip")
                     }
                 }
@@ -238,7 +314,7 @@ fun AddTripScreen(
                 .padding(padding)
                 .fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 Row(
@@ -265,11 +341,11 @@ fun AddTripScreen(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}")
+                                        "https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}".toUri()
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
-                                    } catch (e: Exception) {
+                                    } catch (_: Exception) {
                                         Toast.makeText(
                                             context,
                                             "Could not open map",
@@ -352,106 +428,181 @@ fun AddTripScreen(
                 }
             }
 
-            item {
-                HorizontalDivider()
-            }
+            item { HorizontalDivider() }
 
             item {
-                TargetSpeciesRow(
-                    items = targetSpecies,
-                    description = """No target species selected.
-
-Target species are what you're actively fishing for. 
-
-Selecting them places those species at the top of the list when logging catches for quicker entry.""",
-                    onAdd = { showSpeciesSelection = true },
-                    onDelete = { species ->
-                        viewModel.updateTripTargetSpecies(targetSpecies - species)
-                    },
-                    thumbnailProvider = { species, size ->
-                        val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
-                        }
-
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.TargetFish,
-                            modifier = Modifier.size(size)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                CategoryRow(
+                    categories = categoryConfigs,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = viewModel::onCategorySelected,
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                 )
             }
 
-            item {
-                HorizontalDivider()
-            }
+            item { HorizontalDivider() }
 
             item {
-                BodiesOfWaterRow(
-                    items = bodiesOfWater,
-                    description = """No bodies of water selected.
+                Crossfade(
+                    targetState = selectedCategory,
+                    label = "CategoryTransition",
+                    modifier = Modifier.fillMaxWidth()
+                ) { category ->
+                    when (category) {
+                        CategoryType.BODIES_OF_WATER -> {
+                            val bowSummaries: List<BodyOfWaterSummary> = bodiesOfWater.map { bow ->
+                                BodyOfWaterSummary(bodyOfWater = bow)
+                            }.sortedBy { it.bodyOfWater.name.lowercase() }
+
+                            BodyOfWaterSummaries(
+                                list = bowSummaries,
+                                description = """No bodies of water selected.
 
 Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
-                    onAdd = { showBodyOfWaterSelection = true },
-                    onClick = {},
-                    onDelete = { bodyOfWater ->
-                        viewModel.updateTripBodiesOfWater(bodiesOfWater - bodyOfWater)
-                    },
-                    thumbnailProvider = { bodyOfWater ->
-                        val thumbnailFlow = remember(bodyOfWater.id) {
-                            viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                verbose = false,
+                                thumbnailFlow = { bodyOfWater ->
+                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                },
+                                onAdd = { showBodyOfWaterSelection = true },
+                                onSetThumbnail = { bodyOfWater ->
+                                    bodyOfWaterForPhoto = bodyOfWater
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                onClearThumbnail = { bodyOfWater ->
+
+                                    viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
+                                },
+                                onDelete = { bodyOfWater ->
+                                    viewModel.updateTripBodiesOfWater(bodiesOfWater - bodyOfWater)
+                                }
+                            )
                         }
 
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                        CategoryType.FISHERMEN -> {
+                            val fishermanSummaries: List<FishermanSummary> = tripFishermen.map { fisherman ->
+                                FishermanSummary(fisherman = fisherman)
+                            }.sortedBy { it.fisherman.fullName }
 
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.BodyOfWater,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            item {
-                HorizontalDivider()
-            }
-
-            item {
-                FishermanRow(
-                    items = tripFishermen,
-                    description = """No fishermen selected. 
+                            Column() {
+                                FishermanSummaries(
+                                    list = fishermanSummaries,
+                                    verbose = false,
+                                    description = """No fishermen selected. 
 
 Fishermen are the people actively participating on this trip, and there must be at least one selected. 
 
+After selecting fishermen, you can assign a tackle box and add lures.
+
 When logging catches, options will be restricted to the fishermen selected here.""",
-                    onAdd = { showFishermanSelection = true },
-                    onClick = {},
-                    onDelete = { item ->
-                        viewModel.updateTripFishermen(tripFishermen - item)
-                        viewModel.updateTripTackleBoxMap(tripTackleBoxMap - item.id)
-                    },
-                    thumbnailProvider = { item ->
-                        val thumbnailFlow = remember(item.id) {
-                            viewModel.fishermanThumbnail(item.id)
+                                    thumbnailFlow = { fisherman ->
+                                        viewModel.fishermanThumbnail(fisherman.id)
+                                    },
+                                    tackleBoxSelections = tripTackleBoxMap,
+                                    getTackleBoxesForFisherman = { fishermanId ->
+                                        viewModel.getTackleBoxesForFisherman(fishermanId)
+                                            .collectAsState(initial = emptyList()).value
+                                    },
+                                    getLureCount = { tackleBoxId ->
+                                        viewModel.getLureCountForTackleBox(tackleBoxId)
+                                            .collectAsState(initial = 0).value
+                                    },
+                                    getLuresInTacklebox = { tackleBoxId ->
+                                        viewModel.getLuresInTackleBox(tackleBoxId)
+                                            .collectAsState(initial = emptyList()).value
+                                    },
+                                    onAdd = {
+                                        showFishermanSelection = true
+                                    },
+                                    onAddTackleBox = { tackleBox ->
+                                        viewModel.createTackleBox(tackleBox) { tackleBox ->
+                                            viewModel.updateTripTackleBoxMap(
+                                                tripTackleBoxMap + (tackleBox.fishermanId to tackleBox.id)
+                                            )
+                                        }
+                                    },
+                                    onAddLuresToTackleBox = { tackleBox ->
+                                        navigateToAddLures(tackleBox)
+                                    },
+                                    onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                        viewModel.updateTripTackleBoxMap(
+                                            tripTackleBoxMap + (fisherman.id to tackleBoxId)
+                                        )
+                                    },
+                                    onPhotoTaken = { fisherman, uri ->
+                                        viewModel.addFishermanPhoto(
+                                            fisherman.id,
+                                            uri,
+                                            false
+                                        )
+                                    },
+                                    onPhotoAdded = { fisherman, uri ->
+                                        viewModel.addFishermanPhoto(
+                                            fisherman.id,
+                                            uri,
+                                            true
+                                        )
+                                    },
+                                    onSetThumbnail = { fisherman, photo ->
+                                        viewModel.setFishermanThumbnail(
+                                            fisherman.id,
+                                            photo.id
+                                        )
+                                    },
+                                    onPhotoDeleted = { fisherman, photo ->
+                                        viewModel.deleteFishermanPhoto(
+                                            fisherman.id,
+                                            photo.id
+                                        )
+                                    },
+                                    onDelete =
+                                        if (fishermanSummaries.size > 1) { fisherman ->
+                                            viewModel.updateTripFishermen(tripFishermen - fisherman)
+                                            viewModel.updateTripTackleBoxMap(tripTackleBoxMap - fisherman.id)
+                                        }
+                                        else null
+                                )
+                            }
                         }
 
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                        CategoryType.TARGET_SPECIES -> {
+                            val speciesSummaries: List<SpeciesSummary> = targetSpecies.map { species ->
+                                SpeciesSummary(species = species)
+                            }.sortedBy { it.species.name.lowercase() }
 
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.Fisherman,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                            SpeciesSummaries(
+                                items = speciesSummaries,
+                                verbose = false,
+                                description = """No target species selected.
+
+Target species are what you're actively fishing for. 
+
+Selecting them places those species at the top of the list when logging catches for quicker entry.""",
+                                thumbnailFlow = { species ->
+                                    viewModel.speciesThumbnail(species.id)
+                                },
+                                onAdd = { showSpeciesSelection = true },
+                                onClick = { /* Do nothing */ },
+                                onSetThumbnail = { species ->
+                                    speciesForPhoto = species
+                                    speciesPhotoPicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                onClearThumbnail = { species ->
+                                    viewModel.deleteSpeciesThumbnail(species.id)
+                                },
+                                onDelete = { species ->
+                                    viewModel.updateTripTargetSpecies(targetSpecies - species)
+                                }
+                            )
+                        }
+
+                        else -> {}
+                    }
+                }
             }
         }
 
