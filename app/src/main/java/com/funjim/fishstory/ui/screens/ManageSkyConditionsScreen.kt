@@ -67,8 +67,8 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.crud.AddSkyConditionDialog
-import com.funjim.fishstory.ui.utils.crud.EditSkyConditionDialog
+import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
+import com.funjim.fishstory.ui.crud.EditSkyConditionDialog
 import com.funjim.fishstory.viewmodels.SkyConditionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

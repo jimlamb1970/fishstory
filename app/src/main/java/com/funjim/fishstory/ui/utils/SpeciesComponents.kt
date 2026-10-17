@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
-import com.funjim.fishstory.ui.utils.cards.SpeciesItem
-import com.funjim.fishstory.ui.utils.cards.TargetSpeciesItem
+import com.funjim.fishstory.ui.cards.SpeciesItem
+import com.funjim.fishstory.ui.cards.TargetSpeciesItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

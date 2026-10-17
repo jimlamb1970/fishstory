@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -72,8 +71,8 @@ import com.funjim.fishstory.viewmodels.LureViewModel
 import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.crud.AddColorDialog
-import com.funjim.fishstory.ui.utils.crud.EditColorDialog
+import com.funjim.fishstory.ui.crud.AddColorDialog
+import com.funjim.fishstory.ui.crud.EditColorDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 

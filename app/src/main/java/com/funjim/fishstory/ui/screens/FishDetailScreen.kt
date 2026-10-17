@@ -43,10 +43,10 @@ import com.funjim.fishstory.ui.utils.NoteRow
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ReleasedChip
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.cards.WaterCard
-import com.funjim.fishstory.ui.utils.cards.WeatherCard
-import com.funjim.fishstory.ui.utils.crud.AddNoteDialog
-import com.funjim.fishstory.ui.utils.crud.EditNoteDialog
+import com.funjim.fishstory.ui.cards.WaterCard
+import com.funjim.fishstory.ui.cards.WeatherCard
+import com.funjim.fishstory.ui.crud.AddNoteDialog
+import com.funjim.fishstory.ui.crud.EditNoteDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.toLengthDisplayString
 import com.funjim.fishstory.viewmodels.FishDetailsViewModel

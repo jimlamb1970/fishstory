@@ -68,8 +68,8 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.crud.AddBaitDialog
-import com.funjim.fishstory.ui.utils.crud.EditBaitDialog
+import com.funjim.fishstory.ui.crud.AddBaitDialog
+import com.funjim.fishstory.ui.crud.EditBaitDialog
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.BaitViewModel
 

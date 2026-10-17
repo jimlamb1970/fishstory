@@ -50,11 +50,11 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.inchesToStorage
-import com.funjim.fishstory.ui.utils.selection.BaitSelectionField
-import com.funjim.fishstory.ui.utils.selection.BodyOfWaterSelectionField
-import com.funjim.fishstory.ui.utils.selection.FishermanSelectionField
-import com.funjim.fishstory.ui.utils.selection.LureSelectionField
-import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
+import com.funjim.fishstory.ui.selection.BaitSelectionField
+import com.funjim.fishstory.ui.selection.BodyOfWaterSelectionField
+import com.funjim.fishstory.ui.selection.FishermanSelectionField
+import com.funjim.fishstory.ui.selection.LureSelectionField
+import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.ui.utils.sortLures
 import com.funjim.fishstory.ui.utils.toInches
 import com.funjim.fishstory.viewmodels.AddFishUiState
@@ -63,9 +63,9 @@ import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
 import com.funjim.fishstory.ui.utils.cmToStorage
-import com.funjim.fishstory.ui.utils.crud.AddBaitDialog
-import com.funjim.fishstory.ui.utils.crud.AddBodyOfWaterDialog
-import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.AddBaitDialog
+import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.toCm
 
 fun Long.toUtcMidnight(): Long =

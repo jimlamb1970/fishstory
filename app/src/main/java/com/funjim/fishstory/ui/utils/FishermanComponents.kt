@@ -17,8 +17,8 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.theme.FishstoryTheme
-import com.funjim.fishstory.ui.utils.cards.FishermanItem
-import com.funjim.fishstory.ui.utils.cards.FishermanSummaryCard
+import com.funjim.fishstory.ui.cards.FishermanItem
+import com.funjim.fishstory.ui.cards.FishermanSummaryCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

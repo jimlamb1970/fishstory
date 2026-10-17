@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
-import com.funjim.fishstory.ui.utils.cards.BodyOfWaterSummaryCard
+import com.funjim.fishstory.ui.cards.BodyOfWaterSummaryCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

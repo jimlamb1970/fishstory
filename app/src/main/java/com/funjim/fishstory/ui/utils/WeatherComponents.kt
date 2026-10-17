@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.model.WeatherSummary
 import com.funjim.fishstory.model.WeatherWithDetails
-import com.funjim.fishstory.ui.utils.cards.WeatherCard
-import com.funjim.fishstory.ui.utils.cards.WeatherSummaryCard
+import com.funjim.fishstory.ui.cards.WeatherCard
+import com.funjim.fishstory.ui.cards.WeatherSummaryCard
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.Locale

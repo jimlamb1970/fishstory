@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WaterWithDetails
-import com.funjim.fishstory.ui.utils.cards.WaterCard
-import com.funjim.fishstory.ui.utils.cards.WaterSummaryCard
+import com.funjim.fishstory.ui.cards.WaterCard
+import com.funjim.fishstory.ui.cards.WaterSummaryCard
 import java.util.Locale
 import kotlin.math.roundToLong
 

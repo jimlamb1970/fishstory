@@ -18,8 +18,8 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.utils.crud.AddColorDialog
-import com.funjim.fishstory.ui.utils.selection.LureColorSelectionField
+import com.funjim.fishstory.ui.crud.AddColorDialog
+import com.funjim.fishstory.ui.selection.LureColorSelectionField
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
 

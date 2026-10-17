@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
-import com.funjim.fishstory.ui.utils.selection.TackleBoxSelectionField
+import com.funjim.fishstory.ui.crud.AddFishermanDialog
+import com.funjim.fishstory.ui.selection.TackleBoxSelectionField
 
 // ---------------------------------------------------------------------------
 // Data model for a single fisherman's crew entry

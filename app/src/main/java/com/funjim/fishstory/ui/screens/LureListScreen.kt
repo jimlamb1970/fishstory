@@ -28,7 +28,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
-import com.funjim.fishstory.ui.utils.cards.LureItem
+import com.funjim.fishstory.ui.cards.LureItem
 import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.LureSortOrder

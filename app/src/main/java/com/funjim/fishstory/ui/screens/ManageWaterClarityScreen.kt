@@ -67,8 +67,8 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.crud.AddWaterClarityDialog
-import com.funjim.fishstory.ui.utils.crud.EditWaterClarityDialog
+import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
+import com.funjim.fishstory.ui.crud.EditWaterClarityDialog
 import com.funjim.fishstory.viewmodels.WaterClarityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

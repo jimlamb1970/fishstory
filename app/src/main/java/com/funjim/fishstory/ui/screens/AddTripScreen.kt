@@ -31,13 +31,13 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.utils.crud.AddFishermanDialog
-import com.funjim.fishstory.ui.utils.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.AddFishermanDialog
+import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
-import com.funjim.fishstory.ui.utils.selection.BodyOfWaterSelection
-import com.funjim.fishstory.ui.utils.selection.FishermanSelection
-import com.funjim.fishstory.ui.utils.selection.SpeciesSelection
+import com.funjim.fishstory.ui.selection.BodyOfWaterSelection
+import com.funjim.fishstory.ui.selection.FishermanSelection
+import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.viewmodels.AddTripViewModel
 import kotlinx.coroutines.launch
 import kotlin.collections.minus
@@ -53,8 +53,6 @@ import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.FishermanSummaries
 import com.funjim.fishstory.ui.utils.SpeciesSummaries
-import com.funjim.fishstory.ui.utils.StatusGumball
-import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 
 // ---------------------------------------------------------------------------
 // AddTripScreen

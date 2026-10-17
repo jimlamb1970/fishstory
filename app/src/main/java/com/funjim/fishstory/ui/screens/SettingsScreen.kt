@@ -16,7 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.theme.themeMap
-import com.funjim.fishstory.ui.utils.selection.ThemeSelectionField
+import com.funjim.fishstory.ui.selection.ThemeSelectionField
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch

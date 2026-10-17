@@ -30,7 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.theme.AppIcons
-import com.funjim.fishstory.ui.utils.cards.NoteCard
+import com.funjim.fishstory.ui.cards.NoteCard
 
 @Composable
 fun NotesIconButton(
