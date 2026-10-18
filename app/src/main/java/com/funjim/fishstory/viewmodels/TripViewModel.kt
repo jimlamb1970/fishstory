@@ -44,11 +44,11 @@ class TripViewModel(
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val inputCategory: String? = savedStateHandle["category"]
@@ -630,9 +630,9 @@ class TripViewModel(
             try {
                 fishermanRepo.addFisherman(fisherman)
                 onSuccess() // ONLY runs if addFisherman completes without throwing
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding fisherman.")
             }
         }
@@ -683,9 +683,9 @@ class TripViewModel(
                 try {
                     fishermanRepo.addFisherman(fisherman)
                     onSuccess() // ONLY runs if addFisherman completes without throwing
-                } catch (e: SQLiteConstraintException) {
+                } catch (_: SQLiteConstraintException) {
                     _toastMessage.emit("Fisherman already exists.")
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     _toastMessage.emit("An error occurred while adding fisherman.")
                 }
             } else {
@@ -863,7 +863,7 @@ class TripViewModel(
 
     fun toggleImperialUnits() {
         viewModelScope.launch {
-            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+            configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
 }

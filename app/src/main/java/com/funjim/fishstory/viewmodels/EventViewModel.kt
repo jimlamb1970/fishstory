@@ -45,11 +45,11 @@ class EventViewModel(
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val inputCategory: String? = savedStateHandle["category"]
@@ -750,7 +750,7 @@ class EventViewModel(
 
     fun toggleImperialUnits() {
         viewModelScope.launch {
-            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+            configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
 }

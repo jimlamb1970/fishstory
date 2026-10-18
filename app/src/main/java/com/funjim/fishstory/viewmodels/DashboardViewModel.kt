@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
@@ -64,11 +65,11 @@ class DashboardViewModel(
         }
     }
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
@@ -355,13 +356,13 @@ class DashboardViewModel(
 
     fun toggleImperialUnits() {
         viewModelScope.launch {
-            configRepo.updateUseImperialUnits(displaySettings.value.useImperialUnits.not())
+            configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
 
     fun toggleVerboseCards() {
         viewModelScope.launch {
-            configRepo.updateUseVerboseCards(displaySettings.value.verboseCards.not())
+            configRepo.updateUseVerboseCards(appSettings.value.display.verboseCards.not())
         }
     }
 }

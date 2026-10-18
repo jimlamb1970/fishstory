@@ -43,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
+import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
@@ -86,15 +87,15 @@ class MainActivity : ComponentActivity() {
             val app = context.applicationContext as FishstoryApplication
             val configRepo = app.configurationRepository
 
-            val displaySettings by configRepo.displaySettings.collectAsStateWithLifecycle(
-                initialValue = DisplaySettings()
+            val appSettings by configRepo.appSettings.collectAsStateWithLifecycle(
+                initialValue = AppSettings()
             )
 
-            var userThemeSelection by rememberSaveable(displaySettings.colorTheme) {
+            var userThemeSelection by rememberSaveable(appSettings.display.colorTheme) {
                 mutableStateOf<String?>(null)
             }
 
-            val activeTheme = userThemeSelection ?: displaySettings.colorTheme
+            val activeTheme = userThemeSelection ?: appSettings.display.colorTheme
 
             FishstoryTheme(selectedTheme = activeTheme) {
                 Surface(

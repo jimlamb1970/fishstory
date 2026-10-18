@@ -76,7 +76,7 @@ fun FishermanTackleBoxScreen(
         viewModel.selectTackleBox(tackleBoxId)
     }
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
     val fisherman by viewModel.selectedFisherman.collectAsStateWithLifecycle()
@@ -349,7 +349,7 @@ fun FishermanTackleBoxScreen(
                             val inBox = item.lure.id in luresInBoxIds
                             LureTackleBoxItem(
                                 item = item,
-                                verbose = displaySettings.verboseCards,
+                                verbose = appSettings.display.verboseCards,
                                 thumbnailFlow = viewModel.lureThumbnail(item.lure.id),
                                 photosFlow = viewModel.lurePhotos(item.lure.id),
                                 index = index,
@@ -404,7 +404,7 @@ fun FishermanTackleBoxScreen(
                             viewModel.updateScrollbarOnLeft()
                         },
                         modifier = Modifier
-                            .align(if (displaySettings.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                            .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
                             .fillMaxHeight()
                             .padding(vertical = 4.dp, horizontal = 0.dp)
                     )

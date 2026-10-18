@@ -88,7 +88,7 @@ fun AddFishScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val draftFish by viewModel.draftFish.collectAsStateWithLifecycle()
@@ -507,7 +507,7 @@ fun AddFishScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (displaySettings.useImperialUnits) {
+                            if (appSettings.display.useImperialUnits) {
                                 val currentTotalInches = fish.length?.toInches() ?: 0.0
                                 val wholeInches = floor(currentTotalInches).toInt().coerceAtLeast(0)
                                 val remainingFraction = currentTotalInches - wholeInches

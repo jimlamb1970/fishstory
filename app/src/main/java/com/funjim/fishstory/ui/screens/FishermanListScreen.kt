@@ -48,7 +48,7 @@ fun FishermanListScreen(
 ) {
     val context = LocalContext.current
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
     var fishermanToDelete by remember { mutableStateOf<FishermanSummary?>(null) }
@@ -188,7 +188,7 @@ fun FishermanListScreen(
                     itemsIndexed(fishermanSummaries) { index, fisherman ->
                         FishermanItem(
                             fisherman = fisherman,
-                            verbose = displaySettings.verboseCards,
+                            verbose = appSettings.display.verboseCards,
                             index = index,
                             totalItems = totalItems,
                             thumbnailFlow = viewModel.fishermanThumbnail(fisherman.fisherman.id),
@@ -225,7 +225,7 @@ fun FishermanListScreen(
                         viewModel.updateScrollbarOnLeft()
                     },
                     modifier = Modifier
-                        .align(if (displaySettings.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                        .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
                         .fillMaxHeight()
                         .padding(vertical = 4.dp, horizontal = 0.dp)
                 )

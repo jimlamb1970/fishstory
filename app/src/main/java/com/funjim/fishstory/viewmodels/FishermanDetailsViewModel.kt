@@ -24,10 +24,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class FishermanDetailsViewModel(
     private val configRepo: ConfigurationRepository,
@@ -37,11 +35,11 @@ class FishermanDetailsViewModel(
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _selectedFishermanId = MutableStateFlow<String?>(null)

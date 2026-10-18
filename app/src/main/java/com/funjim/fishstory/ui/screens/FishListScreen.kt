@@ -1,9 +1,7 @@
 package com.funjim.fishstory.ui.screens
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -27,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
@@ -41,7 +37,6 @@ import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
-import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.FishSortOrder
 import com.funjim.fishstory.viewmodels.FishViewModel
@@ -75,7 +70,7 @@ fun FishListScreen(
     val context = LocalContext.current
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val bodyOfWater by viewModel.selectedBodyOfWater.collectAsStateWithLifecycle()
     val event by viewModel.selectedEvent.collectAsStateWithLifecycle()
@@ -359,7 +354,7 @@ fun FishListScreen(
                                 includeTrip = filter.tripId.isNullOrEmpty(),
                                 includeEvent = filter.eventId.isNullOrEmpty(),
                                 includeFisherman = filter.fishermanId.isNullOrEmpty(),
-                                useImperial = displaySettings.useImperialUnits,
+                                useImperial = appSettings.display.useImperialUnits,
                                 thumbnailFlow =
                                     if (fishDetails.photoCount == 0) viewModel.speciesThumbnail(fishDetails.fish.speciesId)
                                     else viewModel.fishThumbnail(fishDetails.fish.id),
@@ -448,7 +443,7 @@ fun FishListScreen(
                             viewModel.updateScrollbarOnLeft()
                         },
                         modifier = Modifier
-                            .align(if (displaySettings.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                            .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
                             .fillMaxHeight()
                             .padding(vertical = 4.dp, horizontal = 0.dp)
                     )

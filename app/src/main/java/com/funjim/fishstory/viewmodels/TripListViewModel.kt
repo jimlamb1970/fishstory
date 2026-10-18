@@ -29,11 +29,11 @@ class TripListViewModel(
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _tripFilter = MutableStateFlow(TripListFilter.COMPLETED)
@@ -59,7 +59,6 @@ class TripListViewModel(
 
     // --- Data Streams ---
     private val allTripSummaries = tripRepo.allTripSummaries
-    // TODO -- add sorting on Trip summaries
     val tripSummaries: StateFlow<List<TripSummary>> = allTripSummaries
         .stateIn(
             scope = viewModelScope,
@@ -108,7 +107,7 @@ class TripListViewModel(
 
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {
-            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+            configRepo.updateScrollBarOnLeft(appSettings.value.display.scrollbarOnLeft.not())
         }
     }
 }

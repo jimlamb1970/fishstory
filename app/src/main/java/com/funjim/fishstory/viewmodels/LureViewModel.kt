@@ -39,11 +39,11 @@ class LureViewModel(
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _sortOrder = MutableStateFlow(LureSortOrder.NAME)
@@ -130,9 +130,9 @@ class LureViewModel(
             try {
                 lureRepo.updateLureColor(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Color '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while updating color.")
             }
         }
@@ -333,7 +333,7 @@ class LureViewModel(
 
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {
-            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+            configRepo.updateScrollBarOnLeft(appSettings.value.display.scrollbarOnLeft.not())
         }
     }
 }

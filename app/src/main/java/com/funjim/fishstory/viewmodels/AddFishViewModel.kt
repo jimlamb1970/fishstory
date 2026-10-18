@@ -47,11 +47,11 @@ class AddFishViewModel(
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     // UI State flows
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _toastMessage = MutableSharedFlow<String>()

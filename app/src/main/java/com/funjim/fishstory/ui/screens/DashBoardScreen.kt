@@ -133,7 +133,7 @@ fun DashboardScreen(
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val activeTripEvents by viewModel.activeTripEvents.collectAsStateWithLifecycle()
@@ -318,7 +318,7 @@ fun DashboardScreen(
                         limitSummaries = limitSummaries,
                         eventSummary = state.eventSummary,
                         tripSummary = state.tripSummary,
-                        useImperial = displaySettings.useImperialUnits,
+                        useImperial = appSettings.display.useImperialUnits,
                         onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                         onTripClick = { tripId -> onNavigate("trip_details/$tripId") },
                         onEventClick = { tripId, eventId -> onNavigate("event_details/$eventId/$tripId") },
@@ -444,7 +444,7 @@ fun DashboardScreen(
             itemsIndexed(state.recentTrips) { index, trip ->
                 TripItemWithMenu(
                     tripSummary = trip,
-                    verbose = displaySettings.verboseCards,
+                    verbose = appSettings.display.verboseCards,
                     index = index,
                     totalItems = totalItems,
                     modifier = Modifier.padding(),

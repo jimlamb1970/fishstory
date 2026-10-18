@@ -4,6 +4,8 @@ import com.funjim.fishstory.model.DisplaySettings
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import com.funjim.fishstory.model.AppSettings
+import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.PreferencesKeys
 import com.funjim.fishstory.model.dataStore
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 interface ConfigurationRepository {
-    val displaySettings: Flow<DisplaySettings>
+    val appSettings: Flow<AppSettings>
 
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
     suspend fun updateColorTheme(colorTheme: String)
@@ -26,21 +28,26 @@ class ConfigurationRepositoryImpl(
     private val context: Context
 ) : ConfigurationRepository {
 
-    override val displaySettings: Flow<DisplaySettings> = context.dataStore.data
+    override val appSettings: Flow<AppSettings> = context.dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences ->
-            DisplaySettings(
-                cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
-                colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
-                scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
-                useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
-                verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
+            AppSettings(
+                display = DisplaySettings(
+                    cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
+                    colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
+                    useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
+                    verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
+                    scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false
+                ),
+                fish = FishSettings(
+                    showBait = preferences[PreferencesKeys.SHOW_FISH_BAIT] ?: true,
+                    showHoleNumber = preferences[PreferencesKeys.SHOW_FISH_HOLE_NUMBER] ?: true,
+                    showKept = preferences[PreferencesKeys.SHOW_FISH_KEPT] ?: true,
+                    showLength = preferences[PreferencesKeys.SHOW_FISH_LENGTH] ?: true,
+                    showWeight = preferences[PreferencesKeys.SHOW_FISH_WEIGHT] ?: true
+                )
             )
         }
 

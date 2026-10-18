@@ -76,7 +76,7 @@ fun FishermanDetailsScreen(
 ) {
     val context = LocalContext.current
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(fishermanId) {
         viewModel.selectFisherman(fishermanId)
@@ -270,7 +270,7 @@ fun FishermanDetailsScreen(
 
                             FishermanHighlightCard(
                                 stats!!,
-                                useImperial = displaySettings.useImperialUnits
+                                useImperial = appSettings.display.useImperialUnits
                             ) {
                                 navigateToFishList(fishermanId, null, false)
                             }
@@ -354,7 +354,7 @@ fun FishermanDetailsScreen(
                                         if (tackleBox != null) {
                                             TackleBoxCard(
                                                 tackleBox,
-                                                verbose = displaySettings.verboseCards,
+                                                verbose = appSettings.display.verboseCards,
                                                 index = page,
                                                 totalItems = totalTackleBoxes,
                                                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -403,7 +403,7 @@ fun FishermanDetailsScreen(
                                 tackleBoxWithLures?.let {
                                     TackleBoxCard(
                                         tackleBoxWithLures,
-                                        verbose = displaySettings.verboseCards,
+                                        verbose = appSettings.display.verboseCards,
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
@@ -508,7 +508,7 @@ fun FishermanDetailsScreen(
                             itemsIndexed(state.activeTrips) { index, trip ->
                                 TripItem(
                                     trip = trip,
-                                    verbose = displaySettings.verboseCards,
+                                    verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = totalActiveItems,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -564,7 +564,7 @@ fun FishermanDetailsScreen(
                             itemsIndexed(state.recentTrips) { index, trip ->
                                 TripItem(
                                     trip = trip,
-                                    verbose = displaySettings.verboseCards,
+                                    verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = tripsSize,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),

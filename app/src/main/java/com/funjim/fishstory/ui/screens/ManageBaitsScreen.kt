@@ -80,8 +80,8 @@ fun ManageBaitsScreen(
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
-    val verbose = displaySettings.verboseCards
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val verbose = appSettings.display.verboseCards
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -209,7 +209,6 @@ fun ManageBaitsScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getOnCardColor()
 
                     ListItem(
                         modifier = Modifier

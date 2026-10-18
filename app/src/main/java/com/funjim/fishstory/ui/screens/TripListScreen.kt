@@ -55,7 +55,7 @@ fun TripListScreen(
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -328,7 +328,7 @@ fun TripListScreen(
                             itemsIndexed(state.upcomingTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
-                                    verbose = displaySettings.verboseCards,
+                                    verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = state.upcomingTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -360,7 +360,7 @@ fun TripListScreen(
                             itemsIndexed(state.liveTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
-                                    verbose = displaySettings.verboseCards,
+                                    verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = state.liveTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -392,7 +392,7 @@ fun TripListScreen(
                             itemsIndexed(state.completedTrips) { index, trip ->
                                 TripItemWithMenu(
                                     tripSummary = trip,
-                                    verbose = displaySettings.verboseCards,
+                                    verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = state.completedTrips.size,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -429,7 +429,7 @@ fun TripListScreen(
                         viewModel.updateScrollbarOnLeft()
                     },
                     modifier = Modifier
-                        .align(if (displaySettings.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                        .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
                         .fillMaxHeight()
                         .padding(vertical = 4.dp, horizontal = 0.dp)
                 )

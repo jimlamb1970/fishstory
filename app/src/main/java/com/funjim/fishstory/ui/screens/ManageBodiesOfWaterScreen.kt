@@ -80,8 +80,8 @@ fun ManageBodiesOfWaterScreen(
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
-    val verbose = displaySettings.verboseCards
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val verbose = appSettings.display.verboseCards
 
     val allItems by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
     var addItem by remember { mutableStateOf(false) }
@@ -203,7 +203,6 @@ fun ManageBodiesOfWaterScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getOnCardColor()
 
                     ListItem(
                         modifier = Modifier

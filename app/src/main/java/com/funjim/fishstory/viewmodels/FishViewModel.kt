@@ -48,11 +48,11 @@ class FishViewModel(
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _toastMessage = MutableSharedFlow<String>()
@@ -368,10 +368,10 @@ class FishViewModel(
             try {
                 fishRepo.addSpecies(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Species '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding species.")
             }
         }
@@ -468,7 +468,7 @@ class FishViewModel(
 
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {
-            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+            configRepo.updateScrollBarOnLeft(appSettings.value.display.scrollbarOnLeft.not())
         }
     }
 }

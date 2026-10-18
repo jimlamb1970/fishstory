@@ -129,7 +129,7 @@ fun TripDetailsScreen(
     val now = System.currentTimeMillis()
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -828,7 +828,7 @@ fun TripDetailsScreen(
                             if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 TripHighlightCard(
                                     summary = summary,
-                                    useImperial = displaySettings.useImperialUnits,
+                                    useImperial = appSettings.display.useImperialUnits,
                                     onClick = {
                                         navigateToFishList(FishFilter(
                                             tripId = trip.id)
@@ -875,7 +875,7 @@ fun TripDetailsScreen(
                                     CategoryType.BODIES_OF_WATER -> {
                                         BodyOfWaterSummarySection(
                                             list = sortedBodyOfWaterList,
-                                            verbose = displaySettings.verboseCards,
+                                            verbose = appSettings.display.verboseCards,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp
@@ -974,7 +974,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 eventSummaries.forEachIndexed { index, eventSummary ->
                                                     EventItem(
                                                         item = eventSummary,
-                                                        verbose = displaySettings.verboseCards,
+                                                        verbose = appSettings.display.verboseCards,
                                                         modifier = Modifier.padding(
                                                             horizontal = 16.dp,
                                                             vertical = 4.dp
@@ -1093,7 +1093,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                         Column() {
                                             FishermanSummarySection(
                                                 list = sortedFishermanList,
-                                                verbose = displaySettings.verboseCards,
+                                                verbose = appSettings.display.verboseCards,
                                                 modifier = Modifier.padding(
                                                     vertical = 8.dp,
                                                     horizontal = 16.dp
@@ -1183,8 +1183,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                     CategoryType.LIMITS -> {
                                         LimitSummarySection(
                                             itemList = limitSummaries,
-                                            verbose = displaySettings.verboseCards,
-                                            useImperial = displaySettings.useImperialUnits,
+                                            verbose = appSettings.display.verboseCards,
+                                            useImperial = appSettings.display.useImperialUnits,
                                             description = """No limits created.
         |
         |Limits track your total catches to help ensure compliance with local fishing regulations.
@@ -1243,7 +1243,7 @@ Notes help you remember specific details and conditions during this trip.""",
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummarySection(
                                             items = sortedTargetSpeciesList,
-                                            verbose = displaySettings.verboseCards,
+                                            verbose = appSettings.display.verboseCards,
                                             description = """No target species selected.
 
 Target species are what you're actively fishing for. 
@@ -1282,11 +1282,11 @@ Selecting them places those species at the top of the list when logging catches 
                                     CategoryType.WATER -> {
                                         WaterSummarySection(
                                             waterList = sortedWaterList,
-                                            verbose = displaySettings.verboseCards,
+                                            verbose = appSettings.display.verboseCards,
                                             description = """No water conditions specified.
 
 Adding water conditions will automatically apply them to any new catches logged for an event.""",
-                                            useImperial = displaySettings.useImperialUnits,
+                                            useImperial = appSettings.display.useImperialUnits,
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
                                                 navigateToFishList(FishFilter(
@@ -1305,8 +1305,8 @@ Adding water conditions will automatically apply them to any new catches logged 
                                     CategoryType.WEATHER -> {
                                         WeatherSummarySection(
                                             list = sortedWeatherList,
-                                            verbose = displaySettings.verboseCards,
-                                            useImperial = displaySettings.useImperialUnits,
+                                            verbose = appSettings.display.verboseCards,
+                                            useImperial = appSettings.display.useImperialUnits,
                                             description = """No weather conditions specified.
 
 Adding weather conditions will automatically apply them to any new catches logged for an event.""",
@@ -1532,7 +1532,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             limitToEdit?.let { limit ->
                 LimitDialog(
                     limitToEdit = limit,
-                    useImperial = displaySettings.useImperialUnits,
+                    useImperial = appSettings.display.useImperialUnits,
                     species = allSpecies,
                     speciesThumbnailProvider = { species, size ->
                         val thumbnailFlow = remember(species.id) {
@@ -1572,7 +1572,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                     initialClarity = water.clarityId,
                     pendingClarity = pendingWaterClarityId,
                     allClarity = allWaterClarity,
-                    useImperial = displaySettings.useImperialUnits,
+                    useImperial = appSettings.display.useImperialUnits,
                     title = "Edit Water Conditions",
                     thumbnailProvider = { clarity ->
                         val thumbnailFlow = remember(clarity.id) {
@@ -1612,7 +1612,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                     initialAirHumidity = item.airHumidity,
                     pendingSkyCondition = pendingSkyConditionId,
                     allSkyConditions = allSkyConditions,
-                    useImperial = displaySettings.useImperialUnits,
+                    useImperial = appSettings.display.useImperialUnits,
                     title = "Edit Weather Conditions",
                     thumbnailProvider = { sky ->
                         val thumbnailFlow = remember(sky.id) {
@@ -1789,7 +1789,7 @@ Adding weather conditions will automatically apply them to any new catches logge
     }
     if (showAddLimitDialog) {
         LimitDialog(
-            useImperial = displaySettings.useImperialUnits,
+            useImperial = appSettings.display.useImperialUnits,
             species = allSpecies,
             speciesThumbnailProvider = { species, size ->
                 val thumbnailFlow = remember(species.id) {

@@ -83,8 +83,8 @@ fun ManageSpeciesScreen(
 ) {
     val context = LocalContext.current
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
-    val verbose = displaySettings.verboseCards
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val verbose = appSettings.display.verboseCards
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -98,7 +98,6 @@ fun ManageSpeciesScreen(
     var searchQuery by remember { mutableStateOf("") }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
-    var editName by remember { mutableStateOf("") }
 
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
 
@@ -221,7 +220,6 @@ fun ManageSpeciesScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getOnCardColor()
 
                     ListItem(
                         modifier = Modifier
@@ -335,7 +333,6 @@ fun ManageSpeciesScreen(
                                         onClick = {
                                             menuExpanded = false
                                             speciesToEdit = species
-                                            editName = species.name
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )

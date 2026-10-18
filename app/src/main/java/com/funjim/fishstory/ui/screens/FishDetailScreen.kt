@@ -75,7 +75,7 @@ fun FishDetailScreen(
     onEditFish: (tripId: String, eventId: String, fishId: String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
 
@@ -248,7 +248,7 @@ fun FishDetailScreen(
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
-                    useImperial = displaySettings.useImperialUnits,
+                    useImperial = appSettings.display.useImperialUnits,
                     onAddNote = { noteId, content ->
                         viewModel.addNote(fish.fish.id, noteId, content)
                     },
@@ -510,7 +510,7 @@ private fun FishDetailContent(
                                         val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                         try {
                                             context.startActivity(intent)
-                                        } catch (e: Exception) {
+                                        } catch (_: Exception) {
                                             Toast.makeText(
                                                 context,
                                                 "Could not open map",

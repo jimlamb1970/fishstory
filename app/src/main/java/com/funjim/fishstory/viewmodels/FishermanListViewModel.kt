@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.model.DisplaySettings
+import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Photo
@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class FishermanListViewModel(
     private val configRepo: ConfigurationRepository,
@@ -26,11 +25,11 @@ class FishermanListViewModel(
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
-    val displaySettings: StateFlow<DisplaySettings> = configRepo.displaySettings
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DisplaySettings()
+            initialValue = AppSettings()
         )
 
     private val _sortOrder = MutableStateFlow(FishermanSortOrder.NAME_AZ)
@@ -69,9 +68,9 @@ class FishermanListViewModel(
             try {
                 fishermanRepo.addFisherman(fisherman)
                 onSuccess() // ONLY runs if addFisherman completes without throwing
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding fisherman.")
             }
         }
@@ -107,7 +106,7 @@ class FishermanListViewModel(
 
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {
-            configRepo.updateScrollBarOnLeft(displaySettings.value.scrollbarOnLeft.not())
+            configRepo.updateScrollBarOnLeft(appSettings.value.display.scrollbarOnLeft.not())
         }
     }
 }

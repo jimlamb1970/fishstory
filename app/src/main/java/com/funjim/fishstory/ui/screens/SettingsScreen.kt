@@ -36,7 +36,7 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     val hostState = remember { SnackbarHostState() }
 
-    val displaySettings by viewModel.displaySettings.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     // Launcher for saving a file (Export to JSON)
     val saveFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
@@ -165,7 +165,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             ThemeSelectionField(
                 items = themeMap,
-                selectedItem = displaySettings.colorTheme,
+                selectedItem = appSettings.display.colorTheme,
                 label = "Theme",
                 modifier = Modifier.fillMaxWidth(),
                 onSelected = { theme ->
