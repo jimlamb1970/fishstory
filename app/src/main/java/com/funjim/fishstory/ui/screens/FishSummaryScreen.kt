@@ -3,8 +3,10 @@ package com.funjim.fishstory.ui.screens
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -45,6 +47,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
+import com.funjim.fishstory.ui.utils.SortChip
+import kotlinx.coroutines.launch
+
+enum class FishFilterOption(val label: String) {
+    BODY_OF_WATER("Body of Water"),
+    EVENT("Event"),
+    FISHERMAN("Fisherman"),
+    LURE("Lure"),
+    SPECIES("Species"),
+    TRIP("Trip")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +68,23 @@ fun FishSummaryScreen(
     onNavigateToFishList: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit
 ) {
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+
+    var currentFilter by remember { mutableStateOf(FishFilterOption.TRIP) }
+    val chipScrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // Automatically scroll the selected filter chip into view when changed
+    LaunchedEffect(currentFilter) {
+        val index = FishFilterOption.entries.indexOf(currentFilter)
+        if (index >= 0) {
+            coroutineScope.launch {
+                // Approximate position scrolling or let layout coordinate;
+                // Alternatively, bring item into view if utilizing pinned items,
+                // but standard horizontal scroll handles rough offsets or simple animateScrollTo.
+                chipScrollState.animateScrollTo(index * 150) // Adjust coefficient as needed or scroll to bounds
+            }
+        }
+    }
 
     val allBodiesOfWater by viewModel.bodiesOfWaterWithFish.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedBodyOfWater = remember(allBodiesOfWater, filter.bodyOfWaterId) {
@@ -122,7 +152,7 @@ fun FishSummaryScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .align(Alignment.BottomEnd)
-                                        .offset(x = 4.dp, y = 4.dp) // Adjust offset to position on the edge
+                                        .offset(x = 4.dp, y = 4.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
@@ -138,17 +168,16 @@ fun FishSummaryScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            // Pinned Area: FishVisual is placed outside of the LazyColumn so it never scrolls out of view.
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
+            // 1. Summary Card First
+            item {
                 FishVisual(
                     summary = summary,
                     trip = selectedTrip,
@@ -193,171 +222,158 @@ fun FishSummaryScreen(
                 )
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-
-            // Scrollable Area: Only the selection fields scroll under the visual summary.
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    TripSelectionField(
-                        items = trips,
-                        selectedItem = selectedTrip,
-                        onSelected = { trip ->
-                            viewModel.selectTrip(trip.id)
-                            viewModel.selectEvent(null)
-                        },
-                        onClear = {
-                            viewModel.selectTrip(null)
-                            viewModel.selectEvent(null)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { trip ->
-                            val thumbnailFlow = remember(trip.id) {
-                                viewModel.tripThumbnail(trip.id)
-                            }
-
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Boat,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
+            // 2. Filters Second (Horizontal Scrollable Row)
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(chipScrollState),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    FishFilterOption.entries.forEach { option ->
+                        SortChip(
+                            label = option.label,
+                            selected = (currentFilter == option),
+                            onClick = { currentFilter = option },
+                        )
+                    }
                 }
+            }
 
-                item {
-                    EventSelectionField(
-                        items = events,
-                        selectedItem = selectedEvent,
-                        onSelected = { event ->
-                            viewModel.selectEvent(event.id)
-                        },
-                        onClear = {
-                            viewModel.selectEvent(null)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { event ->
-                            val thumbnailFlow = remember(event.id) {
-                                viewModel.eventThumbnail(event.id)
+            // 3. Selection Field Third
+            item {
+                when (currentFilter) {
+                    FishFilterOption.BODY_OF_WATER -> {
+                        BodyOfWaterSelectionField(
+                            items = allBodiesOfWater,
+                            selectedItem = selectedBodyOfWater,
+                            onSelected = { bodyOfWater -> viewModel.selectBodyOfWater(bodyOfWater.id) },
+                            onClear = { viewModel.selectBodyOfWater(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { bodyOfWater ->
+                                val thumbnailFlow = remember(bodyOfWater.id) {
+                                    viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    modifier = Modifier.size(48.dp)
+                                )
                             }
+                        )
+                    }
 
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.CanoeEmpty,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-
-                item {
-                    SpeciesSelection(
-                        items = species,
-                        selectedItem = selectedSpecies,
-                        onSelected = { species ->
-                            viewModel.selectSpecies(species.id) },
-                        modifier = Modifier.fillMaxWidth(),
-                        onClear = {
-                            viewModel.selectSpecies(null)
-                        },
-                        thumbnailProvider = { species ->
-                            val thumbnailFlow = remember(species.id) {
-                                viewModel.speciesThumbnail(species.id)
+                    FishFilterOption.EVENT -> {
+                        EventSelectionField(
+                            items = events,
+                            selectedItem = selectedEvent,
+                            onSelected = { event -> viewModel.selectEvent(event.id) },
+                            onClear = { viewModel.selectEvent(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { event ->
+                                val thumbnailFlow = remember(event.id) {
+                                    viewModel.eventThumbnail(event.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.CanoeEmpty,
+                                    modifier = Modifier.size(48.dp)
+                                )
                             }
+                        )
+                    }
 
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Species,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-
-                item {
-                    FishermanSelectionField(
-                        items = fishermen,
-                        selectedItem = selectedFisherman,
-                        onSelected = { fisherman ->
-                            viewModel.selectFisherman(fisherman.id)
-                        },
-                        onClear = {
-                            viewModel.selectFisherman(null)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { fisherman ->
-                            val thumbnailFlow = remember(fisherman.id) {
-                                viewModel.fishermanThumbnail(fisherman.id)
+                    FishFilterOption.FISHERMAN -> {
+                        FishermanSelectionField(
+                            items = fishermen,
+                            selectedItem = selectedFisherman,
+                            onSelected = { fisherman -> viewModel.selectFisherman(fisherman.id) },
+                            onClear = { viewModel.selectFisherman(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { fisherman ->
+                                val thumbnailFlow = remember(fisherman.id) {
+                                    viewModel.fishermanThumbnail(fisherman.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Fisherman,
+                                    modifier = Modifier.size(48.dp)
+                                )
                             }
+                        )
+                    }
 
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Fisherman,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-
-                item {
-                    LureSelectionField(
-                        items = lures,
-                        selectedItem = selectedLure,
-                        onSelected = { lure -> viewModel.selectLure(lure.lure.id) },
-                        onClear = { viewModel.selectLure(null) },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { lure ->
-                            val thumbnailFlow = remember(lure.lure.id) {
-                                viewModel.lureThumbnail(lure.lure.id)
+                    FishFilterOption.LURE -> {
+                        LureSelectionField(
+                            items = lures,
+                            selectedItem = selectedLure,
+                            onSelected = { lure -> viewModel.selectLure(lure.lure.id) },
+                            onClear = { viewModel.selectLure(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { lure ->
+                                val thumbnailFlow = remember(lure.lure.id) {
+                                    viewModel.lureThumbnail(lure.lure.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Lure,
+                                    modifier = Modifier.size(48.dp)
+                                )
                             }
+                        )
+                    }
 
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Lure,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-
-                item {
-                    BodyOfWaterSelectionField(
-                        items = allBodiesOfWater,
-                        selectedItem = selectedBodyOfWater,
-                        onSelected = { bodyOfWater -> viewModel.selectBodyOfWater(bodyOfWater.id) },
-                        onClear = { viewModel.selectBodyOfWater(null) },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { bodyOfWater ->
-                            val thumbnailFlow = remember(bodyOfWater.id) {
-                                viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
+                    FishFilterOption.SPECIES -> {
+                        SpeciesSelection(
+                            items = species,
+                            selectedItem = selectedSpecies,
+                            onSelected = { species -> viewModel.selectSpecies(species.id) },
+                            modifier = Modifier.fillMaxWidth(),
+                            onClear = { viewModel.selectSpecies(null) },
+                            thumbnailProvider = { species ->
+                                val thumbnailFlow = remember(species.id) {
+                                    viewModel.speciesThumbnail(species.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Species,
+                                    modifier = Modifier.size(48.dp)
+                                )
                             }
+                        )
+                    }
 
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.BodyOfWater,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
+                    FishFilterOption.TRIP -> {
+                        TripSelectionField(
+                            items = trips,
+                            selectedItem = selectedTrip,
+                            onSelected = { trip ->
+                                viewModel.selectTrip(trip.id)
+                                viewModel.selectEvent(null)
+                            },
+                            onClear = {
+                                viewModel.selectTrip(null)
+                                viewModel.selectEvent(null)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            thumbnailProvider = { trip ->
+                                val thumbnailFlow = remember(trip.id) {
+                                    viewModel.tripThumbnail(trip.id)
+                                }
+                                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                                ThumbnailBox(
+                                    thumbnail = thumbnail,
+                                    imageVector = AppIcons.Default.Boat,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -378,7 +394,6 @@ private fun FishVisual(
     onTargetFishClick: () -> Unit
 ) {
     val context = LocalContext.current
-
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
     val startDate = event?.startTime ?: trip?.startDate
@@ -405,7 +420,7 @@ private fun FishVisual(
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = getCardColor().copy(alpha = 0.15f),
             contentColor = getOnCardColor()
@@ -507,10 +522,10 @@ private fun FishVisual(
                         if (isLure && lure != null) {
                             LureCompositionWithColors(
                                 name = lure.lure.name,
-                                lure.primaryColors,
-                                lure.secondaryColors,
-                                lure.lure.glows,
-                                lure.glowColors,
+                                primary = lure.primaryColors,
+                                secondary = lure.secondaryColors,
+                                glows = lure.lure.glows,
+                                glow = lure.glowColors,
                                 style = MaterialTheme.typography.bodyMedium,
                                 contentColor = getOnCardColor(),
                                 colorBadgeSize = 16.dp
@@ -524,7 +539,6 @@ private fun FishVisual(
                             )
                         }
 
-                        // Attach map icon to the first item if location exists
                         if (index == 0 && hasLocation) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
@@ -554,10 +568,10 @@ private fun FishVisual(
                 if (startDate != null && endDate != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            "${dateFormatter.format(Date(startDate))}",
+                            dateFormatter.format(Date(startDate)),
                             style = MaterialTheme.typography.bodySmall,
                             color = getOnCardSecondaryColor()
                         )
@@ -568,7 +582,7 @@ private fun FishVisual(
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            "${dateFormatter.format(Date(endDate))}",
+                            dateFormatter.format(Date(endDate)),
                             style = MaterialTheme.typography.bodySmall,
                             color = getOnCardSecondaryColor()
                         )
