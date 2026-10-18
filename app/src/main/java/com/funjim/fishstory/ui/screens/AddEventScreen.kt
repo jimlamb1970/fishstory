@@ -658,11 +658,10 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             verbose = false,
                                             description = """No fishermen selected. 
 
-Fishermen are the people actively participating on this event, and there must be at least one selected. 
+At least one participant must be added to this event.
 
-After selecting fishermen, you can assign a tackle box and add lures.
-
-When logging catches, options will be restricted to the fishermen selected here.""",
+Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
+""",
                                             thumbnailFlow = { fisherman ->
                                                 viewModel.getFishermanThumbnail(fisherman.id)
                                             },
@@ -726,12 +725,10 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                     photo.id
                                                 )
                                             },
-                                            onDelete =
-                                                if (fishermanSummaries.size > 1) { fisherman ->
-                                                    viewModel.updateEventFishermen(eventFishermen - fisherman)
-                                                    viewModel.updateEventTackleBoxMap(eventTackleBoxMap - fisherman.id)
-                                                }
-                                                else null
+                                            onDelete = { fisherman ->
+                                                viewModel.updateEventFishermen(eventFishermen - fisherman)
+                                                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - fisherman.id)
+                                            }
                                         )
                                     }
                                 }

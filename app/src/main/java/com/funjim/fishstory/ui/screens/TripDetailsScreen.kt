@@ -1098,11 +1098,12 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                     vertical = 8.dp,
                                                     horizontal = 16.dp
                                                 ),
-                                                description = """No fishermen selected.
+                                                description = """No fishermen selected. 
 
-Fishermen are the people actively participating on this trip.
+At least one participant must be added to this trip.
 
-When logging catches, options will be restricted to the fishermen selected here.""",
+Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
+""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.getFishermanThumbnail(fisherman.id)
                                                 },
