@@ -19,8 +19,11 @@ interface ConfigurationRepository {
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
     suspend fun updateColorTheme(colorTheme: String)
     suspend fun updateScrollBarOnLeft(onLeft: Boolean)
+    suspend fun updateShowHelpAlways(show: Boolean)
     suspend fun updateUseImperialUnits(useImperial: Boolean)
-    suspend fun updateUseVerboseCards(useVerbose: Boolean)
+    suspend fun updateVerboseCards(verbose: Boolean)
+
+    suspend fun updateShowHole(show: Boolean)
 }
 
 
@@ -37,9 +40,10 @@ class ConfigurationRepositoryImpl(
                 display = DisplaySettings(
                     cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
                     colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
+                    scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
+                    showHelpAlways = preferences[PreferencesKeys.SHOW_HELP_ALWAYS] ?: false,
                     useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
                     verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
-                    scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false
                 ),
                 fish = FishSettings(
                     showBait = preferences[PreferencesKeys.SHOW_FISH_BAIT] ?: true,
@@ -62,10 +66,14 @@ class ConfigurationRepositoryImpl(
             preferences[PreferencesKeys.COLOR_THEME] = colorTheme
         }
     }
-
     override suspend fun updateScrollBarOnLeft(onLeft: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] = onLeft
+        }
+    }
+    override suspend fun updateShowHelpAlways(show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SHOW_HELP_ALWAYS] = show
         }
     }
 
@@ -75,9 +83,15 @@ class ConfigurationRepositoryImpl(
         }
     }
 
-    override suspend fun updateUseVerboseCards(useVerbose: Boolean) {
+    override suspend fun updateVerboseCards(verbose: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.VERBOSE_CARDS] = useVerbose
+            preferences[PreferencesKeys.VERBOSE_CARDS] = verbose
+        }
+    }
+
+    override suspend fun updateShowHole(show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SHOW_FISH_HOLE_NUMBER] = show
         }
     }
 }

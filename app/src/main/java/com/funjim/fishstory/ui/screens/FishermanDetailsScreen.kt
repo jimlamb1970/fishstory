@@ -50,7 +50,7 @@ import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.cards.TripAction
-import com.funjim.fishstory.ui.cards.TripItem
+import com.funjim.fishstory.ui.cards.TripCard
 import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.crud.EditFishermanDialog
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -506,7 +506,7 @@ fun FishermanDetailsScreen(
                             }
                             val totalActiveItems = state.activeTrips.size
                             itemsIndexed(state.activeTrips) { index, trip ->
-                                TripItem(
+                                TripCard(
                                     trip = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
@@ -562,7 +562,7 @@ fun FishermanDetailsScreen(
                             }
                             val tripsSize = state.recentTrips.size
                             itemsIndexed(state.recentTrips) { index, trip ->
-                                TripItem(
+                                TripCard(
                                     trip = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,

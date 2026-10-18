@@ -55,7 +55,7 @@ sealed class TripAction {
 }
 
 @Composable
-fun TripItemWithMenu(
+fun TripCardWithMenu(
     tripSummary: TripSummary,
     verbose: Boolean,
     index: Int,
@@ -79,7 +79,7 @@ fun TripItemWithMenu(
 ) {
     var showPhotos by remember { mutableStateOf(false) }
 
-    TripItem(
+    TripCard(
         trip = tripSummary,
         verbose = verbose,
         index = index,
@@ -204,7 +204,7 @@ fun TripItemWithMenu(
 }
 
 @Composable
-fun TripItem(
+fun TripCard(
     trip: TripSummary,
     verbose: Boolean,
     modifier: Modifier = Modifier,

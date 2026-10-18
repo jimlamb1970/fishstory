@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -47,7 +48,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun FishItem(
+fun FishCard(
     fish: FishWithDetails,
     index: Int = 0,
     totalItems: Int = 0,
@@ -58,6 +59,7 @@ fun FishItem(
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     onClick: () -> Unit,
+    onThumbnailLongClick: (() -> Unit)? = null,
     onEdit: () -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
@@ -113,7 +115,8 @@ fun FishItem(
                     thumbnail = thumbnail,
                     imageVector = AppIcons.Default.LeapingFishWithFins,
                     modifier = Modifier.size(64.dp),
-                    onClick = { showPhotos = !showPhotos }
+                    onClick = { showPhotos = !showPhotos },
+                    onLongClick = onThumbnailLongClick
                 )
             }
 

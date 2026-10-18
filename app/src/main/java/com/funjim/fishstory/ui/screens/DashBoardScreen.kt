@@ -95,7 +95,7 @@ import com.funjim.fishstory.ui.utils.AchievementItem
 import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.StatItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.cards.TripItemWithMenu
+import com.funjim.fishstory.ui.cards.TripCardWithMenu
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -442,7 +442,7 @@ fun DashboardScreen(
 
             val totalItems = state.recentTrips.size
             itemsIndexed(state.recentTrips) { index, trip ->
-                TripItemWithMenu(
+                TripCardWithMenu(
                     tripSummary = trip,
                     verbose = appSettings.display.verboseCards,
                     index = index,

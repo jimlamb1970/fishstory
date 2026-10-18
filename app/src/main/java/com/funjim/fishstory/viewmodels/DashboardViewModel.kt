@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.AppSettings
-import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.LimitEventSummary
@@ -362,7 +361,7 @@ class DashboardViewModel(
 
     fun toggleVerboseCards() {
         viewModelScope.launch {
-            configRepo.updateUseVerboseCards(appSettings.value.display.verboseCards.not())
+            configRepo.updateVerboseCards(appSettings.value.display.verboseCards.not())
         }
     }
 }

@@ -29,7 +29,7 @@ import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.cards.FishItem
+import com.funjim.fishstory.ui.cards.FishCard
 import com.funjim.fishstory.ui.utils.FishFilter
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.SortChip
@@ -347,7 +347,7 @@ fun FishListScreen(
                             fishForScope,
                             key = { _, item -> item.fish.id }
                         ) { index, fishDetails ->
-                            FishItem(
+                            FishCard(
                                 fish = fishDetails,
                                 index = index,
                                 totalItems = totalItems,
@@ -365,6 +365,9 @@ fun FishListScreen(
                                         currentOrder,
                                         reversed
                                     )
+                                },
+                                onThumbnailLongClick = {
+                                    viewModel.toggleShowHole()
                                 },
                                 onEdit = {
                                     onAddFish(

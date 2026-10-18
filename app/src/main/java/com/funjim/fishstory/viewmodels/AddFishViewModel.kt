@@ -382,6 +382,7 @@ class AddFishViewModel(
         fish: Fish?,
         tripId: String,
         eventId: String,
+        holeNumber: Int?,
         waterId: String?,
         weatherId: String?,
         photos: List<Photo> = emptyList()
@@ -398,7 +399,7 @@ class AddFishViewModel(
             timestamp = System.currentTimeMillis(),
             waterId = waterId,
             weatherId = weatherId,
-            holeNumber = 1
+            holeNumber = holeNumber
         )
         _fishPhotos.value = photos
     }

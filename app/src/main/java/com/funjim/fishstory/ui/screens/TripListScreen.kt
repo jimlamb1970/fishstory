@@ -35,7 +35,7 @@ import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.cards.TripAction
-import com.funjim.fishstory.ui.cards.TripItemWithMenu
+import com.funjim.fishstory.ui.cards.TripCardWithMenu
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.createPublicImageUri
 import com.funjim.fishstory.ui.utils.getOnChipColor
@@ -326,7 +326,7 @@ fun TripListScreen(
                     when (filter) {
                         TripListFilter.UPCOMING -> {
                             itemsIndexed(state.upcomingTrips) { index, trip ->
-                                TripItemWithMenu(
+                                TripCardWithMenu(
                                     tripSummary = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
@@ -358,7 +358,7 @@ fun TripListScreen(
 
                         TripListFilter.LIVE -> {
                             itemsIndexed(state.liveTrips) { index, trip ->
-                                TripItemWithMenu(
+                                TripCardWithMenu(
                                     tripSummary = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
@@ -390,7 +390,7 @@ fun TripListScreen(
 
                         TripListFilter.COMPLETED -> {
                             itemsIndexed(state.completedTrips) { index, trip ->
-                                TripItemWithMenu(
+                                TripCardWithMenu(
                                     tripSummary = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,

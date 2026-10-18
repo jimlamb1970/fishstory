@@ -241,6 +241,11 @@ class FishDetailsViewModel(
             configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
+    fun toggleShowHole() {
+        viewModelScope.launch {
+            configRepo.updateShowHole(appSettings.value.fish.showHoleNumber.not())
+        }
+    }
 }
 
 class FishDetailsViewModelFactory(

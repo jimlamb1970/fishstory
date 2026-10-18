@@ -31,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.Photo
@@ -249,6 +251,7 @@ fun FishDetailScreen(
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
                     useImperial = appSettings.display.useImperialUnits,
+                    fishSettings = appSettings.fish,
                     onAddNote = { noteId, content ->
                         viewModel.addNote(fish.fish.id, noteId, content)
                     },
@@ -264,8 +267,11 @@ fun FishDetailScreen(
                     onPhotoDeleted = { photo ->
                         viewModel.deleteFishPhoto(fishId = fish.fish.id, photo.id)
                     },
-                    onThumbnailLongClick = {
+                    onToggleImperialUnits = {
                         viewModel.toggleImperialUnits()
+                    },
+                    onToggleShowHole = {
+                        viewModel.toggleShowHole()
                     }
                 )
             }
@@ -317,12 +323,14 @@ private fun FishDetailContent(
     lureThumbnailFlow: Flow<ByteArray?>,
     tripThumbnailFlow: Flow<ByteArray?>,
     useImperial: Boolean,
+    fishSettings: FishSettings,
     onAddNote: (noteId: String?, text: String) -> Unit,
     onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
-    onThumbnailLongClick: (() -> Unit)? = null
+    onToggleImperialUnits: (() -> Unit)? = null,
+    onToggleShowHole: (() -> Unit)? = null
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -479,7 +487,8 @@ private fun FishDetailContent(
                     ThumbnailBox(
                         thumbnail = fishThumbnail,
                         imageVector = AppIcons.Default.LeapingFishWithFins,
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(64.dp),
+                        onLongClick = onToggleShowHole
                     )
                 }
 
@@ -533,8 +542,10 @@ private fun FishDetailContent(
                         )
                     }
 
-                    fish.fish.holeNumber?.let {
-                        DetailRow(label = "Hole #", value = it.toString())
+                    if (fishSettings.showHoleNumber) {
+                        fish.fish.holeNumber?.let {
+                            DetailRow(label = "Hole #", value = it.toString())
+                        }
                     }
                 }
             }
@@ -800,7 +811,7 @@ Notes help you remember specific details about this fish.""",
                             WaterCard(
                                 water = fish.water,
                                 useImperial = useImperial,
-                                onThumbnailLongClick = onThumbnailLongClick
+                                onThumbnailLongClick = onToggleImperialUnits
                             )
                         }
                     }
@@ -813,7 +824,7 @@ Notes help you remember specific details about this fish.""",
                             WeatherCard(
                                 weather = fish.weather,
                                 useImperial = useImperial,
-                                onThumbnailLongClick = onThumbnailLongClick
+                                onThumbnailLongClick = onToggleImperialUnits
                             )
                         }
                     }

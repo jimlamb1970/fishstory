@@ -109,12 +109,13 @@ fun AddFishScreen(
             if (fishId != null && state.fish != null) {
                 // Edit Mode Initialization
                 viewModel.initDraftFish(
-                    state.fish.fish,
-                    state.fish.fish.tripId,
-                    state.fish.fish.eventId,
-                    state.fish.fish.waterId,
-                    state.fish.fish.weatherId,
-                    state.fish.photos
+                    fish = state.fish.fish,
+                    tripId = state.fish.fish.tripId,
+                    eventId = state.fish.fish.eventId,
+                    holeNumber = state.fish.fish.holeNumber,
+                    waterId = state.fish.fish.waterId,
+                    weatherId = state.fish.fish.weatherId,
+                    photos = state.fish.photos
                 )
                 viewModel.selectFisherman(state.fish.fish.fishermanId)
                 viewModel.selectTackleBox(state.tackleBoxMap[state.fish.fish.fishermanId])
@@ -129,7 +130,13 @@ fun AddFishScreen(
                     ?.weather
                     ?.id
 
-                viewModel.initDraftFish(null, tripId, eventId, waterId, weatherId)
+                viewModel.initDraftFish(
+                    fish = null,
+                    tripId = tripId,
+                    eventId = eventId,
+                    holeNumber = if (appSettings.fish.showHoleNumber) 1 else null,
+                    waterId = waterId,
+                    weatherId = weatherId)
 
                 if (state.event.baits.size == 1) {
                     viewModel.updateBait(state.event.baits.first())
@@ -502,7 +509,7 @@ fun AddFishScreen(
                             }
                         )
 
-                        // Length and Hole Number
+                        // Length
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -557,29 +564,34 @@ fun AddFishScreen(
                             }
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            StepperField(
-                                label = "Hole #",
-                                value = fish.holeNumber.toString(),
-                                onValueChange = { hole ->
-                                    viewModel.updateHoleNumber(
-                                        hole.toIntOrNull() ?: 0
-                                    )
-                                },
-                                onIncrement = {
-                                    viewModel.updateHoleNumber(fish.holeNumber?.plus(1) ?: 1)
-                                },
-                                onDecrement = {
-                                    val current = fish.holeNumber ?: 0
-                                    if (current > 1) {
-                                        viewModel.updateHoleNumber(fish.holeNumber?.minus(1) ?: 1)
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
+                        // Hole Number
+                        if (appSettings.fish.showHoleNumber) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                StepperField(
+                                    label = "Hole #",
+                                    value = fish.holeNumber?.toString() ?: "0",
+                                    onValueChange = { hole ->
+                                        viewModel.updateHoleNumber(
+                                            hole.toIntOrNull() ?: 0
+                                        )
+                                    },
+                                    onIncrement = {
+                                        viewModel.updateHoleNumber(fish.holeNumber?.plus(1) ?: 1)
+                                    },
+                                    onDecrement = {
+                                        val current = fish.holeNumber ?: 0
+                                        if (current > 1) {
+                                            viewModel.updateHoleNumber(
+                                                fish.holeNumber?.minus(1) ?: 1
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
 
                         // Date & Time Buttons

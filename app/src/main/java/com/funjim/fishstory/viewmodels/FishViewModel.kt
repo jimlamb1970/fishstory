@@ -466,6 +466,11 @@ class FishViewModel(
             .flowOn(Dispatchers.IO)
     }
 
+    fun toggleShowHole() {
+        viewModelScope.launch {
+            configRepo.updateShowHole(appSettings.value.fish.showHoleNumber.not())
+        }
+    }
     fun updateScrollbarOnLeft() {
         viewModelScope.launch {
             configRepo.updateScrollBarOnLeft(appSettings.value.display.scrollbarOnLeft.not())
