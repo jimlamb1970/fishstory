@@ -1,6 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import DeleteConfirmationDialog
+import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -48,9 +48,6 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -61,7 +58,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -488,7 +484,7 @@ fun DashboardScreen(
     }
     // DELETE CONFIRMATION
     tripToDelete?.let { item ->
-        DeleteConfirmationDialog(
+        DeleteDialog(
             title = "Delete Trip",
             message =
                 if ((item.fishCaught > 0) || (item.eventCount > 0))

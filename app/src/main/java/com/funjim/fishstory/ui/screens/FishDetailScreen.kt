@@ -1,6 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import DeleteConfirmationDialog
+import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -844,7 +844,7 @@ Notes help you remember specific details about this fish.""",
         )
     }
     noteToDelete?.let { note ->
-        DeleteConfirmationDialog(
+        DeleteDialog(
             title = "Delete Note",
             message = "Are you sure you want to delete this note?",
             onConfirm = {

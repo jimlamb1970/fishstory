@@ -1,6 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import DeleteConfirmationDialog
+import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -439,7 +439,7 @@ fun TripListScreen(
 
     // DELETE CONFIRMATION
     tripToDelete?.let { item ->
-        DeleteConfirmationDialog(
+        DeleteDialog(
             title = "Delete Trip",
             message =
                 if ((item.fishCaught > 0) || (item.eventCount > 0))

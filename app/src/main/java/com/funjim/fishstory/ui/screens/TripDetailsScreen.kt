@@ -1,6 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
-import DeleteConfirmationDialog
+import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -68,7 +68,6 @@ import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.cards.TripHighlightCard
-import com.funjim.fishstory.ui.utils.UpdateAllCatchesDialog
 import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.crud.AddNoteDialog
@@ -98,6 +97,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
+import com.funjim.fishstory.ui.dialogs.GeneralDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1345,7 +1345,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             bodyOfWaterToDelete?.let { bodyOfWater ->
                 val summary = bodyOfWaterSummaries.find { it.bodyOfWater.id == bodyOfWater.id }
                 summary?.fishCaught?.let { fishCaught ->
-                    DeleteConfirmationDialog(
+                    DeleteDialog(
                         title = "Remove Body of Water",
                         message =
                             if (fishCaught > 0)
@@ -1373,7 +1373,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 }
             }
             eventToDelete?.let { item ->
-                DeleteConfirmationDialog(
+                DeleteDialog(
                     title = "Delete Event",
                     message =
                         if (item.fishCaught > 0)
@@ -1398,7 +1398,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             fishermanToDelete?.let { fisherman ->
                 val summary = fishermanSummaries.find { it.fisherman.id == fisherman.id }
                 summary?.fishCaught?.let { fishCaught ->
-                    DeleteConfirmationDialog(
+                    DeleteDialog(
                         title = "Remove Fisherman",
                         message =
                             if (fishCaught > 0)
@@ -1423,7 +1423,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 }
             }
             limitToDelete?.let { limit ->
-                DeleteConfirmationDialog(
+                DeleteDialog(
                     title = "Delete Limit",
                     message = "Are you sure you want to delete this limit?",
                     onConfirm = {
@@ -1434,7 +1434,7 @@ Adding weather conditions will automatically apply them to any new catches logge
                 )
             }
             noteToDelete?.let { note ->
-                DeleteConfirmationDialog(
+                DeleteDialog(
                     title = "Delete Note",
                     message = "Are you sure you want to delete this note?",
                     onConfirm = {
@@ -1447,7 +1447,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             speciesToDelete?.let { species ->
                 val summary = targetSpeciesSummaries.find { it.species.id == species.id }
                 summary?.fishCaught?.let { fishCaught ->
-                    DeleteConfirmationDialog(
+                    DeleteDialog(
                         title = "Remove Species",
                         message =
                             if (fishCaught > 0)
@@ -1478,7 +1478,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             waterToDelete?.let { water ->
                 val summary = waterSummaries.find { it.water.id == water.id }
                 summary?.fishCaught?.let { fishCaught ->
-                    DeleteConfirmationDialog(
+                    DeleteDialog(
                         title = "Delete Water Conditions",
                         message =
                             if (fishCaught > 0)
@@ -1504,7 +1504,7 @@ Adding weather conditions will automatically apply them to any new catches logge
             weatherToDelete?.let { item ->
                 val summary = weatherSummaries.find { it.weather.id == item.id }
                 summary?.fishCaught?.let { fishCaught ->
-                    DeleteConfirmationDialog(
+                    DeleteDialog(
                         title = "Delete Weather Conditions",
                         message =
                             if (fishCaught > 0)
@@ -1856,9 +1856,9 @@ Adding weather conditions will automatically apply them to any new catches logge
 
     // Confirmation Dialog for long pressing a Body of Water
     bodyOfWaterToUpdateAll?.let { bodyOfWater ->
-        UpdateAllCatchesDialog(
-            bodyOfWater = bodyOfWater,
-            content = "Do you want to update all the fish logged for this trip to the body of water: ${bodyOfWater.name}?",
+        GeneralDialog(
+            title = "Update Catches",
+            message = "Do you want to update all the fish caught for this trip to use the body of water '${bodyOfWater.name}'?",
             onDismiss = {
                 bodyOfWaterToUpdateAll = null
             },
@@ -1871,7 +1871,9 @@ Adding weather conditions will automatically apply them to any new catches logge
                     Toast.makeText(context, "Catches updated to ${bodyOfWater.name}", Toast.LENGTH_SHORT).show()
                     bodyOfWaterToUpdateAll = null
                 }
-            }
+            },
+            confirmButtonText = "Yes",
+            dismissButtonText = "No"
         )
     }
 }
