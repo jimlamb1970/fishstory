@@ -1,7 +1,9 @@
 package com.funjim.fishstory.ui.screens
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -24,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishWithDetails
@@ -31,9 +35,11 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.cards.FishItem
 import com.funjim.fishstory.ui.utils.FishFilter
+import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getChipColor
+import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -85,16 +91,17 @@ fun FishListScreen(
             (filter.speciesId != null && species == null) ||
             (filter.tripId != null && trip == null)
 
-    val names = if (isLoading) {
+    val displayItems = if (isLoading) {
         emptyList() // Keep it clean while fetching
     } else {
         listOfNotNull(
-            trip?.name,
-            event?.name,
-            species?.name,
-            fisherman?.fullName,
-            bodyOfWater?.name,
-            lure?.lure?.name)
+            trip?.let { Triple(it.name, AppIcons.Default.Boat, false) },
+            event?.let { Triple(it.name, AppIcons.Default.CanoeEmpty, false) },
+            species?.let { Triple(it.name, AppIcons.Default.Species, false) },
+            bodyOfWater?.let { Triple(it.name, AppIcons.Default.BodyOfWater, false) },
+            fisherman?.let { Triple(it.fullName, AppIcons.Default.Fisherman, false) },
+            lure?.let { Triple(it.lure.name, AppIcons.Default.Lure, true) }
+        )
     }
 
     // Load fish for the appropriate scope
@@ -197,19 +204,39 @@ fun FishListScreen(
                 Column(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
                 ) {
-                    names.forEachIndexed { index, string ->
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(0.dp)) {
-                            Text(
-                                text = string,
-                                style =
-                                    if (index == 0) MaterialTheme.typography.titleMedium
-                                    else MaterialTheme.typography.titleSmall,
-                                fontWeight =
-                                    if (index == 0) FontWeight.Bold
-                                    else FontWeight.Normal,
-                                color = getOnMainColor()
+                    displayItems.forEachIndexed { index, (text, iconVector, isLure) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = iconVector,
+                                contentDescription = null,
+                                tint = getOnCardColor().copy(alpha = 0.8f),
+                                modifier = Modifier.size(16.dp)
                             )
+                            if (isLure) {
+                                lure.let { lure ->
+                                    LureCompositionWithColors(
+                                        name = lure?.lure?.name ?: "",
+                                        lure?.primaryColors ?: emptyList(),
+                                        lure?.secondaryColors ?: emptyList(),
+                                        lure?.lure?.glows ?: false,
+                                        lure?.glowColors ?: emptyList(),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        contentColor = getOnCardColor(),
+                                        colorBadgeSize = 16.dp
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = text,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Normal,
+                                    color = getOnCardColor()
+                                )
+                            }
                         }
                     }
                 }

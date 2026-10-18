@@ -1,7 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,10 +39,12 @@ import com.funjim.fishstory.ui.selection.FishermanSelectionField
 import com.funjim.fishstory.ui.selection.LureSelectionField
 import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.ui.selection.TripSelectionField
+import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.viewmodels.FishViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -393,13 +394,14 @@ private fun FishVisual(
     val latitude = event?.latitude ?: trip?.latitude
     val longitude = event?.longitude ?: trip?.longitude
 
-    val names = listOfNotNull(
-        trip?.name,
-        event?.name,
-        species?.name,
-        bodyOfWater?.name,
-        fisherman?.fullName,
-        lure?.lure?.name)
+    val displayItems = listOfNotNull(
+        trip?.let { Triple(it.name, AppIcons.Default.Boat, false) },
+        event?.let { Triple(it.name, AppIcons.Default.CanoeEmpty, false) },
+        species?.let { Triple(it.name, AppIcons.Default.Species, false) },
+        bodyOfWater?.let { Triple(it.name, AppIcons.Default.BodyOfWater, false) },
+        fisherman?.let { Triple(it.fullName, AppIcons.Default.Fisherman, false) },
+        lure?.let { Triple(it.lure.name, AppIcons.Default.Lure, true) }
+    )
 
     Card(
         onClick = onClick,
@@ -483,56 +485,69 @@ private fun FishVisual(
                         color = getOnCardColor())
                 }
 
-                if (names.isNotEmpty()) {
+                if (displayItems.isNotEmpty()) {
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         color = getOnCardColor().copy(alpha = 0.75f)
                     )
                 }
 
-                names.forEachIndexed { index, string ->
-                    if (index == 0) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(0.dp)) {
+                displayItems.forEachIndexed { index, (text, iconVector, isLure) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = iconVector,
+                            contentDescription = null,
+                            tint = getOnCardColor().copy(alpha = 0.8f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        if (isLure && lure != null) {
+                            LureCompositionWithColors(
+                                name = lure.lure.name,
+                                lure.primaryColors,
+                                lure.secondaryColors,
+                                lure.lure.glows,
+                                lure.glowColors,
+                                style = MaterialTheme.typography.bodyMedium,
+                                contentColor = getOnCardColor(),
+                                colorBadgeSize = 16.dp
+                            )
+                        } else {
                             Text(
-                                text = string,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
+                                text = text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Normal,
                                 color = getOnCardColor()
                             )
-
-                            if (hasLocation) {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = "View on map",
-                                    tint = getOnCardColor(),
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clickable {
-                                            val mapUri =
-                                                Uri.parse("https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}")
-                                            val intent = Intent(Intent.ACTION_VIEW, mapUri)
-                                            try {
-                                                context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Could not open map",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                )
-                            }
                         }
-                    } else {
-                        Text(
-                            text = string,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = getOnCardColor(),
-                            modifier = Modifier.padding(0.dp)
-                        )
+
+                        // Attach map icon to the first item if location exists
+                        if (index == 0 && hasLocation) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "View on map",
+                                tint = getOnCardColor(),
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clickable {
+                                        val mapUri =
+                                            "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}".toUri()
+                                        val intent = Intent(Intent.ACTION_VIEW, mapUri)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not open map",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                            )
+                        }
                     }
                 }
 
