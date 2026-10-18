@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.screens
 
+import DeleteConfirmationDialog
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -438,30 +439,28 @@ fun TripListScreen(
 
     // DELETE CONFIRMATION
     tripToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { tripToDelete = null },
-            title = { Text("Delete Trip?") },
-            text = { Text("""Are you sure you want to delete '${item.trip.name}'?
-
-This cannot be undone.
-
-All events (${item.eventCount}) and fish (${item.fishCaught}) associated with this trip will also be deleted.""") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteTrip(item.trip)
-                        tripToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
+        DeleteConfirmationDialog(
+            title = "Delete Trip",
+            message =
+                if ((item.fishCaught > 0) || (item.eventCount > 0))
+                    """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
+                        |
+                        |There ${if (item.eventCount == 1) "is" else "are"} currently ${item.eventCount} event associated with this trip
+                        |
+                        |Deleting this trip will delete all fish and events associated with it. 
+                        |
+                        |Are you sure you want to proceed?
+                    """.trimMargin()
+                else
+                    """Are you sure you want to delete this trip? 
+                        |
+                        |No fish or events are currently associated with this trip.
+                        """.trimMargin(),
+            onConfirm = {
+                viewModel.deleteTrip(item.trip)
+                tripToDelete = null
             },
-            dismissButton = {
-                TextButton(onClick = { tripToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { tripToDelete = null }
         )
     }
 }

@@ -97,6 +97,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -764,11 +765,11 @@ fun TripDetailsScreen(
                                             .size(24.dp)
                                             .clickable {
                                                 val mapUri =
-                                                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}")
+                                                    "https://www.google.com/maps/search/?api=1&query=${details.trip.latitude},${details.trip.longitude}".toUri()
                                                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                                 try {
                                                     context.startActivity(intent)
-                                                } catch (e: Exception) {
+                                                } catch (_: Exception) {
                                                     Toast.makeText(
                                                         context,
                                                         "Could not open map",
@@ -1130,8 +1131,7 @@ When logging catches, options will be restricted to the fishermen selected here.
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
                                                 },
-                                                onClick = { fisherman -> /* do nothing */
-                                                },
+                                                onClick = {},
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(
                                                         FishFilter(
