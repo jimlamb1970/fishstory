@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.FishWithPhotos
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -142,7 +141,7 @@ fun AddFishScreen(
                     val fisherman = state.event.fishermen.first()
                     viewModel.updateFisherman(fisherman)
                     viewModel.selectFisherman(fisherman.id)
-                    viewModel.selectTackleBox(state.tackleBoxMap[fisherman.id] ?: "")
+                    viewModel.selectTackleBox(state.tackleBoxMap[fisherman.id])
                 } else {
                     viewModel.selectFisherman(null)
                     viewModel.selectTackleBox(null)
@@ -172,12 +171,11 @@ fun AddFishScreen(
     }
 
     val allBaits by viewModel.allBaits.collectAsStateWithLifecycle()
-    var addNewBait by remember { mutableStateOf(false) }
-
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
-    var addNewBodyOfWater by remember { mutableStateOf(false) }
 
-    var addNewSpecies by remember { mutableStateOf(false) }
+    var addBait by remember { mutableStateOf(false) }
+    var addBodyOfWater by remember { mutableStateOf(false) }
+    var addSpecies by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -388,7 +386,7 @@ fun AddFishScreen(
                             items = bodiesOfWaterSorted,
                             selectedItem = selectedBodyOfWater,
                             onSelected = { bodyOfWater -> viewModel.updateBodyOfWater(bodyOfWater) },
-                            onAdd = { addNewBodyOfWater = true },
+                            onAdd = { addBodyOfWater = true },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { bodyOfWater ->
                                 val thumbnailFlow = remember(bodyOfWater.id) {
@@ -409,7 +407,7 @@ fun AddFishScreen(
                             items = speciesList,
                             selectedItem = selectedSpecies,
                             onSelected = { species -> viewModel.updateSpecies(species) },
-                            onAdd = { addNewSpecies = true },
+                            onAdd = { addSpecies = true },
                             modifier = Modifier.fillMaxWidth(),
                             defaultText = "Select Species",
                             thumbnailProvider = { species ->
@@ -435,7 +433,7 @@ fun AddFishScreen(
                                 viewModel.updateFisherman(fisherman)
                                 viewModel.updateLure(null)
                                 viewModel.selectFisherman(fisherman.id)
-                                viewModel.selectTackleBox(tackleBoxMap[fisherman.id] ?: "")
+                                viewModel.selectTackleBox(tackleBoxMap[fisherman.id])
                             },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { fisherman ->
@@ -454,36 +452,40 @@ fun AddFishScreen(
                         )
 
                         selectedFisherman?.let { fisherman ->
-                            tackleBoxMap[fisherman.id]?.let { tackleBoxId ->
-                                LureSelectionField(
-                                    items = luresSorted,
-                                    selectedItem = selectedLure,
-                                    onSelected = { lure -> viewModel.updateLure(lure) },
-                                    onAdd = { navigateToSelectLures(fisherman.id, tackleBoxId) },
-                                    onClear = { viewModel.updateLure(null) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    thumbnailProvider = { lure ->
-                                        val thumbnailFlow = remember(lure.lure.id) {
-                                            viewModel.lureThumbnail(lure.lure.id)
-                                        }
-
-                                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                                        ThumbnailBox(
-                                            thumbnail = thumbnail,
-                                            imageVector = AppIcons.Default.Lure,
-                                            modifier = Modifier.size(48.dp)
-                                        )
+                            val tackleBoxId = tackleBoxMap[fisherman.id]
+                            LureSelectionField(
+                                items = luresSorted,
+                                selectedItem = selectedLure,
+                                onSelected = { lure -> viewModel.updateLure(lure) },
+                                onAdd =
+                                    if (tackleBoxId != null) {
+                                        { navigateToSelectLures(fisherman.id, tackleBoxId) }
                                     }
-                                )
-                            }
+                                    else
+                                        null,
+                                onClear = { viewModel.updateLure(null) },
+                                modifier = Modifier.fillMaxWidth(),
+                                thumbnailProvider = { lure ->
+                                    val thumbnailFlow = remember(lure.lure.id) {
+                                        viewModel.lureThumbnail(lure.lure.id)
+                                    }
+
+                                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                                    ThumbnailBox(
+                                        thumbnail = thumbnail,
+                                        imageVector = AppIcons.Default.Lure,
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                }
+                            )
                         }
 
                         BaitSelectionField(
                             items = baitsSorted,
                             selectedItem = selectedBait,
                             onSelected = { bait -> viewModel.updateBait(bait) },
-                            onAdd = { addNewBait = true },
+                            onAdd = { addBait = true },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { bait ->
                                 val thumbnailFlow = remember(bait.id) {
@@ -702,32 +704,32 @@ fun AddFishScreen(
     }
 
     // New Species Dialog
-    if (addNewSpecies) {
+    if (addSpecies) {
         AddSpeciesDialog(
-            onDismiss = { addNewSpecies = false },
+            onDismiss = { addSpecies = false },
             onConfirm = { speciesName ->
                 viewModel.addAndUpdateSpecies(Species(name = speciesName))
-                addNewSpecies = false
+                addSpecies = false
             }
         )
     }
 
-    if (addNewBait) {
+    if (addBait) {
         AddBaitDialog(
-            onDismiss = { addNewBait = false },
+            onDismiss = { addBait = false },
             onConfirm = { baitName ->
                 viewModel.addAndUpdateBait(Bait(name = baitName))
-                addNewBait = false
+                addBait = false
             }
         )
     }
 
-    if (addNewBodyOfWater) {
+    if (addBodyOfWater) {
         AddBodyOfWaterDialog(
-            onDismiss = { addNewBodyOfWater = false },
+            onDismiss = { addBodyOfWater = false },
             onConfirm = { bodyOfWaterName ->
                 viewModel.addAndUpdateBodyOfWater(BodyOfWater(name = bodyOfWaterName))
-                addNewBodyOfWater = false
+                addBodyOfWater = false
             }
         )
     }

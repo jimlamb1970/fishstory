@@ -57,7 +57,6 @@ class AddFishViewModel(
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
-
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private val _selectedFishId = MutableStateFlow<String?>(null)
@@ -82,6 +81,13 @@ class AddFishViewModel(
         )
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val allLures: StateFlow<List<LureWithColors>> = lureRepo.getAllLures()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -165,9 +171,8 @@ class AddFishViewModel(
     val tackleBoxWithLures: StateFlow<List<LureWithColors>> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
-                flowOf(emptyList())
+                lureRepo.getAllLures()
             } else {
-                // This query only runs for the currently selected trip
                 lureRepo.getLuresInTackleBox(id)
             }
         }
