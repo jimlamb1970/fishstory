@@ -95,8 +95,6 @@ fun AddFishScreen(
     val draftFish by viewModel.draftFish.collectAsStateWithLifecycle()
     val photos by viewModel.fishPhotos.collectAsStateWithLifecycle()
 
-    var originalFish by remember { mutableStateOf<FishWithPhotos?>(null) }
-
     LaunchedEffect(tripId, eventId, fishId) {
         viewModel.selectTrip(tripId)
         viewModel.selectEvent(eventId)
@@ -111,7 +109,6 @@ fun AddFishScreen(
 
             if (fishId != null && state.fish != null) {
                 // Edit Mode Initialization
-                originalFish = state.fish
                 viewModel.initDraftFish(
                     state.fish.fish,
                     state.fish.fish.tripId,
@@ -134,8 +131,26 @@ fun AddFishScreen(
                     ?.id
 
                 viewModel.initDraftFish(null, tripId, eventId, waterId, weatherId)
-                viewModel.selectFisherman(null)
-                viewModel.selectTackleBox(null)
+
+                if (state.event.baits.size == 1) {
+                    viewModel.updateBait(state.event.baits.first())
+                }
+                if (state.event.bodiesOfWater.size == 1) {
+                    viewModel.updateBodyOfWater(state.event.bodiesOfWater.first())
+                }
+                if (state.event.fishermen.size == 1) {
+                    val fisherman = state.event.fishermen.first()
+                    viewModel.updateFisherman(fisherman)
+                    viewModel.selectFisherman(fisherman.id)
+                    viewModel.selectTackleBox(state.tackleBoxMap[fisherman.id] ?: "")
+                } else {
+                    viewModel.selectFisherman(null)
+                    viewModel.selectTackleBox(null)
+                }
+
+                if (state.event.targetSpecies.size == 1) {
+                    viewModel.updateSpecies(state.event.targetSpecies.first())
+                }
 
                 // TODO -- move this time clamping within the viewmodel entirely when initDraftFish is called
                 val initialTime = System.currentTimeMillis()
@@ -185,68 +200,35 @@ fun AddFishScreen(
 
             val timestamp = draftFish?.timestamp ?: System.currentTimeMillis()
 
-            val speciesList = state.species
-            val selectedSpecies = remember(draftFish, speciesList) {
-                if ((speciesList.size == 1) && (fishId == null)) {
-                    viewModel.updateSpecies(speciesList.first())
-                    speciesList.first()
-                }
-                else speciesList.find { it.id == draftFish?.speciesId }
-            }
-
+            val baits = event.baits.map { it.id }.toSet()
+            val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
             val eventFishermen = state.fishermen
+            val lures by viewModel.tackleBoxWithLures.collectAsStateWithLifecycle(initialValue = emptyList())
+            val speciesList = state.species
             val tackleBoxMap = state.tackleBoxMap
 
-            val selectedFisherman = remember(draftFish, eventFishermen) {
-                if ((eventFishermen.size == 1) && (fishId == null)) {
-                    viewModel.updateFisherman(eventFishermen.first())
-                    viewModel.selectFisherman(eventFishermen.first().id)
-                    viewModel.selectTackleBox(tackleBoxMap[eventFishermen.first().id] ?: "")
-                    eventFishermen.first()
-                }
-                else eventFishermen.find { it.id == draftFish?.fishermanId }
-            }
-
-            val lures by viewModel.tackleBoxWithLures.collectAsStateWithLifecycle(initialValue = emptyList())
-            val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
-            val selectedLure = remember(draftFish, lures) {
-                if ((lures.size == 1) && (fishId == null)) {
-                    viewModel.updateLure(lures.first())
-                    lures.first()
-                }
-                else lures.find { it.lure.id == draftFish?.lureId }
-            }
-
-            val baits = event.baits.map { it.id }.toSet()
-            val sortedBaits = allBaits.sortedByDescending { item ->
+            val baitsSorted = allBaits.sortedByDescending { item ->
                 baits.contains(item.id)
             }
-            val selectedBait = remember(draftFish, sortedBaits) {
-                // TODO - revisit the auto selection
-                /*
-                if ((sortedBaits.size == 1) && (fishId == null)) {
-                    viewModel.updateBait(sortedBaits.first())
-                    sortedBaits.first()
-                }
-                else sortedBaits.find { it.id == draftFish?.baitId }
-                */
-                sortedBaits.find { it.id == draftFish?.baitId }
-            }
-
-            val bodiesOfWater = event.bodiesOfWater.map { it.id }.toSet()
-            val sortedBodiesOfWater = allBodiesOfWater.sortedByDescending { item ->
+            val bodiesOfWaterSorted = allBodiesOfWater.sortedByDescending { item ->
                 bodiesOfWater.contains(item.id)
             }
-            val selectedBodyOfWater = remember(draftFish, sortedBodiesOfWater) {
-                // TODO - revisit the auto selection
-                /*
-                if ((sortedBodiesOfWater.size == 1) && (fishId == null)) {
-                    viewModel.updateBodyOfWater(sortedBodiesOfWater.first())
-                    sortedBodiesOfWater.first()
-                }
-                else sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
-                */
-                sortedBodiesOfWater.find { it.id == draftFish?.bodyOfWaterId }
+            val luresSorted by remember(lures) { derivedStateOf{ sortLures(lures) } }
+
+            val selectedBait = remember(draftFish, baitsSorted) {
+                baitsSorted.find { it.id == draftFish?.baitId }
+            }
+            val selectedBodyOfWater = remember(draftFish, bodiesOfWaterSorted) {
+                bodiesOfWaterSorted.find { it.id == draftFish?.bodyOfWaterId }
+            }
+            val selectedFisherman = remember(draftFish, eventFishermen) {
+                eventFishermen.find { it.id == draftFish?.fishermanId }
+            }
+            val selectedLure = remember(draftFish, lures) {
+                lures.find { it.lure.id == draftFish?.lureId }
+            }
+            val selectedSpecies = remember(draftFish, speciesList) {
+                speciesList.find { it.id == draftFish?.speciesId }
             }
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)
@@ -403,7 +385,7 @@ fun AddFishScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         BodyOfWaterSelectionField(
-                            items = sortedBodiesOfWater,
+                            items = bodiesOfWaterSorted,
                             selectedItem = selectedBodyOfWater,
                             onSelected = { bodyOfWater -> viewModel.updateBodyOfWater(bodyOfWater) },
                             onAdd = { addNewBodyOfWater = true },
@@ -498,7 +480,7 @@ fun AddFishScreen(
                         }
 
                         BaitSelectionField(
-                            items = sortedBaits,
+                            items = baitsSorted,
                             selectedItem = selectedBait,
                             onSelected = { bait -> viewModel.updateBait(bait) },
                             onAdd = { addNewBait = true },
