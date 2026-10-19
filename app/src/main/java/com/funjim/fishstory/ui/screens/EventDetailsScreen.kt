@@ -901,9 +901,8 @@ fun EventDetailsScreen(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp
                                             ),
-                                            description = """No bodies of water selected.
-
-Bodies of water are where you're actively fishing. 
+                                            emptyText = "No bodies of water selected.",
+                                            helpText = """Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                             thumbnailFlow = { bodyOfWater ->
@@ -944,9 +943,8 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     vertical = 8.dp,
                                                     horizontal = 16.dp
                                                 ),
-                                                description = """No fishermen selected. 
-
-At least one participant must be added to this event.
+                                                emptyText = "No fishermen selected.",
+                                                helpText = """At least one participant must be added to this event.
 
 Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
 """,
@@ -1031,12 +1029,10 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             itemList = limitSummaries,
                                             verbose = appSettings.display.verboseCards,
                                             useImperial = appSettings.display.useImperialUnits,
-                                            description = """No limits created.
-        |
-        |Limits track your total catches to help ensure compliance with local fishing regulations.
-        |
-        |Limits set here apply only to this event.
-    """.trimMargin(),
+                                            emptyText = "No limits created.",
+                                            helpText = """Limits track your total catches to help ensure compliance with local fishing regulations.
+                                                |
+                                                |Limits set here apply only to this event.""".trimMargin(),
                                             scope = LimitScope.EVENT,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
@@ -1065,9 +1061,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                     CategoryType.NOTES -> {
                                         NoteSection(
                                             noteList = sortedNotes,
-                                            description = """No notes created.
-
-Notes help you remember specific details and conditions during this event.""",
+                                            emptyText = "No notes created.",
+                                            helpText = " Notes help you remember specific details and conditions during this event.",
                                             onAdd = { showAddNoteDialog = true },
                                             onEdit = { noteToEdit = it },
                                             onDelete = { noteToDelete = it }
@@ -1077,9 +1072,8 @@ Notes help you remember specific details and conditions during this event.""",
                                         SpeciesSummarySection(
                                             items = sortedTargetSpeciesList,
                                             verbose = appSettings.display.verboseCards,
-                                            description = """No target species selected.
-
-Target species are what you're actively fishing for. 
+                                            emptyText = "No target species selected.",
+                                            helpText = """Target species are what you're actively fishing for. 
 
 Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                             modifier = Modifier.padding(
@@ -1117,9 +1111,8 @@ Selecting them places those species at the top of the list when logging catches 
                                             waterList = sortedWaterList,
                                             verbose = appSettings.display.verboseCards,
                                             useImperial = appSettings.display.useImperialUnits,
-                                            description = """No water conditions specified.
-
-Adding water conditions will automatically apply them to any new catches logged for this event.""",
+                                            emptyText = "No water conditions specified.",
+                                            helpText = "Adding water conditions will automatically apply them to any new catches logged for this event.",
                                             onAddWater = { showAddWaterDialog = true },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
@@ -1141,9 +1134,8 @@ Adding water conditions will automatically apply them to any new catches logged 
                                             list = sortedWeatherList,
                                             verbose = appSettings.display.verboseCards,
                                             useImperial = appSettings.display.useImperialUnits,
-                                            description = """No weather conditions specified.
-
-Adding weather conditions will automatically apply them to any new catches logged for this event.""",
+                                            emptyText = "No weather conditions specified.",
+                                            helpText = "No weather conditions specified.Adding weather conditions will automatically apply them to any new catches logged for this event.",
                                             onAdd = { showAddWeatherDialog = true },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->

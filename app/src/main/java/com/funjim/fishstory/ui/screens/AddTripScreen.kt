@@ -535,9 +535,8 @@ fun AddTripScreen(
 
                             BodyOfWaterSummarySection(
                                 list = bowSummaries,
-                                description = """No bodies of water selected.
-
-Bodies of water are where you're actively fishing. 
+                                emptyText = "No bodies of water selected.",
+                                helpText = """Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                 verbose = false,
@@ -569,9 +568,8 @@ Selecting them places those bodies of water at the top of the list when logging 
                                 FishermanSummarySection(
                                     list = fishermanSummaries,
                                     verbose = false,
-                                    description = """No fishermen selected. 
-
-At least one participant must be added to this trip.
+                                    emptyText = "No fishermen selected.",
+                                    helpText = """At least one participant must be added to this trip.
 
 Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
 """,
@@ -654,9 +652,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                             SpeciesSummarySection(
                                 items = speciesSummaries,
                                 verbose = false,
-                                description = """No target species selected.
-
-Target species are what you're actively fishing for. 
+                                emptyText = "No target species selected.",
+                                helpText = """Target species are what you're actively fishing for. 
 
 Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                 thumbnailFlow = { species ->

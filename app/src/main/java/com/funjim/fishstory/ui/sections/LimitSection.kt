@@ -36,10 +36,8 @@ fun LimitSummarySection(
     verbose: Boolean,
     useImperial: Boolean,
     scope: LimitScope,
-    description: String = """No limits created.
-        |
-        |Limits track your total catches to help ensure compliance with local fishing regulations.
-    """.trimMargin(),
+    emptyText: String = "No limits created.",
+    helpText: String = "Limits track your total catches to help ensure compliance with local fishing regulations.",
     modifier: Modifier,
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
@@ -112,7 +110,14 @@ fun LimitSummarySection(
             Column(
             ) {
                 Text(
-                    text = description,
+                    text = emptyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = helpText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

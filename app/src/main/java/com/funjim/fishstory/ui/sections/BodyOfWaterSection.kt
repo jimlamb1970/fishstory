@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +32,8 @@ fun BodyOfWaterSummarySection(
     list: List<BodyOfWaterSummary>,
     verbose: Boolean,
     modifier: Modifier = Modifier,
-    description: String = "No bodies of water are selected.",
+    emptyText: String = "No bodies of water are selected.",
+    helpText: String = "You need help.",
     thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
     onClick: (BodyOfWater) -> Unit = { _ -> },
@@ -108,7 +110,14 @@ fun BodyOfWaterSummarySection(
             }
         } else {
             Text(
-                text = description,
+                text = emptyText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)

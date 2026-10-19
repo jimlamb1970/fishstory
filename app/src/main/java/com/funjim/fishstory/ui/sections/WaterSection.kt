@@ -159,7 +159,8 @@ fun WaterSummarySection(
     waterList: List<WaterSummary>,
     verbose: Boolean,
     useImperial: Boolean,
-    description: String = "No water conditions are specified.",
+    emptyText: String = "No water conditions are specified.",
+    helpText: String = "You need help.",
     onAddWater: (() -> Unit)? = null,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
@@ -273,7 +274,14 @@ fun WaterSummarySection(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = description,
+                    text = emptyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = helpText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)

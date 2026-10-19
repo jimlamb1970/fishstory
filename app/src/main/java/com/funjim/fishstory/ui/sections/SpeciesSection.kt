@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,7 +40,8 @@ fun TargetSpeciesSection(
     onDelete: (Species) -> Unit,
     onClick: (Species) -> Unit,
     modifier: Modifier = Modifier,
-    description: String = "No target species have been selected.",
+    emptyText: String = "No target species have been selected.",
+    helpText: String = "You need help.",
     summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) }
 ) {
@@ -90,9 +92,16 @@ fun TargetSpeciesSection(
 
         if (items.isEmpty()) {
             Text(
-                text = description,
+                text = emptyText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = helpText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {
@@ -119,7 +128,8 @@ fun SpeciesSummarySection(
     items: List<SpeciesSummary>,
     verbose: Boolean,
     modifier: Modifier = Modifier,
-    description: String = "No target species have been selected.",
+    emptyText: String = "No target species have been selected.",
+    helpText: String = "You need help.",
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
     onClick: (Species) -> Unit,
@@ -172,9 +182,16 @@ fun SpeciesSummarySection(
 
         if (items.isEmpty()) {
             Text(
-                text = description,
+                text = emptyText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = helpText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {

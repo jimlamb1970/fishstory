@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -37,7 +38,8 @@ fun FishermanSummarySection(
     list: List<FishermanSummary>,
     verbose: Boolean,
     modifier: Modifier = Modifier,
-    description: String = "No fishermen are selected.",
+    emptyText: String = "No fishermen are selected.",
+    helpText: String = "You need help.",
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
@@ -137,7 +139,14 @@ fun FishermanSummarySection(
             }
         } else {
             Text(
-                text = description,
+                text = emptyText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp)

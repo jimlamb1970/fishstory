@@ -795,9 +795,8 @@ private fun FishDetailContent(
                 CategoryType.NOTES -> {
                     NoteSection(
                         noteList = sortedNotes ?: emptyList(),
-                        description = """No notes created.
-
-Notes help you remember specific details about this fish.""",
+                        emptyText = "No notes created.",
+                        helpText = "Notes help you remember specific details about this fish.",
                         onAdd = { showAddNoteDialog = true },
                         onEdit = { noteToEdit = it },
                         onDelete = { noteToDelete = it }
