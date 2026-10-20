@@ -3,7 +3,6 @@ package com.funjim.fishstory.ui.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.ui.utils.DateTimeUtils.toLocalDateTime
 import com.funjim.fishstory.ui.utils.DateTimeUtils.updateDate
 import com.funjim.fishstory.ui.utils.DateTimeUtils.updateTime
+import com.funjim.fishstory.ui.utils.StepperField
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -918,71 +918,6 @@ fun FractionalLengthField(
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun StepperField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(text = label, style = MaterialTheme.typography.labelMedium)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // DECREMENT BUTTON (-)
-            OutlinedIconButton(
-                onClick = onDecrement,
-                modifier = Modifier
-                    .size(48.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = MaterialTheme.shapes.small
-                    ),
-                shape = MaterialTheme.shapes.small,
-                colors = IconButtonDefaults.outlinedIconButtonColors(
-                    containerColor = Color.Transparent
-                )
-            ) {
-                Text("-", style = MaterialTheme.typography.titleLarge)
-            }
-
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .weight(1f),
-                textStyle = TextStyle(textAlign = TextAlign.Center),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true
-            )
-
-            // INCREMENT BUTTON (+)
-            OutlinedIconButton(
-                onClick = onIncrement,
-                modifier = Modifier
-                    .size(48.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = MaterialTheme.shapes.small
-                    ),
-                shape = MaterialTheme.shapes.small,
-                colors = IconButtonDefaults.outlinedIconButtonColors(
-                    containerColor = Color.Transparent
-                )
-            ) {
-                Text("+", style = MaterialTheme.typography.titleLarge)
             }
         }
     }

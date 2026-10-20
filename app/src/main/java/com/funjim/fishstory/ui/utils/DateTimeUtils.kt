@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.ui.screens.toUtcMidnight
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -42,6 +41,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 
 object DateTimeUtils {
     // Converts Long to LocalDateTime for easy picking
@@ -199,6 +199,126 @@ fun DateTimePickerButton(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DurationStepperField(
+    label: String,
+    totalMillis: Long,
+    onMillisChanged: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    maxMillis: Long? = null
+) {
+    val totalHours = TimeUnit.MILLISECONDS.toHours(totalMillis).coerceAtLeast(0)
+    val days = (totalHours / 24).toInt()
+    val hours = (totalHours % 24).toInt()
+
+    val maxTotalHours = maxMillis?.let { TimeUnit.MILLISECONDS.toHours(it).coerceAtLeast(0) }
+    val maxDays = maxTotalHours?.div(24)?.toInt()
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (label.isNotBlank()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // --- DAYS STEPPER ---
+            StepperField(
+                label = "Days",
+                value = days.toString(),
+                onValueChange = { input ->
+                    val newDays = input.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                    val cappedDays = maxDays?.let { newDays.coerceAtMost(it) } ?: newDays
+
+                    // If days maxes out, cap hours so total doesn't exceed maxMillis
+                    val finalDays = if (cappedDays == maxDays) {
+                        val maxRemainingHours = (maxTotalHours ?: 0) - (maxDays * 24)
+                        if (hours > maxRemainingHours) maxRemainingHours.toInt() else hours
+                    } else {
+                        cappedDays
+                    }
+
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(finalDays.toLong()) + TimeUnit.HOURS.toMillis(hours.toLong())
+                    onMillisChanged(newTotalMillis)
+                },
+                onIncrement = {
+                    val nextDays = days + 1
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(nextDays.toLong()) + TimeUnit.HOURS.toMillis(hours.toLong())
+                    if (maxMillis == null || newTotalMillis <= maxMillis) {
+                        onMillisChanged(newTotalMillis)
+                    }
+                },
+                onDecrement = {
+                    if (days > 0) {
+                        val nextDays = days - 1
+                        val newTotalMillis = TimeUnit.DAYS.toMillis(nextDays.toLong()) + TimeUnit.HOURS.toMillis(hours.toLong())
+                        onMillisChanged(newTotalMillis)
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            // --- HOURS STEPPER ---
+            StepperField(
+                label = "Hours",
+                value = hours.toString(),
+                onValueChange = { input ->
+                    val rawHours = input.toIntOrNull()?.coerceAtLeast(0) ?: 0
+
+                    // Handle manual entry rollover (e.g., typing 26 hours -> 1 day, 2 hours)
+                    val additionalDays = rawHours / 24
+                    val remainingHours = rawHours % 24
+
+                    val targetDays = days + additionalDays
+                    val targetHours = remainingHours
+
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(targetDays.toLong()) + TimeUnit.HOURS.toMillis(targetHours.toLong())
+                    val finalMillis = maxMillis?.let { newTotalMillis.coerceAtMost(it) } ?: newTotalMillis
+
+                    onMillisChanged(finalMillis)
+                },
+                onIncrement = {
+                    var nextHours = hours + 1
+                    var nextDays = days
+
+                    // Roll over 24 hours into 1 day
+                    if (nextHours >= 24) {
+                        nextHours = 0
+                        nextDays += 1
+                    }
+
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(nextDays.toLong()) + TimeUnit.HOURS.toMillis(nextHours.toLong())
+                    if (maxMillis == null || newTotalMillis <= maxMillis) {
+                        onMillisChanged(newTotalMillis)
+                    }
+                },
+                onDecrement = {
+                    var nextHours = hours - 1
+                    var nextDays = days
+
+                    // Borrow 1 day if hours drops below 0
+                    if (nextHours < 0) {
+                        if (nextDays > 0) {
+                            nextDays -= 1
+                            nextHours = 23
+                        } else {
+                            nextHours = 0 // Floor at 0 days, 0 hours
+                        }
+                    }
+
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(nextDays.toLong()) + TimeUnit.HOURS.toMillis(nextHours.toLong())
+                    onMillisChanged(newTotalMillis)
+                },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
