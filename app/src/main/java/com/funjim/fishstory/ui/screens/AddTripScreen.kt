@@ -22,7 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
@@ -53,6 +55,11 @@ import com.funjim.fishstory.ui.sections.SpeciesSummarySection
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.DurationStepperField
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 // ---------------------------------------------------------------------------
 // AddTripScreen
@@ -286,7 +293,7 @@ fun AddTripScreen(
                         else -> {}
                     }
                     IconButton(
-                        onClick = { showSaveDialog = true }, // Intercept save to present choices
+                        onClick = { showSaveDialog = true },
                         enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
                     ) {
                         Icon(
@@ -467,65 +474,52 @@ fun AddTripScreen(
                         millis = tripDraft.startDate,
                         modifier = Modifier.weight(1f)
                     ) { newStartTime ->
-                        if (newStartTime >= tripDraft.endDate) {
-                            if (tripDraft.endDate == tripDraft.startDate) {
-                                viewModel.updateTripDraft {
-                                    tripDraft.copy(
-                                        startDate = newStartTime,
-                                        endDate = newStartTime
-                                    )
-                                }
-                            } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Trip start time cannot be after trip end time.  Please adjust accordingly.",
-                                        actionLabel = "Dismiss",
-                                        duration = SnackbarDuration.Long
-                                    )
-                                }
-                            }
-                        } else {
-                            viewModel.updateTripDraft {
-                                tripDraft.copy(startDate = newStartTime)
-                            }
+                        val currentDuration = (tripDraft.endDate - tripDraft.startDate).coerceAtLeast(0L)
+                        viewModel.updateTripDraft {
+                            it.copy(
+                                startDate = newStartTime,
+                                endDate = newStartTime + currentDuration
+                            )
                         }
                     }
                 }
             }
 
             item {
+                DurationStepperField(
+                    label = "Duration",
+                    totalMillis = (tripDraft.endDate - tripDraft.startDate).coerceAtLeast(0L),
+                    onMillisChanged = { newDurationMillis ->
+                        viewModel.updateTripDraft {
+                            it.copy(endDate = it.startDate + newDurationMillis)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxMillis = 1000 * 60 * 60 * 24 * 365
+                )
+            }
+
+            item {
+                val dateTimeFormatter = remember {
+                    SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+                }
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "End",
+                        text = "Ends:",
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.width(48.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    DateTimePickerButton(
-                        label = "end",
-                        millis = tripDraft.endDate,
-                        startTime = tripDraft.startDate,
+                    Text(
+                        text = dateTimeFormatter.format(Date(tripDraft.endDate)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
-                    ) { new ->
-                        when {
-                            new < tripDraft.startDate -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Trip end time cannot be before trip start time.  Please adjust accordingly.",
-                                        actionLabel = "Dismiss",
-                                        duration = SnackbarDuration.Long
-                                    )
-                                }
-                            }
-                            else -> {
-                                viewModel.updateTripDraft {
-                                    tripDraft.copy(endDate = new)
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
 
@@ -828,7 +822,6 @@ Selecting them places those species at the top of the list when logging catches 
     }
 
     if (showSaveDialog) {
-        // Track the currently selected option (0 = No events, 1 = Full trip event, 2 = Manual events)
         var selectedOption by remember { mutableIntStateOf(0) }
 
         val options = listOf(

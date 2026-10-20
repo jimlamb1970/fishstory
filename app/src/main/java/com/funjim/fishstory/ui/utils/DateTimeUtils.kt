@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.funjim.fishstory.ui.screens.toUtcMidnight
@@ -218,11 +219,15 @@ fun DurationStepperField(
     val maxTotalHours = maxMillis?.let { TimeUnit.MILLISECONDS.toHours(it).coerceAtLeast(0) }
     val maxDays = maxTotalHours?.div(24)?.toInt()
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (label.isNotBlank()) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelLarge
             )
         }
 
@@ -263,7 +268,9 @@ fun DurationStepperField(
                         onMillisChanged(newTotalMillis)
                     }
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                buttonSize = 32.dp,
+                labelAlignment = TextAlign.Center
             )
 
             // --- HOURS STEPPER ---
@@ -317,7 +324,9 @@ fun DurationStepperField(
                     val newTotalMillis = TimeUnit.DAYS.toMillis(nextDays.toLong()) + TimeUnit.HOURS.toMillis(nextHours.toLong())
                     onMillisChanged(newTotalMillis)
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                buttonSize = 32.dp,
+                labelAlignment = TextAlign.Center
             )
         }
     }
