@@ -63,22 +63,22 @@ fun EditEventDialog(
                 DateTimePickerButton(
                     label = "Start",
                     millis = startTime,
+                    startTime = tripStart,
+                    endTime = tripEnd,
                     modifier = Modifier.fillMaxWidth()
                 ) { newTime ->
                     if (newTime < tripStart) {
                         Toast.makeText(
                             context,
-                            "Start date and time cannot be before trip start date and time",
+                            "Event start time cannot be before trip start time.",
                             Toast.LENGTH_SHORT
-                        )
-                            .show()
+                        ).show()
                     } else if (newTime > tripEnd) {
                         Toast.makeText(
                             context,
-                            "Start date and time cannot be after trip end date and time",
+                            "Event start time cannot be after trip end time.",
                             Toast.LENGTH_SHORT
-                        )
-                            .show()
+                        ).show()
                     } else {
                         startTime = newTime
                         if (startTime > endTime)
@@ -90,18 +90,20 @@ fun EditEventDialog(
                 DateTimePickerButton(
                     label = "End",
                     millis = endTime,
+                    startTime = tripStart,
+                    endTime = tripEnd,
                     modifier = Modifier.fillMaxWidth()
                 ) { newTime ->
                     if (newTime < startTime) {
                         Toast.makeText(
                             context,
-                            "End date and time must be after start date and time",
+                            "Event end time cannot be before event start time.",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else if (newTime > tripEnd) {
                         Toast.makeText(
                             context,
-                            "End date and time cannot be after trip end date and time",
+                            "Event end time cannot be after trip end time.",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {

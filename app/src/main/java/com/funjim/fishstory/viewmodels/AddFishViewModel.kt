@@ -469,9 +469,21 @@ class AddFishViewModel(
         }
     }
 
-    fun updateTimestamp(timestamp: Long, startTime: Long, endTime: Long) {
+    fun updateTimestamp(
+        timestamp: Long,
+        startTime: Long,
+        endTime: Long,
+        onClamped: (Boolean) -> Unit? = {}
+    ) {
         _draftFish.update { current ->
-            current?.copy(timestamp = timestamp.coerceIn(startTime, endTime))
+            if (current == null) return@update null
+
+            val coerced = timestamp.coerceIn(startTime, endTime)
+            if (coerced != timestamp) {
+                onClamped((coerced == startTime))
+            }
+
+            current.copy(timestamp = coerced)
         }
     }
 

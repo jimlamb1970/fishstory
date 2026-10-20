@@ -68,10 +68,12 @@ fun AddEventScreen(
     navigateToAddLures: (TackleBox) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
+
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+
 
     val uiState by viewModel.uiAddEventState.collectAsStateWithLifecycle()
 
@@ -439,7 +441,8 @@ fun AddEventScreen(
                             }
                         }
                     }
-                }
+                },
+                snackbarHost = { SnackbarHost(snackbarHostState) }
             ) { padding ->
                 LazyColumn(
                     modifier = Modifier
@@ -524,30 +527,41 @@ fun AddEventScreen(
                             DateTimePickerButton(
                                 label = "start",
                                 millis = eventDraft.startTime,
+                                startTime = trip.trip.startDate,
+                                endTime = trip.trip.endDate,
                                 modifier = Modifier.weight(1f)
-                            ) { new ->
+                            ) { newStartTime ->
                                 when {
-                                    new < trip.trip.startDate ->
-                                        Toast.makeText(
-                                            context,
-                                            "Cannot be before trip start",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
-                                    new > trip.trip.endDate ->
-                                        Toast.makeText(
-                                            context,
-                                            "Cannot be after trip end",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
-                                    else -> {
-                                        viewModel.updateEventDraft {
-                                            eventDraft.copy(startTime = new)
+                                    newStartTime < trip.trip.startDate -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Event start time cannot be before trip start time.  Please adjust accordingly.",
+                                                actionLabel = "Dismiss",
+                                                duration = SnackbarDuration.Long
+                                            )
                                         }
-                                        if (new > eventDraft.endTime) {
+                                    }
+                                    newStartTime > trip.trip.endDate -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Event start time cannot be after trip end time.  Please adjust accordingly.",
+                                                actionLabel = "Dismiss",
+                                                duration = SnackbarDuration.Long
+                                            )
+                                        }
+                                    }
+                                    else -> {
+                                        if (newStartTime > eventDraft.endTime) {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Event start time cannot be after event end time.  Please adjust accordingly.",
+                                                    actionLabel = "Dismiss",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                        } else {
                                             viewModel.updateEventDraft {
-                                                eventDraft.copy(endTime = new)
+                                                eventDraft.copy(startTime = newStartTime)
                                             }
                                         }
                                     }
@@ -569,27 +583,37 @@ fun AddEventScreen(
                             DateTimePickerButton(
                                 label = "end",
                                 millis = eventDraft.endTime,
+                                startTime = trip.trip.startDate,
+                                endTime = trip.trip.endDate,
                                 modifier = Modifier.weight(1f)
                             ) { new ->
                                 when {
-                                    new < eventDraft.startTime ->
-                                        Toast.makeText(
-                                            context,
-                                            "End must be after start",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
-                                    new > trip.trip.endDate ->
-                                        Toast.makeText(
-                                            context,
-                                            "Cannot be after trip end",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
-                                    else ->
+                                    new < eventDraft.startTime -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Event end time cannot be before event start time.  Please adjust accordingly.",
+                                                actionLabel = "Dismiss",
+                                                duration = SnackbarDuration.Long
+                                            )
+                                        }
+                                    }
+                                    new > trip.trip.endDate -> {
+                                        viewModel.updateEventDraft {
+                                            eventDraft.copy(endTime = trip.trip.endDate)
+                                        }
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Event end time cannot be after trip end time.  Event end time was auto-adjusted to trip end time.",
+                                                actionLabel = "Dismiss",
+                                                duration = SnackbarDuration.Long
+                                            )
+                                        }
+                                    }
+                                    else -> {
                                         viewModel.updateEventDraft {
                                             eventDraft.copy(endTime = new)
                                         }
+                                    }
                                 }
                             }
                         }

@@ -65,10 +65,11 @@ fun AddTripScreen(
     navigateToAddEvent: ((tripId: String) -> Unit),
     navigateBack: () -> Unit
 ) {
-    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
+
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
 
     val tripDraft by viewModel.tripDraft.collectAsStateWithLifecycle()
 
@@ -387,7 +388,8 @@ fun AddTripScreen(
                     }
                 }
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -464,13 +466,27 @@ fun AddTripScreen(
                         label = "start",
                         millis = tripDraft.startDate,
                         modifier = Modifier.weight(1f)
-                    ) { new ->
-                        viewModel.updateTripDraft {
-                            tripDraft.copy(startDate = new)
-                        }
-                        if (new > tripDraft.endDate) {
+                    ) { newStartTime ->
+                        if (newStartTime >= tripDraft.endDate) {
+                            if (tripDraft.endDate == tripDraft.startDate) {
+                                viewModel.updateTripDraft {
+                                    tripDraft.copy(
+                                        startDate = newStartTime,
+                                        endDate = newStartTime
+                                    )
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Trip start time cannot be after trip end time.  Please adjust accordingly.",
+                                        actionLabel = "Dismiss",
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                        } else {
                             viewModel.updateTripDraft {
-                                tripDraft.copy(endDate = new)
+                                tripDraft.copy(startDate = newStartTime)
                             }
                         }
                     }
@@ -490,19 +506,24 @@ fun AddTripScreen(
                     DateTimePickerButton(
                         label = "end",
                         millis = tripDraft.endDate,
+                        startTime = tripDraft.startDate,
                         modifier = Modifier.weight(1f)
                     ) { new ->
                         when {
-                            new < tripDraft.startDate ->
-                                Toast.makeText(
-                                    context,
-                                    "End must be after start",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            else ->
+                            new < tripDraft.startDate -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Trip end time cannot be before trip start time.  Please adjust accordingly.",
+                                        actionLabel = "Dismiss",
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                            else -> {
                                 viewModel.updateTripDraft {
                                     tripDraft.copy(endDate = new)
                                 }
+                            }
                         }
                     }
                 }

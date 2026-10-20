@@ -13,6 +13,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,6 +22,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.ui.screens.toUtcMidnight
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -77,6 +81,8 @@ fun DateTimePickerButton(
     label: String,
     millis: Long,
     modifier: Modifier = Modifier,
+    startTime: Long? = null,
+    endTime: Long? = null,
     onConfirm: (Long) -> Unit
 ) {
     val dateTimeFormatter = remember {
@@ -97,7 +103,37 @@ fun DateTimePickerButton(
             set(localCal.get(Calendar.YEAR), localCal.get(Calendar.MONTH), localCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = startOfDayUtc)
+
+        val datePickerState = key(showDateStep) {
+            rememberDatePickerState(
+                initialSelectedDateMillis = startOfDayUtc,
+                selectableDates = object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                        val startMidnight = startTime?.toUtcMidnight()
+                        val endMidnight = endTime?.toUtcMidnight()
+
+                        val afterStart = startMidnight == null || utcTimeMillis >= startMidnight
+                        val beforeEnd = endMidnight == null || utcTimeMillis <= endMidnight
+
+                        return afterStart && beforeEnd
+                    }
+
+                    override fun isSelectableYear(year: Int): Boolean {
+                        val startYear = startTime?.let {
+                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).year
+                        }
+                        val endYear = endTime?.let {
+                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).year
+                        }
+
+                        val afterStart = startYear == null || year >= startYear
+                        val beforeEnd = endYear == null || year <= endYear
+
+                        return afterStart && beforeEnd
+                    }
+                }
+            )
+        }
 
         DatePickerDialog(
             onDismissRequest = { showDateStep = false },

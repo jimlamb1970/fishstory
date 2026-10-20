@@ -61,9 +61,15 @@ fun EditTripDialog(
                     millis = startTime,
                     modifier = Modifier.fillMaxWidth()
                 ) { newTime ->
-                    startTime = newTime
-                    if (startTime > endTime)
-                        endTime = startTime
+                    if (newTime > endTime) {
+                        Toast.makeText(
+                            context,
+                            "Trip start time cannot be before trip end time.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        startTime = newTime
+                    }
                 }
 
                 Text("End", style = MaterialTheme.typography.labelLarge)
@@ -75,7 +81,7 @@ fun EditTripDialog(
                     if (newTime < startTime) {
                         Toast.makeText(
                             context,
-                            "End date and time must be after start date and time",
+                            "Trip end time cannot be before trip start time.",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {

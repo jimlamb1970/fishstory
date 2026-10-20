@@ -158,9 +158,12 @@ fun AddFishScreen(
                     viewModel.updateSpecies(state.event.targetSpecies.first())
                 }
 
-                // TODO -- move this time clamping within the viewmodel entirely when initDraftFish is called
                 val initialTime = System.currentTimeMillis()
-                viewModel.updateTimestamp(initialTime, startTime, endTime)
+                viewModel.updateTimestamp(
+                    initialTime,
+                    startTime,
+                    endTime
+                )
             }
         }
     }
@@ -264,7 +267,27 @@ fun AddFishScreen(
                         TextButton(onClick = {
                             datePickerState.selectedDateMillis?.let {
                                 val newDate = updateDate(timestamp, it)
-                                viewModel.updateTimestamp(newDate, startTime, endTime)
+                                viewModel.updateTimestamp(
+                                    newDate,
+                                    startTime,
+                                    endTime,
+                                    onClamped = { toStart ->
+                                        if (toStart) {
+                                            Toast.makeText(
+                                                context,
+                                                "Catch time auto-adjusted to event start time.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        else {
+                                            Toast.makeText(
+                                                context,
+                                                "Catch time auto-adjusted to event end time.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
                             }
                             showDatePicker = false
                         }) { Text("OK") }
@@ -286,7 +309,25 @@ fun AddFishScreen(
                     confirmButton = {
                         TextButton(onClick = {
                             val newTime = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
-                            viewModel.updateTimestamp(newTime, startTime, endTime)
+                            viewModel.updateTimestamp(
+                                newTime,
+                                startTime,
+                                endTime,
+                                onClamped = { toStart ->
+                                    if (toStart)
+                                        Toast.makeText(
+                                            context,
+                                            "Catch time auto-adjusted to event start time.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    else
+                                        Toast.makeText(
+                                            context,
+                                            "Catch time auto-adjusted to event end time.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                }
+                            )
                             showTimePicker = false
                         }) { Text("OK") }
                     },
