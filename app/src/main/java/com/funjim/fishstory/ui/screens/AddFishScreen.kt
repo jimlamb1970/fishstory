@@ -241,8 +241,8 @@ fun AddFishScreen(
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)
 
-            val datePickerState = key(showDatePicker) {
-                rememberDatePickerState(
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = draftFish?.timestamp?.toUtcMidnight(),
                     selectableDates = object : SelectableDates {
                         override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -259,8 +259,7 @@ fun AddFishScreen(
                         }
                     }
                 )
-            }
-            if (showDatePicker) {
+
                 DatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
                     confirmButton = {
@@ -295,15 +294,15 @@ fun AddFishScreen(
                 ) { DatePicker(state = datePickerState) }
             }
 
-            val timePickerState = key(timestamp) {
+
+            if (showTimePicker) {
                 val localDateTime = timestamp.toLocalDateTime()
-                rememberTimePickerState(
+                val timePickerState = rememberTimePickerState(
                     initialHour = localDateTime.hour,
                     initialMinute = localDateTime.minute,
                     is24Hour = false
                 )
-            }
-            if (showTimePicker) {
+
                 AlertDialog(
                     onDismissRequest = { showTimePicker = false },
                     confirmButton = {
