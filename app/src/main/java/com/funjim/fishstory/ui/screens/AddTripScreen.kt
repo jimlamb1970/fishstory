@@ -509,7 +509,7 @@ fun AddTripScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "End:",
+                        text = "End",
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(

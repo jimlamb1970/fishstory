@@ -556,18 +556,16 @@ fun AddEventScreen(
                                         }
                                     }
                                     else -> {
-                                        if (newStartTime > eventDraft.endTime) {
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = "Event start time cannot be after event end time.  Please adjust accordingly.",
-                                                    actionLabel = "Dismiss",
-                                                    duration = SnackbarDuration.Long
-                                                )
-                                            }
-                                        } else {
-                                            viewModel.updateEventDraft {
-                                                eventDraft.copy(startTime = newStartTime)
-                                            }
+                                        val currentDuration = (eventDraft.endTime - eventDraft.startTime).coerceAtLeast(0L)
+                                        viewModel.updateEventDraft {
+                                            it.copy(
+                                                startTime = newStartTime,
+                                                endTime =
+                                                    if ((newStartTime + currentDuration) > trip.trip.endDate)
+                                                        trip.trip.endDate
+                                                    else
+                                                        newStartTime + currentDuration
+                                            )
                                         }
                                     }
                                 }
@@ -600,7 +598,7 @@ fun AddEventScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "End:",
+                                text = "End",
                                 style = MaterialTheme.typography.labelLarge
                             )
                             Text(

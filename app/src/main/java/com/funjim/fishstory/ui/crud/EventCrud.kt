@@ -91,7 +91,11 @@ fun EditEventDialog(
                     } else {
                         val currentDuration = (endTime - startTime).coerceAtLeast(0L)
                         startTime = newTime
-                        endTime = newTime + currentDuration
+                        endTime =
+                            if ((newTime + currentDuration) > tripEnd)
+                                tripEnd
+                            else
+                                newTime + currentDuration
                     }
                 }
 
@@ -116,7 +120,7 @@ fun EditEventDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "End:",
+                        text = "End",
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
