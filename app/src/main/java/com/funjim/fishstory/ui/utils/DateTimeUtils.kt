@@ -240,19 +240,22 @@ fun DurationStepperField(
                 label = "Days",
                 value = days.toString(),
                 onValueChange = { input ->
-                    val newDays = input.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                    val newDays = input.toIntOrNull() ?: 0
                     val cappedDays = maxDays?.let { newDays.coerceAtMost(it) } ?: newDays
 
-                    // If days maxes out, cap hours so total doesn't exceed maxMillis
-                    val finalDays = if (cappedDays == maxDays) {
-                        val maxRemainingHours = (maxTotalHours ?: 0) - (maxDays * 24)
-                        if (hours > maxRemainingHours) maxRemainingHours.toInt() else hours
+                    // finalDays is just the valid, capped day count
+                    val finalDays = cappedDays
+
+                    // If we reached maxDays, ensure hours don't push total over maxMillis
+                    val finalHours = if (finalDays == maxDays) {
+                        val maxRemainingHours = (maxTotalHours ?: 0) - (finalDays * 24)
+                        hours.coerceAtMost(maxRemainingHours.toInt().coerceAtLeast(0))
                     } else {
-                        cappedDays
+                        hours
                     }
 
-                    val newTotalMillis = TimeUnit.DAYS.toMillis(finalDays.toLong()) + TimeUnit.HOURS.toMillis(hours.toLong())
-                    onMillisChanged(newTotalMillis)
+                    val newTotalMillis = TimeUnit.DAYS.toMillis(finalDays.toLong()) + TimeUnit.HOURS.toMillis(finalHours.toLong())
+                    onMillisChanged(newTotalMillis.coerceAtMost(maxMillis ?: newTotalMillis))
                 },
                 onIncrement = {
                     val nextDays = days + 1
@@ -269,6 +272,8 @@ fun DurationStepperField(
                     }
                 },
                 modifier = Modifier.weight(1f),
+                minValue = 0,
+                maxValue = maxDays,
                 buttonSize = 32.dp,
                 labelAlignment = TextAlign.Center
             )
@@ -325,6 +330,11 @@ fun DurationStepperField(
                     onMillisChanged(newTotalMillis)
                 },
                 modifier = Modifier.weight(1f),
+                maxValue = if (maxDays != null && days == maxDays) {
+                    ((maxTotalHours ?: 0) - (days * 24)).toInt().coerceAtLeast(0)
+                } else {
+                    24
+                },
                 buttonSize = 32.dp,
                 labelAlignment = TextAlign.Center
             )
