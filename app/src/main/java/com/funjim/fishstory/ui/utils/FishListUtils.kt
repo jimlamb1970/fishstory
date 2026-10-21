@@ -32,6 +32,19 @@ data class FishDetailsRoute(
     val targetOnly: Boolean = false
 )
 
+@Serializable
+data class ReportsRoute(
+    val bodyOfWaterId: String? = null,
+    val eventId: String? = null,
+    val fishermanId: String? = null,
+    val lureId: String? = null,
+    val speciesId: String? = null,
+    val tripId: String? = null,
+    val waterId: String? = null,
+    val weatherId: String? = null,
+    val targetOnly: Boolean = false
+)
+
 data class FishFilter(
     val fishId: String? = null,
     val sortOrder: FishSortOrder = FishSortOrder.TIMESTAMP_NEWEST_FIRST,
@@ -47,7 +60,19 @@ data class FishFilter(
     val targetOnly: Boolean = false
 ) {
     companion object {
-        fun fromRoute(route: FishListRoute) = FishFilter(
+        fun fromListRoute(route: FishListRoute) = FishFilter(
+            bodyOfWaterId = route.bodyOfWaterId,
+            eventId = route.eventId,
+            fishermanId = route.fishermanId,
+            lureId = route.lureId,
+            speciesId = route.speciesId,
+            tripId = route.tripId,
+            waterId = route.waterId,
+            weatherId = route.weatherId,
+            targetOnly = route.targetOnly
+        )
+
+        fun fromReportsRoute(route: ReportsRoute) = FishFilter(
             bodyOfWaterId = route.bodyOfWaterId,
             eventId = route.eventId,
             fishermanId = route.fishermanId,

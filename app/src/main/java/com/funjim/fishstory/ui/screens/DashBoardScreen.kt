@@ -113,6 +113,7 @@ import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
 import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
 import com.funjim.fishstory.ui.crud.WaterDialog
 import com.funjim.fishstory.ui.crud.WeatherDialog
+import com.funjim.fishstory.ui.utils.ReportsRoute
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.rememberGumballStatus
@@ -129,6 +130,7 @@ private data class GridParams(
 fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onFishListNavigate: (FishListRoute) -> Unit,
+    onReportsNavigate: (ReportsRoute) -> Unit,
     viewModel: DashboardViewModel
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -414,7 +416,7 @@ fun DashboardScreen(
                     onFishClick = { onNavigate("fish") },
                     onFishermenClick = { onNavigate("fishermen") },
                     onLuresClick = { onNavigate("lures") },
-                    onReportsClick = { onNavigate("reports") },
+                    onReportsClick = { onReportsNavigate(ReportsRoute()) },
                     onSettingsClick = { onNavigate("settings") },
                     onSpeciesClick = { onNavigate("manage_species") },
                     onTripsClick = { onNavigate("trips") }

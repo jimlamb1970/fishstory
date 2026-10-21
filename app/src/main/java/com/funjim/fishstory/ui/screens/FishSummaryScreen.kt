@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,7 +66,8 @@ fun FishSummaryScreen(
     viewModel: FishViewModel,
     navigateBack: () -> Unit,
     onAddFish: (tripId: String, eventId: String, fishId: String?) -> Unit,
-    onNavigateToFishList: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit
+    onNavigateToFishList: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit,
+    onNavigateToReports: (String?, String?, String?, String?, String?, String?, Boolean) -> Unit
 ) {
     val filter by viewModel.filter.collectAsStateWithLifecycle()
 
@@ -163,6 +165,22 @@ fun FishSummaryScreen(
                                 }
                             }
                         }
+                    }
+                    IconButton(onClick = {
+                        onNavigateToReports(
+                            filter.bodyOfWaterId,
+                            filter.eventId,
+                            filter.fishermanId,
+                            filter.lureId,
+                            filter.speciesId,
+                            filter.tripId,
+                            false
+                        )
+                    }) {
+                        Icon(
+                            AppIcons.Default.Reports,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp))
                     }
                 }
             )

@@ -44,7 +44,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.funjim.fishstory.model.AppSettings
-import com.funjim.fishstory.model.DisplaySettings
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
@@ -64,11 +63,12 @@ import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.ManageBodiesOfWaterScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
-import com.funjim.fishstory.ui.screens.ReportsScreen
+import com.funjim.fishstory.ui.screens.OldReportsScreen
 import com.funjim.fishstory.ui.screens.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
 import com.funjim.fishstory.ui.screens.ManageSkyConditionsScreen
 import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
+import com.funjim.fishstory.ui.screens.ReportsScreen
 import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.TripDetailsScreen
@@ -76,6 +76,7 @@ import com.funjim.fishstory.ui.screens.TripListScreen
 import com.funjim.fishstory.ui.utils.FishDetailsRoute
 import com.funjim.fishstory.ui.utils.FishListRoute
 import com.funjim.fishstory.ui.utils.FishFilter
+import com.funjim.fishstory.ui.utils.ReportsRoute
 import com.funjim.fishstory.ui.utils.toDetailsRoute
 
 class MainActivity : ComponentActivity() {
@@ -254,6 +255,7 @@ fun AppNavigation(
             DashboardScreen(
                 onNavigate = { route -> navController.navigate(route) },
                 onFishListNavigate = { route -> navController.navigate(route) },
+                onReportsNavigate = { route -> navController.navigate(route) },
                 viewModel = viewModel
             )
         }
@@ -385,6 +387,20 @@ fun AppNavigation(
                         )
                     )
                 },
+                onNavigateToReports = {
+                    bodyOfWaterId, eventId, fishermanId, lureId, speciesId, tripId, targetOnly ->
+                    navController.navigate(
+                        ReportsRoute(
+                            bodyOfWaterId = bodyOfWaterId,
+                            eventId = eventId,
+                            fishermanId = fishermanId,
+                            lureId = lureId,
+                            speciesId = speciesId,
+                            tripId = tripId,
+                            targetOnly = targetOnly
+                        )
+                    )
+                },
                 navigateBack = {
                     navController.popBackStack()
                 }
@@ -432,7 +448,7 @@ fun AppNavigation(
 
         composable<FishListRoute> { backStackEntry ->
             val route: FishListRoute = backStackEntry.toRoute()
-            val filter = FishFilter.fromRoute(route)
+            val filter = FishFilter.fromListRoute(route)
 
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -651,13 +667,31 @@ fun AppNavigation(
             )
         }
 
+        composable<ReportsRoute> { backStackEntry ->
+            val route: ReportsRoute = backStackEntry.toRoute()
+            val filter = FishFilter.fromReportsRoute(route)
+
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: FishViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getFishViewModelFactory()
+            )
+
+            ReportsScreen(
+                viewModel = viewModel,
+                filter = filter,
+                navigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable("reports") {
             val app = navController.context.applicationContext as FishstoryApplication
             val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = app.getMainViewModelFactory()
             )
 
-            ReportsScreen(
+            OldReportsScreen(
                 viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )
