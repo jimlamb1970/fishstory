@@ -133,7 +133,7 @@ fun FishDetailScreen(
                                 )
                             }
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit Trip")
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Fish")
                         }
                     }
                     if (fishList.size > 1) {

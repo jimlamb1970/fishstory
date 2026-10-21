@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -495,7 +494,7 @@ fun AddTripScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    maxMillis = 1000 * 60 * 60 * 24 * 365
+                    maxMillis = 1000L * 60 * 60 * 24 * 365
                 )
             }
 
@@ -510,13 +509,13 @@ fun AddTripScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Ends:",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "End:",
+                        style = MaterialTheme.typography.labelLarge
                     )
                     Text(
                         text = dateTimeFormatter.format(Date(tripDraft.endDate)),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
                     )

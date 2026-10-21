@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
@@ -55,6 +56,10 @@ import com.funjim.fishstory.ui.sections.SpeciesSummarySection
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
+import com.funjim.fishstory.ui.utils.DurationStepperField
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.collections.minus
 
 // ---------------------------------------------------------------------------
@@ -571,51 +576,40 @@ fun AddEventScreen(
                     }
 
                     item {
+                        DurationStepperField(
+                            label = "Duration",
+                            totalMillis = (eventDraft.endTime - eventDraft.startTime).coerceAtLeast(0L),
+                            onMillisChanged = { newDurationMillis ->
+                                viewModel.updateEventDraft {
+                                    it.copy(endTime = it.startTime + newDurationMillis)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            maxMillis = trip.trip.endDate - eventDraft.startTime
+                        )
+                    }
+
+                    item {
+                        val dateTimeFormatter = remember {
+                            SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+                        }
+
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "End",
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.width(48.dp)
+                                text = "End:",
+                                style = MaterialTheme.typography.labelLarge
                             )
-                            DateTimePickerButton(
-                                label = "end",
-                                millis = eventDraft.endTime,
-                                startTime = trip.trip.startDate,
-                                endTime = trip.trip.endDate,
+                            Text(
+                                text = dateTimeFormatter.format(Date(eventDraft.endTime)),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.weight(1f)
-                            ) { new ->
-                                when {
-                                    new < eventDraft.startTime -> {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Event end time cannot be before event start time.  Please adjust accordingly.",
-                                                actionLabel = "Dismiss",
-                                                duration = SnackbarDuration.Long
-                                            )
-                                        }
-                                    }
-                                    new > trip.trip.endDate -> {
-                                        viewModel.updateEventDraft {
-                                            eventDraft.copy(endTime = trip.trip.endDate)
-                                        }
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Event end time cannot be after trip end time.  Event end time was auto-adjusted to trip end time.",
-                                                actionLabel = "Dismiss",
-                                                duration = SnackbarDuration.Long
-                                            )
-                                        }
-                                    }
-                                    else -> {
-                                        viewModel.updateEventDraft {
-                                            eventDraft.copy(endTime = new)
-                                        }
-                                    }
-                                }
-                            }
+                            )
                         }
                     }
 

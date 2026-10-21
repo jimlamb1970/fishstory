@@ -204,13 +204,20 @@ fun DateTimePickerButton(
     }
 }
 
+enum class LabelPosition {
+    Top,
+    Start
+}
+
 @Composable
 fun DurationStepperField(
     label: String,
     totalMillis: Long,
     onMillisChanged: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    maxMillis: Long? = null
+    maxMillis: Long? = null,
+    labelAlignment: TextAlign = TextAlign.Start,
+    labelPosition: LabelPosition = LabelPosition.Top
 ) {
     val totalHours = TimeUnit.MILLISECONDS.toHours(totalMillis).coerceAtLeast(0)
     val days = (totalHours / 24).toInt()
@@ -219,20 +226,17 @@ fun DurationStepperField(
     val maxTotalHours = maxMillis?.let { TimeUnit.MILLISECONDS.toHours(it).coerceAtLeast(0) }
     val maxDays = maxTotalHours?.div(24)?.toInt()
 
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (label.isNotBlank()) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+    val maxRemainingHours = if (maxTotalHours != null && maxDays != null) {
+        maxTotalHours - (maxDays * 24)
+    } else {
+        null
+    }
 
+    // Shared steppers content
+    @Composable
+    fun StepperRows(modifier: Modifier = Modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // --- DAYS STEPPER ---
@@ -242,13 +246,9 @@ fun DurationStepperField(
                 onValueChange = { input ->
                     val newDays = input.toIntOrNull() ?: 0
                     val cappedDays = maxDays?.let { newDays.coerceAtMost(it) } ?: newDays
-
-                    // finalDays is just the valid, capped day count
                     val finalDays = cappedDays
 
-                    // If we reached maxDays, ensure hours don't push total over maxMillis
-                    val finalHours = if (finalDays == maxDays) {
-                        val maxRemainingHours = (maxTotalHours ?: 0) - (finalDays * 24)
+                    val finalHours = if (finalDays == maxDays && maxRemainingHours != null) {
                         hours.coerceAtMost(maxRemainingHours.toInt().coerceAtLeast(0))
                     } else {
                         hours
@@ -284,8 +284,6 @@ fun DurationStepperField(
                 value = hours.toString(),
                 onValueChange = { input ->
                     val rawHours = input.toIntOrNull()?.coerceAtLeast(0) ?: 0
-
-                    // Handle manual entry rollover (e.g., typing 26 hours -> 1 day, 2 hours)
                     val additionalDays = rawHours / 24
                     val remainingHours = rawHours % 24
 
@@ -301,7 +299,6 @@ fun DurationStepperField(
                     var nextHours = hours + 1
                     var nextDays = days
 
-                    // Roll over 24 hours into 1 day
                     if (nextHours >= 24) {
                         nextHours = 0
                         nextDays += 1
@@ -316,13 +313,12 @@ fun DurationStepperField(
                     var nextHours = hours - 1
                     var nextDays = days
 
-                    // Borrow 1 day if hours drops below 0
                     if (nextHours < 0) {
                         if (nextDays > 0) {
                             nextDays -= 1
                             nextHours = 23
                         } else {
-                            nextHours = 0 // Floor at 0 days, 0 hours
+                            nextHours = 0
                         }
                     }
 
@@ -330,14 +326,44 @@ fun DurationStepperField(
                     onMillisChanged(newTotalMillis)
                 },
                 modifier = Modifier.weight(1f),
+                minValue = 0,
                 maxValue = if (maxDays != null && days == maxDays) {
-                    ((maxTotalHours ?: 0) - (days * 24)).toInt().coerceAtLeast(0)
+                    maxRemainingHours?.toInt()?.coerceAtLeast(0)
                 } else {
-                    24
+                    23
                 },
                 buttonSize = 32.dp,
                 labelAlignment = TextAlign.Center
             )
+        }
+    }
+
+    if (labelPosition == LabelPosition.Top) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (label.isNotBlank()) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = labelAlignment,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            StepperRows(modifier = Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (label.isNotBlank()) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.width(48.dp) // Matches your DateTimeButton label widths
+                )
+            }
+            StepperRows(modifier = Modifier.weight(1f))
         }
     }
 }
