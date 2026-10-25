@@ -66,6 +66,7 @@ import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.OldReportsScreen
 import com.funjim.fishstory.ui.screens.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
+import com.funjim.fishstory.ui.screens.ManageLimitsScreen
 import com.funjim.fishstory.ui.screens.ManageSkyConditionsScreen
 import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
@@ -618,6 +619,18 @@ fun AppNavigation(
             )
 
             ManageColorsScreen(
+                viewModel = viewModel,
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("manage_limits") {
+            val app = navController.context.applicationContext as FishstoryApplication
+            val viewModel: LimitViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getLimitViewModelFactory()
+            )
+
+            ManageLimitsScreen(
                 viewModel = viewModel,
                 navigateBack = { navController.popBackStack() }
             )

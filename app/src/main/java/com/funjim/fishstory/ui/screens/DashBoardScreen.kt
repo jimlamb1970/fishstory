@@ -113,6 +113,7 @@ import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
 import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
 import com.funjim.fishstory.ui.crud.WaterDialog
 import com.funjim.fishstory.ui.crud.WeatherDialog
+import com.funjim.fishstory.ui.utils.GumballStatus
 import com.funjim.fishstory.ui.utils.ReportsRoute
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
@@ -122,6 +123,7 @@ private data class GridParams(
     val text: String,
     val icon: ImageVector,
     val iconOverlay: ImageVector? = null,
+    val iconOverride: Boolean = false,
     val count: Int = 0,
     val onClink: () -> Unit
 )
@@ -416,7 +418,7 @@ fun DashboardScreen(
                     onFishClick = { onNavigate("fish") },
                     onFishermenClick = { onNavigate("fishermen") },
                     onLuresClick = { onNavigate("lures") },
-                    onReportsClick = { onReportsNavigate(ReportsRoute()) },
+                    onLimitsClick = { onNavigate("manage_limits") },
                     onSettingsClick = { onNavigate("settings") },
                     onSpeciesClick = { onNavigate("manage_species") },
                     onTripsClick = { onNavigate("trips") }
@@ -1122,7 +1124,7 @@ fun DashboardGrid(
     onFishClick: () -> Unit,
     onFishermenClick: () -> Unit,
     onLuresClick: () -> Unit,
-    onReportsClick: () -> Unit,
+    onLimitsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSpeciesClick: () -> Unit,
     onTripsClick: () -> Unit
@@ -1135,7 +1137,7 @@ fun DashboardGrid(
         GridParams("Species", AppIcons.Default.Species, onClink = onSpeciesClick),
         GridParams("Lures", AppIcons.Default.Lure, onClink = onLuresClick),
         GridParams("Baits", AppIcons.Default.Worm, onClink = onBaitsClick),
-        GridParams("Reports", AppIcons.Default.Reports, onClink = onReportsClick),
+        GridParams("Limits", AppIcons.Default.Reports, onClink = onLimitsClick, iconOverride = true),
         GridParams("Settings", AppIcons.Default.Settings, onClink = onSettingsClick)
     )
 
@@ -1181,11 +1183,20 @@ private fun GridItem(
             verticalArrangement = Arrangement.Center
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    item.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp)
-                )
+                if (item.iconOverride) {
+                    StatusGumball(
+                        status = GumballStatus.GOOD,
+                        size = 32.dp,
+                        borderWidth = 2.dp,
+                        borderColor = getOnCardSecondaryColor()
+                    )
+                } else {
+                    Icon(
+                        item.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
 
                 if (item.count > 0) {
                     Surface(

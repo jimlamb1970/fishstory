@@ -23,6 +23,7 @@ import com.funjim.fishstory.viewmodels.EventViewModelFactory
 import com.funjim.fishstory.viewmodels.FishDetailsViewModelFactory
 import com.funjim.fishstory.viewmodels.FishViewModelFactory
 import com.funjim.fishstory.viewmodels.ImportViewModelFactory
+import com.funjim.fishstory.viewmodels.LimitViewModelFactory
 import com.funjim.fishstory.viewmodels.LureViewModelFactory
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
 import com.funjim.fishstory.viewmodels.SkyConditionViewModelFactory
@@ -196,6 +197,12 @@ class FishstoryApplication : Application() {
 
     fun getImportViewModelFactory() = ImportViewModelFactory(
         fishStoryRepository
+    )
+
+    fun getLimitViewModelFactory() = LimitViewModelFactory(
+        configurationRepository,
+        fishRepository,
+        photoRepository
     )
 
     fun getLureViewModelFactory() = LureViewModelFactory(

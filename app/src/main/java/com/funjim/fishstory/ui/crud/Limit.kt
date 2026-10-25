@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -57,6 +58,10 @@ fun LimitDialog(
     val isEditing = limitToEdit != null
 
     // Initialize state with limitToEdit values if present
+    var name by remember(limitToEdit) {
+        mutableStateOf(limitToEdit?.name ?: "")
+    }
+
     var selectedType by remember(limitToEdit) {
         mutableStateOf(limitToEdit?.type ?: LimitType.BAG_LIMIT)
     }
@@ -83,7 +88,7 @@ fun LimitDialog(
         mutableStateOf(limitToEdit?.upperInclusive ?: true)
     }
 
-    val isValid = selectedSpecies.isNotEmpty() && countText.isNotEmpty()
+    val isValid = selectedSpecies.isNotEmpty() && countText.isNotEmpty() && name.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -95,6 +100,13 @@ fun LimitDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it.trimStart() },
+                    singleLine = true,
+                    placeholder = { Text("Limit Name (e.g. Walleye Limit)") }
+                )
+
                 ExposedDropdownMenuBox(
                     expanded = expandedTypeDropdown,
                     onExpandedChange = { expandedTypeDropdown = !expandedTypeDropdown }
@@ -289,6 +301,7 @@ fun LimitDialog(
 
                     val limit = (limitToEdit?.copy(
                         type = selectedType,
+                        name = name.trimEnd(),
                         species = selectedSpecies,
                         count = countVal,
                         lowerSize = if (selectedType == LimitType.MIN_SIZE || selectedType == LimitType.SLOT_LIMIT) lowerSize else null,
@@ -297,7 +310,7 @@ fun LimitDialog(
                         upperInclusive = upperInclusive
                     ) ?: Limit(
                         type = selectedType,
-                        name = "",
+                        name = name.trimEnd(),
                         species = selectedSpecies,
                         count = countVal,
                         lowerSize = if (selectedType == LimitType.MIN_SIZE || selectedType == LimitType.SLOT_LIMIT) lowerSize else null,

@@ -73,6 +73,23 @@ interface LimitDao {
     }
 
     @Transaction
+    suspend fun insertLimit(
+        limit: LimitEntity,
+        species: List<SpeciesEntity>
+    ) {
+        upsertLimit(limit)
+        if (species.isNotEmpty()) {
+            val speciesXRefs = species.map { species ->
+                LimitSpeciesEntity(
+                    limitId = limit.id,
+                    speciesId = species.id
+                )
+            }
+            insertLimitSpeciesXRefs(speciesXRefs)
+        }
+    }
+
+    @Transaction
     suspend fun insertLimitForTrip(
         limit: LimitEntity,
         species: List<SpeciesEntity>,
@@ -112,4 +129,10 @@ interface LimitDao {
         WHERE trip_limit_table.tripId = :tripId
     """)
     fun getLimitsForTrip(tripId: String): Flow<List<LimitWithSpeciesEntity>>
+
+    @Transaction
+    @Query("""
+        SELECT limit_table.* FROM limit_table
+    """)
+    fun getAllLimitsWithSpecies(): Flow<List<LimitWithSpeciesEntity>>
 }
