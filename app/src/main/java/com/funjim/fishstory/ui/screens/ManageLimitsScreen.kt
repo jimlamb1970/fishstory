@@ -89,8 +89,9 @@ fun ManageLimitsScreen(
     }
 
     val filteredItems = remember(searchQuery, allItems) {
-        allItems.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
+        allItems.filter { limit ->
+            limit.name.contains(searchQuery, ignoreCase = true) ||
+                    limit.species.any { it.name.contains(searchQuery, ignoreCase = true) }
         }.sortedBy { it.name }
     }
 

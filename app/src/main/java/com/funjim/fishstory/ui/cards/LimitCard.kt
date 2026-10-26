@@ -214,6 +214,8 @@ fun LimitCard(
                                 )
                             }
                         }
+                    } else {
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
