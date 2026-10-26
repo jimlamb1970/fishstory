@@ -1,5 +1,13 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.LureColorEntity
+import com.funjim.fishstory.database.entity.LureEntity
+import com.funjim.fishstory.database.entity.LureEntityWithColors
+import com.funjim.fishstory.database.entity.LureEntityWithColorsSummary
+import com.funjim.fishstory.database.entity.LureEntityWithDetails
+import com.funjim.fishstory.database.entity.LureGlowColorEntity
+import com.funjim.fishstory.database.entity.LurePrimaryColorEntity
+import com.funjim.fishstory.database.entity.LureSecondaryColorEntity
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor

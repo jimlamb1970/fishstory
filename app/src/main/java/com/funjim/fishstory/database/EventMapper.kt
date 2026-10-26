@@ -1,5 +1,10 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.EventEntity
+import com.funjim.fishstory.database.entity.EventEntityDetailedSummary
+import com.funjim.fishstory.database.entity.EventEntitySummary
+import com.funjim.fishstory.database.entity.EventEntityWithDetails
+import com.funjim.fishstory.database.entity.EventEntityWithInfo
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventDetailedSummary
 import com.funjim.fishstory.model.EventSummary

@@ -1,5 +1,10 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.EventFishermanEntity
+import com.funjim.fishstory.database.entity.FishermanEntity
+import com.funjim.fishstory.database.entity.FishermanEntityFullStatistics
+import com.funjim.fishstory.database.entity.FishermanEntitySummary
+import com.funjim.fishstory.database.entity.TripFishermanEntity
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics

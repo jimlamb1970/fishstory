@@ -1,5 +1,8 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.WeatherEntity
+import com.funjim.fishstory.database.entity.WeatherEntityWithDetails
+import com.funjim.fishstory.database.entity.WeatherSummaryEntity
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.model.WeatherSummary
 import com.funjim.fishstory.model.WeatherWithDetails

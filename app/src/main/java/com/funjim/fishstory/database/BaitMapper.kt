@@ -1,5 +1,7 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.BaitEntity
+import com.funjim.fishstory.database.entity.BaitSummaryEntity
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BaitSummary
 

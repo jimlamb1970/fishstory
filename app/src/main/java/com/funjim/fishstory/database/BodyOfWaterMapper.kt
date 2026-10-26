@@ -1,5 +1,9 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.BodyOfWaterEntity
+import com.funjim.fishstory.database.entity.BodyOfWaterSummaryEntity
+import com.funjim.fishstory.database.entity.EventBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.EventBodyOfWater

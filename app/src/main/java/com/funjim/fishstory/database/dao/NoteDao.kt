@@ -6,10 +6,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.NoteEntity
-import com.funjim.fishstory.database.NoteEventEntity
-import com.funjim.fishstory.database.NoteFishEntity
-import com.funjim.fishstory.database.NoteTripEntity
+import com.funjim.fishstory.database.entity.NoteEntity
+import com.funjim.fishstory.database.entity.NoteEventEntity
+import com.funjim.fishstory.database.entity.NoteFishEntity
+import com.funjim.fishstory.database.entity.NoteTripEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

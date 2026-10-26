@@ -8,21 +8,21 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.BaitSummaryEntity
-import com.funjim.fishstory.database.BodyOfWaterSummaryEntity
-import com.funjim.fishstory.database.EventEntityWithCounts
-import com.funjim.fishstory.database.FishCountsEntity
-import com.funjim.fishstory.database.FishEntity
-import com.funjim.fishstory.database.FishEntityWithDetails
-import com.funjim.fishstory.database.FishEntityWithPhotos
-import com.funjim.fishstory.database.FishermanEntityWithCounts
-import com.funjim.fishstory.database.LureEntityWithCounts
-import com.funjim.fishstory.database.SpeciesEntity
-import com.funjim.fishstory.database.SpeciesEntityWithCounts
-import com.funjim.fishstory.database.SpeciesSummaryEntity
-import com.funjim.fishstory.database.TripEntityWithCounts
-import com.funjim.fishstory.database.WaterSummaryEntity
-import com.funjim.fishstory.database.WeatherSummaryEntity
+import com.funjim.fishstory.database.entity.BaitSummaryEntity
+import com.funjim.fishstory.database.entity.BodyOfWaterSummaryEntity
+import com.funjim.fishstory.database.entity.EventEntityWithCounts
+import com.funjim.fishstory.database.entity.FishCountsEntity
+import com.funjim.fishstory.database.entity.FishEntity
+import com.funjim.fishstory.database.entity.FishEntityWithDetails
+import com.funjim.fishstory.database.entity.FishEntityWithPhotos
+import com.funjim.fishstory.database.entity.FishermanEntityWithCounts
+import com.funjim.fishstory.database.entity.LureEntityWithCounts
+import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.SpeciesEntityWithCounts
+import com.funjim.fishstory.database.entity.SpeciesSummaryEntity
+import com.funjim.fishstory.database.entity.TripEntityWithCounts
+import com.funjim.fishstory.database.entity.WaterSummaryEntity
+import com.funjim.fishstory.database.entity.WeatherSummaryEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

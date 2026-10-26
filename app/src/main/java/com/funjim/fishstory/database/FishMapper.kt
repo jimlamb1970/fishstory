@@ -1,5 +1,14 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.EventEntityWithCounts
+import com.funjim.fishstory.database.entity.FishCountsEntity
+import com.funjim.fishstory.database.entity.FishEntity
+import com.funjim.fishstory.database.entity.FishEntityWithDetails
+import com.funjim.fishstory.database.entity.FishEntityWithPhotos
+import com.funjim.fishstory.database.entity.FishermanEntityWithCounts
+import com.funjim.fishstory.database.entity.LureEntityWithCounts
+import com.funjim.fishstory.database.entity.SpeciesEntityWithCounts
+import com.funjim.fishstory.database.entity.TripEntityWithCounts
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts

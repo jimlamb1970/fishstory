@@ -1,5 +1,7 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.LimitEntity
+import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
 import com.funjim.fishstory.model.Limit
 
 /**

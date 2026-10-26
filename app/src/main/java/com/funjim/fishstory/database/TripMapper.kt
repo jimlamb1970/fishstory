@@ -1,5 +1,11 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.TripEntity
+import com.funjim.fishstory.database.entity.TripEntityDetailedSummary
+import com.funjim.fishstory.database.entity.TripEntitySummary
+import com.funjim.fishstory.database.entity.TripEntityWithDetails
+import com.funjim.fishstory.database.entity.TripEntityWithFishermen
+import com.funjim.fishstory.database.entity.TripEntityWithInfo
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripSummary

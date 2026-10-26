@@ -1,6 +1,5 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey

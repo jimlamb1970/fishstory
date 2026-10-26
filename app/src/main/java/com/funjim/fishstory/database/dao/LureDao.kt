@@ -8,15 +8,15 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.LureColorEntity
-import com.funjim.fishstory.database.LureEntity
-import com.funjim.fishstory.database.LureEntityWithColors
-import com.funjim.fishstory.database.LureEntityWithColorsSummary
-import com.funjim.fishstory.database.LureEntityWithDetails
-import com.funjim.fishstory.database.LureEntityWithPhotos
-import com.funjim.fishstory.database.LureGlowColorEntity
-import com.funjim.fishstory.database.LurePrimaryColorEntity
-import com.funjim.fishstory.database.LureSecondaryColorEntity
+import com.funjim.fishstory.database.entity.LureColorEntity
+import com.funjim.fishstory.database.entity.LureEntity
+import com.funjim.fishstory.database.entity.LureEntityWithColors
+import com.funjim.fishstory.database.entity.LureEntityWithColorsSummary
+import com.funjim.fishstory.database.entity.LureEntityWithDetails
+import com.funjim.fishstory.database.entity.LureEntityWithPhotos
+import com.funjim.fishstory.database.entity.LureGlowColorEntity
+import com.funjim.fishstory.database.entity.LurePrimaryColorEntity
+import com.funjim.fishstory.database.entity.LureSecondaryColorEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

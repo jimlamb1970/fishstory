@@ -1,5 +1,7 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.TackleBoxEntity
+import com.funjim.fishstory.database.entity.TackleBoxEntityWithLures
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
 

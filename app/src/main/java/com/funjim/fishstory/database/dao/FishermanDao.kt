@@ -8,13 +8,13 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.FishermanEntity
-import com.funjim.fishstory.database.FishermanEntityFullStatistics
-import com.funjim.fishstory.database.FishermanEntitySummary
-import com.funjim.fishstory.database.FishermanEntityWithDetails
-import com.funjim.fishstory.database.FishermanEntityWithTrips
-import com.funjim.fishstory.database.TripEntitySummary
-import com.funjim.fishstory.database.TripFishermanEntity
+import com.funjim.fishstory.database.entity.FishermanEntity
+import com.funjim.fishstory.database.entity.FishermanEntityFullStatistics
+import com.funjim.fishstory.database.entity.FishermanEntitySummary
+import com.funjim.fishstory.database.entity.FishermanEntityWithDetails
+import com.funjim.fishstory.database.entity.FishermanEntityWithTrips
+import com.funjim.fishstory.database.entity.TripEntitySummary
+import com.funjim.fishstory.database.entity.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

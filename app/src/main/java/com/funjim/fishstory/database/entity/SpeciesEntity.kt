@@ -1,12 +1,10 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Trip
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

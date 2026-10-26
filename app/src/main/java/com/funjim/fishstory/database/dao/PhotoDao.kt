@@ -7,17 +7,17 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.PhotoBaitEntity
-import com.funjim.fishstory.database.PhotoBodyOfWaterEntity
-import com.funjim.fishstory.database.PhotoEntity
-import com.funjim.fishstory.database.PhotoEventEntity
-import com.funjim.fishstory.database.PhotoFishEntity
-import com.funjim.fishstory.database.PhotoFishermanEntity
-import com.funjim.fishstory.database.PhotoLureEntity
-import com.funjim.fishstory.database.PhotoSkyConditionEntity
-import com.funjim.fishstory.database.PhotoSpeciesEntity
-import com.funjim.fishstory.database.PhotoTripEntity
-import com.funjim.fishstory.database.PhotoWaterClarityEntity
+import com.funjim.fishstory.database.entity.PhotoBaitEntity
+import com.funjim.fishstory.database.entity.PhotoBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.PhotoEntity
+import com.funjim.fishstory.database.entity.PhotoEventEntity
+import com.funjim.fishstory.database.entity.PhotoFishEntity
+import com.funjim.fishstory.database.entity.PhotoFishermanEntity
+import com.funjim.fishstory.database.entity.PhotoLureEntity
+import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
+import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
+import com.funjim.fishstory.database.entity.PhotoTripEntity
+import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

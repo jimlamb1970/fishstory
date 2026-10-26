@@ -1,5 +1,8 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.WaterEntity
+import com.funjim.fishstory.database.entity.WaterEntityWithDetails
+import com.funjim.fishstory.database.entity.WaterSummaryEntity
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WaterWithDetails

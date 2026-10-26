@@ -1,5 +1,6 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.NoteEntity
 import com.funjim.fishstory.model.Note
 
 // Extension: Database Entity -> Domain Model

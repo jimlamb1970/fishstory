@@ -7,8 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.SkyConditionEntity
-import com.funjim.fishstory.database.WeatherEntity
+import com.funjim.fishstory.database.entity.SkyConditionEntity
+import com.funjim.fishstory.database.entity.WeatherEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

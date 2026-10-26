@@ -7,12 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.EventLimitEntity
-import com.funjim.fishstory.database.LimitEntity
-import com.funjim.fishstory.database.LimitSpeciesEntity
-import com.funjim.fishstory.database.LimitWithSpeciesEntity
-import com.funjim.fishstory.database.SpeciesEntity
-import com.funjim.fishstory.database.TripLimitEntity
+import com.funjim.fishstory.database.entity.EventLimitEntity
+import com.funjim.fishstory.database.entity.LimitEntity
+import com.funjim.fishstory.database.entity.LimitSpeciesEntity
+import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
+import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.TripLimitEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

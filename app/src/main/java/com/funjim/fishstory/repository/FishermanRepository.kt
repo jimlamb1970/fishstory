@@ -2,7 +2,7 @@ package com.funjim.fishstory.repository
 
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
-import com.funjim.fishstory.database.TackleBoxEntity
+import com.funjim.fishstory.database.entity.TackleBoxEntity
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toFishermanDomainList

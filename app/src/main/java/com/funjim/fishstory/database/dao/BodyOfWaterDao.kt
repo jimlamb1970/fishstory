@@ -7,9 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.BodyOfWaterEntity
-import com.funjim.fishstory.database.EventBodyOfWaterEntity
-import com.funjim.fishstory.database.TripBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.BodyOfWaterEntity
+import com.funjim.fishstory.database.entity.EventBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

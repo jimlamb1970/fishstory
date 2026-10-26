@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -6,7 +6,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import com.funjim.fishstory.model.Event
 import java.util.UUID
 
 @Entity(tableName = "water_table",

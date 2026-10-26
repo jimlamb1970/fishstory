@@ -1,5 +1,9 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
+import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.SpeciesSummaryEntity
+import com.funjim.fishstory.database.entity.TripTargetSpeciesEntity
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary

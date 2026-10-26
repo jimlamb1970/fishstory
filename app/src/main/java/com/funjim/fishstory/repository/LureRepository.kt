@@ -4,7 +4,7 @@ import com.funjim.fishstory.database.dao.BaitDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
-import com.funjim.fishstory.database.TackleBoxLureEntity
+import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity

@@ -1,33 +1,31 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Trip
-import kotlinx.serialization.Serializable
 import java.util.UUID
+import kotlinx.serialization.Serializable
 
 @Serializable
-@Entity(tableName = "body_of_water_table")
-data class BodyOfWaterEntity(
+@Entity(
+    tableName = "bait_table",
+    indices = [Index(value = ["name"], unique = true)]
+)
+data class BaitEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val latitude: Double? = null,
-    val longitude: Double? = null
+    val name: String
 )
 
 @Serializable
 @Entity(
-    tableName = "event_body_of_water",
-    primaryKeys = ["eventId", "bodyOfWaterId"], // Prevents duplicate target rows
+    tableName = "event_bait",
+    primaryKeys = ["eventId", "baitId"], // Prevents duplicate target rows
     indices = [
         Index(value = ["eventId"]),
-        Index(value = ["bodyOfWaterId"])
+        Index(value = ["baitId"])
     ],
     foreignKeys = [
         ForeignKey(
@@ -37,25 +35,25 @@ data class BodyOfWaterEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = BodyOfWaterEntity::class,
+            entity = BaitEntity::class,
             parentColumns = ["id"],
-            childColumns = ["bodyOfWaterId"],
+            childColumns = ["baitId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class EventBodyOfWaterEntity(
+data class EventBaitEntity(
     val eventId: String,
-    val bodyOfWaterId: String
+    val baitId: String
 )
 
 @Serializable
 @Entity(
-    tableName = "trip_body_of_water",
-    primaryKeys = ["tripId", "bodyOfWaterId"], // Prevents duplicate target rows
+    tableName = "trip_bait",
+    primaryKeys = ["tripId", "baitId"], // Prevents duplicate target rows
     indices = [
         Index(value = ["tripId"]),
-        Index(value = ["bodyOfWaterId"])
+        Index(value = ["baitId"])
     ],
     foreignKeys = [
         ForeignKey(
@@ -65,25 +63,26 @@ data class EventBodyOfWaterEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = BodyOfWaterEntity::class,
+            entity = BaitEntity::class,
             parentColumns = ["id"],
-            childColumns = ["bodyOfWaterId"],
+            childColumns = ["baitId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class TripBodyOfWaterEntity(
+data class TripBaitEntity(
     val tripId: String,
-    val bodyOfWaterId: String
+    val baitId: String
 )
 
-data class BodyOfWaterSummaryEntity(
-    @Embedded val bodyOfWater: BodyOfWaterEntity,
+data class BaitSummaryEntity(
+    @Embedded val bait: BaitEntity,
 
     val fishCaught: Int,
     val fishKept: Int,
     val targetFishCaught: Int,
     val targetFishKept: Int,
+
     val largestFish: Long,
     val smallestFish: Long
 )

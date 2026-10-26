@@ -4,7 +4,7 @@ import androidx.room.withTransaction
 import com.funjim.fishstory.database.dao.BodyOfWaterDao
 import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.database.TripBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
 import com.funjim.fishstory.database.toBodyOfWaterDomainList

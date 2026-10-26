@@ -1,5 +1,6 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.SkyConditionEntity
 import com.funjim.fishstory.model.SkyCondition
 
 // Extension: Database Entity -> Domain Model

@@ -1,5 +1,6 @@
 package com.funjim.fishstory.database
 
+import com.funjim.fishstory.database.entity.WaterClarityEntity
 import com.funjim.fishstory.model.WaterClarity
 
 // Extension: Database Entity -> Domain Model

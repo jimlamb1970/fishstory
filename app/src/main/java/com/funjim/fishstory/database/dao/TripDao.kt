@@ -9,17 +9,17 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.EventFishermanEntity
-import com.funjim.fishstory.database.FishermanEntity
-import com.funjim.fishstory.database.SpeciesEntity
-import com.funjim.fishstory.database.TripEntity
-import com.funjim.fishstory.database.TripEntityDetailedSummary
-import com.funjim.fishstory.database.TripEntitySummary
-import com.funjim.fishstory.database.TripEntityWithDetails
-import com.funjim.fishstory.database.TripEntityWithFishermen
-import com.funjim.fishstory.database.TripEntityWithInfo
-import com.funjim.fishstory.database.TripFishermanEntity
-import com.funjim.fishstory.database.TripTargetSpeciesEntity
+import com.funjim.fishstory.database.entity.EventFishermanEntity
+import com.funjim.fishstory.database.entity.FishermanEntity
+import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.TripEntity
+import com.funjim.fishstory.database.entity.TripEntityDetailedSummary
+import com.funjim.fishstory.database.entity.TripEntitySummary
+import com.funjim.fishstory.database.entity.TripEntityWithDetails
+import com.funjim.fishstory.database.entity.TripEntityWithFishermen
+import com.funjim.fishstory.database.entity.TripEntityWithInfo
+import com.funjim.fishstory.database.entity.TripFishermanEntity
+import com.funjim.fishstory.database.entity.TripTargetSpeciesEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

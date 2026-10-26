@@ -8,7 +8,7 @@ import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.PhotoDao
-import com.funjim.fishstory.database.PhotoFishEntity
+import com.funjim.fishstory.database.entity.PhotoFishEntity
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList

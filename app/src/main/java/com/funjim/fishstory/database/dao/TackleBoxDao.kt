@@ -8,10 +8,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.LureEntity
-import com.funjim.fishstory.database.LureEntityWithColors
-import com.funjim.fishstory.database.TackleBoxEntity
-import com.funjim.fishstory.database.TackleBoxLureEntity
+import com.funjim.fishstory.database.entity.LureEntity
+import com.funjim.fishstory.database.entity.LureEntityWithColors
+import com.funjim.fishstory.database.entity.TackleBoxEntity
+import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

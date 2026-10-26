@@ -1,6 +1,5 @@
 package com.funjim.fishstory.repository
 
-import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -24,19 +23,18 @@ import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.room.withTransaction
 import com.funjim.fishstory.database.FishstoryDatabase
-import com.funjim.fishstory.database.PhotoBaitEntity
-import com.funjim.fishstory.database.PhotoBodyOfWaterEntity
-import com.funjim.fishstory.database.PhotoEntity
-import com.funjim.fishstory.database.PhotoEventEntity
-import com.funjim.fishstory.database.PhotoFishEntity
-import com.funjim.fishstory.database.PhotoFishermanEntity
-import com.funjim.fishstory.database.PhotoLureEntity
-import com.funjim.fishstory.database.PhotoSkyConditionEntity
-import com.funjim.fishstory.database.PhotoSpeciesEntity
-import com.funjim.fishstory.database.PhotoTripEntity
-import com.funjim.fishstory.database.PhotoWaterClarityEntity
+import com.funjim.fishstory.database.entity.PhotoBaitEntity
+import com.funjim.fishstory.database.entity.PhotoBodyOfWaterEntity
+import com.funjim.fishstory.database.entity.PhotoEntity
+import com.funjim.fishstory.database.entity.PhotoEventEntity
+import com.funjim.fishstory.database.entity.PhotoFishEntity
+import com.funjim.fishstory.database.entity.PhotoFishermanEntity
+import com.funjim.fishstory.database.entity.PhotoLureEntity
+import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
+import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
+import com.funjim.fishstory.database.entity.PhotoTripEntity
+import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
 import com.funjim.fishstory.database.toPhotoDomainList
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 data class PhotoMetadata(
