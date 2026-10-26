@@ -540,7 +540,7 @@ fun AddEventScreen(
                                     newStartTime < trip.trip.startDate -> {
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                message = "Event start time cannot be before trip start time.  Please adjust accordingly.",
+                                                message = "Event start cannot be before trip start.  Please adjust accordingly.",
                                                 actionLabel = "Dismiss",
                                                 duration = SnackbarDuration.Long
                                             )
@@ -549,7 +549,7 @@ fun AddEventScreen(
                                     newStartTime > trip.trip.endDate -> {
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                message = "Event start time cannot be after trip end time.  Please adjust accordingly.",
+                                                message = "Event start cannot be after trip end.  Please adjust accordingly.",
                                                 actionLabel = "Dismiss",
                                                 duration = SnackbarDuration.Long
                                             )

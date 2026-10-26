@@ -79,14 +79,14 @@ fun EditEventDialog(
                     if (newTime < tripStart) {
                         Toast.makeText(
                             context,
-                            "Event start time cannot be before trip start time.",
-                            Toast.LENGTH_SHORT
+                            "Event start cannot be before trip start.",
+                            Toast.LENGTH_LONG
                         ).show()
                     } else if (newTime > tripEnd) {
                         Toast.makeText(
                             context,
-                            "Event start time cannot be after trip end time.",
-                            Toast.LENGTH_SHORT
+                            "Event start cannot be after trip end.",
+                            Toast.LENGTH_LONG
                         ).show()
                     } else {
                         val currentDuration = (endTime - startTime).coerceAtLeast(0L)

@@ -152,6 +152,7 @@ fun TripDetailsScreen(
 
     var eventToUpdateLocation by remember { mutableStateOf<EventSummary?>(null) }
 
+    var showAddBodyOfWaterToUpdate by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
@@ -585,7 +586,6 @@ fun TripDetailsScreen(
                                             }
                                         }
                                     }
-
                                 }
                                 CategoryType.WATER -> {}
                                 CategoryType.WEATHER -> {}
@@ -899,6 +899,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             onAdd = { showBodyOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
+                                                showAddBodyOfWaterToUpdate = true
                                             },
                                             onFishClick = { bodyOfWater, target ->
                                                 navigateToFishList(FishFilter(
@@ -1329,17 +1330,6 @@ Selecting them places those species at the top of the list when logging catches 
                             }
                         }
                     }
-
-                    if (showEditTripDialog) {
-                        EditTripDialog(
-                            item = details.trip,
-                            onDismiss = { showEditTripDialog = false },
-                            onConfirm = { confirmedItem ->
-                                viewModel.saveTrip(confirmedItem)
-                                showEditTripDialog = false
-                            }
-                        )
-                    }
                 }
             }
 
@@ -1555,7 +1545,6 @@ Selecting them places those species at the top of the list when logging catches 
                     onDismiss = { limitToEdit = null }
                 )
             }
-
             noteToEdit?.let { note ->
                 EditNoteDialog(
                     item = note,
@@ -1664,7 +1653,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddBodyOfWaterDialog = true
                     },
-                    onDone = { showBodyOfWaterSelection = false },
+                    onDone = { showBodyOfWaterSelection = !showBodyOfWaterSelection },
                     modifier = Modifier.fillMaxWidth(),
                     usageMap = bodyOfWaterUsageMap,
                     maxUsage = details.events.size,
@@ -1696,7 +1685,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddFishermanDialog = true
                     },
-                    onDone = { showFishermanSelection = false },
+                    onDone = { showFishermanSelection = !showFishermanSelection },
                     modifier = Modifier.fillMaxWidth(),
                     usageMap = fishermanUsageMap,
                     maxUsage = details.events.size,
@@ -1742,7 +1731,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddLimitDialog = true
                     },
-                    onDone = { showLimitSelection = false },
+                    onDone = { showLimitSelection = !showLimitSelection },
                     usageMap = limitUsageMap,
                     maxUsage = details.events.size
                 )
@@ -1760,7 +1749,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddSpeciesDialog = true
                     },
-                    onDone = { showSpeciesSelection = false },
+                    onDone = { showSpeciesSelection = !showSpeciesSelection },
                     modifier = Modifier.fillMaxWidth(),
                     usageMap = speciesUsageMap,
                     maxUsage = details.events.size,
@@ -1783,7 +1772,7 @@ Selecting them places those species at the top of the list when logging catches 
             if (showNotesDialog) {
                 NotesDialog(
                     notes = sortedNotes,
-                    onDismiss = { showNotesDialog = false },
+                    onDismiss = { showNotesDialog = !showNotesDialog },
                     onAddNote = { noteId, content ->
                         viewModel.addNote(noteId, content)
                     },
@@ -1792,21 +1781,35 @@ Selecting them places those species at the top of the list when logging catches 
                     }
                 )
             }
+            if (showEditTripDialog) {
+                val eventStart = details.events.minOfOrNull { it.event.startTime }
+                val eventEnd = details.events.maxOfOrNull { it.event.endTime }
+                EditTripDialog(
+                    item = details.trip,
+                    eventStart = eventStart,
+                    eventEnd = eventEnd,
+                    onDismiss = { showEditTripDialog = !showEditTripDialog },
+                    onConfirm = { confirmedItem ->
+                        viewModel.saveTrip(confirmedItem)
+                        showEditTripDialog = !showEditTripDialog
+                    }
+                )
+            }
         }
     }
 
     if (showAddBodyOfWaterDialog) {
         AddBodyOfWaterDialog(
-            onDismiss = { showAddBodyOfWaterDialog = false },
+            onDismiss = { showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog },
             onConfirm = { name ->
                 viewModel.addTripBodyOfWater(tripId, BodyOfWater(name = name))
-                showAddBodyOfWaterDialog = false
+                showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog
             }
         )
     }
     if (showAddFishermanDialog) {
         AddFishermanDialog(
-            onDismiss = { showAddFishermanDialog = false },
+            onDismiss = { showAddFishermanDialog = !showAddFishermanDialog },
             onAdd = { first, last, nick ->
                 val fisherman = Fisherman(
                     firstName = first.trim(),
@@ -1816,7 +1819,7 @@ Selecting them places those species at the top of the list when logging catches 
                 viewModel.addFisherman(fisherman) {
                     // Do nothing on Success
                 }
-                showAddFishermanDialog = false
+                showAddFishermanDialog = !showAddFishermanDialog
             }
         )
     }
@@ -1837,77 +1840,80 @@ Selecting them places those species at the top of the list when logging catches 
                     modifier = Modifier.size(size)
                 )
             },
-            onDismiss = { showAddLimitDialog = false },
+            onDismiss = { showAddLimitDialog = !showAddLimitDialog },
             onConfirm = { limit ->
                 viewModel.addLimit(limit)
-                showAddLimitDialog = false
+                showAddLimitDialog = !showAddLimitDialog
             }
         )
     }
     if (showAddNoteDialog) {
         AddNoteDialog(
-            onDismiss = { showAddNoteDialog = false },
+            onDismiss = { showAddNoteDialog = !showAddNoteDialog },
             onConfirm = { content ->
                 viewModel.addNote(null, content)
-                showAddNoteDialog = false
+                showAddNoteDialog = !showAddNoteDialog
             }
         )
     }
     if (showAddSkyConditionDialog) {
         AddSkyConditionDialog(
-            onDismiss = { showAddSkyConditionDialog = false },
+            onDismiss = { showAddSkyConditionDialog = !showAddSkyConditionDialog },
             onConfirm = { name ->
                 val newSkyCondition = SkyCondition(name = name)
                 viewModel.addSkyCondition(newSkyCondition) {
                     pendingSkyConditionId = newSkyCondition.id
                 }
-                showAddSkyConditionDialog = false
+                showAddSkyConditionDialog = !showAddSkyConditionDialog
             }
         )
     }
     if (showAddSpeciesDialog) {
         AddSpeciesDialog(
-            onDismiss = { showAddSpeciesDialog = false },
+            onDismiss = { showAddSpeciesDialog = !showAddSpeciesDialog },
             onConfirm = { name ->
                 viewModel.addTripTargetSpecies(tripId, Species(name = name))
-                showAddSpeciesDialog = false
+                showAddSpeciesDialog = !showAddSpeciesDialog
             }
         )
     }
     if (showAddWaterClarityDialog) {
         AddWaterClarityDialog(
-            onDismiss = { showAddWaterClarityDialog = false },
+            onDismiss = { showAddWaterClarityDialog = !showAddWaterClarityDialog },
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
                     pendingWaterClarityId = newWaterClarity.id
                 }
-                showAddWaterClarityDialog = false
+                showAddWaterClarityDialog = !showAddWaterClarityDialog
             }
         )
     }
 
-
     // Confirmation Dialog for long pressing a Body of Water
-    bodyOfWaterToUpdateAll?.let { bodyOfWater ->
-        GeneralDialog(
-            title = "Update Catches",
-            message = "Do you want to update all the fish caught for this trip to use the body of water '${bodyOfWater.name}'?",
-            onDismiss = {
-                bodyOfWaterToUpdateAll = null
-            },
-            onConfirm = {
-                scope.launch {
-                    viewModel.updateBodyOfWaterForTrip(
-                        newBodyOfWaterId = bodyOfWater.id,
-                        tripId = tripId
-                    )
-                    Toast.makeText(context, "Catches updated to ${bodyOfWater.name}", Toast.LENGTH_SHORT).show()
-                    bodyOfWaterToUpdateAll = null
-                }
-            },
-            confirmButtonText = "Yes",
-            dismissButtonText = "No"
-        )
+    if (showAddBodyOfWaterToUpdate) {
+        bodyOfWaterToUpdateAll?.let { bodyOfWater ->
+            GeneralDialog(
+                title = "Update Catches",
+                message = "Do you want to update all the fish caught for this trip to use the body of water '${bodyOfWater.name}'?",
+                onDismiss = { showAddBodyOfWaterToUpdate = !showAddBodyOfWaterToUpdate },
+                onConfirm = {
+                    scope.launch {
+                        viewModel.updateBodyOfWaterForTrip(
+                            newBodyOfWaterId = bodyOfWater.id,
+                            tripId = tripId
+                        )
+                        Toast.makeText(
+                            context,
+                            "Catches updated to ${bodyOfWater.name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        showAddBodyOfWaterToUpdate = !showAddBodyOfWaterToUpdate
+                    }
+                },
+                confirmButtonText = "Yes",
+                dismissButtonText = "No"
+            )
+        }
     }
 }

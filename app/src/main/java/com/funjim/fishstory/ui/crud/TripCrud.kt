@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.crud
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,9 +34,13 @@ import java.util.Locale
 @Composable
 fun EditTripDialog(
     item: Trip,
+    eventStart: Long? = null,
+    eventEnd: Long? = null,
     onConfirm: (Trip) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val origName by remember { mutableStateOf(item.name) }
     val origStart by remember { mutableLongStateOf(item.startDate) }
     val origEnd by remember { mutableLongStateOf(item.endDate) }
@@ -65,11 +70,21 @@ fun EditTripDialog(
                 DateTimePickerButton(
                     label = "Start",
                     millis = startTime,
+                    endTime = eventStart,
                     modifier = Modifier.fillMaxWidth()
                 ) { newTime ->
-                    val currentDuration = (endTime - startTime).coerceAtLeast(0L)
-                    startTime = newTime
-                    endTime = newTime + currentDuration
+                    if (eventStart != null && newTime > eventStart) {
+                        Toast.makeText(context, "Trip start cannot be past earliest event start.", Toast.LENGTH_LONG).show()
+                    } else {
+                        val currentDuration = (endTime - startTime).coerceAtLeast(0L)
+                        startTime = newTime
+                        endTime = newTime + currentDuration
+
+                        if (eventEnd != null && endTime < eventEnd) {
+                            Toast.makeText(context, "Trip duration extended to include latest event end.", Toast.LENGTH_LONG).show()
+                            endTime = eventEnd
+                        }
+                    }
                 }
 
                 DurationStepperField(
