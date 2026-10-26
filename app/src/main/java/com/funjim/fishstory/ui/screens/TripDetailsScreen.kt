@@ -98,6 +98,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
+import com.funjim.fishstory.ui.selection.LimitSelection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,8 +167,9 @@ fun TripDetailsScreen(
 
     var showEditTripDialog by remember { mutableStateOf(false) }
 
-    var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
+    var showBodyOfWaterSelection by remember { mutableStateOf(false) }
     var showFishermanSelection by remember { mutableStateOf(false) }
+    var showLimitSelection by remember { mutableStateOf(false) }
     var showSpeciesSelection by remember { mutableStateOf(false) }
 
     var showNotesDialog by remember { mutableStateOf(false) }
@@ -205,6 +207,7 @@ fun TripDetailsScreen(
 
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
     val allFishermen by viewModel.fishermen.collectAsStateWithLifecycle(emptyList())
+    val allLimits by viewModel.allLimits.collectAsStateWithLifecycle(emptyList())
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
@@ -274,6 +277,9 @@ fun TripDetailsScreen(
                 .groupingBy { it.id }
                 .eachCount() // Returns a Map<String, Int> where Key = fishermanId, Value = count
 
+            val limitUsageMap: Map<String, Int> = limitSummaries
+                .associate { it.limit.id to it.summaryList.size }
+
             val speciesUsageMap: Map<String, Int> = events
                 .flatMap { it.targetSpecies }
                 .groupingBy { it.id }
@@ -284,6 +290,9 @@ fun TripDetailsScreen(
             }
             val sortedFishermen = remember(allFishermen) {
                 allFishermen.sortedBy { it.fullName }
+            }
+            val sortedLimits = remember(allLimits) {
+                allLimits.sortedBy { it.name }
             }
             val sortedNotes = remember(details.notes) {
                 details.notes.sortedByDescending { it.timestamp }
@@ -427,7 +436,7 @@ fun TripDetailsScreen(
                         actions = {
                             when (selectedCategory) {
                                 CategoryType.BODIES_OF_WATER -> {
-                                    IconButton(onClick = { showBodiesOfWaterSelection = true }) {
+                                    IconButton(onClick = { showBodyOfWaterSelection = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 AppIcons.Default.BodyOfWater,
@@ -502,7 +511,7 @@ fun TripDetailsScreen(
                                     }
                                 }
                                 CategoryType.LIMITS -> {
-                                    IconButton(onClick = { showAddLimitDialog = true }) {
+                                    IconButton(onClick = { showLimitSelection = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             StatusGumball(
                                                 status = gumballStatus,
@@ -887,7 +896,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                                             },
-                                            onAdd = { showBodiesOfWaterSelection = true },
+                                            onAdd = { showBodyOfWaterSelection = true },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
                                             },
@@ -1218,7 +1227,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                             },
-                                            onAdd = { showAddLimitDialog = true },
+                                            onAdd = { showLimitSelection = true },
                                             onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
                                                 limitToDelete = limit
@@ -1417,10 +1426,10 @@ Selecting them places those species at the top of the list when logging catches 
             }
             limitToDelete?.let { limit ->
                 DeleteDialog(
-                    title = "Delete Limit",
-                    message = "Are you sure you want to delete this limit?",
+                    title = "Remove Limit",
+                    message = "Are you sure you want to remove this limit?",
                     onConfirm = {
-                        viewModel.deleteLimit(limit)
+                        viewModel.removeLimitFromTrip(limit)
                         limitToDelete = null
                     },
                     onDismiss = { limitToDelete = null }
@@ -1642,7 +1651,7 @@ Selecting them places those species at the top of the list when logging catches 
                 )
             }
 
-            if (showBodiesOfWaterSelection) {
+            if (showBodyOfWaterSelection) {
                 BodyOfWaterSelection(
                     items = allBodiesOfWater,
                     selectedItems = details.bodiesOfWater,
@@ -1655,7 +1664,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddBodyOfWaterDialog = true
                     },
-                    onDone = { showBodiesOfWaterSelection = false },
+                    onDone = { showBodyOfWaterSelection = false },
                     modifier = Modifier.fillMaxWidth(),
                     usageMap = bodyOfWaterUsageMap,
                     maxUsage = details.events.size,
@@ -1704,6 +1713,38 @@ Selecting them places those species at the top of the list when logging catches 
                             modifier = Modifier.size(48.dp)
                         )
                     }
+                )
+            }
+            if (showLimitSelection) {
+                LimitSelection(
+                    items = sortedLimits,
+                    selectedItems = limitSummaries,
+                    useImperial = appSettings.display.useImperialUnits,
+                    speciesThumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.getSpeciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.LeapingFishWithFins,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    onSelected = { selected ->
+                        viewModel.addLimitToTrip(selected)
+                    },
+                    onUnselected = { unselected ->
+                        viewModel.removeLimitFromTrip(unselected)
+                    },
+                    onAdd = {
+                        showAddLimitDialog = true
+                    },
+                    onDone = { showLimitSelection = false },
+                    usageMap = limitUsageMap,
+                    maxUsage = details.events.size
                 )
             }
             if (showSpeciesSelection) {

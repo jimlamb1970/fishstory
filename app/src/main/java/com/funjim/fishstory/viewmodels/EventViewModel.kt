@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -263,6 +262,13 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
+    val allLimits: StateFlow<List<Limit>> = fishRepo.getAllLimits()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
         .stateIn(
             scope = viewModelScope,
@@ -457,7 +463,7 @@ class EventViewModel(
         return photoRepo.fetchSkyConditionThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
-    fun speciesThumbnail(speciesId: String): Flow<ByteArray?> {
+    fun getSpeciesThumbnail(speciesId: String): Flow<ByteArray?> {
         return photoRepo.fetchSpeciesThumbnail(speciesId)
             .flowOn(Dispatchers.IO)
     }
@@ -524,12 +530,7 @@ class EventViewModel(
 
     // Limit functions
     fun addLimit(limit: Limit) {
-        val eventId = _selectedEventId.value
-
-        if (eventId.isNullOrBlank()) {
-            return
-        }
-
+        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.addLimitToEvent(
                 eventId = eventId,
@@ -537,10 +538,23 @@ class EventViewModel(
             )
         }
     }
-
-    fun deleteLimit(limit: Limit) {
+    fun addLimitToEvent(limit: Limit) {
+        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
-            fishRepo.deleteLimit(limit)
+            fishRepo.addLimitToEvent(
+                limitId = limit.id,
+                eventId = eventId
+            )
+        }
+    }
+
+    fun removeLimitFromEvent(limit: Limit) {
+        val eventId = _selectedEventId.value ?: return
+        viewModelScope.launch {
+            fishRepo.removeLimitFromEvent(
+                limitId = limit.id,
+                eventId = eventId
+            )
         }
     }
 

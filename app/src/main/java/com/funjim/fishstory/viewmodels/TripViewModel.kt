@@ -98,6 +98,13 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
+    val allLimits: StateFlow<List<Limit>> = fishRepo.getAllLimits()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
         .stateIn(
             scope = viewModelScope,
@@ -602,6 +609,23 @@ class TripViewModel(
     fun deleteLimit(limit: Limit) {
         viewModelScope.launch {
             fishRepo.deleteLimit(limit)
+        }
+    }
+
+    fun addLimitToTrip(limit: Limit) {
+        val tripId = _selectedTripId.value ?: return
+        viewModelScope.launch {
+            fishRepo.addLimitToTrip(
+                limitId = limit.id,
+                tripId = tripId
+            )
+        }
+    }
+
+    fun removeLimitFromTrip(limit: Limit) {
+        val tripId = _selectedTripId.value ?: return
+        viewModelScope.launch {
+            fishRepo.removeLimitFromTrip(limitId = limit.id, tripId = tripId)
         }
     }
 

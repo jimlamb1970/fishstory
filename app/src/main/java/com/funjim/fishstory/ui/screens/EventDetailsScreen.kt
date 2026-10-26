@@ -85,6 +85,7 @@ import com.funjim.fishstory.ui.selection.BodyOfWaterSelection
 import com.funjim.fishstory.ui.selection.FishermanSelection
 import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
+import com.funjim.fishstory.ui.selection.LimitSelection
 import com.funjim.fishstory.viewmodels.EventDetailsUiState
 import com.funjim.fishstory.viewmodels.EventViewModel
 import kotlinx.coroutines.launch
@@ -105,6 +106,7 @@ fun EventDetailsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     LaunchedEffect(eventId) {
         viewModel.selectTrip(tripId)
@@ -162,6 +164,7 @@ fun EventDetailsScreen(
 
     var showBodiesOfWaterSelection by remember { mutableStateOf(false) }
     var showFishermanSelection by remember { mutableStateOf(false) }
+    var showLimitSelection by remember { mutableStateOf(false) }
     var showSpeciesSelection by remember { mutableStateOf(false) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
@@ -189,6 +192,7 @@ fun EventDetailsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
+    val allLimits by viewModel.allLimits.collectAsStateWithLifecycle(emptyList())
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
@@ -260,6 +264,9 @@ fun EventDetailsScreen(
             }
             val sortedFishermanList = remember(fishermanSummaries) {
                 fishermanSummaries.sortedBy { it.fisherman.fullName }
+            }
+            val sortedLimits = remember(allLimits) {
+                allLimits.sortedBy { it.name }
             }
             val sortedNotes = remember(eventDetails.notes) {
                 eventDetails.notes.sortedByDescending { it.timestamp }
@@ -463,7 +470,7 @@ fun EventDetailsScreen(
 
                                 }
                                 CategoryType.LIMITS -> {
-                                    IconButton(onClick = { showAddLimitDialog = true }) {
+                                    IconButton(onClick = { showLimitSelection = true }) {
                                         Box(contentAlignment = Alignment.Center) {
                                             StatusGumball(
                                                 status = gumballStatus,
@@ -722,7 +729,8 @@ fun EventDetailsScreen(
                             }
                         }
                     )
-                }
+                },
+                snackbarHost = { SnackbarHost(snackbarHostState) }
             ) { padding ->
                 Column(
                     modifier = Modifier.padding(padding).fillMaxSize(),
@@ -1040,7 +1048,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             ),
                                             speciesThumbnailProvider = { species ->
                                                 val thumbnailFlow = remember(species.id) {
-                                                    viewModel.speciesThumbnail(species.id)
+                                                    viewModel.getSpeciesThumbnail(species.id)
                                                 }
 
                                                 val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1051,7 +1059,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             },
-                                            onAdd = { showAddLimitDialog = true },
+                                            onAdd = { showLimitSelection = true },
                                             onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
                                                 limitToDelete = limit
@@ -1081,7 +1089,7 @@ Selecting them places those species at the top of the list when logging catches 
                                                 horizontal = 16.dp
                                             ),
                                             thumbnailFlow = { species ->
-                                                viewModel.speciesThumbnail(species.id)
+                                                viewModel.getSpeciesThumbnail(species.id)
                                             },
                                             onAdd = { showSpeciesSelection = true },
                                             onClick = { species ->
@@ -1230,10 +1238,10 @@ Selecting them places those species at the top of the list when logging catches 
             }
             limitToDelete?.let { limit ->
                 DeleteDialog(
-                    title = "Delete Limit",
-                    message = "Are you sure you want to delete this limit?",
+                    title = "Remove Limit",
+                    message = "Are you sure you want to remove this limit?",
                     onConfirm = {
-                        viewModel.deleteLimit(limit)
+                        viewModel.removeLimitFromEvent(limit)
                         limitToDelete = null
                     },
                     onDismiss = { limitToDelete = null }
@@ -1337,7 +1345,7 @@ Selecting them places those species at the top of the list when logging catches 
                     species = allSpecies,
                     speciesThumbnailProvider = { species, size ->
                         val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
+                            viewModel.getSpeciesThumbnail(species.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1515,6 +1523,50 @@ Selecting them places those species at the top of the list when logging catches 
                     }
                 )
             }
+            if (showLimitSelection) {
+                LimitSelection(
+                    items = sortedLimits,
+                    selectedItems = limitSummaries,
+                    useImperial = appSettings.display.useImperialUnits,
+                    speciesThumbnailProvider = { species ->
+                        val thumbnailFlow = remember(species.id) {
+                            viewModel.getSpeciesThumbnail(species.id)
+                        }
+
+                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                        ThumbnailBox(
+                            thumbnail = thumbnail,
+                            imageVector = AppIcons.Default.LeapingFishWithFins,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    onSelected = { selected ->
+                        viewModel.addLimitToEvent(selected)
+                    },
+                    onUnselected = { unselected ->
+                        val limit = limitSummaries.find { it.limit.id == unselected.id }
+                        if (limit != null) {
+                            if (!limit.isTripLimit) {
+                                viewModel.removeLimitFromEvent(unselected)
+                            } else {
+                                showLimitSelection = false
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Unable to remove (unselect) trip assigned limit.",
+                                        actionLabel = "Dismiss",
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    onAdd = {
+                        showAddLimitDialog = true
+                    },
+                    onDone = { showLimitSelection = false }
+                )
+            }
             if (showSpeciesSelection) {
                 SpeciesSelection(
                     items = allSpecies,
@@ -1532,7 +1584,7 @@ Selecting them places those species at the top of the list when logging catches 
                     modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
-                            viewModel.speciesThumbnail(species.id)
+                            viewModel.getSpeciesThumbnail(species.id)
                         }
 
                         val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -1591,7 +1643,7 @@ Selecting them places those species at the top of the list when logging catches 
             species = allSpecies,
             speciesThumbnailProvider = { species, size ->
                 val thumbnailFlow = remember(species.id) {
-                    viewModel.speciesThumbnail(species.id)
+                    viewModel.getSpeciesThumbnail(species.id)
                 }
 
                 val thumbnail by thumbnailFlow.collectAsState(initial = null)

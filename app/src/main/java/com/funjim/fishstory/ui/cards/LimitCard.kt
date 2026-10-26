@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
@@ -414,31 +415,48 @@ fun LimitSummaryCard(
                         )
                     }
 
-                    // Display Associated Species List
                     if (item.limit.species.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            item.limit.species.forEach { species ->
-                                Surface(
-                                    shape = MaterialTheme.shapes.small,
-                                    color = MaterialTheme.colorScheme.surface,
-                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        speciesThumbnailProvider(species)
-                                        Text(
-                                            text = species.name,
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
+                            val species = item.limit.species.sortedBy { it.name }
+                            items(species) { species ->
+                                InputChip(
+                                    selected = true,
+                                    onClick = {},
+                                    label = { Text(species.name) },
+                                    avatar = { speciesThumbnailProvider(species) },
+                                    colors = InputChipDefaults.inputChipColors(
+                                        selectedContainerColor = getCardColor().copy(alpha = 0.15f),
+                                        selectedLabelColor = getOnCardColor(),
+                                        selectedLeadingIconColor = getOnCardColor(),
+                                        selectedTrailingIconColor = MaterialTheme.colorScheme.error
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = true,
+                                        selectedBorderColor = getCardBorderColor(),
+                                        selectedBorderWidth = 1.dp,
+                                        borderColor = getOnChipColor(),
+                                        borderWidth = 1.dp
+                                    ),
+                                    trailingIcon = {
+/*
+                                                    IconButton(
+                                                        onClick = { onDelete(species) },
+                                                        modifier = Modifier.size(24.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Clear,
+                                                            contentDescription = "Remove",
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+ */
                                     }
-                                }
+                                )
                             }
                         }
                     }
@@ -470,10 +488,10 @@ fun LimitSummaryCard(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Delete") },
+                                text = { Text("Remove") },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Default.Delete,
+                                        imageVector = Icons.Default.Clear,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.error
                                     )

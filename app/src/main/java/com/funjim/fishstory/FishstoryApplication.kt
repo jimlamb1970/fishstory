@@ -65,6 +65,7 @@ class FishstoryApplication : Application() {
 
     val fishRepository by lazy {
         FishRepository(
+            database = database,
             bodyOfWaterDao = database.bodyOfWaterDao(),
             eventDao = database.eventDao(),
             fishDao = database.fishDao(),

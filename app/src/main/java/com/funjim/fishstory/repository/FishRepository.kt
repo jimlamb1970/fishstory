@@ -1,5 +1,7 @@
 package com.funjim.fishstory.repository
 
+import androidx.room.withTransaction
+import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.dao.BodyOfWaterDao
 import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.dao.FishDao
@@ -10,6 +12,8 @@ import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.PhotoDao
 import com.funjim.fishstory.database.entity.PhotoFishEntity
 import com.funjim.fishstory.database.dao.TripDao
+import com.funjim.fishstory.database.entity.EventLimitEntity
+import com.funjim.fishstory.database.entity.TripLimitEntity
 import com.funjim.fishstory.database.toBaitSummaryDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toBodyOfWaterSummaryDomainList
@@ -57,6 +61,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class FishRepository(
+    private val database: FishstoryDatabase,
     private val bodyOfWaterDao: BodyOfWaterDao,
     private val fishDao: FishDao,
     private val fishermanDao: FishermanDao,
@@ -379,7 +384,6 @@ class FishRepository(
             species = limit.species.toSpeciesEntityList()
         )
     }
-
     suspend fun addLimitToEvent(eventId: String, limit: Limit) {
         limitDao.insertLimitForEvent(
             limit = limit.toEntity(),
@@ -387,7 +391,14 @@ class FishRepository(
             eventId = eventId
         )
     }
-
+    suspend fun addLimitToEvent(eventId: String, limitId: String) {
+        limitDao.insertEventLimit(
+            entity = EventLimitEntity(
+                eventId = eventId,
+                limitId = limitId
+            )
+        )
+    }
     suspend fun addLimitToTrip(tripId: String, limit: Limit) {
         limitDao.insertLimitForTrip(
             limit = limit.toEntity(),
@@ -395,9 +406,31 @@ class FishRepository(
             tripId = tripId
         )
     }
+    suspend fun addLimitToTrip(tripId: String, limitId: String) {
+        database.withTransaction {
+            limitDao.insertTripLimit(
+                entity = TripLimitEntity(
+                    tripId = tripId,
+                    limitId = limitId
+                )
+            )
+            val eventIds = eventDao.getEventIdsForTrip(tripId)
+            limitDao.removeLimitFromEvents(limitId, eventIds)
+        }
+    }
 
     suspend fun deleteLimit(limit: Limit) {
         limitDao.deleteLimit(limit.toEntity())
+    }
+    suspend fun removeLimitFromEvent(limitId: String, eventId: String) {
+        limitDao.removeLimitFromEvent(limitId, eventId)
+    }
+    suspend fun removeLimitFromTrip(limitId: String, tripId: String) {
+        database.withTransaction {
+            limitDao.removeLimitFromTrip(limitId, tripId)
+            val eventIds = eventDao.getEventIdsForTrip(tripId)
+            limitDao.removeLimitFromEvents(limitId, eventIds)
+        }
     }
 
     fun getCaughtCountForLimit(eventId: String, limit: Limit): Flow<Int> {

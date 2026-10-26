@@ -46,9 +46,13 @@ interface LimitDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEventLimit(entity: EventLimitEntity)
+    @Delete
+    suspend fun deleteEventLimit(entity: EventLimitEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTripLimit(entity: TripLimitEntity)
+    @Delete
+    suspend fun deleteTripLimit(entity: TripLimitEntity)
 
     @Transaction
     suspend fun insertLimit(
@@ -67,7 +71,6 @@ interface LimitDao {
             insertLimitSpeciesXRefs(speciesXRefs)
         }
     }
-
 
     @Transaction
     suspend fun insertLimitForEvent(
@@ -117,6 +120,33 @@ interface LimitDao {
             limitId = limit.id
         )
         insertTripLimit(tripLimit)
+    }
+
+    @Transaction
+    suspend fun removeLimitFromTrip(limit: String, tripId: String) {
+        val tripLimit = TripLimitEntity(
+            tripId = tripId,
+            limitId = limit
+        )
+        deleteTripLimit(tripLimit)
+    }
+    @Transaction
+    suspend fun removeLimitFromEvent(limit: String, eventId: String) {
+        val eventLimit = EventLimitEntity(
+            eventId = eventId,
+            limitId = limit
+        )
+        deleteEventLimit(eventLimit)
+    }
+    @Transaction
+    suspend fun removeLimitFromEvents(limit: String, eventIds: List<String>) {
+        eventIds.forEach { eventId ->
+            val eventLimit = EventLimitEntity(
+                eventId = eventId,
+                limitId = limit
+            )
+            deleteEventLimit(eventLimit)
+        }
     }
 
     @Transaction
