@@ -38,6 +38,9 @@ interface LimitDao {
     @Delete
     suspend fun deleteLimit(entity: LimitEntity)
 
+    @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
+    suspend fun deleteLimitSpeciesXRefsForLimit(limitId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimitSpeciesXRefs(xRefs: List<LimitSpeciesEntity>)
 
@@ -48,13 +51,32 @@ interface LimitDao {
     suspend fun insertTripLimit(entity: TripLimitEntity)
 
     @Transaction
+    suspend fun insertLimit(
+        limit: LimitEntity,
+        species: List<SpeciesEntity>
+    ) {
+        upsertLimit(limit)
+        deleteLimitSpeciesXRefsForLimit(limit.id)
+        if (species.isNotEmpty()) {
+            val speciesXRefs = species.map { species ->
+                LimitSpeciesEntity(
+                    limitId = limit.id,
+                    speciesId = species.id
+                )
+            }
+            insertLimitSpeciesXRefs(speciesXRefs)
+        }
+    }
+
+
+    @Transaction
     suspend fun insertLimitForEvent(
         limit: LimitEntity,
         species: List<SpeciesEntity>,
         eventId: String
     ) {
         upsertLimit(limit)
-
+        deleteLimitSpeciesXRefsForLimit(limit.id)
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
@@ -73,30 +95,13 @@ interface LimitDao {
     }
 
     @Transaction
-    suspend fun insertLimit(
-        limit: LimitEntity,
-        species: List<SpeciesEntity>
-    ) {
-        upsertLimit(limit)
-        if (species.isNotEmpty()) {
-            val speciesXRefs = species.map { species ->
-                LimitSpeciesEntity(
-                    limitId = limit.id,
-                    speciesId = species.id
-                )
-            }
-            insertLimitSpeciesXRefs(speciesXRefs)
-        }
-    }
-
-    @Transaction
     suspend fun insertLimitForTrip(
         limit: LimitEntity,
         species: List<SpeciesEntity>,
         tripId: String
     ) {
         upsertLimit(limit)
-
+        deleteLimitSpeciesXRefsForLimit(limit.id)
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
