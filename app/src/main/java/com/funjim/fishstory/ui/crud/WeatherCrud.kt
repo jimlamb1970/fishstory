@@ -126,70 +126,70 @@ fun WeatherDialog(
     ) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val originalTemp = remember(initialTemp, useImperial) {
-        initialTemp?.let {
-            val rawDouble = if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
+    val oTemp = remember { initialTemp }
+    var eTemp by remember { mutableStateOf(oTemp) }
+    val oSkyCondition = remember { allSkyConditions.find { it.id == initialSkyCondition } }
+    var eSkyCondition by remember { mutableStateOf(oSkyCondition) }
+    val oWindDirection = remember { initialWindDirection }
+    var eWindDirection by remember { mutableStateOf(oWindDirection) }
+    val oWindSpeed = remember { initialWindSpeed }
+    var eWindSpeed by remember { mutableStateOf(oWindSpeed) }
+    val oAtmosphericPressure = remember { initialAtmosphericPressure }
+    var eAtmosphericPressure by remember { mutableStateOf(oAtmosphericPressure) }
+    val oAirVisibility = remember { initialAirVisibility }
+    var eAirVisibility by remember { mutableStateOf(oAirVisibility) }
+    val oAirHumidity = remember { initialAirHumidity }
+    var eAirHumidity by remember { mutableStateOf(oAirHumidity) }
+
+    LaunchedEffect(pendingSkyCondition, allSkyConditions) {
+        if (pendingSkyCondition != null) {
+            allSkyConditions.find { it.id == pendingSkyCondition }?.let { match ->
+                eSkyCondition = match
+            }
+        }
+    }
+
+    var dTemp by remember(useImperial) { mutableStateOf(
+        eTemp?.let {
+            val rawDouble =
+                if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
 
             val roundedDouble = BigDecimal(rawDouble)
                 .setScale(1, RoundingMode.HALF_UP)
                 .toDouble()
 
-            // Strip trailing .0 for whole numbers (e.g., 72.0 -> "72")
             if (roundedDouble % 1.0 == 0.0) {
                 roundedDouble.toLong().toString()
             } else {
                 roundedDouble.toString()
             }
         } ?: ""
-    }
-
-    val originalSkyCondition = remember(initialSkyCondition, allSkyConditions) {
-        allSkyConditions.find { it.id == initialSkyCondition }
-    }
-
-    val originalWindDirection = remember(initialWindDirection) { initialWindDirection }
-
-    // Wind Speed: Converts DB Long to MPH string for initial display
-    val originalPressure = remember(initialAtmosphericPressure) { initialAtmosphericPressure }
-
-    // Visibility: Converts DB Millimeters to Miles string for initial display
-    val originalHumidity = remember(initialAirHumidity) { initialAirHumidity?.toString() ?: "" }
-
-    // Parse Initial Values using unit preference
-    val originalWindSpeed = remember(initialWindSpeed, useImperial) {
-        initialWindSpeed.windSpeedDisplayString(useImperial)
-    }
-
-    val originalVisibility = remember(initialAirVisibility, useImperial) {
-        initialAirVisibility.airVisibilityDisplayString(useImperial)
-    }
-
-    var temp by remember(useImperial) { mutableStateOf(originalTemp) }
-    var skyCondition by remember { mutableStateOf(originalSkyCondition) }
-    var windDirection by remember { mutableStateOf(originalWindDirection) }
-    var windSpeed by remember(useImperial) { mutableStateOf(originalWindSpeed) }
-    var pressure by remember { mutableStateOf(originalPressure) }
-    var visibility by remember(useImperial) { mutableStateOf(originalVisibility) }
-    var humidity by remember { mutableStateOf(originalHumidity) }
-
-    // Automatically select the pending clarity once it arrives in allClarity
-    LaunchedEffect(pendingSkyCondition, allSkyConditions) {
-        if (pendingSkyCondition != null) {
-            allSkyConditions.find { it.id == pendingSkyCondition }?.let { match ->
-                skyCondition = match
-            }
-        }
-    }
+    ) }
+    var dWindSpeed by remember(useImperial) {mutableStateOf(
+        eWindSpeed?.windSpeedDisplayString(useImperial) ?: ""
+    ) }
+    var dAtmosphericPressure by remember(useImperial) { mutableStateOf(
+        if (useImperial)
+            eAtmosphericPressure?.toInHg()?.toString() ?: ""
+        else
+            eAtmosphericPressure?.toHPa()?.toString() ?: ""
+    )}
+    var dAirVisibility by remember(useImperial) { mutableStateOf(
+        eAirVisibility?.airVisibilityDisplayString(useImperial) ?: ""
+    )}
+    var dAirHumidity by remember { mutableStateOf(
+        eAirHumidity?.toString() ?: ""
+    )}
 
     var isWindDirectionExpanded by remember { mutableStateOf(false) }
 
-    val isChanged = temp != originalTemp ||
-            skyCondition != originalSkyCondition ||
-            windDirection != originalWindDirection ||
-            windSpeed != originalWindSpeed ||
-            pressure != originalPressure ||
-            visibility != originalVisibility ||
-            humidity != originalHumidity
+    val isChanged = eTemp != oTemp ||
+            eSkyCondition != oSkyCondition ||
+            eWindDirection != oWindDirection ||
+            eWindSpeed != oWindSpeed ||
+            eAtmosphericPressure != oAtmosphericPressure ||
+            eAirVisibility != oAirVisibility ||
+            eAirHumidity != oAirHumidity
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -214,10 +214,13 @@ fun WeatherDialog(
             ) {
                 // Temperature
                 OutlinedTextField(
-                    value = temp,
+                    value = dTemp,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
-                            temp = input
+                            dTemp = input
+                            eTemp =
+                                if (useImperial) dTemp.fahrenheitToDbValue()
+                                else dTemp.celsiusToDbValue()
                         }
                     },
                     label = { Text("Temperature") },
@@ -230,10 +233,10 @@ fun WeatherDialog(
                 // Sky Condition
                 SkyConditionSelectionField(
                     items = allSkyConditions,
-                    selectedItem = skyCondition,
-                    onSelected = { skyCondition = it },
+                    selectedItem = eSkyCondition,
+                    onSelected = { eSkyCondition = it },
                     onAdd = onAddSkyCondition,
-                    onClear = { skyCondition = null },
+                    onClear = { eSkyCondition = null },
                     modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = thumbnailProvider
                 )
@@ -244,7 +247,7 @@ fun WeatherDialog(
                     onExpandedChange = { isWindDirectionExpanded = it }
                 ) {
                     OutlinedTextField(
-                        value = windDirection?.name ?: "Select Direction",
+                        value = eWindDirection?.name ?: "Select Direction",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Wind Direction") },
@@ -264,17 +267,17 @@ fun WeatherDialog(
                         DropdownMenuItem(
                             text = { Text("None", style = MaterialTheme.typography.bodyMedium) },
                             onClick = {
-                                windDirection = null
+                                eWindDirection = null
                                 isWindDirectionExpanded = false
                             },
                             modifier = Modifier.background(
-                                if (windDirection == null) MaterialTheme.colorScheme.primaryContainer
+                                if (eWindDirection == null) MaterialTheme.colorScheme.primaryContainer
                                 else Color.Unspecified
                             )
                         )
 
                         WindDirection.entries.forEach { direction ->
-                            val isSelected = direction == windDirection
+                            val isSelected = direction == eWindDirection
 
                             DropdownMenuItem(
                                 text = {
@@ -286,7 +289,7 @@ fun WeatherDialog(
                                     )
                                 },
                                 onClick = {
-                                    windDirection = direction
+                                    eWindDirection = direction
                                     isWindDirectionExpanded = false
                                 },
                                 modifier = Modifier.background(
@@ -300,10 +303,12 @@ fun WeatherDialog(
 
                 // Wind Speed (Allows decimals e.g., "12" or "12.5")
                 OutlinedTextField(
-                    value = windSpeed,
+                    value = dWindSpeed,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
-                            windSpeed = input
+                            dWindSpeed = input
+                            eWindSpeed = dWindSpeed.windSpeedInputToDbValueOrNull(useImperial)
+
                         }
                     },
                     label = { Text("Wind Speed") },
@@ -313,21 +318,14 @@ fun WeatherDialog(
                     singleLine = true
                 )
 
-                var pressureText by remember(initialAtmosphericPressure, useImperial) {
-                    mutableStateOf(
-                        if (useImperial) initialAtmosphericPressure?.toInHg()?.toString() ?: ""
-                        else initialAtmosphericPressure?.toHPa()?.toString() ?: ""
-                    )
-                }
 
                 // Atmospheric Pressure
                 OutlinedTextField(
-                    value = pressureText,
+                    value = dAtmosphericPressure,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
-                            pressureText = input
-                            val doubleVal = input.toDoubleOrNull()
-                            pressure = doubleVal?.let {
+                            dAtmosphericPressure = input
+                            eAtmosphericPressure = dAtmosphericPressure.toDoubleOrNull()?.let {
                                 if (useImperial) {
                                     it.inHgToStorage()
                                 } else {
@@ -345,10 +343,11 @@ fun WeatherDialog(
 
                 // Air Visibility Text Field
                 OutlinedTextField(
-                    value = visibility,
+                    value = dAirVisibility,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
-                            visibility = input
+                            dAirVisibility = input
+                            eAirVisibility = dAirVisibility.visibilityInputToDbValueOrNull(useImperial)
                         }
                     },
                     label = { Text("Air Visibility") },
@@ -359,10 +358,11 @@ fun WeatherDialog(
                 )
                 // Air Humidity
                 OutlinedTextField(
-                    value = humidity,
+                    value = dAirHumidity,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.all { it.isDigit() }) {
-                            humidity = input
+                            dAirHumidity = input
+                            eAirHumidity = dAirHumidity.toLongOrNull()
                         }
                     },
                     label = { Text("Air Humidity") },
@@ -376,23 +376,14 @@ fun WeatherDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val tempValue =
-                        if (useImperial) temp.fahrenheitToDbValue()
-                        else temp.celsiusToDbValue()
-
-                    val speedValue = windSpeed.windSpeedInputToDbValueOrNull(useImperial)
-                    val pressureValue = pressure
-                    val visibilityValue = visibility.visibilityInputToDbValueOrNull(useImperial)
-                    val humidityValue = humidity.toLongOrNull()
-
                     onConfirm(
-                        tempValue,
-                        skyCondition?.id,
-                        windDirection,
-                        speedValue,
-                        pressureValue,
-                        visibilityValue,
-                        humidityValue
+                        eTemp,
+                        eSkyCondition?.id,
+                        eWindDirection,
+                        eWindSpeed,
+                        eAtmosphericPressure,
+                        eAirVisibility,
+                        eAirHumidity
                     )
                 },
                 enabled = isChanged
