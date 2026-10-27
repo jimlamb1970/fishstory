@@ -100,62 +100,54 @@ fun WaterDialog(
     onConfirm: (Long?, Long?, WaterClarity?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val originalTemp = remember(initialTemp, useImperial) {
-        initialTemp?.let {
-            val rawDouble = if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
+    val oTemp = remember { initialTemp }
+    var eTemp by remember { mutableStateOf(oTemp) }
+
+    val oDepth = remember { initialDepth }
+    var eDepth by remember { mutableStateOf(oDepth) }
+
+    val oClarity = remember { allClarity.find { it.id == initialClarity } }
+    var eClarity by remember { mutableStateOf(oClarity) }
+
+    LaunchedEffect(pendingClarity, allClarity) {
+        if (pendingClarity != null) {
+            allClarity.find { it.id == pendingClarity }?.let { match ->
+                eClarity = match
+            }
+        }
+    }
+
+    var dTemp by remember(useImperial) { mutableStateOf(
+        eTemp?.let {
+            val rawDouble =
+                if (useImperial) it.toFahrenheitDouble() else it.toCelsiusDouble()
 
             val roundedDouble = BigDecimal(rawDouble)
                 .setScale(1, RoundingMode.HALF_UP)
                 .toDouble()
 
-            // Strip trailing .0 for whole numbers (e.g., 72.0 -> "72")
             if (roundedDouble % 1.0 == 0.0) {
                 roundedDouble.toLong().toString()
             } else {
                 roundedDouble.toString()
             }
         } ?: ""
-    }
-
-    val originalFeet = remember(initialDepth) {
-        initialDepth?.let { (it.toInches().toLong() / 12).toString() } ?: ""
-    }
-
-    val originalInches = remember(initialDepth) {
-        initialDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
-    }
-
-    val originalMeters = remember(initialDepth) {
-        initialDepth?.let {
+    ) }
+    var dFeet by remember(useImperial) { mutableStateOf(
+        eDepth?.let { (it.toInches().toLong() / 12).toString() } ?: ""
+    ) }
+    var dInches by remember(useImperial) { mutableStateOf(
+        eDepth?.let { (it.toInches().toLong() % 12).toString() } ?: ""
+    ) }
+    var dMeters by remember(useImperial) { mutableStateOf(
+        eDepth?.let {
             val totalMM = it.toMm()
             val meters = totalMM / 1000
             String.format(Locale.US, "%.2f", meters).trimEnd('0').trimEnd('.')
         } ?: ""
-    }
+    ) }
 
-    val originalClarity = remember(initialClarity, allClarity) {
-        allClarity.find { it.id == initialClarity }
-    }
-
-    var temp by remember(useImperial) { mutableStateOf(originalTemp) }
-    var depthFeet by remember { mutableStateOf(originalFeet) }
-    var depthInches by remember { mutableStateOf(originalInches) }
-    var depthMeters by remember { mutableStateOf(originalMeters) }
-    var clarity by remember { mutableStateOf(originalClarity) }
-
-    // Automatically select the pending clarity once it arrives in allClarity
-    LaunchedEffect(pendingClarity, allClarity) {
-        if (pendingClarity != null) {
-            allClarity.find { it.id == pendingClarity }?.let { match ->
-                clarity = match
-            }
-        }
-    }
-
-    val isChanged = temp != originalTemp ||
-            (useImperial && (depthFeet != originalFeet || depthInches != originalInches)) ||
-            (!useImperial && depthMeters != originalMeters) ||
-            clarity != originalClarity
+    val isChanged = (eTemp != oTemp) || (eDepth != oDepth) || (eClarity != oClarity)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -180,10 +172,13 @@ fun WaterDialog(
             ) {
                 // Temperature
                 OutlinedTextField(
-                    value = temp,
+                    value = dTemp,
                     onValueChange = { input ->
                         if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,1}$"""))) {
-                            temp = input
+                            dTemp = input
+                            eTemp =
+                                if (useImperial) dTemp.fahrenheitToDbValue()
+                                else dTemp.celsiusToDbValue()
                         }
                     },
                     label = { Text("Temperature") },
@@ -200,10 +195,14 @@ fun WaterDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = depthFeet,
+                            value = dFeet,
                             onValueChange = { input ->
                                 if (input.isEmpty() || input.all { it.isDigit() }) {
-                                    depthFeet = input
+                                    dFeet = input
+
+                                    val vFeet = dFeet.toLongOrNull() ?: 0L
+                                    val vInches = dInches.toLongOrNull() ?: 0L
+                                    eDepth = (vFeet * 12 + vInches).toDouble().inchesToStorage()
                                 }
                             },
                             label = { Text("Depth (ft)") },
@@ -214,10 +213,14 @@ fun WaterDialog(
                         )
 
                         OutlinedTextField(
-                            value = depthInches,
+                            value = dInches,
                             onValueChange = { input ->
                                 if (input.isEmpty() || input.all { it.isDigit() }) {
-                                    depthInches = input
+                                    dInches = input
+
+                                    val vFeet = dFeet.toLongOrNull() ?: 0L
+                                    val vInches = dInches.toLongOrNull() ?: 0L
+                                    eDepth = (vFeet * 12 + vInches).toDouble().inchesToStorage()
                                 }
                             },
                             label = { Text("Depth (in)") },
@@ -229,11 +232,15 @@ fun WaterDialog(
                     }
                 } else {
                     OutlinedTextField(
-                        value = depthMeters,
+                        value = dMeters,
                         onValueChange = { input ->
                             // Allows up to 2 decimal places
                             if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
-                                depthMeters = input
+                                dMeters = input
+                                eDepth =  dMeters.toDoubleOrNull()?.let { meters ->
+                                    val inches = meters / 0.0254
+                                    inches.inchesToStorage()
+                                }
                             }
                         },
                         label = { Text("Depth (m)") },
@@ -246,10 +253,10 @@ fun WaterDialog(
 
                 WaterClaritySelectionField(
                     items = allClarity,
-                    selectedItem = clarity,
-                    onSelected = { clarity = it },
+                    selectedItem = eClarity,
+                    onSelected = { eClarity = it },
                     onAdd = onAddWaterClarity,
-                    onClear = { clarity = null },
+                    onClear = { eClarity = null },
                     modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = thumbnailProvider
                 )
@@ -258,26 +265,7 @@ fun WaterDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val tempValue =
-                        if (useImperial) temp.fahrenheitToDbValue()
-                        else temp.celsiusToDbValue()
-
-                    val totalDepth = if (useImperial) {
-                        if (depthFeet.isNotBlank() || depthInches.isNotBlank()) {
-                            val feetValue = depthFeet.toLongOrNull() ?: 0L
-                            val inchesValue = depthInches.toLongOrNull() ?: 0L
-                            (feetValue * 12 + inchesValue).toDouble().inchesToStorage()
-                        } else {
-                            null
-                        }
-                    } else {
-                        depthMeters.toDoubleOrNull()?.let { meters ->
-                            val inches = meters / 0.0254
-                            inches.inchesToStorage()
-                        }
-                    }
-
-                    onConfirm(tempValue, totalDepth, clarity)
+                    onConfirm(eTemp, eDepth, eClarity)
                 },
                 enabled = isChanged
             ) {
