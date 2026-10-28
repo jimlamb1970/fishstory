@@ -623,18 +623,19 @@ fun FishermanSummaryCard(
         }
     }
 
-    TackleBoxBottomSheet(
-        showSheet = showTackleBoxSelection,
-        items = availableBoxes,
-        selectedItem = selectedTackleBox,
-        onSelected = { tackleBox -> onTackleBoxSelected(item.fisherman, tackleBox.id) },
-        onAdd = { showAddTackleBoxDialog = true },
-        onClear = {
-            tackleBoxOpen = false
-            onTackleBoxSelected(item.fisherman, null)
-        },
-        onDismissRequest = { showTackleBoxSelection = false }
-    )
+    if (showTackleBoxSelection) {
+        TackleBoxBottomSheet(
+            items = availableBoxes,
+            selectedItem = selectedTackleBox,
+            onSelected = { tackleBox -> onTackleBoxSelected(item.fisherman, tackleBox.id) },
+            onAdd = { showAddTackleBoxDialog = true },
+            onClear = {
+                tackleBoxOpen = false
+                onTackleBoxSelected(item.fisherman, null)
+            },
+            onDismissRequest = { showTackleBoxSelection = !showTackleBoxSelection }
+        )
+    }
 
     if (showAddTackleBoxDialog) {
         AddTackleBoxDialog(

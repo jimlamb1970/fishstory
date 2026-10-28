@@ -57,6 +57,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.absoluteValue
+import androidx.core.net.toUri
 
 // Helper function to invoke the native share sheet
 fun shareContent(context: Context, textToShare: String) {
@@ -250,6 +251,7 @@ fun FishDetailScreen(
                     fishermanThumbnailFlow = fishermanThumbnailFlow,
                     lureThumbnailFlow = lureThumbnailFlow,
                     tripThumbnailFlow = tripThumbnailFlow,
+                    showHelp = appSettings.display.showHelp,
                     useImperial = appSettings.display.useImperialUnits,
                     fishSettings = appSettings.fish,
                     onAddNote = { noteId, content ->
@@ -267,6 +269,7 @@ fun FishDetailScreen(
                     onPhotoDeleted = { photo ->
                         viewModel.deleteFishPhoto(fishId = fish.fish.id, photo.id)
                     },
+                    onToggleHelp = { viewModel.toggleHelp() },
                     onToggleImperialUnits = {
                         viewModel.toggleImperialUnits()
                     },
@@ -322,6 +325,7 @@ private fun FishDetailContent(
     fishermanThumbnailFlow: Flow<ByteArray?>,
     lureThumbnailFlow: Flow<ByteArray?>,
     tripThumbnailFlow: Flow<ByteArray?>,
+    showHelp: Boolean,
     useImperial: Boolean,
     fishSettings: FishSettings,
     onAddNote: (noteId: String?, text: String) -> Unit,
@@ -330,6 +334,7 @@ private fun FishDetailContent(
     onPhotoTaken: (Uri) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
     onToggleImperialUnits: (() -> Unit)? = null,
+    onToggleHelp: (() -> Unit)? = null,
     onToggleShowHole: (() -> Unit)? = null
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
@@ -443,7 +448,6 @@ private fun FishDetailContent(
 
             IconButton(
                 onClick = {
-                    val status = if (fish.fish.keptCount == 0) "Released" else "Kept"
                     val lengthStr = fish.fish.length?.toLengthDisplayString(useImperial = useImperial, useFractions = true) ?: ""
                     val bodyOfWater = fish.bodyOfWater?.name ?: ""
                     val dateStr = dateFormatter.format(Date(fish.fish.timestamp))
@@ -515,7 +519,7 @@ private fun FishDetailContent(
                                     .size(24.dp)
                                     .clickable {
                                         val mapUri =
-                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
+                                            "https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}".toUri()
                                         val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                         try {
                                             context.startActivity(intent)
@@ -759,7 +763,7 @@ private fun FishDetailContent(
         }
 
         PhotoPickerRow(
-            photos = fishPhotos ?: emptyList(),
+            photos = fishPhotos,
             onPhotoSelected = onPhotoSelected,
             onPhotoTaken = onPhotoTaken,
             onPhotoDeleted = onPhotoDeleted
@@ -794,12 +798,14 @@ private fun FishDetailContent(
             when (category) {
                 CategoryType.NOTES -> {
                     NoteSection(
-                        noteList = sortedNotes ?: emptyList(),
+                        noteList = sortedNotes,
+                        showHelp = showHelp,
                         emptyText = "No notes created.",
                         helpText = "Notes help you remember specific details about this fish.",
                         onAdd = { showAddNoteDialog = true },
                         onEdit = { noteToEdit = it },
-                        onDelete = { noteToDelete = it }
+                        onDelete = { noteToDelete = it },
+                        onToggleHelp = onToggleHelp,
                     )
                 }
                 CategoryType.WATER -> {
@@ -836,10 +842,10 @@ private fun FishDetailContent(
     }
     if (showAddNoteDialog) {
         AddNoteDialog(
-            onDismiss = { showAddNoteDialog = false },
+            onDismiss = { showAddNoteDialog = !showAddNoteDialog },
             onConfirm = { content ->
                 onAddNote(null, content)
-                showAddNoteDialog = false
+                showAddNoteDialog = !showAddNoteDialog
             }
         )
     }

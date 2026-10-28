@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
@@ -32,6 +33,7 @@ import com.funjim.fishstory.model.WaterWithDetails
 import com.funjim.fishstory.ui.cards.WaterCard
 import com.funjim.fishstory.ui.cards.WaterSummaryCard
 import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -158,14 +160,16 @@ fun WaterSection(
 fun WaterSummarySection(
     waterList: List<WaterSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     useImperial: Boolean,
     emptyText: String = "No water conditions are specified.",
     helpText: String = "You need help.",
-    onAddWater: (() -> Unit)? = null,
+    onAdd: (() -> Unit)? = null,
+    onDelete: (Water) -> Unit,
     onEdit: (Water) -> Unit,
     onFishClick: (Water, Boolean) -> Unit,
-    onDelete: (Water) -> Unit,
-    onThumbnailLongClick: (() -> Unit)? = null
+    onThumbnailLongClick: (() -> Unit)? = null,
+    onToggleHelp: (() -> Unit)? = null
 ) {
     var isWaterSectionExpanded by remember { mutableStateOf(false) }
 
@@ -213,9 +217,23 @@ fun WaterSummarySection(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            if (onAddWater != null) {
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                if (onAdd != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+
+            if (onAdd != null) {
                 IconButton(
-                    onClick = onAddWater,
+                    onClick = onAdd,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -236,6 +254,16 @@ fun WaterSummarySection(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
+                if (showHelp) {
+                    Text(
+                        text = helpText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 WaterSummaryCard(
                     water = waterList.first(),
                     verbose = verbose,

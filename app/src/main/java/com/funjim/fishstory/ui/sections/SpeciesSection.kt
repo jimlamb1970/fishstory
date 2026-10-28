@@ -25,6 +25,7 @@ import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.ui.cards.SpeciesItem
 import com.funjim.fishstory.ui.cards.TargetSpeciesItem
 import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -37,9 +38,9 @@ fun TargetSpeciesSection(
     items: List<Species>,
     verbose: Boolean,
     onAdd: () -> Unit,
+    modifier: Modifier = Modifier,
     onDelete: (Species) -> Unit,
     onClick: (Species) -> Unit,
-    modifier: Modifier = Modifier,
     emptyText: String = "No target species have been selected.",
     helpText: String = "You need help.",
     summaryProvider: (Species) -> Flow<SpeciesSummary?> = { flowOf(null) },
@@ -127,15 +128,17 @@ fun TargetSpeciesSection(
 fun SpeciesSummarySection(
     items: List<SpeciesSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     modifier: Modifier = Modifier,
     emptyText: String = "No target species have been selected.",
     helpText: String = "You need help.",
     thumbnailFlow: (Species) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
-    onClick: (Species) -> Unit,
-    onSetThumbnail: (Species) -> Unit,
     onClearThumbnail: (Species) -> Unit,
-    onDelete: (Species) -> Unit
+    onClick: (Species) -> Unit,
+    onDelete: (Species) -> Unit,
+    onSetThumbnail: (Species) -> Unit,
+    onToggleHelp: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -164,6 +167,18 @@ fun SpeciesSummarySection(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             IconButton(
                 onClick = { onAdd() },
@@ -195,6 +210,16 @@ fun SpeciesSummarySection(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         } else {
+            if (showHelp) {
+                Text(
+                    text = helpText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             items.forEachIndexed { index, item ->
                 SpeciesItem(
                     summary = item,

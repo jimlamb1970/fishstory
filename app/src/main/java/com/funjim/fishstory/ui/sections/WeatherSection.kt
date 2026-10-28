@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
@@ -32,6 +33,7 @@ import com.funjim.fishstory.model.WeatherWithDetails
 import com.funjim.fishstory.ui.cards.WeatherCard
 import com.funjim.fishstory.ui.cards.WeatherSummaryCard
 import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -158,14 +160,16 @@ fun WeatherSection(
 fun WeatherSummarySection(
     list: List<WeatherSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     useImperial: Boolean,
     emptyText: String = "No weather conditions are specified.",
     helpText: String = "You need help.",
     onAdd: (() -> Unit)? = null,
+    onDelete: (Weather) -> Unit,
     onEdit: (Weather) -> Unit,
     onFishClick: (Weather, Boolean) -> Unit,
-    onDelete: (Weather) -> Unit,
-    onThumbnailLongClick: (() -> Unit)? = null
+    onThumbnailLongClick: (() -> Unit)? = null,
+    onToggleHelp: (() -> Unit)? = null
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -213,6 +217,20 @@ fun WeatherSummarySection(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                if (onAdd != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+
             if (onAdd != null) {
                 IconButton(
                     onClick = onAdd,
@@ -236,6 +254,16 @@ fun WeatherSummarySection(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
+                if (showHelp) {
+                    Text(
+                        text = helpText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 WeatherSummaryCard(
                     weather = list.first(),
                     verbose = verbose,

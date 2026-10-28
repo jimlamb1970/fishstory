@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
@@ -35,12 +36,20 @@ import kotlin.collections.map
 
 class AddEventViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppSettings()
+        )
+
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
@@ -235,9 +244,6 @@ class AddEventViewModel(
         _eventDraft
     ) { trip, tackleBoxMap, event ->
         if (trip != null) {
-            val ids = trip.fishermen.map { it.id }.toSet()
-            _tripFishermanIds.value = ids
-
             AddEventUiState.Success(
                 trip = trip,
                 tripTackleBoxMap = tackleBoxMap,
@@ -315,10 +321,10 @@ class AddEventViewModel(
             try {
                 envRepo.addBodyOfWater(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Body of Water '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
@@ -331,10 +337,10 @@ class AddEventViewModel(
             try {
                 fishermanRepo.addFisherman(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Fisherman '${item.fullName}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding fisherman.")
             }
         }
@@ -347,10 +353,10 @@ class AddEventViewModel(
             try {
                 fishRepo.addSpecies(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Species '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding species.")
             }
         }
@@ -376,20 +382,6 @@ class AddEventViewModel(
         }
     }
 
-    fun createAndAssignEventTackleBox(fishermanId: String, eventId: String, name: String) {
-        viewModelScope.launch {
-            val tackleBox = TackleBox(fishermanId = fishermanId, name = name)
-            fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.updateEventFisherman(
-                EventFisherman(
-                    eventId,
-                    fishermanId,
-                    tackleBox.id
-                )
-            )
-        }
-    }
-
     fun resetEventDraft() {
         updateEventDraft { eventDraft.value.copy(
             id = UUID.randomUUID().toString(),
@@ -401,24 +393,9 @@ class AddEventViewModel(
         _selectedTripId.value = id
     }
 
-    // --- Crew Draft State ---
-    private val _tripFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val tripFishermenIds = _tripFishermanIds.asStateFlow()
-
-    private val _eventFishermanIds = MutableStateFlow<Set<String>>(emptySet())
-    val eventFishermenIds = _eventFishermanIds.asStateFlow()
-
-    fun toggleEventFisherman(id: String) {
-        _eventFishermanIds.update { if (it.contains(id)) it - id else it + id }
-    }
-
-    fun updateEventFishermanIds(ids: Set<String>) {
-        _eventFishermanIds.value = ids
-    }
-
-    fun insertTackleBox(tackleBox: TackleBox) {
+    fun toggleHelp() {
         viewModelScope.launch {
-            fishermanRepo.insertTackleBox(tackleBox)
+            configRepo.updateShowHelp(appSettings.value.display.showHelp.not())
         }
     }
 }
@@ -435,6 +412,7 @@ sealed interface AddEventUiState {
 
 class AddEventViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepository: ConfigurationRepository,
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -446,6 +424,7 @@ class AddEventViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return AddEventViewModel(
                 locationProvider,
+                configRepository,
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,

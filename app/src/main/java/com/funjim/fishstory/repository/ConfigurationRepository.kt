@@ -19,7 +19,7 @@ interface ConfigurationRepository {
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
     suspend fun updateColorTheme(colorTheme: String)
     suspend fun updateScrollBarOnLeft(onLeft: Boolean)
-    suspend fun updateShowHelpAlways(show: Boolean)
+    suspend fun updateShowHelp(show: Boolean)
     suspend fun updateUseImperialUnits(useImperial: Boolean)
     suspend fun updateVerboseCards(verbose: Boolean)
 
@@ -41,7 +41,7 @@ class ConfigurationRepositoryImpl(
                     cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
                     colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
                     scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
-                    showHelpAlways = preferences[PreferencesKeys.SHOW_HELP_ALWAYS] ?: false,
+                    showHelp = preferences[PreferencesKeys.SHOW_HELP] ?: false,
                     useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
                     verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
                 ),
@@ -71,9 +71,9 @@ class ConfigurationRepositoryImpl(
             preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] = onLeft
         }
     }
-    override suspend fun updateShowHelpAlways(show: Boolean) {
+    override suspend fun updateShowHelp(show: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.SHOW_HELP_ALWAYS] = show
+            preferences[PreferencesKeys.SHOW_HELP] = show
         }
     }
 

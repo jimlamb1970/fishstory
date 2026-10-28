@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.funjim.fishstory.model.*
+import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
@@ -31,12 +32,20 @@ import com.funjim.fishstory.ui.utils.LocationProvider
 
 class AddTripViewModel(
     private val locationProvider: LocationProvider,
+    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
+    val appSettings: StateFlow<AppSettings> = configRepo.appSettings
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppSettings()
+        )
+
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
@@ -331,10 +340,17 @@ class AddTripViewModel(
     fun updateTripDraft(update: (Trip) -> Trip) {
         _tripDraft.update(update)
     }
+
+    fun toggleHelp() {
+        viewModelScope.launch {
+            configRepo.updateShowHelp(appSettings.value.display.showHelp.not())
+        }
+    }
 }
 
 class AddTripViewModelFactory(
     private val locationProvider: LocationProvider,
+    private val configRepository: ConfigurationRepository,
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -346,6 +362,7 @@ class AddTripViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return AddTripViewModel(
                 locationProvider,
+                configRepository,
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,

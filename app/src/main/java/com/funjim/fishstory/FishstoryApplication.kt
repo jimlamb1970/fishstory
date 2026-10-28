@@ -118,6 +118,7 @@ class FishstoryApplication : Application() {
 
     fun getAddEventViewModelFactory() = AddEventViewModelFactory(
         locationProvider = locationProvider,
+        configRepository = configurationRepository,
         environmentRepository = environmentRepository,
         fishermanRepository = fishermanRepository,
         fishRepository = fishRepository,
@@ -137,6 +138,7 @@ class FishstoryApplication : Application() {
 
     fun getAddTripViewModelFactory() = AddTripViewModelFactory(
         locationProvider = locationProvider,
+        configRepository = configurationRepository,
         environmentRepository = environmentRepository,
         fishermanRepository = fishermanRepository,
         fishRepository = fishRepository,

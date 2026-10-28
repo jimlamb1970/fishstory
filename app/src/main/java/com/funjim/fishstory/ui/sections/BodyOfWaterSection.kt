@@ -1,5 +1,6 @@
 package com.funjim.fishstory.ui.sections
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,8 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Hevc
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -23,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.ui.cards.BodyOfWaterSummaryCard
+import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
+import com.funjim.fishstory.ui.utils.getMainButtonColor
+import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -31,16 +40,18 @@ import kotlinx.coroutines.flow.flowOf
 fun BodyOfWaterSummarySection(
     list: List<BodyOfWaterSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     modifier: Modifier = Modifier,
     emptyText: String = "No bodies of water are selected.",
     helpText: String = "You need help.",
     thumbnailFlow: (BodyOfWater) -> Flow<ByteArray?> = { flowOf(null) },
     onAdd: () -> Unit,
+    onClearThumbnail: (BodyOfWater) -> Unit,
     onClick: (BodyOfWater) -> Unit = { _ -> },
+    onDelete: (BodyOfWater) -> Unit,
     onFishClick: (BodyOfWater, Boolean) -> Unit = { _, _ -> },
     onSetThumbnail: (BodyOfWater) -> Unit,
-    onClearThumbnail: (BodyOfWater) -> Unit,
-    onDelete: (BodyOfWater) -> Unit
+    onToggleHelp: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -61,17 +72,27 @@ fun BodyOfWaterSummarySection(
                 )
 
                 if (list.size > 1) {
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "(${list.size})",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = getOnMainColor()
+                    BadgeCount(
+                        count = list.size,
+                        badgeColor = getMainButtonColor(),
+                        textColor = getOnMainButtonColor()
                     )
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             IconButton(
                 onClick = onAdd,
@@ -93,6 +114,16 @@ fun BodyOfWaterSummarySection(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                if (showHelp) {
+                    Text(
+                        text = helpText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 list.forEachIndexed { index, item ->
                     BodyOfWaterSummaryCard(
                         item = item,

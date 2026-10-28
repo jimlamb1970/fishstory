@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -27,6 +28,7 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.cards.FishermanSummaryCard
 import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.flowOf
 fun FishermanSummarySection(
     list: List<FishermanSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     modifier: Modifier = Modifier,
     emptyText: String = "No fishermen are selected.",
     helpText: String = "You need help.",
@@ -47,16 +50,17 @@ fun FishermanSummarySection(
     getLureCount: @Composable (tackleBoxId: String?) -> Int,
     getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onAdd: () -> Unit,
-    onAddTackleBox: (TackleBox) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
+    onAddTackleBox: (TackleBox) -> Unit,
     onClick: (Fisherman) -> Unit = { _ -> },
+    onDelete: ((Fisherman) -> Unit)? = null,
     onFishClick: (Fisherman, Boolean) -> Unit = { _, _ -> },
-    onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onPhotoAdded: (Fisherman, Uri) -> Unit = { _, _ -> },
+    onPhotoDeleted: (Fisherman, Photo) -> Unit = { _, _ -> },
     onPhotoTaken: (Fisherman, Uri) -> Unit = { _, _ -> },
     onSetThumbnail: (Fisherman, Photo) -> Unit,
-    onPhotoDeleted: (Fisherman, Photo) -> Unit = { _, _ -> },
-    onDelete: ((Fisherman) -> Unit)? = null
+    onTackleBoxSelected: (Fisherman, String?) -> Unit,
+    onToggleHelp: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -87,6 +91,18 @@ fun FishermanSummarySection(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
             IconButton(
                 onClick = onAdd,
                 colors = IconButtonDefaults.iconButtonColors(
@@ -107,6 +123,16 @@ fun FishermanSummarySection(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                if (showHelp) {
+                    Text(
+                        text = helpText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 list.forEachIndexed { index, item ->
                     val selectedTackleBoxId = tackleBoxSelections[item.fisherman.id]
                     val availableBoxes = getTackleBoxesForFisherman(item.fisherman.id)

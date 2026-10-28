@@ -762,6 +762,11 @@ class EventViewModel(
         }
     }
 
+    fun toggleHelp() {
+        viewModelScope.launch {
+            configRepo.updateShowHelp(appSettings.value.display.showHelp.not())
+        }
+    }
     fun toggleImperialUnits() {
         viewModelScope.launch {
             configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())

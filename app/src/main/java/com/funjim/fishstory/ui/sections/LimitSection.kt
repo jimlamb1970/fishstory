@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.cards.LimitSummaryCard
 import com.funjim.fishstory.ui.utils.BadgeCount
+import com.funjim.fishstory.ui.utils.BadgeHelp
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainColor
@@ -34,6 +36,7 @@ import com.funjim.fishstory.ui.utils.getOnMainColor
 fun LimitSummarySection(
     itemList: List<LimitSummary>,
     verbose: Boolean,
+    showHelp: Boolean,
     useImperial: Boolean,
     scope: LimitScope,
     emptyText: String = "No limits created.",
@@ -42,8 +45,9 @@ fun LimitSummarySection(
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     onAdd: (() -> Unit)? = null,
+    onDelete: (Limit) -> Unit,
     onEdit: (Limit) -> Unit,
-    onDelete: (Limit) -> Unit
+    onToggleHelp: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -74,6 +78,20 @@ fun LimitSummarySection(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            if (onToggleHelp != null) {
+                BadgeHelp(
+                    selected = showHelp,
+                    badgeColor = getMainButtonColor(),
+                    textColor = getOnMainButtonColor(),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    size = 24.dp,
+                    onClick = onToggleHelp
+                )
+                if (onAdd != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+
             if (onAdd != null) {
                 IconButton(
                     onClick = onAdd,
@@ -92,6 +110,16 @@ fun LimitSummarySection(
         }
 
         if (itemList.isNotEmpty()) {
+            if (showHelp) {
+                Text(
+                    text = helpText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             itemList.forEachIndexed { index, item ->
                 LimitSummaryCard(
                     item = item,

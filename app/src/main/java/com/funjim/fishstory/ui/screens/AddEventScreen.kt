@@ -78,7 +78,7 @@ fun AddEventScreen(
     val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
-
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val uiState by viewModel.uiAddEventState.collectAsStateWithLifecycle()
 
@@ -638,27 +638,29 @@ fun AddEventScreen(
 
                                     BodyOfWaterSummarySection(
                                         list = bowSummaries,
+                                        verbose = false,
+                                        showHelp = appSettings.display.showHelp,
                                         emptyText = "No bodies of water selected.",
                                         helpText = """Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
-                                        verbose = false,
                                         thumbnailFlow = { bodyOfWater ->
                                             viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                                         },
                                         onAdd = { showBodyOfWaterSelection = true },
+                                        onClearThumbnail = { bodyOfWater ->
+                                            viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
+                                        },
+                                        onDelete = { bodyOfWater ->
+                                            viewModel.updateEventBodiesOfWater(bodiesOfWater - bodyOfWater)
+                                        },
                                         onSetThumbnail = { bodyOfWater ->
                                             bodyOfWaterForPhoto = bodyOfWater
                                             photoPickerLauncher.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        onClearThumbnail = { bodyOfWater ->
-                                            viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
-                                        },
-                                        onDelete = { bodyOfWater ->
-                                            viewModel.updateEventBodiesOfWater(bodiesOfWater - bodyOfWater)
-                                        }
+                                        onToggleHelp = { viewModel.toggleHelp() }
                                     )
                                 }
 
@@ -671,6 +673,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                         FishermanSummarySection(
                                             list = fishermanSummaries,
                                             verbose = false,
+                                            showHelp = appSettings.display.showHelp,
                                             emptyText = "No fishermen selected.",
                                             helpText = """At least one participant must be added to this event.
 
@@ -698,6 +701,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             onAdd = {
                                                 showFishermanSelection = true
                                             },
+                                            onAddLuresToTackleBox = { tackleBox ->
+                                                navigateToAddLures(tackleBox)
+                                            },
                                             onAddTackleBox = { tackleBox ->
                                                 viewModel.createTackleBox(tackleBox) { tackleBox ->
                                                     viewModel.updateEventTackleBoxMap(
@@ -705,12 +711,21 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     )
                                                 }
                                             },
-                                            onAddLuresToTackleBox = { tackleBox ->
-                                                navigateToAddLures(tackleBox)
+                                            onDelete = { fisherman ->
+                                                viewModel.updateEventFishermen(eventFishermen - fisherman)
+                                                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - fisherman.id)
                                             },
-                                            onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                                viewModel.updateEventTackleBoxMap(
-                                                    eventTackleBoxMap + (fisherman.id to tackleBoxId)
+                                            onPhotoAdded = { fisherman, uri ->
+                                                viewModel.addFishermanPhoto(
+                                                    fisherman.id,
+                                                    uri,
+                                                    true
+                                                )
+                                            },
+                                            onPhotoDeleted = { fisherman, photo ->
+                                                viewModel.deleteFishermanPhoto(
+                                                    fisherman.id,
+                                                    photo.id
                                                 )
                                             },
                                             onPhotoTaken = { fisherman, uri ->
@@ -720,29 +735,18 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     false
                                                 )
                                             },
-                                            onPhotoAdded = { fisherman, uri ->
-                                                viewModel.addFishermanPhoto(
-                                                    fisherman.id,
-                                                    uri,
-                                                    true
-                                                )
-                                            },
                                             onSetThumbnail = { fisherman, photo ->
                                                 viewModel.setFishermanThumbnail(
                                                     fisherman.id,
                                                     photo.id
                                                 )
                                             },
-                                            onPhotoDeleted = { fisherman, photo ->
-                                                viewModel.deleteFishermanPhoto(
-                                                    fisherman.id,
-                                                    photo.id
+                                            onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                viewModel.updateEventTackleBoxMap(
+                                                    eventTackleBoxMap + (fisherman.id to tackleBoxId)
                                                 )
                                             },
-                                            onDelete = { fisherman ->
-                                                viewModel.updateEventFishermen(eventFishermen - fisherman)
-                                                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - fisherman.id)
-                                            }
+                                            onToggleHelp = { viewModel.toggleHelp() }
                                         )
                                     }
                                 }
@@ -755,6 +759,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                     SpeciesSummarySection(
                                         items = speciesSummaries,
                                         verbose = false,
+                                        showHelp = appSettings.display.showHelp,
                                         emptyText = "No target species selected.",
                                         helpText = """Target species are what you're actively fishing for. 
 
@@ -763,19 +768,20 @@ Selecting them places those species at the top of the list when logging catches 
                                             viewModel.getSpeciesThumbnail(species.id)
                                         },
                                         onAdd = { showSpeciesSelection = true },
+                                        onClearThumbnail = { species ->
+                                            viewModel.deleteSpeciesThumbnail(species.id)
+                                        },
                                         onClick = { /* Do nothing */ },
+                                        onDelete = { species ->
+                                            viewModel.updateEventTargetSpecies(targetSpecies - species)
+                                        },
                                         onSetThumbnail = { species ->
                                             speciesForPhoto = species
                                             speciesPhotoPicker.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        onClearThumbnail = { species ->
-                                            viewModel.deleteSpeciesThumbnail(species.id)
-                                        },
-                                        onDelete = { species ->
-                                            viewModel.updateEventTargetSpecies(targetSpecies - species)
-                                        }
+                                        onToggleHelp = { viewModel.toggleHelp() }
                                     )
                                 }
 
@@ -882,28 +888,28 @@ Selecting them places those species at the top of the list when logging catches 
 
     if (addNewBodyOfWater) {
         AddSpeciesDialog(
-            onDismiss = { addNewBodyOfWater = false },
+            onDismiss = { addNewBodyOfWater = !addNewBodyOfWater },
             onConfirm = { name ->
                 viewModel.updateEventBodiesOfWater(BodyOfWater(name = name))
-                addNewBodyOfWater = false
+                addNewBodyOfWater = !addNewBodyOfWater
             }
         )
     }
     if (addNewFisherman) {
         AddFishermanDialog(
-            onDismiss = { addNewFisherman = false },
+            onDismiss = { addNewFisherman = !addNewFisherman },
             onAdd = { firstName, lastName, nickname ->
                 viewModel.updateEventFishermen(Fisherman(firstName = firstName, lastName = lastName, nickname = nickname))
-                addNewFisherman = false
+                addNewFisherman = !addNewFisherman
             }
         )
     }
     if (addNewSpecies) {
         AddSpeciesDialog(
-            onDismiss = { addNewSpecies = false },
+            onDismiss = { addNewSpecies = !addNewSpecies },
             onConfirm = { name ->
                 viewModel.updateEventTargetSpecies(Species(name = name))
-                addNewSpecies = false
+                addNewSpecies = !addNewSpecies
             }
         )
     }
@@ -913,7 +919,7 @@ Selecting them places those species at the top of the list when logging catches 
         var addAnotherEvent by remember { mutableStateOf(false) }
 
         AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
+            onDismissRequest = { showSaveDialog = !showSaveDialog },
             title = {
                 Text(
                     text = "Save Event",
@@ -949,7 +955,7 @@ Selecting them places those species at the top of the list when logging catches 
             confirmButton = {
                 Button(
                     onClick = {
-                        showSaveDialog = false
+                        showSaveDialog = !showSaveDialog
                         viewModel.saveEvent()
                         if (!addAnotherEvent) {
                             navigateBack()
@@ -960,7 +966,7 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
+                TextButton(onClick = { showSaveDialog = !showSaveDialog }) {
                     Text("Cancel")
                 }
             }
@@ -974,34 +980,35 @@ Selecting them places those species at the top of the list when logging catches 
         if (addNewTackleBox) {
             AddTackleBoxDialog(
                 fishermanId = selectedFisherman.id,
-                onDismiss = { addNewTackleBox = false },
+                onDismiss = { addNewTackleBox = !addNewTackleBox },
                 onConfirm = { tackleBox ->
                     viewModel.createTackleBox(tackleBox) { createdBox ->
                         viewModel.updateEventTackleBoxMap(
                             eventTackleBoxMap + (selectedFisherman.id to createdBox.id)
                         )
                     }
-                    addNewTackleBox = false
+                    addNewTackleBox = !addNewTackleBox
                 }
             )
         }
 
-        TackleBoxBottomSheet(
-            showSheet = showTackleBoxSelection,
-            items = availableBoxes,
-            selectedItem = availableBoxes.find {
-                it.id == eventTackleBoxMap[selectedFisherman.id]
-            },
-            onSelected = { tackleBox ->
-                viewModel.updateEventTackleBoxMap(
-                    eventTackleBoxMap + (selectedFisherman.id to tackleBox.id)
-                )
-            },
-            onAdd = { addNewTackleBox = true },
-            onClear = {
-                viewModel.updateEventTackleBoxMap(eventTackleBoxMap - selectedFisherman.id)
-            },
-            onDismissRequest = { showTackleBoxSelection = false }
-        )
+        if (showTackleBoxSelection) {
+            TackleBoxBottomSheet(
+                items = availableBoxes,
+                selectedItem = availableBoxes.find {
+                    it.id == eventTackleBoxMap[selectedFisherman.id]
+                },
+                onSelected = { tackleBox ->
+                    viewModel.updateEventTackleBoxMap(
+                        eventTackleBoxMap + (selectedFisherman.id to tackleBox.id)
+                    )
+                },
+                onAdd = { addNewTackleBox = true },
+                onClear = {
+                    viewModel.updateEventTackleBoxMap(eventTackleBoxMap - selectedFisherman.id)
+                },
+                onDismissRequest = { showTackleBoxSelection = !showTackleBoxSelection }
+            )
+        }
     }
 }

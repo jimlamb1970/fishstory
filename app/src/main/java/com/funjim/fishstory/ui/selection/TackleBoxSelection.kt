@@ -69,9 +69,6 @@ fun TackleBoxSelectionField(
     modifier: Modifier = Modifier
 ) {
     var showSheet by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    var isGridView by remember { mutableStateOf(true) }
 
     OutlinedTextField(
         value = selectedItem?.name ?: "Select Tackle Box",
@@ -88,21 +85,21 @@ fun TackleBoxSelectionField(
         trailingIcon = { Icon(Icons.AutoMirrored.Filled.List, "Open Selector") }
     )
 
-    TackleBoxBottomSheet(
-        showSheet = showSheet,
-        items = items,
-        selectedItem = selectedItem,
-        onSelected = onSelected,
-        onAdd = onAdd,
-        onClear = onClear,
-        onDismissRequest = { showSheet = false }
-    )
+    if (showSheet) {
+        TackleBoxBottomSheet(
+            items = items,
+            selectedItem = selectedItem,
+            onSelected = onSelected,
+            onAdd = onAdd,
+            onClear = onClear,
+            onDismissRequest = { showSheet = !showSheet }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TackleBoxBottomSheet(
-    showSheet: Boolean,
     items: List<TackleBox>,
     selectedItem: TackleBox?,
     onSelected: (TackleBox) -> Unit,
@@ -110,8 +107,6 @@ fun TackleBoxBottomSheet(
     onClear: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    if (!showSheet) return
-
     var searchQuery by remember { mutableStateOf("") }
     var isGridView by remember { mutableStateOf(true) }
 

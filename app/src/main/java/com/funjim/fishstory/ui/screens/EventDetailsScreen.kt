@@ -905,6 +905,7 @@ fun EventDetailsScreen(
                                         BodyOfWaterSummarySection(
                                             list = sortedBodyOfWaterList,
                                             verbose = appSettings.display.verboseCards,
+                                            showHelp = appSettings.display.showHelp,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
                                                 horizontal = 16.dp
@@ -917,8 +918,14 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
                                             },
                                             onAdd = { showBodiesOfWaterSelection = true },
+                                            onClearThumbnail = { bodyOfWater ->
+                                                viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
+                                            },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
+                                            },
+                                            onDelete = { bodyOfWater ->
+                                                bodyOfWaterToDelete = bodyOfWater
                                             },
                                             onFishClick = { bodyOfWater, target ->
                                                 navigateToFishList(FishFilter(
@@ -934,12 +941,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                                 )
                                             },
-                                            onClearThumbnail = { bodyOfWater ->
-                                                viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
-                                            },
-                                            onDelete = { bodyOfWater ->
-                                                bodyOfWaterToDelete = bodyOfWater
-                                            }
+                                            onToggleHelp = { viewModel.toggleHelp() }
                                         )
                                     }
                                     CategoryType.FISHERMEN -> {
@@ -947,6 +949,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             FishermanSummarySection(
                                                 list = sortedFishermanList,
                                                 verbose = appSettings.display.verboseCards,
+                                                showHelp = appSettings.display.showHelp,
                                                 modifier = Modifier.padding(
                                                     vertical = 8.dp,
                                                     horizontal = 16.dp
@@ -986,25 +989,15 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 },
                                                 onClick = { fisherman -> /* do nothing */
                                                 },
+                                                onDelete = { fisherman ->
+                                                    fishermanToDelete = fisherman
+                                                },
                                                 onFishClick = { fisherman, target ->
                                                     navigateToFishList(FishFilter(
                                                         tripId = trip.id,
                                                         eventId = event.id,
                                                         fishermanId = fisherman.id,
                                                         targetOnly = target)
-                                                    )
-                                                },
-                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                                    viewModel.updateEventFisherman(
-                                                        fishermanId = fisherman.id,
-                                                        tackleBoxId = tackleBoxId
-                                                    )
-                                                },
-                                                onPhotoTaken = { fisherman, uri ->
-                                                    viewModel.addFishermanPhoto(
-                                                        fisherman.id,
-                                                        uri,
-                                                        false
                                                     )
                                                 },
                                                 onPhotoAdded = { fisherman, uri ->
@@ -1014,21 +1007,32 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                         true
                                                     )
                                                 },
-                                                onSetThumbnail = { fisherman, photo ->
-                                                    viewModel.setFishermanThumbnail(
-                                                        fisherman.id,
-                                                        photo.id
-                                                    )
-                                                },
                                                 onPhotoDeleted = { fisherman, photo ->
                                                     viewModel.deleteFishermanPhoto(
                                                         fisherman.id,
                                                         photo.id
                                                     )
                                                 },
-                                                onDelete = { fisherman ->
-                                                    fishermanToDelete = fisherman
-                                                }
+                                                onPhotoTaken = { fisherman, uri ->
+                                                    viewModel.addFishermanPhoto(
+                                                        fisherman.id,
+                                                        uri,
+                                                        false
+                                                    )
+                                                },
+                                                onSetThumbnail = { fisherman, photo ->
+                                                    viewModel.setFishermanThumbnail(
+                                                        fisherman.id,
+                                                        photo.id
+                                                    )
+                                                },
+                                                onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                                    viewModel.updateEventFisherman(
+                                                        fishermanId = fisherman.id,
+                                                        tackleBoxId = tackleBoxId
+                                                    )
+                                                },
+                                                onToggleHelp = { viewModel.toggleHelp() }
                                             )
                                         }
                                     }
@@ -1036,6 +1040,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                         LimitSummarySection(
                                             itemList = limitSummaries,
                                             verbose = appSettings.display.verboseCards,
+                                            showHelp = appSettings.display.showHelp,
                                             useImperial = appSettings.display.useImperialUnits,
                                             emptyText = "No limits created.",
                                             helpText = """Limits track your total catches to help ensure compliance with local fishing regulations.
@@ -1060,26 +1065,29 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 )
                                             },
                                             onAdd = { showLimitSelection = true },
-                                            onEdit = { limitToEdit = it },
                                             onDelete = { limit ->
                                                 limitToDelete = limit
-                                            }
-                                        )
+                                            },
+                                            onEdit = { limitToEdit = it },
+                                            onToggleHelp = { viewModel.toggleHelp() }                                        )
                                     }
                                     CategoryType.NOTES -> {
                                         NoteSection(
                                             noteList = sortedNotes,
+                                            showHelp = appSettings.display.showHelp,
                                             emptyText = "No notes created.",
                                             helpText = " Notes help you remember specific details and conditions during this event.",
                                             onAdd = { showAddNoteDialog = true },
+                                            onDelete = { noteToDelete = it },
                                             onEdit = { noteToEdit = it },
-                                            onDelete = { noteToDelete = it }
+                                            onToggleHelp = { viewModel.toggleHelp() },
                                         )
                                     }
                                     CategoryType.TARGET_SPECIES -> {
                                         SpeciesSummarySection(
                                             items = sortedTargetSpeciesList,
                                             verbose = appSettings.display.verboseCards,
+                                            showHelp = appSettings.display.showHelp,
                                             emptyText = "No target species selected.",
                                             helpText = """Target species are what you're actively fishing for. 
 
@@ -1092,6 +1100,9 @@ Selecting them places those species at the top of the list when logging catches 
                                                 viewModel.getSpeciesThumbnail(species.id)
                                             },
                                             onAdd = { showSpeciesSelection = true },
+                                            onClearThumbnail = { species ->
+                                                viewModel.deleteSpeciesThumbnail(species.id)
+                                            },
                                             onClick = { species ->
                                                 navigateToFishList(FishFilter(
                                                     tripId = trip.id,
@@ -1100,28 +1111,28 @@ Selecting them places those species at the top of the list when logging catches 
                                                     targetOnly = true)
                                                 )
                                             },
+                                            onDelete = { species ->
+                                                speciesToDelete = species
+                                            },
                                             onSetThumbnail = { species ->
                                                 speciesForPhoto = species
                                                 speciesPhotoPicker.launch(
                                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                                 )
                                             },
-                                            onClearThumbnail = { species ->
-                                                viewModel.deleteSpeciesThumbnail(species.id)
-                                            },
-                                            onDelete = { species ->
-                                                speciesToDelete = species
-                                            }
+                                            onToggleHelp = { viewModel.toggleHelp() },
                                         )
                                     }
                                     CategoryType.WATER -> {
                                         WaterSummarySection(
                                             waterList = sortedWaterList,
                                             verbose = appSettings.display.verboseCards,
+                                            showHelp = appSettings.display.showHelp,
                                             useImperial = appSettings.display.useImperialUnits,
                                             emptyText = "No water conditions specified.",
                                             helpText = "Adding water conditions will automatically apply them to any new catches logged for this event.",
-                                            onAddWater = { showAddWaterDialog = true },
+                                            onAdd = { showAddWaterDialog = true },
+                                            onDelete = { waterToDelete = it },
                                             onEdit = { waterToEdit = it },
                                             onFishClick = { water, target ->
                                                 navigateToFishList(FishFilter(
@@ -1131,20 +1142,22 @@ Selecting them places those species at the top of the list when logging catches 
                                                     targetOnly = target)
                                                 )
                                             },
-                                            onDelete = { waterToDelete = it },
                                             onThumbnailLongClick = {
                                                 viewModel.toggleImperialUnits()
-                                            }
+                                            },
+                                            onToggleHelp = { viewModel.toggleHelp() }
                                         )
                                     }
                                     CategoryType.WEATHER -> {
                                         WeatherSummarySection(
                                             list = sortedWeatherList,
                                             verbose = appSettings.display.verboseCards,
+                                            showHelp = appSettings.display.showHelp,
                                             useImperial = appSettings.display.useImperialUnits,
                                             emptyText = "No weather conditions specified.",
                                             helpText = "No weather conditions specified.Adding weather conditions will automatically apply them to any new catches logged for this event.",
                                             onAdd = { showAddWeatherDialog = true },
+                                            onDelete = { weatherToDelete = it },
                                             onEdit = { weatherToEdit = it },
                                             onFishClick = { weather, target ->
                                                 navigateToFishList(FishFilter(
@@ -1154,10 +1167,10 @@ Selecting them places those species at the top of the list when logging catches 
                                                     targetOnly = target)
                                                 )
                                             },
-                                            onDelete = { weatherToDelete = it },
                                             onThumbnailLongClick = {
                                                 viewModel.toggleImperialUnits()
-                                            }
+                                            },
+                                            onToggleHelp = { viewModel.toggleHelp() }
                                         )
                                     }
                                     else -> {

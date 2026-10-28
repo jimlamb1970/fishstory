@@ -76,6 +76,7 @@ fun AddTripScreen(
     val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val tripDraft by viewModel.tripDraft.collectAsStateWithLifecycle()
 
@@ -549,27 +550,29 @@ fun AddTripScreen(
 
                             BodyOfWaterSummarySection(
                                 list = bowSummaries,
+                                verbose = false,
+                                showHelp = appSettings.display.showHelp,
                                 emptyText = "No bodies of water selected.",
                                 helpText = """Bodies of water are where you're actively fishing. 
 
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
-                                verbose = false,
                                 thumbnailFlow = { bodyOfWater ->
                                     viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
                                 },
                                 onAdd = { showBodyOfWaterSelection = true },
+                                onClearThumbnail = { bodyOfWater ->
+                                    viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
+                                },
+                                onDelete = { bodyOfWater ->
+                                    viewModel.updateTripBodiesOfWater(bodiesOfWater - bodyOfWater)
+                                },
                                 onSetThumbnail = { bodyOfWater ->
                                     bodyOfWaterForPhoto = bodyOfWater
                                     photoPickerLauncher.launch(
                                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                     )
                                 },
-                                onClearThumbnail = { bodyOfWater ->
-                                    viewModel.deleteBodyOfWaterThumbnail(bodyOfWater.id)
-                                },
-                                onDelete = { bodyOfWater ->
-                                    viewModel.updateTripBodiesOfWater(bodiesOfWater - bodyOfWater)
-                                }
+                                onToggleHelp = { viewModel.toggleHelp() }
                             )
                         }
 
@@ -582,6 +585,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                 FishermanSummarySection(
                                     list = fishermanSummaries,
                                     verbose = false,
+                                    showHelp = appSettings.display.showHelp,
                                     emptyText = "No fishermen selected.",
                                     helpText = """At least one participant must be added to this trip.
 
@@ -609,6 +613,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                     onAdd = {
                                         showFishermanSelection = true
                                     },
+                                    onAddLuresToTackleBox = { tackleBox ->
+                                        navigateToAddLures(tackleBox)
+                                    },
                                     onAddTackleBox = { tackleBox ->
                                         viewModel.createTackleBox(tackleBox) { tackleBox ->
                                             viewModel.updateTripTackleBoxMap(
@@ -616,12 +623,21 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             )
                                         }
                                     },
-                                    onAddLuresToTackleBox = { tackleBox ->
-                                        navigateToAddLures(tackleBox)
+                                    onDelete = { fisherman ->
+                                        viewModel.updateTripFishermen(tripFishermen - fisherman)
+                                        viewModel.updateTripTackleBoxMap(tripTackleBoxMap - fisherman.id)
                                     },
-                                    onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                        viewModel.updateTripTackleBoxMap(
-                                            tripTackleBoxMap + (fisherman.id to tackleBoxId)
+                                    onPhotoAdded = { fisherman, uri ->
+                                        viewModel.addFishermanPhoto(
+                                            fisherman.id,
+                                            uri,
+                                            true
+                                        )
+                                    },
+                                    onPhotoDeleted = { fisherman, photo ->
+                                        viewModel.deleteFishermanPhoto(
+                                            fisherman.id,
+                                            photo.id
                                         )
                                     },
                                     onPhotoTaken = { fisherman, uri ->
@@ -631,29 +647,18 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             false
                                         )
                                     },
-                                    onPhotoAdded = { fisherman, uri ->
-                                        viewModel.addFishermanPhoto(
-                                            fisherman.id,
-                                            uri,
-                                            true
-                                        )
-                                    },
                                     onSetThumbnail = { fisherman, photo ->
                                         viewModel.setFishermanThumbnail(
                                             fisherman.id,
                                             photo.id
                                         )
                                     },
-                                    onPhotoDeleted = { fisherman, photo ->
-                                        viewModel.deleteFishermanPhoto(
-                                            fisherman.id,
-                                            photo.id
+                                    onTackleBoxSelected = { fisherman, tackleBoxId ->
+                                        viewModel.updateTripTackleBoxMap(
+                                            tripTackleBoxMap + (fisherman.id to tackleBoxId)
                                         )
                                     },
-                                    onDelete = { fisherman ->
-                                        viewModel.updateTripFishermen(tripFishermen - fisherman)
-                                        viewModel.updateTripTackleBoxMap(tripTackleBoxMap - fisherman.id)
-                                    }
+                                    onToggleHelp = { viewModel.toggleHelp() }
                                 )
                             }
                         }
@@ -666,6 +671,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                             SpeciesSummarySection(
                                 items = speciesSummaries,
                                 verbose = false,
+                                showHelp = appSettings.display.showHelp,
                                 emptyText = "No target species selected.",
                                 helpText = """Target species are what you're actively fishing for. 
 
@@ -674,19 +680,20 @@ Selecting them places those species at the top of the list when logging catches 
                                     viewModel.getSpeciesThumbnail(species.id)
                                 },
                                 onAdd = { showSpeciesSelection = true },
+                                onClearThumbnail = { species ->
+                                    viewModel.deleteSpeciesThumbnail(species.id)
+                                },
                                 onClick = { /* Do nothing */ },
+                                onDelete = { species ->
+                                    viewModel.updateTripTargetSpecies(targetSpecies - species)
+                                },
                                 onSetThumbnail = { species ->
                                     speciesForPhoto = species
                                     speciesPhotoPicker.launch(
                                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                     )
                                 },
-                                onClearThumbnail = { species ->
-                                    viewModel.deleteSpeciesThumbnail(species.id)
-                                },
-                                onDelete = { species ->
-                                    viewModel.updateTripTargetSpecies(targetSpecies - species)
-                                }
+                                onToggleHelp = { viewModel.toggleHelp() },
                             )
                         }
 
@@ -695,127 +702,127 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
         }
-
-        if (showBodyOfWaterSelection) {
-            BodyOfWaterSelection(
-                items = allBodiesOfWater,
-                selectedItems = bodiesOfWater,
-                onSelected = { selected ->
-                    viewModel.updateTripBodiesOfWater(bodiesOfWater + selected)
-                },
-                onUnselected = { unselected ->
-                    viewModel.updateTripBodiesOfWater(bodiesOfWater - unselected)
-                },
-                onAdd = {
-                    addNewBodyOfWater = true
-                },
-                onDone = { showBodyOfWaterSelection = false },
-                modifier = Modifier.fillMaxWidth(),
-                thumbnailProvider = { item ->
-                    val thumbnailFlow = remember(item.id) {
-                        viewModel.getBodyOfWaterThumbnail(item.id)
-                    }
-
-                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                    ThumbnailBox(
-                        thumbnail = thumbnail,
-                        imageVector = AppIcons.Default.BodyOfWater,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            )
-        }
-        if (showFishermanSelection) {
-            val sorted = allFishermen.sortedBy { it.fullName }
-            FishermanSelection(
-                items = sorted,
-                selectedItems = tripFishermen,
-                onSelected = { selected->
-                    viewModel.updateTripFishermen(tripFishermen + selected)
-                },
-                onUnselected = { unselected ->
-                    viewModel.updateTripFishermen(tripFishermen - unselected)
-                },
-                onAdd = {
-                    addNewFisherman = true
-                },
-                onDone = { showFishermanSelection = false },
-                modifier = Modifier.fillMaxWidth(),
-                thumbnailProvider = { item ->
-                    val thumbnailFlow = remember(item.id) {
-                        viewModel.getFishermanThumbnail(item.id)
-                    }
-
-                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                    ThumbnailBox(
-                        thumbnail = thumbnail,
-                        imageVector = AppIcons.Default.Fisherman,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            )
-        }
-        if (showSpeciesSelection) {
-            SpeciesSelection(
-                items = allSpecies,
-                selectedItems = targetSpecies,
-                onSelected = { selected ->
-                    viewModel.updateTripTargetSpecies(targetSpecies + selected)
-                },
-                onUnselected = { unselected ->
-                    viewModel.updateTripTargetSpecies(targetSpecies - unselected)
-                },
-                onAdd = {
-                    addNewSpecies = true
-                },
-                onDone = { showSpeciesSelection = false },
-                modifier = Modifier.fillMaxWidth(),
-                thumbnailProvider = { species ->
-                    val thumbnailFlow = remember(species.id) {
-                        viewModel.getSpeciesThumbnail(species.id)
-                    }
-
-                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                    ThumbnailBox(
-                        thumbnail = thumbnail,
-                        imageVector = AppIcons.Default.TargetFish,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            )
-        }
     }
 
     if (addNewBodyOfWater) {
         AddSpeciesDialog(
-            onDismiss = { addNewBodyOfWater = false },
+            onDismiss = { addNewBodyOfWater = !addNewBodyOfWater },
             onConfirm = { name ->
                 viewModel.updateTripBodiesOfWater(BodyOfWater(name = name))
-                addNewBodyOfWater = false
+                addNewBodyOfWater = !addNewBodyOfWater
             }
         )
     }
     if (addNewFisherman) {
         AddFishermanDialog(
-            onDismiss = { addNewFisherman = false },
+            onDismiss = { addNewFisherman = !addNewFisherman },
             onAdd = { firstName, lastName, nickname ->
                 viewModel.updateTripFishermen(Fisherman(
                     firstName = firstName,
                     lastName = lastName,
                     nickname = nickname))
-                addNewFisherman = false
+                addNewFisherman = !addNewFisherman
             }
         )
     }
     if (addNewSpecies) {
         AddSpeciesDialog(
-            onDismiss = { addNewSpecies = false },
+            onDismiss = { addNewSpecies = !addNewSpecies },
             onConfirm = { name ->
                 viewModel.updateTripTargetSpecies(Species(name = name))
-                addNewSpecies = false
+                addNewSpecies = !addNewSpecies
+            }
+        )
+    }
+
+    if (showBodyOfWaterSelection) {
+        BodyOfWaterSelection(
+            items = allBodiesOfWater,
+            selectedItems = bodiesOfWater,
+            onSelected = { selected ->
+                viewModel.updateTripBodiesOfWater(bodiesOfWater + selected)
+            },
+            onUnselected = { unselected ->
+                viewModel.updateTripBodiesOfWater(bodiesOfWater - unselected)
+            },
+            onAdd = {
+                addNewBodyOfWater = true
+            },
+            onDone = { showBodyOfWaterSelection = false },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { item ->
+                val thumbnailFlow = remember(item.id) {
+                    viewModel.getBodyOfWaterThumbnail(item.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.BodyOfWater,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+    if (showFishermanSelection) {
+        val sorted = allFishermen.sortedBy { it.fullName }
+        FishermanSelection(
+            items = sorted,
+            selectedItems = tripFishermen,
+            onSelected = { selected->
+                viewModel.updateTripFishermen(tripFishermen + selected)
+            },
+            onUnselected = { unselected ->
+                viewModel.updateTripFishermen(tripFishermen - unselected)
+            },
+            onAdd = {
+                addNewFisherman = true
+            },
+            onDone = { showFishermanSelection = false },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { item ->
+                val thumbnailFlow = remember(item.id) {
+                    viewModel.getFishermanThumbnail(item.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Fisherman,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+    if (showSpeciesSelection) {
+        SpeciesSelection(
+            items = allSpecies,
+            selectedItems = targetSpecies,
+            onSelected = { selected ->
+                viewModel.updateTripTargetSpecies(targetSpecies + selected)
+            },
+            onUnselected = { unselected ->
+                viewModel.updateTripTargetSpecies(targetSpecies - unselected)
+            },
+            onAdd = {
+                addNewSpecies = true
+            },
+            onDone = { showSpeciesSelection = false },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { species ->
+                val thumbnailFlow = remember(species.id) {
+                    viewModel.getSpeciesThumbnail(species.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.TargetFish,
+                    modifier = Modifier.size(48.dp)
+                )
             }
         )
     }
@@ -830,7 +837,7 @@ Selecting them places those species at the top of the list when logging catches 
         )
 
         AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
+            onDismissRequest = { showSaveDialog = !showSaveDialog },
             title = {
                 Text(
                     text = "Save Trip",
@@ -873,7 +880,7 @@ Selecting them places those species at the top of the list when logging catches 
             confirmButton = {
                 Button(
                     onClick = {
-                        showSaveDialog = false
+                        showSaveDialog = !showSaveDialog
                         when (selectedOption) {
                             0 -> {
                                 viewModel.saveTrip()
@@ -896,7 +903,7 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
+                TextButton(onClick = { showSaveDialog = !showSaveDialog }) {
                     Text("Cancel")
                 }
             }
