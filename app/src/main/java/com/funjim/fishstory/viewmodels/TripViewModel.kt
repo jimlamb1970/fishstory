@@ -592,11 +592,7 @@ class TripViewModel(
     }
 
     fun addLimit(limit: Limit) {
-        val tripId = _selectedTripId.value
-
-        if (tripId.isNullOrBlank()) {
-            return
-        }
+        val tripId = _selectedTripId.value ?: return
 
         viewModelScope.launch {
             fishRepo.addLimitToTrip(
@@ -605,13 +601,6 @@ class TripViewModel(
             )
         }
     }
-
-    fun deleteLimit(limit: Limit) {
-        viewModelScope.launch {
-            fishRepo.deleteLimit(limit)
-        }
-    }
-
     fun addLimitToTrip(limit: Limit) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
@@ -621,7 +610,6 @@ class TripViewModel(
             )
         }
     }
-
     fun removeLimitFromTrip(limit: Limit) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
@@ -639,7 +627,6 @@ class TripViewModel(
             }
         }
     }
-
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
             tripRepo.deleteNote(noteId)
@@ -880,6 +867,12 @@ class TripViewModel(
 
     fun clearTrip() {
         _selectedTripId.value = null
+    }
+    fun deleteTrip() {
+        val tripId = _selectedTripId.value ?: return
+        viewModelScope.launch {
+            tripRepo.deleteTripById(tripId)
+        }
     }
     fun selectTrip(id: String) {
         _selectedTripId.value = id
