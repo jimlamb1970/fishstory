@@ -1,15 +1,8 @@
 package com.funjim.fishstory.ui.screens.details
 
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -64,6 +57,7 @@ import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +85,7 @@ fun FishermanDetailsScreen(
 
     val showPhotos by viewModel.showPhotos.collectAsStateWithLifecycle()
 
+    var showDeleteFishermanDialog by remember { mutableStateOf(false) }
     var showEditFishermanDialog by remember { mutableStateOf(false) }
 
     var tackleBoxesExpanded by remember { mutableStateOf(false) }
@@ -101,6 +96,7 @@ fun FishermanDetailsScreen(
     val fishermanPhotos by viewModel.fishermanPhotos.collectAsStateWithLifecycle()
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var showDeleteTackleBoxDialog by remember { mutableStateOf(false) }
     var tackleBoxToDelete by remember { mutableStateOf<TackleBox?>(null) }
 
     if (stats == null) {
@@ -169,6 +165,21 @@ fun FishermanDetailsScreen(
                                         )
                                     }
                                 )
+
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showDeleteFishermanDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete Fisherman"
+                                        )
+                                    }
+                                )
+
 
                                 DropdownMenuItem(
                                     text = {
@@ -365,7 +376,10 @@ fun FishermanDetailsScreen(
                                                         tackleBox.tackleBox.id
                                                     )
                                                 },
-                                                onDelete = { tackleBoxToDelete = tackleBox.tackleBox }
+                                                onDelete = {
+                                                    tackleBoxToDelete = tackleBox.tackleBox
+                                                    showDeleteTackleBoxDialog = true
+                                                }
                                             )
                                         }
                                     }
@@ -418,7 +432,10 @@ fun FishermanDetailsScreen(
                                                 tackleBoxWithLures.tackleBox.id
                                             )
                                         },
-                                        onDelete = { tackleBoxToDelete = tackleBoxWithLures.tackleBox }
+                                        onDelete = {
+                                            tackleBoxToDelete = tackleBoxWithLures.tackleBox
+                                            showDeleteTackleBoxDialog = true
+                                        }
                                     )
                                 }
                             }
@@ -524,11 +541,11 @@ fun FishermanDetailsScreen(
                                         when (action) {
                                             is TripAction.OpenMap -> {
                                                 val mapUri =
-                                                    Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                                    "geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)".toUri()
                                                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                                 try {
                                                     context.startActivity(intent)
-                                                } catch (e: Exception) {
+                                                } catch (_: Exception) {
                                                     Toast.makeText(
                                                         context,
                                                         "Could not open map",
@@ -580,11 +597,11 @@ fun FishermanDetailsScreen(
                                         when (action) {
                                             is TripAction.OpenMap -> {
                                                 val mapUri =
-                                                    Uri.parse("geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)")
+                                                    "geo:${action.lat},${action.lng}?q=${action.lat},${action.lng}(Fishing Spot)".toUri()
                                                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                                 try {
                                                     context.startActivity(intent)
-                                                } catch (e: Exception) {
+                                                } catch (_: Exception) {
                                                     Toast.makeText(
                                                         context,
                                                         "Could not open map",
@@ -604,42 +621,78 @@ fun FishermanDetailsScreen(
                     Text("Loading...", modifier = Modifier.padding(16.dp))
                 }
             }
-            // Create new tackle box dialog
-            if (showAddTackleBoxDialog) {
-                AddTackleBoxDialog(
-                    fishermanId = fishermanId,
-                    onDismiss = { showAddTackleBoxDialog = false },
-                    onConfirm = { tackleBox ->
-                        viewModel.createTackleBox(tackleBox)
-                        showAddTackleBoxDialog = false
+
+        }
+        stats?.let { details ->
+            if (showDeleteFishermanDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteFishermanDialog = !showDeleteFishermanDialog },
+                    title = { Text("Delete Fisherman?") },
+                    text = {
+                        Text(
+                            """Are you sure you want to delete '${details.fisherman.fullName}'?
+
+This cannot be undone.
+
+If you delete ${details.fisherman.fullName}, they will be removed from all trips (${details.totalTrips}) and events.
+
+Tackle boxes and fish (${details.totalFishCaught}) logged for ${details.fisherman.fullName} will also be deleted."""
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showDeleteFishermanDialog = !showDeleteFishermanDialog
+                                viewModel.deleteFisherman()
+                                navigateBack()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteFishermanDialog = !showDeleteFishermanDialog }) {
+                            Text("Cancel")
+                        }
                     }
                 )
             }
 
-            // Edit Fisherman Dialog
-            stats?.let { details ->
-                if (showEditFishermanDialog) {
-                    EditFishermanDialog(
-                        fisherman = details.fisherman,
-                        onDismiss = { showEditFishermanDialog = false },
-                        onConfirm = { fisherman ->
-                            viewModel.updateFisherman(fisherman) {
-                                // Do nothing on success
-                            }
-                            showEditFishermanDialog = false
+            if (showEditFishermanDialog) {
+                EditFishermanDialog(
+                    fisherman = details.fisherman,
+                    onDismiss = { showEditFishermanDialog = !showEditFishermanDialog },
+                    onConfirm = { fisherman ->
+                        viewModel.updateFisherman(fisherman) {
+                            // Do nothing on success
                         }
-                    )
-                }
+                        showEditFishermanDialog = !showEditFishermanDialog
+                    }
+                )
             }
         }
     }
 
-    // DELETE CONFIRMATION
-    tackleBoxToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { tackleBoxToDelete = null },
-            title = { Text("Delete Tackle Box?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+    // Create new tackle box dialog
+    if (showAddTackleBoxDialog) {
+        AddTackleBoxDialog(
+            fishermanId = fishermanId,
+            onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+            onConfirm = { tackleBox ->
+                viewModel.createTackleBox(tackleBox)
+                showAddTackleBoxDialog = !showAddTackleBoxDialog
+            }
+        )
+    }
+    if (showDeleteTackleBoxDialog) {
+        tackleBoxToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog },
+                title = { Text("Delete Tackle Box?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone.
 
@@ -647,91 +700,26 @@ Tackle Boxes are mostly for historical purposes.  They are associated with trips
 
 They are also used to selecting the 'Lure Used' when logging a fish/catch.
 
-If you delete a tackle box, you may not be able to select a lure when logging a fish/catch for a particular event""") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteTackleBox(item)
-                        tackleBoxToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+If you delete a tackle box, you may not be able to select a lure when logging a fish/catch for a particular event"""
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteTackleBox(item)
+                            showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { tackleBoxToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun FishermanLoadingView() {
-    // 1. Define the Shimmer colors (Michigan Blue as the base)
-    val shimmerColors = listOf(
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-    )
-
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer_animation"
-    )
-
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset.Zero,
-        end = Offset(x = translateAnim, y = translateAnim)
-    )
-
-    // 2. The Skeleton Layout
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        // Mock "Fisherman Name" header
-        Box(modifier = Modifier
-            .size(width = 200.dp, height = 32.dp)
-            .background(brush, RoundedCornerShape(4.dp)))
-
-        // Mock "Stats" Row
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            repeat(3) {
-                Box(modifier = Modifier
-                    .size(100.dp, 60.dp)
-                    .background(brush, RoundedCornerShape(8.dp)))
-            }
-        }
-
-        // Mock "Best Trip" Card
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .background(brush, RoundedCornerShape(12.dp))
-        )
-
-        // Mock "Smallest/Largest" Fish Section
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(modifier = Modifier
-                .size(width = 150.dp, height = 24.dp)
-                .background(brush, RoundedCornerShape(4.dp)))
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .background(brush, RoundedCornerShape(12.dp)))
+            )
         }
     }
 }

@@ -58,9 +58,11 @@ interface FishermanDao {
 
     @Delete
     suspend fun deleteFisherman(fisherman: FishermanEntity)
+    @Query("DELETE FROM fisherman_table WHERE id = :id")
+    suspend fun deleteFishermanById(id: String)
 
-    @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nick LIMIT 1")
-    suspend fun getFishermanByName(first: String, last: String, nick: String): FishermanEntity?
+    @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1")
+    suspend fun getFishermanByName(first: String, last: String, nickname: String): FishermanEntity?
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -90,8 +92,7 @@ interface FishermanDao {
 
     @Query("""
     SELECT 
-        f.*, 
-
+        f.*,
         SUM(fish.caughtCount) AS fishCaught,
         SUM(fish.keptCount) AS fishKept,
         MAX(fish.length) AS largestFish,
@@ -273,6 +274,11 @@ EventStats AS (
 
 SELECT 
     f.*,
+
+    -- Overall Totals
+    (SELECT COUNT(*) FROM fish_table WHERE fishermanId = :fId) AS totalFishCaught,
+    (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = :fId) AS totalTrips,
+    
     -- Largest Fish
     (SELECT length FROM LargestFish) AS largestFishLength,
     (SELECT timestamp FROM LargestFish) AS largestFishTimestamp,
@@ -309,7 +315,7 @@ FROM fisherman_table AS f
 WHERE f.id = :fId
 """
     )
-    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanEntityFullStatistics>
+    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanEntityFullStatistics?>
 
     @Transaction
     @Query("""

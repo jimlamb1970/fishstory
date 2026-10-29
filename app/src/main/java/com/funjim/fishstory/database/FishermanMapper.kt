@@ -62,6 +62,8 @@ fun FishermanEntityFullStatistics.toDomain(): FishermanFullStatistics {
     return FishermanFullStatistics(
         fisherman = fisherman.toDomain(),
         tackleBoxesWithLures = tackleBoxesWithLures.map { it?.toDomain() },
+        totalFishCaught = totalFishCaught,
+        totalTrips = totalTrips,
         largestFishLength = largestFishLength,
         largestFishTimestamp = largestFishTimestamp,
         largestFishSpecies = largestFishSpecies,

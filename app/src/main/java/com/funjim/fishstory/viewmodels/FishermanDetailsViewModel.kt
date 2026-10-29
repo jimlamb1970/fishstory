@@ -98,6 +98,13 @@ class FishermanDetailsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Actions
+    fun deleteFisherman() {
+        val id = _selectedFishermanId.value ?: return
+        _selectedFishermanId.value = null
+        viewModelScope.launch {
+            repository.deleteFishermanById(id)
+        }
+    }
     fun updateFisherman(
         fisherman: Fisherman,
         onSuccess: () -> Unit
@@ -123,9 +130,9 @@ class FishermanDetailsViewModel(
     }
 
     fun fishermanThumbnail(): Flow<ByteArray?> {
-        val eventId = _selectedFishermanId.value ?: return(flowOf(null))
+        val id = _selectedFishermanId.value ?: return(flowOf(null))
 
-        return photoRepo.fetchFishermanThumbnail(eventId)
+        return photoRepo.fetchFishermanThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {

@@ -17,6 +17,7 @@ import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 class FishermanRepository(
@@ -57,14 +58,16 @@ class FishermanRepository(
     }
 
     fun getFishermanFullStatistics(id: String): Flow<FishermanFullStatistics> =
-        fishermanDao.getFishermanFullStatistics(id, System.currentTimeMillis()).map { stats ->
-            // Create a copy of the object with the list sorted by name
-            stats.copy(
-                tackleBoxesWithLures = stats.tackleBoxesWithLures.sortedBy {
-                    it?.tackleBox?.name?.lowercase()
-                }
-            ).toDomain()
-        }
+        fishermanDao.getFishermanFullStatistics(id, System.currentTimeMillis())
+            .filterNotNull()
+            .map { stats ->
+                // Create a copy of the object with the list sorted by name
+                stats.copy(
+                    tackleBoxesWithLures = stats.tackleBoxesWithLures.sortedBy {
+                        it?.tackleBox?.name?.lowercase()
+                    }
+                ).toDomain()
+            }
 
     suspend fun addFisherman(fisherman: Fisherman) {
         fishermanDao.insert(fisherman.toEntity())
@@ -86,9 +89,11 @@ class FishermanRepository(
         nickname: String): Fisherman? {
         return fishermanDao.getFishermanByName(firstName, lastName, nickname)?.toDomain()
     }
-
     suspend fun deleteFisherman(fisherman: Fisherman) {
         fishermanDao.deleteFisherman(fisherman.toEntity())
+    }
+    suspend fun deleteFishermanById(id: String) {
+        fishermanDao.deleteFishermanById(id)
     }
 
     suspend fun updateFisherman(fisherman: Fisherman) {

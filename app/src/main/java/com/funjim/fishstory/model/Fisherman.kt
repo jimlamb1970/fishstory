@@ -52,6 +52,9 @@ data class FishermanFullStatistics(
     val fisherman: Fisherman,
     val tackleBoxesWithLures: List<TackleBoxWithLures?>,
 
+    val totalFishCaught: Long,
+    val totalTrips: Long,
+
     // Fish Extremes
     val largestFishLength: Long?,
     val largestFishTimestamp: Long?,
