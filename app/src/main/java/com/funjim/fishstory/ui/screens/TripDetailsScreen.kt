@@ -998,9 +998,8 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                         text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                                        modifier = Modifier.padding(horizontal = 32.dp)
                                                     )
-
                                                 }
                                                 eventSummaries.forEachIndexed { index, eventSummary ->
                                                     EventItem(
@@ -1133,8 +1132,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 emptyText = "No fishermen selected.",
                                                 helpText = """At least one participant must be added to this trip.
 
-Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
-""",
+Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.getFishermanThumbnail(fisherman.id)
                                                 },

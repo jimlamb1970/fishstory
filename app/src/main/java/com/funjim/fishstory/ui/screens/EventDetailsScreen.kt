@@ -957,8 +957,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                 emptyText = "No fishermen selected.",
                                                 helpText = """At least one participant must be added to this event.
 
-Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.
-""",
+Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.fishermanThumbnail(fisherman.id)
                                                 },
@@ -1076,7 +1075,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             noteList = sortedNotes,
                                             showHelp = appSettings.display.showHelp,
                                             emptyText = "No notes created.",
-                                            helpText = " Notes help you remember specific details and conditions during this event.",
+                                            helpText = "Notes help you remember specific details and conditions during this event.",
                                             onAdd = { showAddNoteDialog = true },
                                             onDelete = { noteToDelete = it },
                                             onEdit = { noteToEdit = it },
@@ -1155,7 +1154,7 @@ Selecting them places those species at the top of the list when logging catches 
                                             showHelp = appSettings.display.showHelp,
                                             useImperial = appSettings.display.useImperialUnits,
                                             emptyText = "No weather conditions specified.",
-                                            helpText = "No weather conditions specified.Adding weather conditions will automatically apply them to any new catches logged for this event.",
+                                            helpText = "Adding weather conditions will automatically apply them to any new catches logged for this event.",
                                             onAdd = { showAddWeatherDialog = true },
                                             onDelete = { weatherToDelete = it },
                                             onEdit = { weatherToEdit = it },

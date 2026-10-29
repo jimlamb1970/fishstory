@@ -217,7 +217,6 @@ fun SpeciesSummarySection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
             items.forEachIndexed { index, item ->

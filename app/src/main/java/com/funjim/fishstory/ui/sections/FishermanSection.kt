@@ -130,7 +130,6 @@ fun FishermanSummarySection(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 list.forEachIndexed { index, item ->
