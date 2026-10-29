@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.details
 
 import android.content.Intent
 import android.net.Uri
@@ -53,6 +53,7 @@ import com.funjim.fishstory.ui.cards.TripAction
 import com.funjim.fishstory.ui.cards.TripCard
 import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.crud.EditFishermanDialog
+import com.funjim.fishstory.ui.screens.UpcomingTripChip
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getMainButtonColor

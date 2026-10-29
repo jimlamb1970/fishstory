@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.details
 
 import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.content.Intent

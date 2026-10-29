@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.details
 
 import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.content.Context
@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Note

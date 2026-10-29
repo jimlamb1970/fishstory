@@ -53,10 +53,10 @@ import com.funjim.fishstory.ui.screens.AddEventScreen
 import com.funjim.fishstory.ui.screens.AddTripScreen
 import com.funjim.fishstory.ui.screens.SelectTripCrewScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
-import com.funjim.fishstory.ui.screens.FishDetailScreen
+import com.funjim.fishstory.ui.screens.details.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
 import com.funjim.fishstory.ui.screens.FishSummaryScreen
-import com.funjim.fishstory.ui.screens.FishermanDetailsScreen
+import com.funjim.fishstory.ui.screens.details.FishermanDetailsScreen
 import com.funjim.fishstory.ui.screens.FishermanListScreen
 import com.funjim.fishstory.ui.screens.FishermanTackleBoxScreen
 import com.funjim.fishstory.ui.screens.LureListScreen
@@ -64,7 +64,7 @@ import com.funjim.fishstory.ui.screens.ManageBodiesOfWaterScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
 import com.funjim.fishstory.ui.screens.OldReportsScreen
-import com.funjim.fishstory.ui.screens.EventDetailsScreen
+import com.funjim.fishstory.ui.screens.details.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
 import com.funjim.fishstory.ui.screens.ManageLimitsScreen
 import com.funjim.fishstory.ui.screens.ManageSkyConditionsScreen
@@ -72,7 +72,7 @@ import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
 import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
-import com.funjim.fishstory.ui.screens.TripDetailsScreen
+import com.funjim.fishstory.ui.screens.details.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
 import com.funjim.fishstory.ui.utils.FishDetailsRoute
 import com.funjim.fishstory.ui.utils.FishListRoute
