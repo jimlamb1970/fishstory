@@ -55,7 +55,7 @@ class EventViewModel(
     private val initialCategory: CategoryType = inputCategory?.let {
         try {
             CategoryType.valueOf(it)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     } ?: CategoryType.TARGET_SPECIES
@@ -383,10 +383,10 @@ class EventViewModel(
             try {
                 envRepo.addBodyOfWater(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Body of water '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
@@ -411,10 +411,10 @@ class EventViewModel(
             try {
                 fishRepo.addSpecies(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Species '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding species.")
             }
         }
@@ -516,12 +516,14 @@ class EventViewModel(
         }
     }
 
-    fun speciesSummary(eventId: String, speciesId: String): Flow<SpeciesSummary?> {
-        return fishRepo.getSpeciesSummary(eventId = eventId, speciesId = speciesId)
-    }
-
     // --- Actions ---
     // Event functions
+    fun deleteEvent() {
+        val eventId = _selectedEventId.value ?: return
+        viewModelScope.launch {
+            tripRepo.deleteEventById(eventId)
+        }
+    }
     fun upsertEvent(event: Event) {
         viewModelScope.launch {
             tripRepo.upsertEvent(event)
@@ -589,9 +591,9 @@ class EventViewModel(
             try {
                 envRepo.addWaterClarity(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
@@ -621,9 +623,9 @@ class EventViewModel(
             try {
                 envRepo.addSkyCondition(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Sky Condition '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding sky condition.")
             }
         }
@@ -648,9 +650,9 @@ class EventViewModel(
             try {
                 fishermanRepo.addFisherman(fisherman)
                 onSuccess() // ONLY runs if addFisherman completes without throwing
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding fisherman.")
             }
         }

@@ -1734,6 +1734,7 @@ Selecting them places those species at the top of the list when logging catches 
                     },
                     onUnselected = { selectedBodyOfWater ->
                         bodyOfWaterToDelete = selectedBodyOfWater
+                        showDeleteBodyOfWaterDialog = true
                     },
                     onAdd = {
                         showAddBodyOfWaterDialog = true
@@ -1766,6 +1767,7 @@ Selecting them places those species at the top of the list when logging catches 
                     },
                     onUnselected = { fisherman ->
                         fishermanToDelete = fisherman
+                        showDeleteFishermanDialog = true
                     },
                     onAdd = {
                         showAddFishermanDialog = true
@@ -1830,6 +1832,7 @@ Selecting them places those species at the top of the list when logging catches 
                     },
                     onUnselected = { selectedSpecies ->
                         speciesToDelete = selectedSpecies
+                        showDeleteSpeciesDialog = true
                     },
                     onAdd = {
                         showAddSpeciesDialog = true
@@ -2001,7 +2004,6 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
 
-    // Confirmation Dialog for long pressing a Body of Water
     if (showAddBodyOfWaterToUpdate) {
         bodyOfWaterToUpdateAll?.let { bodyOfWater ->
             GeneralDialog(
