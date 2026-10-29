@@ -15,12 +15,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share // Added for fallback if needed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -57,6 +60,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.absoluteValue
 import androidx.core.net.toUri
+import com.funjim.fishstory.model.Fish
 
 // Helper function to invoke the native share sheet
 fun shareContent(context: Context, textToShare: String) {
@@ -83,6 +87,8 @@ fun FishDetailScreen(
 
     var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
 
+    var menuExpanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(fishList) {
         if (fishList.isNotEmpty()) {
             if (currentIndex == -1) {
@@ -98,6 +104,9 @@ fun FishDetailScreen(
         fishList[currentIndex]
     } else null
 
+    var fishToDelete by remember { mutableStateOf<Fish?>(null) }
+    var showDeleteFishDialog by remember { mutableStateOf(false) }
+
     var dragOffset by remember { mutableFloatStateOf(0f) }
     val animatedOffset by animateFloatAsState(targetValue = dragOffset, label = "swipe")
     val swipeThreshold = 120f
@@ -106,10 +115,26 @@ fun FishDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = fish?.species?.name ?: "Fish Detail",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    if (fish != null) {
+                        Text(
+                            text = fish.species.name,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        if (fishList.size > 1) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${currentIndex + 1} / ${fishList.size}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Fish Details",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -124,25 +149,47 @@ fun FishDetailScreen(
                 },
                 actions = {
                     if (fish != null) {
-                        IconButton(
-                            onClick = {
-                                onEditFish(
-                                    fish.trip.id,
-                                    fish.event.id,
-                                    fish.fish.id
+                        Box {
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = "More")
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Edit") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onEditFish(
+                                            fish.trip.id,
+                                            fish.event.id,
+                                            fish.fish.id
+                                        )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Edit,
+                                            contentDescription = "Edit Trip"
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        fishToDelete = fish.fish
+                                        showDeleteFishDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete Fish"
+                                        )
+                                    }
                                 )
                             }
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit Fish")
                         }
-                    }
-                    if (fishList.size > 1) {
-                        Text(
-                            text = "${currentIndex + 1} / ${fishList.size}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
                     }
                 }
             )
@@ -310,6 +357,37 @@ fun FishDetailScreen(
             }
         }
     }
+    if (showDeleteFishDialog) {
+        fishToDelete?.let { fishToDelete ->
+            AlertDialog(
+                onDismissRequest = { showDeleteFishDialog = !showDeleteFishDialog },
+                title = { Text("Delete Fish?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete this fish?
+
+This cannot be undone."""
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteFish(fishToDelete)
+                            showDeleteFishDialog = !showDeleteFishDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteFishDialog = !showDeleteFishDialog }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -348,7 +426,9 @@ private fun FishDetailContent(
 
     var showAddNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var showEditNoteDialog by remember { mutableStateOf(false) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
+    var showDeleteNoteDialog by remember { mutableStateOf(false) }
 
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
     val bodyOfWaterThumbnail by bodyOfWaterThumbnailFlow.collectAsState(initial = null)
@@ -802,8 +882,14 @@ private fun FishDetailContent(
                         emptyText = "No notes created.",
                         helpText = "Notes help you remember specific details about this fish.",
                         onAdd = { showAddNoteDialog = true },
-                        onEdit = { noteToEdit = it },
-                        onDelete = { noteToDelete = it },
+                        onEdit = {
+                            noteToEdit = it
+                            showEditNoteDialog = true
+                        },
+                        onDelete = {
+                            noteToDelete = it
+                            showDeleteNoteDialog = true
+                        },
                         onToggleHelp = onToggleHelp,
                     )
                 }
@@ -848,26 +934,30 @@ private fun FishDetailContent(
             }
         )
     }
-    noteToEdit?.let { note ->
-        EditNoteDialog(
-            item = note,
-            onDismiss = { noteToEdit = null },
-            onConfirm = { note ->
-                onAddNote(note.id, note.content)
-                noteToEdit = null
-            }
-        )
+    if (showDeleteNoteDialog) {
+        noteToDelete?.let { note ->
+            DeleteDialog(
+                title = "Delete Note",
+                message = "Are you sure you want to delete this note?",
+                onConfirm = {
+                    onDeleteNote(note.id)
+                    showDeleteNoteDialog = !showDeleteNoteDialog
+                },
+                onDismiss = { showDeleteNoteDialog = !showDeleteNoteDialog }
+            )
+        }
     }
-    noteToDelete?.let { note ->
-        DeleteDialog(
-            title = "Delete Note",
-            message = "Are you sure you want to delete this note?",
-            onConfirm = {
-                onDeleteNote(note.id)
-                noteToDelete = null
-            },
-            onDismiss = { noteToDelete = null }
-        )
+    if (showEditNoteDialog) {
+        noteToEdit?.let { note ->
+            EditNoteDialog(
+                item = note,
+                onDismiss = { showEditNoteDialog = !showEditNoteDialog },
+                onConfirm = { note ->
+                    onAddNote(note.id, note.content)
+                    showEditNoteDialog = !showEditNoteDialog
+                }
+            )
+        }
     }
 }
 

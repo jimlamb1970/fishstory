@@ -156,11 +156,16 @@ class FishDetailsViewModel(
         _filter.update { it.copy(targetOnly = targetOnly) }
     }
 
+    fun deleteFish(fish: Fish) {
+        viewModelScope.launch {
+            fishRepo.deleteFish(fish)
+        }
+    }
+
     fun fishNotes(fishId: String): Flow<List<Note>> {
         return fishRepo.getNotesForFish(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-
     fun addNote(fishId: String, noteId: String?, content: String) {
         viewModelScope.launch {
             if (noteId == null) {
@@ -170,7 +175,6 @@ class FishDetailsViewModel(
             }
         }
     }
-
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
             tripRepo.deleteNote(noteId)

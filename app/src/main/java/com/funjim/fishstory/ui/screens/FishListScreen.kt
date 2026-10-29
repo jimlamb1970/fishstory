@@ -191,7 +191,7 @@ fun FishListScreen(
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No fish logged yet. Tap 'Log Fish' to add one.")
+                Text("No fish logged yet. Go fishing!")
             }
         } else {
             Column(modifier = Modifier.padding(padding).fillMaxSize(),
