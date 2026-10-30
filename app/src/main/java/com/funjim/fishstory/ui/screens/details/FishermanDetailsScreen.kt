@@ -319,14 +319,14 @@ fun FishermanDetailsScreen(
                                                 BadgeCount(
                                                     count = totalTackleBoxes,
                                                     index = pagerState.currentPage + 1,
-                                                    badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                                    textColor = MaterialTheme.colorScheme.primary
+                                                    badgeColor = getMainButtonColor(),
+                                                    textColor = getOnMainButtonColor()
                                                 )
                                             } else {
                                                 BadgeCount(
                                                     count = totalTackleBoxes,
-                                                    badgeColor = MaterialTheme.colorScheme.onPrimary,
-                                                    textColor = MaterialTheme.colorScheme.primary
+                                                    badgeColor = getMainButtonColor(),
+                                                    textColor = getOnMainButtonColor()
                                                 )
                                             }
                                         }
