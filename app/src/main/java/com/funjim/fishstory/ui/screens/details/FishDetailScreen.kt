@@ -61,6 +61,7 @@ import java.util.Locale
 import kotlin.math.absoluteValue
 import androidx.core.net.toUri
 import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.ui.utils.BadgeCount
 
 // Helper function to invoke the native share sheet
 fun shareContent(context: Context, textToShare: String) {
@@ -115,25 +116,26 @@ fun FishDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    if (fish != null) {
-                        Text(
-                            text = fish.species.name,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        if (fishList.size > 1) {
-                            Spacer(modifier = Modifier.width(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (fish != null) {
                             Text(
-                                text = "${currentIndex + 1} / ${fishList.size}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(end = 16.dp)
+                                text = fish.species.name,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            if (fishList.size > 1) {
+                                BadgeCount(
+                                    count = fishList.size,
+                                    index = currentIndex + 1,
+                                    badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                    textColor = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "Fish Details",
+                                style = MaterialTheme.typography.titleLarge
                             )
                         }
-                    } else {
-                        Text(
-                            text = "Fish Details",
-                            style = MaterialTheme.typography.titleLarge
-                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

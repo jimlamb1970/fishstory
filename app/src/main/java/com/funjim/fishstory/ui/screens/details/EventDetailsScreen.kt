@@ -970,7 +970,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                         )
                                     }
                                     CategoryType.FISHERMEN -> {
-                                        Column() {
+                                        Column {
                                             FishermanSummarySection(
                                                 list = sortedFishermanList,
                                                 verbose = appSettings.display.verboseCards,

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BadgeCount(
     count: Int,
+    index: Int = 0,
     badgeColor: Color,
     textColor: Color,
     selected: Boolean = false,
@@ -26,7 +27,11 @@ fun BadgeCount(
         modifier = Modifier.padding(start = 2.dp)
     ) {
         Text(
-            text = count.toString(),
+            text =
+                if (index == 0)
+                    count.toString()
+                else
+                    "$index of $count",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             color = textColor,
