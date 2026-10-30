@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -68,6 +70,7 @@ import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.crud.EditSpeciesDialog
+import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -207,197 +210,250 @@ fun ManageSpeciesScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                val filteredSize = filteredSpecies.size
-                itemsIndexed(filteredSpecies, key = { _, s -> s.species.id }) { index, summary ->
-                    val species = summary.species
-                    val thumbnail by viewModel.speciesThumbnail(species.id).collectAsStateWithLifecycle(initialValue = null)
+            val listState = rememberLazyListState()
 
-                    var menuExpanded by remember { mutableStateOf(false) }
-                    var thumbnailMenuExpanded by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val filteredSize = filteredSpecies.size
+                    itemsIndexed(
+                        filteredSpecies,
+                        key = { _, s -> s.species.id }) { index, summary ->
+                        val species = summary.species
+                        val thumbnail by viewModel.speciesThumbnail(species.id)
+                            .collectAsStateWithLifecycle(initialValue = null)
 
-                    val preventDelete = summary.fishCaught > 0 || summary.fishKept > 0
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    val backgroundColor = getCardColor(index, filteredSize)
-                    val borderColor = getCardBorderColor(index, filteredSize)
+                        val preventDelete = summary.fishCaught > 0 || summary.fishKept > 0
 
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .border(
-                                width = 1.dp,
-                                color = borderColor,
-                                shape = MaterialTheme.shapes.medium)
-                            .clip(MaterialTheme.shapes.medium)
-                            .combinedClickable(
-                                onClick = { /* do nothing */ },
-                                onLongClick = { menuExpanded = true }
-                            ),
-                        leadingContent = {
-                            // Wrapped in a Box with combinedClickable for long-press registration
-                            Box(
-                                modifier = Modifier.combinedClickable(
-                                    onClick = { /* Do nothing */ },
-                                    onLongClick = {
-                                        currentSpeciesForPhoto = species
-                                        thumbnailMenuExpanded = true
-                                    }
+                        val backgroundColor = getCardColor(index, filteredSize)
+                        val borderColor = getCardBorderColor(index, filteredSize)
+
+                        ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = borderColor,
+                                    shape = MaterialTheme.shapes.medium
                                 )
-                            ) {
-                                ThumbnailBox(
-                                    thumbnail = thumbnail,
-                                    modifier = Modifier.size(48.dp),
-                                    imageVector = AppIcons.Default.Species
-                                )
-                                DropdownMenu(
-                                    expanded = thumbnailMenuExpanded,
-                                    onDismissRequest = { thumbnailMenuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            if (thumbnail != null) Text("Update Thumbnail")
-                                            else Text("Select Thumbnail")
-                                        },
-                                        onClick = {
+                                .clip(MaterialTheme.shapes.medium)
+                                .combinedClickable(
+                                    onClick = { /* do nothing */ },
+                                    onLongClick = { menuExpanded = true }
+                                ),
+                            leadingContent = {
+                                // Wrapped in a Box with combinedClickable for long-press registration
+                                Box(
+                                    modifier = Modifier.combinedClickable(
+                                        onClick = { /* Do nothing */ },
+                                        onLongClick = {
                                             currentSpeciesForPhoto = species
-                                            thumbnailMenuExpanded = false
-                                            photoPickerLauncher.launch(
-                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                            )
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
-                                    )
-                                    if (thumbnail != null) {
-                                        DropdownMenuItem(
-                                            text = { Text("Reset Thumbnail") },
-                                            onClick = {
-                                                thumbnailMenuExpanded = false
-                                                // Save out a null reference to clear
-                                                viewModel.deleteSpeciesThumbnail(species.id)
-                                            },
-                                            leadingIcon = {
-                                                Icon(
-                                                    Icons.Default.HideImage,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.error
-                                                )
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        headlineContent = {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(species.name)
-                                if (summary.fishCaught > 0) {
-                                    FishCaughtItem(
-                                        icon = AppIcons.Default.LeapingFishWithFins,
-                                        caughtCount = summary.fishCaught,
-                                        keptCount = summary.fishKept,
-                                        extraText = if (verbose) "fish" else "",
-                                        onClick = { navigateToFishList(summary.species.id, false) },
-                                        contentColor = getOnCardSecondaryColor()
-                                    )
-                                }
-                                if (summary.targetFishCaught > 0) {
-                                    FishCaughtItem(
-                                        icon = AppIcons.Default.TargetFish,
-                                        caughtCount = summary.targetFishCaught,
-                                        keptCount = summary.targetFishKept,
-                                        extraText = if (verbose) "target fish" else "",
-                                        onClick = { navigateToFishList(summary.species.id, true) },
-                                        contentColor = getOnCardSecondaryColor()
-                                    )
-                                }
-                            }
-                        },
-                        supportingContent = {
-                        },
-                        trailingContent = {
-                            Box {
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Options"
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Rename") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            speciesToEdit = species
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            if (thumbnail != null) Text("Update Thumbnail")
-                                            else Text("Select Thumbnail")
-                                        },
-                                        onClick = {
-                                            currentSpeciesForPhoto = species
-                                            menuExpanded = false
-                                            photoPickerLauncher.launch(
-                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                            )
-                                        },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
-                                    )
-                                    if (thumbnail != null) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text("Reset Thumbnail")
-                                            },
-                                            onClick = {
-                                                menuExpanded = false
-                                                // Save out a null reference to clear
-                                                viewModel.deleteSpeciesThumbnail(species.id)
-                                            },
-                                            leadingIcon = {
-                                                Icon(
-                                                    Icons.Default.HideImage,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.error
-                                                )
-                                            }
-                                        )
-                                    }
-                                    DropdownMenuItem(
-                                        text = { Text("Delete") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            if (preventDelete) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Can't delete this species. There are fish logged for it.",
-                                                    Toast.LENGTH_SHORT).show()
-                                            } else {
-                                                speciesToDelete = species
-                                            }
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete",
-                                                tint =
-                                                    if (!preventDelete) MaterialTheme.colorScheme.error
-                                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
-                                            )
+                                            thumbnailMenuExpanded = true
                                         }
                                     )
+                                ) {
+                                    ThumbnailBox(
+                                        thumbnail = thumbnail,
+                                        modifier = Modifier.size(48.dp),
+                                        imageVector = AppIcons.Default.Species
+                                    )
+                                    DropdownMenu(
+                                        expanded = thumbnailMenuExpanded,
+                                        onDismissRequest = { thumbnailMenuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                if (thumbnail != null) Text("Update Thumbnail")
+                                                else Text("Select Thumbnail")
+                                            },
+                                            onClick = {
+                                                currentSpeciesForPhoto = species
+                                                thumbnailMenuExpanded = false
+                                                photoPickerLauncher.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.AddAPhoto,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        )
+                                        if (thumbnail != null) {
+                                            DropdownMenuItem(
+                                                text = { Text("Reset Thumbnail") },
+                                                onClick = {
+                                                    thumbnailMenuExpanded = false
+                                                    // Save out a null reference to clear
+                                                    viewModel.deleteSpeciesThumbnail(species.id)
+                                                },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.HideImage,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.error
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
-                            }
-                        },
-                        colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                    )
+                            },
+                            headlineContent = {
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(species.name)
+                                    if (summary.fishCaught > 0) {
+                                        FishCaughtItem(
+                                            icon = AppIcons.Default.LeapingFishWithFins,
+                                            caughtCount = summary.fishCaught,
+                                            keptCount = summary.fishKept,
+                                            extraText = if (verbose) "fish" else "",
+                                            onClick = {
+                                                navigateToFishList(
+                                                    summary.species.id,
+                                                    false
+                                                )
+                                            },
+                                            contentColor = getOnCardSecondaryColor()
+                                        )
+                                    }
+                                    if (summary.targetFishCaught > 0) {
+                                        FishCaughtItem(
+                                            icon = AppIcons.Default.TargetFish,
+                                            caughtCount = summary.targetFishCaught,
+                                            keptCount = summary.targetFishKept,
+                                            extraText = if (verbose) "target fish" else "",
+                                            onClick = {
+                                                navigateToFishList(
+                                                    summary.species.id,
+                                                    true
+                                                )
+                                            },
+                                            contentColor = getOnCardSecondaryColor()
+                                        )
+                                    }
+                                }
+                            },
+                            supportingContent = {
+                            },
+                            trailingContent = {
+                                Box {
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.MoreVert,
+                                            contentDescription = "Options"
+                                        )
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Rename") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                speciesToEdit = species
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.Edit,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                if (thumbnail != null) Text("Update Thumbnail")
+                                                else Text("Select Thumbnail")
+                                            },
+                                            onClick = {
+                                                currentSpeciesForPhoto = species
+                                                menuExpanded = false
+                                                photoPickerLauncher.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.AddAPhoto,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        )
+                                        if (thumbnail != null) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text("Reset Thumbnail")
+                                                },
+                                                onClick = {
+                                                    menuExpanded = false
+                                                    // Save out a null reference to clear
+                                                    viewModel.deleteSpeciesThumbnail(species.id)
+                                                },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Default.HideImage,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.error
+                                                    )
+                                                }
+                                            )
+                                        }
+                                        DropdownMenuItem(
+                                            text = { Text("Delete") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                if (preventDelete) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Can't delete this species. There are fish logged for it.",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                } else {
+                                                    speciesToDelete = species
+                                                }
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.Delete,
+                                                    contentDescription = "Delete",
+                                                    tint =
+                                                        if (!preventDelete) MaterialTheme.colorScheme.error
+                                                        else MaterialTheme.colorScheme.error.copy(
+                                                            alpha = 0.38f
+                                                        )
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
                 }
+
+                VerticalScrollToItemBar(
+                    state = listState,
+                    imageVector = AppIcons.Default.Species,
+                    onToggleAlignment = {
+                        viewModel.updateScrollbarOnLeft()
+                    },
+                    modifier = Modifier
+                        .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp, horizontal = 0.dp)
+                )
             }
         }
     }
