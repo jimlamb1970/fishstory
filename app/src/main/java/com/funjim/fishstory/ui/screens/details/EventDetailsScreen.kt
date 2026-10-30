@@ -637,7 +637,8 @@ fun EventDetailsScreen(
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Delete Event"
+                                                contentDescription = "Delete Event",
+                                                tint = MaterialTheme.colorScheme.error
                                             )
                                         }
                                     )

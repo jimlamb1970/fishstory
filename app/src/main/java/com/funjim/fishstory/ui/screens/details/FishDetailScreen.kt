@@ -186,7 +186,8 @@ fun FishDetailScreen(
                                     leadingIcon = {
                                         Icon(
                                             Icons.Default.Delete,
-                                            contentDescription = "Delete Fish"
+                                            contentDescription = "Delete Fish",
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     }
                                 )

@@ -632,7 +632,8 @@ fun TripDetailsScreen(
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Delete Trip"
+                                                contentDescription = "Delete Trip",
+                                                tint = MaterialTheme.colorScheme.error
                                             )
                                         }
                                     )
