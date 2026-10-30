@@ -540,7 +540,7 @@ fun FishermanSummaryCard(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            if (showPhotos) Icons.Default.VisibilityOff
+                                            if (luresExpanded) Icons.Default.VisibilityOff
                                             else Icons.Default.Visibility,
                                             contentDescription = null
                                         )

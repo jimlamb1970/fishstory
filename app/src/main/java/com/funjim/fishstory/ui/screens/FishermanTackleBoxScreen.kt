@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -86,6 +87,8 @@ fun FishermanTackleBoxScreen(
 
     val scope = rememberCoroutineScope()
 
+    var menuExpanded by remember { mutableStateOf(false) }
+    var showDeleteTackleBoxDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
 
     val tackleBoxState by viewModel.tackleBoxUiState.collectAsStateWithLifecycle()
@@ -161,12 +164,6 @@ fun FishermanTackleBoxScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        showRenameDialog = true
-                    }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Rename Tackle Box")
-                    }
-
                     IconButton(onClick = onAdd) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
@@ -188,6 +185,44 @@ fun FishermanTackleBoxScreen(
                                     modifier = Modifier.size(12.dp)
                                 )
                             }
+                        }
+                    }
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = {
+                                    menuExpanded = false
+                                    showRenameDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Rename Tackle Box"
+                                    )
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    menuExpanded = false
+                                    showDeleteTackleBoxDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete Tackle Box",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
                         }
                     }
                 }
@@ -413,13 +448,51 @@ fun FishermanTackleBoxScreen(
         }
     }
 
+    if (showDeleteTackleBoxDialog) {
+        tackleBox?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog },
+                title = { Text("Delete Tackle Box?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
+
+This cannot be undone.
+
+Tackle Boxes are mostly for historical purposes.  They are associated with trips and events. 
+
+They are also used to selecting the 'Lure Used' when logging a fish/catch.
+
+If you delete a tackle box, you may not be able to select a lure when logging a fish/catch for a particular event"""
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog
+                            viewModel.deleteTackleBox(item)
+                            navigateBack()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteTackleBoxDialog = !showDeleteTackleBoxDialog }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
     if (showRenameDialog && (tackleBox != null)) {
         EditTackleBoxDialog(
             item = tackleBox!!,
             onConfirm = {
-                showRenameDialog = false
+                showRenameDialog = !showRenameDialog
                 viewModel.updateTackleBox(it) },
-            onDismiss = { showRenameDialog = false }
+            onDismiss = { showRenameDialog = !showRenameDialog }
         )
     }
 }

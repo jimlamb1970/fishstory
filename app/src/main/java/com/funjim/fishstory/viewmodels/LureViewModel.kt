@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
@@ -33,6 +34,7 @@ import java.util.UUID
 
 class LureViewModel(
     private val configRepo: ConfigurationRepository,
+    private val fishermanRepo: FishermanRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
@@ -88,6 +90,9 @@ class LureViewModel(
         }
     }
 
+    fun deleteTackleBox(tackleBox: TackleBox) {
+        viewModelScope.launch { fishermanRepo.deleteTackleBox(tackleBox) }
+    }
     fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
         viewModelScope.launch {
             lureRepo.removeLureFromTackleBox(tackleBoxId, lureId)
@@ -239,21 +244,6 @@ class LureViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tackleBoxWithLures: StateFlow<List<LureWithColors>?> = _selectedTackleBoxId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyList()) // Valid selection state with 0 items
-            } else {
-                lureRepo.getLuresInTackleBox(id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null // null means flow hasn't emitted from DB yet
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val tackleBoxUiState: StateFlow<LureUiState> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) {
@@ -346,6 +336,7 @@ sealed interface LureUiState {
 
 class LureViewModelFactory(
     private val configRepo: ConfigurationRepository,
+    private val fishermanRepo: FishermanRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
@@ -354,6 +345,7 @@ class LureViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return LureViewModel(
                 configRepo,
+                fishermanRepo,
                 lureRepo,
                 photoRepo) as T
         }

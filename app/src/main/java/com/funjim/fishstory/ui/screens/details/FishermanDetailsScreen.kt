@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -25,8 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -175,11 +172,11 @@ fun FishermanDetailsScreen(
                                     leadingIcon = {
                                         Icon(
                                             Icons.Default.Delete,
-                                            contentDescription = "Delete Fisherman"
+                                            contentDescription = "Delete Fisherman",
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     }
                                 )
-
 
                                 DropdownMenuItem(
                                     text = {
@@ -318,19 +315,18 @@ fun FishermanDetailsScreen(
                                         )
 
                                         if (totalTackleBoxes > 1) {
-                                            Spacer(modifier = Modifier.width(4.dp))
-
                                             if (!tackleBoxesExpanded) {
-                                                Text(
-                                                    text = "(${pagerState.currentPage + 1} of ${totalTackleBoxes})",
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                BadgeCount(
+                                                    count = totalTackleBoxes,
+                                                    index = pagerState.currentPage + 1,
+                                                    badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                                    textColor = MaterialTheme.colorScheme.primary
                                                 )
                                             } else {
-                                                Text(
-                                                    text = "(${totalTackleBoxes})",
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                BadgeCount(
+                                                    count = totalTackleBoxes,
+                                                    badgeColor = MaterialTheme.colorScheme.onPrimary,
+                                                    textColor = MaterialTheme.colorScheme.primary
                                                 )
                                             }
                                         }
@@ -734,8 +730,9 @@ fun TackleBoxCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
+
+    var luresExpanded by remember { mutableStateOf(false) }
 
     val sortedLures by remember(tackleBoxWithLures.lures) {
         derivedStateOf {
@@ -762,7 +759,7 @@ fun TackleBoxCard(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .combinedClickable(
-                onClick = { expanded = !expanded },
+                onClick = { luresExpanded = !luresExpanded },
                 onLongClick = { menuExpanded = true }
             ),
         colors = CardDefaults.cardColors(
@@ -780,7 +777,7 @@ fun TackleBoxCard(
             ) {
                 Icon(
                     imageVector =
-                        if (expanded) AppIcons.Default.TackleBox
+                        if (luresExpanded) AppIcons.Default.TackleBox
                         else AppIcons.Default.TackleBoxClosed,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)
@@ -791,36 +788,66 @@ fun TackleBoxCard(
                         tackleBoxWithLures.tackleBox.name,
                         style = MaterialTheme.typography.titleMedium
                     )
-                    Row() {
-                        Icon(
-                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = "Toggle Lures"
-                        )
-                        CardItemWithValue(
-                            icon = AppIcons.Default.Lure,
-                            value = tackleBoxWithLures.lures.size.toString(),
-                            description = if (verbose) {
-                                if (tackleBoxWithLures.lures.size == 1) "Lure"
-                                else "Lures"
-                            } else null,
-                            onClick = null,
-                            contentColor = secondaryContentColor
-                        )
-                    }
+                    CardItemWithValue(
+                        icon = AppIcons.Default.Lure,
+                        value = tackleBoxWithLures.lures.size.toString(),
+                        description = if (verbose) {
+                            if (tackleBoxWithLures.lures.size == 1) "Lure"
+                            else "Lures"
+                        } else null,
+                        onClick = onEdit,
+                        contentColor = secondaryContentColor
+                    )
                 }
                 Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Fisherman options",
+                            tint = contentColor
+                        )
+                    }
+
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Rename") },
-                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                            text = { Text("Add Lures") },
                             onClick = {
                                 menuExpanded = false
+                                luresExpanded = false
                                 onEdit()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = AppIcons.Default.Lure,
+                                    contentDescription = "Add Lures",
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         )
+
+                        if (tackleBoxWithLures.lures.isNotEmpty()) {
+                            DropdownMenuItem(
+                                text = {
+                                    if (luresExpanded) Text("Hide Lures")
+                                    else Text("Show Lures")
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    luresExpanded = !luresExpanded
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        if (luresExpanded) Icons.Default.VisibilityOff
+                                        else Icons.Default.Visibility,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+
                         DropdownMenuItem(
                             text = { Text("Delete") },
                             leadingIcon = {
@@ -839,7 +866,7 @@ fun TackleBoxCard(
                 }
             }
             // Expandable lure list
-            AnimatedVisibility(visible = expanded) {
+            AnimatedVisibility(visible = luresExpanded) {
                 HorizontalDivider(
                     modifier = Modifier.padding(top = 4.dp),
                     thickness = 1.dp

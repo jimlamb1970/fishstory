@@ -209,9 +209,10 @@ class FishstoryApplication : Application() {
     )
 
     fun getLureViewModelFactory() = LureViewModelFactory(
-        configurationRepository,
-        lureRepository,
-        photoRepository
+        configRepo = configurationRepository,
+        fishermanRepo = fishermanRepository,
+        lureRepo = lureRepository,
+        photoRepo = photoRepository
     )
 
     fun getMainViewModelFactory() = MainViewModelFactory(
