@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -73,6 +74,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.crud.AddColorDialog
 import com.funjim.fishstory.ui.crud.EditColorDialog
+import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 
@@ -83,6 +85,8 @@ fun ManageColorsScreen(
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
+
+    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -100,7 +104,6 @@ fun ManageColorsScreen(
     var colorToPickFor by remember { mutableStateOf<LureColor?>(null) }
     var pickMaxHexCodes by remember { mutableStateOf(1) } // Supports 1 or 4 hex values
 
-    var editName by remember { mutableStateOf("") }
     var pendingNewColorName by remember { mutableStateOf<String?>(null) }
 
     val filteredColors = remember(searchQuery, colorsList) {
@@ -190,85 +193,94 @@ fun ManageColorsScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                val filteredSize = filteredColors.size
-                itemsIndexed(filteredColors, key = { _, s -> s.id }) { index, item ->
-                    var menuExpanded by remember { mutableStateOf(false) }
-                    var thumbnailMenuExpanded by remember { mutableStateOf(false) }
+            val listState = rememberLazyListState()
 
-                    val backgroundColor = getCardColor(index, filteredSize)
-                    val borderColor = getCardBorderColor(index, filteredSize)
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val filteredSize = filteredColors.size
+                    itemsIndexed(filteredColors, key = { _, s -> s.id }) { index, item ->
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .border(
-                                width = 1.dp,
-                                color = borderColor,
-                                shape = MaterialTheme.shapes.medium)
-                            .clip(MaterialTheme.shapes.medium)
-                            .combinedClickable(
-                                onClick = { /* do nothing */ },
-                                onLongClick = { menuExpanded = true }
-                            ),
-                        leadingContent = {
-                            Box(
-                                modifier = Modifier.combinedClickable(
-                                    onClick = { /* do nothing */ },
-                                    onLongClick = {
-                                        thumbnailMenuExpanded = true
-                                    }
+                        val backgroundColor = getCardColor(index, filteredSize)
+                        val borderColor = getCardBorderColor(index, filteredSize)
+
+                        ListItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = borderColor,
+                                    shape = MaterialTheme.shapes.medium
                                 )
-                            ) {
-                                if (item.hexCode.isNullOrBlank()) {
-                                    ThumbnailBox(
-                                        thumbnail = null,
-                                        imageVector = AppIcons.Default.Palette,
-                                        modifier = Modifier.size(48.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .combinedClickable(
+                                    onClick = { /* do nothing */ },
+                                    onLongClick = { menuExpanded = true }
+                                ),
+                            leadingContent = {
+                                Box(
+                                    modifier = Modifier.combinedClickable(
+                                        onClick = { /* do nothing */ },
+                                        onLongClick = {
+                                            thumbnailMenuExpanded = true
+                                        }
                                     )
-                                } else {
-                                    val hexList = remember(item.hexCode) {
-                                        item.hexCode.split(",").filter { it.isNotBlank() }
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape)
-                                            .border(
-                                                2.dp,
-                                                MaterialTheme.colorScheme.onSurface,
-                                                CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        // Dynamic layout grid depending on hex count
-                                        MultiColorCirclePreview(hexList = hexList)
-                                    }
-                                }
-
-                                DropdownMenu(
-                                    expanded = thumbnailMenuExpanded,
-                                    onDismissRequest = { thumbnailMenuExpanded = false }
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Select Single Color") },
-                                        onClick = {
-                                            thumbnailMenuExpanded = false
-                                            pickMaxHexCodes = 1
-                                            colorToPickFor = item
+                                    if (item.hexCode.isNullOrBlank()) {
+                                        ThumbnailBox(
+                                            thumbnail = null,
+                                            imageVector = AppIcons.Default.Palette,
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                    } else {
+                                        val hexList = remember(item.hexCode) {
+                                            item.hexCode.split(",").filter { it.isNotBlank() }
                                         }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Select Multiple Colors (Up to 4)") },
-                                        onClick = {
-                                            thumbnailMenuExpanded = false
-                                            pickMaxHexCodes = 4
-                                            colorToPickFor = item
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .border(
+                                                    2.dp,
+                                                    MaterialTheme.colorScheme.onSurface,
+                                                    CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            // Dynamic layout grid depending on hex count
+                                            MultiColorCirclePreview(hexList = hexList)
                                         }
-                                    )
-                                    // Disable the clearing of the HEXCODE for the color
-/*
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = thumbnailMenuExpanded,
+                                        onDismissRequest = { thumbnailMenuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Select Single Color") },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                pickMaxHexCodes = 1
+                                                colorToPickFor = item
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Select Multiple Colors (Up to 4)") },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                pickMaxHexCodes = 4
+                                                colorToPickFor = item
+                                            }
+                                        )
+                                        // Disable the clearing of the HEXCODE for the color
+                                        /*
                                     if (!item.hexCode.isNullOrBlank()) {
                                         DropdownMenuItem(
                                             text = {
@@ -285,64 +297,66 @@ fun ManageColorsScreen(
                                         )
                                     }
 */
+                                    }
                                 }
-                            }
-                        },
-                        headlineContent = { Text(item.name) },
-                        trailingContent = {
-                            Box {
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Options"
-                                    )
-                                }
+                            },
+                            headlineContent = { Text(item.name) },
+                            trailingContent = {
+                                Box {
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.MoreVert,
+                                            contentDescription = "Options"
+                                        )
+                                    }
 
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Rename") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            colorToEdit = item
-                                            editName = item.name
-                                        },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.Edit, contentDescription = "Rename")
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Select Single Color") },
-                                        onClick = {
-                                            thumbnailMenuExpanded = false
-                                            pickMaxHexCodes = 1
-                                            colorToPickFor = item
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = AppIcons.Default.Palette,
-                                                contentDescription = "Select Color"
-                                            )
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Select Multiple Colors (Up to 4)") },
-                                        onClick = {
-                                            thumbnailMenuExpanded = false
-                                            pickMaxHexCodes = 4
-                                            colorToPickFor = item
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = AppIcons.Default.Palette,
-                                                contentDescription = "Select Colors"
-                                            )
-                                        }
-                                    )
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Rename") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                colorToEdit = item
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.Edit,
+                                                    contentDescription = "Rename"
+                                                )
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Select Single Color") },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                pickMaxHexCodes = 1
+                                                colorToPickFor = item
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = AppIcons.Default.Palette,
+                                                    contentDescription = "Select Color"
+                                                )
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Select Multiple Colors (Up to 4)") },
+                                            onClick = {
+                                                thumbnailMenuExpanded = false
+                                                pickMaxHexCodes = 4
+                                                colorToPickFor = item
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = AppIcons.Default.Palette,
+                                                    contentDescription = "Select Colors"
+                                                )
+                                            }
+                                        )
 // Disable the clearing of the HEXCODE for the color
-/*
+                                        /*
                                     if (!item.hexCode.isNullOrBlank()) {
                                         DropdownMenuItem(
                                             text = {
@@ -362,26 +376,38 @@ fun ManageColorsScreen(
                                         )
                                     }
 */
-                                    DropdownMenuItem(
-                                        text = { Text("Delete") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            colorToDelete = item
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete",
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                    )
+                                        DropdownMenuItem(
+                                            text = { Text("Delete") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                colorToDelete = item
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.Delete,
+                                                    contentDescription = "Delete",
+                                                    tint = MaterialTheme.colorScheme.error
+                                                )
+                                            }
+                                        )
+                                    }
                                 }
-                            }
-                        },
-                        colors = ListItemDefaults.colors(containerColor = backgroundColor)
-                    )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = backgroundColor)
+                        )
+                    }
                 }
+                VerticalScrollToItemBar(
+                    state = listState,
+                    imageVector = AppIcons.Default.Palette,
+                    onToggleAlignment = {
+                        viewModel.updateScrollbarOnLeft()
+                    },
+                    modifier = Modifier
+                        .align(if (appSettings.display.scrollbarOnLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(vertical = 4.dp, horizontal = 0.dp)
+                )
             }
         }
     }
@@ -608,7 +634,7 @@ fun AdvancedColorPickerDialog(
                 ) {
                     Text("Selected:", style = MaterialTheme.typography.labelMedium)
                     selectedHexList.forEach { hex ->
-                        val chipColor = try { Color("#$hex".toColorInt()) } catch(e: Exception) { Color.Gray }
+                        val chipColor = try { Color("#$hex".toColorInt()) } catch(_: Exception) { Color.Gray }
                         Box(
                             modifier = Modifier
                                 .size(28.dp)
@@ -641,7 +667,7 @@ fun AdvancedColorPickerDialog(
                     items(predefinedColors) { rawHex ->
                         val cleanHex = rawHex.removePrefix("#").uppercase()
                         val isSelected = selectedHexList.contains(cleanHex)
-                        val itemColor = remember { Color(android.graphics.Color.parseColor(rawHex)) }
+                        val itemColor = remember { Color(rawHex.toColorInt()) }
 
                         Box(
                             modifier = Modifier
