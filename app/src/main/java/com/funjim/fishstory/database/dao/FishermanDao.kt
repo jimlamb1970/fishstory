@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.entity.BaitEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.FishermanEntityFullStatistics
 import com.funjim.fishstory.database.entity.FishermanEntitySummary
@@ -21,11 +22,25 @@ import kotlinx.coroutines.flow.Flow
 interface FishermanDao {
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<FishermanEntity>>
+    @Query("DELETE FROM fisherman_table") suspend fun deleteAllFishermen()
+
+    @Delete
+    suspend fun deleteFisherman(fisherman: FishermanEntity)
+    @Query("DELETE FROM fisherman_table WHERE id = :id")
+    suspend fun deleteFishermanById(id: String)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insert(fisherman: FishermanEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertFisherman(fisherman: FishermanEntity)
+    @Update
+    suspend fun update(fisherman: FishermanEntity)
+    @Upsert
+    suspend fun upsert(fisherman: FishermanEntity)
 
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
-    suspend fun getFishermanById(id: String): FishermanEntity?
-    @Query("SELECT * FROM fisherman_table WHERE id = :id")
     fun getFisherman (id: String): Flow<FishermanEntity?>
+    @Query("SELECT * FROM fisherman_table WHERE id = :id")
+    suspend fun getFishermanById(id: String): FishermanEntity?
 
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
@@ -34,32 +49,24 @@ interface FishermanDao {
             """)
     fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
 
+    @Query("""
+        SELECT fisherman_table.* FROM fisherman_table
+        INNER JOIN event_fisherman_cross_ref ON fisherman_table.id = event_fisherman_cross_ref.fishermanId
+        WHERE event_fisherman_cross_ref.eventId = :eventId
+        
+        UNION
+        
+        SELECT fisherman_table.* FROM fisherman_table 
+        INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId  
+        WHERE fish_table.eventId = :eventId
+    """)
+    fun getAllFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
             WHERE sref.eventId = :eventId
             ORDER BY f.firstName, f.nickname, f.lastName ASC
             """)
     fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
-
-    @Query("DELETE FROM fisherman_table")
-    suspend fun deleteAllFishermen()
-
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insert(fisherman: FishermanEntity)
-
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertFisherman(fisherman: FishermanEntity)
-
-    @Upsert
-    suspend fun upsert(fisherman: FishermanEntity)
-
-    @Update
-    suspend fun update(fisherman: FishermanEntity)
-
-    @Delete
-    suspend fun deleteFisherman(fisherman: FishermanEntity)
-    @Query("DELETE FROM fisherman_table WHERE id = :id")
-    suspend fun deleteFishermanById(id: String)
 
     @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1")
     suspend fun getFishermanByName(first: String, last: String, nickname: String): FishermanEntity?

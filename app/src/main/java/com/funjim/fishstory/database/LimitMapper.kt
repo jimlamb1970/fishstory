@@ -3,6 +3,7 @@ package com.funjim.fishstory.database
 import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 
 /**
  * Maps DB Entity -> Domain Model
@@ -19,8 +20,8 @@ fun LimitEntity.toDomain(): Limit {
         upperInclusive = upperInclusive
     )
 }
-fun LimitWithSpeciesEntity.toDomain(): Limit {
-    return Limit(
+fun LimitWithSpeciesEntity.toDomain(): LimitWithSpecies {
+    return LimitWithSpecies(
         id = limit.id,
         name = limit.name,
         type = limit.type,
@@ -36,7 +37,7 @@ fun LimitWithSpeciesEntity.toDomain(): Limit {
 /**
  * Maps Domain Model -> DB Entity
  */
-fun Limit.toEntity(): LimitEntity {
+fun LimitWithSpecies.toEntity(): LimitEntity {
     return LimitEntity(
         id = id,
         name = name,
@@ -53,6 +54,6 @@ fun Limit.toEntity(): LimitEntity {
  * List mapping convenience helpers
  */
 fun List<LimitEntity>.toLimitDomainList(): List<Limit> = map { it.toDomain() }
-fun List<LimitWithSpeciesEntity>.toLimitWithSpeciesDomainList(): List<Limit> = map { it.toDomain() }
+fun List<LimitWithSpeciesEntity>.toLimitWithSpeciesDomainList(): List<LimitWithSpecies> = map { it.toDomain() }
 
-fun List<Limit>.toLimitEntityList(): List<LimitEntity> = map { it.toEntity() }
+fun List<LimitWithSpecies>.toLimitEntityList(): List<LimitEntity> = map { it.toEntity() }

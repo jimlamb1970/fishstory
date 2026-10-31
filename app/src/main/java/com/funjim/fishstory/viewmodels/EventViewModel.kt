@@ -299,7 +299,7 @@ class EventViewModel(
             initialValue = emptyList()
         )
 
-    val allLimits: StateFlow<List<Limit>> = fishRepo.getAllLimits()
+    val allLimits: StateFlow<List<LimitWithSpecies>> = fishRepo.getAllLimits()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -568,7 +568,7 @@ class EventViewModel(
     }
 
     // Limit functions
-    fun addLimit(limit: Limit) {
+    fun addLimit(limit: LimitWithSpecies) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.addLimitToEvent(
@@ -577,7 +577,7 @@ class EventViewModel(
             )
         }
     }
-    fun addLimitToEvent(limit: Limit) {
+    fun addLimitToEvent(limit: LimitWithSpecies) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.addLimitToEvent(
@@ -587,7 +587,7 @@ class EventViewModel(
         }
     }
 
-    fun removeLimitFromEvent(limit: Limit) {
+    fun removeLimitFromEvent(limit: LimitWithSpecies) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.removeLimitFromEvent(
@@ -828,14 +828,14 @@ class EventViewModel(
                     event = event,
                     baits = lureRepo.getAllBaitsForEvent(eventId).firstOrNull() ?: emptyList(),
                     bodiesOfWater = envRepo.getAllBodiesOfWaterForEvent(eventId).firstOrNull() ?: emptyList(),
-                    fishermen = emptyList(),
-                    limits = emptyList(),
+                    fishermen = fishermanRepo.getAllFishermenForEvent(eventId).firstOrNull() ?: emptyList(),
+                    limits = fishRepo.getAllLimitsForEvent(eventId).firstOrNull() ?: emptyList(),
                     lures = emptyList(),
                     lureColors = emptyList(),
                     notes = emptyList(),
                     species = emptyList(),
                     skyConditions = emptyList(),
-                    tackleBoxes = emptyList(),
+                    tackleBoxes = fishermanRepo.getAllTackleBoxesForEvent(eventId).firstOrNull() ?: emptyList(),
                     waterClarities = emptyList(),
                     waterConditions = emptyList(),
                     weatherConditions = emptyList(),

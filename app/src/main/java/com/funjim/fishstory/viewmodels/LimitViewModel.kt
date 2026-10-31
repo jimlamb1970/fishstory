@@ -1,7 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -10,28 +9,16 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
-import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
-import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
-import com.funjim.fishstory.repository.TripRepository
-import com.funjim.fishstory.ui.utils.CategoryType
-import com.funjim.fishstory.ui.utils.LocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -52,7 +39,7 @@ class LimitViewModel(
     val toastMessage = _toastMessage.asSharedFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val allLimits: StateFlow<List<Limit>> = fishRepo.getAllLimits()
+    val allLimits: StateFlow<List<LimitWithSpecies>> = fishRepo.getAllLimits()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -90,13 +77,13 @@ class LimitViewModel(
     }
 
     // Limit functions
-    fun addLimit(limit: Limit) {
+    fun addLimit(limit: LimitWithSpecies) {
         viewModelScope.launch {
             fishRepo.addLimit(limit)
         }
     }
 
-    fun deleteLimit(limit: Limit) {
+    fun deleteLimit(limit: LimitWithSpecies) {
         viewModelScope.launch {
             fishRepo.deleteLimit(limit)
         }

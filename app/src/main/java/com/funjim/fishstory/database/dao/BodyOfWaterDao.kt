@@ -7,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.BaitEntity
 import com.funjim.fishstory.database.entity.BodyOfWaterEntity
 import com.funjim.fishstory.database.entity.EventBodyOfWaterEntity
 import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity

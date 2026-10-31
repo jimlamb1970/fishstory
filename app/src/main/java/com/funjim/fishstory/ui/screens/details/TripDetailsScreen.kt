@@ -40,7 +40,7 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
@@ -144,7 +144,7 @@ fun TripDetailsScreen(
     var showDeleteEventDialog by remember { mutableStateOf(false) }
     var fishermanToDelete by remember { mutableStateOf<Fisherman?>(null) }
     var showDeleteFishermanDialog by remember { mutableStateOf(false) }
-    var limitToDelete by remember { mutableStateOf<Limit?>(null) }
+    var limitToDelete by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var showDeleteLimitDialog by remember { mutableStateOf(false) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var showDeleteNoteDialog by remember { mutableStateOf(false) }
@@ -155,7 +155,7 @@ fun TripDetailsScreen(
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     var showDeleteWeatherDialog by remember { mutableStateOf(false) }
 
-    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
+    var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }

@@ -45,7 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.ui.cards.LimitCard
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
@@ -79,8 +79,8 @@ fun ManageLimitsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
-    var itemToDelete by remember { mutableStateOf<Limit?>(null) }
-    var itemToEdit by remember { mutableStateOf<Limit?>(null) }
+    var itemToDelete by remember { mutableStateOf<LimitWithSpecies?>(null) }
+    var itemToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->

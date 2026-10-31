@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.Species
@@ -45,8 +45,8 @@ fun LimitSummarySection(
     eventThumbnailProvider: @Composable (Event) -> Unit = {},
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     onAdd: (() -> Unit)? = null,
-    onDelete: (Limit) -> Unit,
-    onEdit: (Limit) -> Unit,
+    onDelete: (LimitWithSpecies) -> Unit,
+    onEdit: (LimitWithSpecies) -> Unit,
     onToggleHelp: (() -> Unit)? = null
 ) {
     Column(

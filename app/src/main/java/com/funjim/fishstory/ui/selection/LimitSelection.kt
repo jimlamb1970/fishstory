@@ -44,7 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.cards.formatSizeConstraint
@@ -62,12 +62,12 @@ import com.funjim.fishstory.ui.utils.getOnChipColor
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimitSelection(
-    items: List<Limit>,
+    items: List<LimitWithSpecies>,
     selectedItems: List<LimitSummary>,
     useImperial: Boolean,
     speciesThumbnailProvider: @Composable ((Species) -> Unit),
-    onSelected: (Limit) -> Unit,
-    onUnselected: (Limit) -> Unit,
+    onSelected: (LimitWithSpecies) -> Unit,
+    onUnselected: (LimitWithSpecies) -> Unit,
     onAdd: (() -> Unit)? = null,
     onDone: () -> Unit,
     usageMap: Map<String, Int>? = null,

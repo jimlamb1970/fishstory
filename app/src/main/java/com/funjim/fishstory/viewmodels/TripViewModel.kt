@@ -98,7 +98,7 @@ class TripViewModel(
             initialValue = emptyList()
         )
 
-    val allLimits: StateFlow<List<Limit>> = fishRepo.getAllLimits()
+    val allLimits: StateFlow<List<LimitWithSpecies>> = fishRepo.getAllLimits()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -239,7 +239,7 @@ class TripViewModel(
                     } else {
                         // First, for each event, we need to determine if there are limits
                         // assigned specifically to each event
-                        val eventLimitsFlows: List<Flow<Pair<EventSummary, List<Limit>>>> = events.map { eventSummary ->
+                        val eventLimitsFlows: List<Flow<Pair<EventSummary, List<LimitWithSpecies>>>> = events.map { eventSummary ->
                             fishRepo.getLimitsForEvent(eventSummary.event.id).map { eventLimits ->
                                 eventSummary to eventLimits
                             }
@@ -591,7 +591,7 @@ class TripViewModel(
         }
     }
 
-    fun addLimit(limit: Limit) {
+    fun addLimit(limit: LimitWithSpecies) {
         val tripId = _selectedTripId.value ?: return
 
         viewModelScope.launch {
@@ -601,7 +601,7 @@ class TripViewModel(
             )
         }
     }
-    fun addLimitToTrip(limit: Limit) {
+    fun addLimitToTrip(limit: LimitWithSpecies) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
             fishRepo.addLimitToTrip(
@@ -610,7 +610,7 @@ class TripViewModel(
             )
         }
     }
-    fun removeLimitFromTrip(limit: Limit) {
+    fun removeLimitFromTrip(limit: LimitWithSpecies) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
             fishRepo.removeLimitFromTrip(limitId = limit.id, tripId = tripId)

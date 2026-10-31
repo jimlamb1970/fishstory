@@ -25,6 +25,7 @@ import com.funjim.fishstory.database.toEventDomainList
 import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toFishermanSummaryDomainList
+import com.funjim.fishstory.database.toLimitDomainList
 import com.funjim.fishstory.database.toLimitWithSpeciesDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toNoteDomainList
@@ -32,7 +33,6 @@ import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.toTripDomainList
 import com.funjim.fishstory.database.toWaterSummaryDomainList
 import com.funjim.fishstory.database.toWeatherSummaryDomainList
-import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -45,6 +45,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
@@ -364,28 +365,33 @@ class FishRepository(
         fishDao.deleteSpecies(species.toEntity())
     }
 
-    fun getAllLimits(): Flow<List<Limit>> {
+    fun getAllLimits(): Flow<List<LimitWithSpecies>> {
         return limitDao.getAllLimitsWithSpecies()
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
-    fun getLimitsForEvent(eventId: String): Flow<List<Limit>> {
+    fun getAllLimitsForEvent(eventId: String): Flow<List<Limit>> {
+        return limitDao.getAllLimitsForEvent(eventId)
+            .map { list -> list.toLimitDomainList() }
+    }
+
+    fun getLimitsForEvent(eventId: String): Flow<List<LimitWithSpecies>> {
         return limitDao.getLimitsForEvent(eventId = eventId)
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
-    fun getLimitsForTrip(tripId: String): Flow<List<Limit>> {
+    fun getLimitsForTrip(tripId: String): Flow<List<LimitWithSpecies>> {
         return limitDao.getLimitsForTrip(tripId = tripId)
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
-    suspend fun addLimit(limit: Limit) {
+    suspend fun addLimit(limit: LimitWithSpecies) {
         limitDao.insertLimit(
             limit = limit.toEntity(),
             species = limit.species.toSpeciesEntityList()
         )
     }
-    suspend fun addLimitToEvent(eventId: String, limit: Limit) {
+    suspend fun addLimitToEvent(eventId: String, limit: LimitWithSpecies) {
         limitDao.insertLimitForEvent(
             limit = limit.toEntity(),
             species = limit.species.toSpeciesEntityList(),
@@ -400,7 +406,7 @@ class FishRepository(
             )
         )
     }
-    suspend fun addLimitToTrip(tripId: String, limit: Limit) {
+    suspend fun addLimitToTrip(tripId: String, limit: LimitWithSpecies) {
         limitDao.insertLimitForTrip(
             limit = limit.toEntity(),
             species = limit.species.toSpeciesEntityList(),
@@ -420,7 +426,7 @@ class FishRepository(
         }
     }
 
-    suspend fun deleteLimit(limit: Limit) {
+    suspend fun deleteLimit(limit: LimitWithSpecies) {
         limitDao.deleteLimit(limit.toEntity())
     }
     suspend fun removeLimitFromEvent(limitId: String, eventId: String) {
@@ -434,7 +440,7 @@ class FishRepository(
         }
     }
 
-    fun getCaughtCountForLimit(eventId: String, limit: Limit): Flow<Int> {
+    fun getCaughtCountForLimit(eventId: String, limit: LimitWithSpecies): Flow<Int> {
         val speciesIds = limit.species.map { it.id }
 
         return when (limit.type) {

@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.EventLimitEntity
+import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
@@ -20,23 +21,27 @@ interface LimitDao {
     // Lure queries
     @Query("SELECT * FROM limit_table")
     fun getAllLimits(): Flow<List<LimitEntity>>
-
     @Query("DELETE FROM limit_table")
     suspend fun deleteAllLimits()
 
-    @Query("SELECT * FROM limit_table WHERE id = :id")
-    suspend fun geLimitById(id: String): LimitEntity?
-    @Query("SELECT * FROM limit_table WHERE id = :id")
-    fun getLimit(id: String): Flow<LimitEntity?>
-
+    @Delete
+    suspend fun deleteLimit(entity: LimitEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimit(entity: LimitEntity)
-
     @Upsert
     suspend fun upsertLimit(entity: LimitEntity)
 
-    @Delete
-    suspend fun deleteLimit(entity: LimitEntity)
+    @Query("SELECT * FROM limit_table WHERE id = :id")
+    fun getLimit(id: String): Flow<LimitEntity?>
+    @Query("SELECT * FROM limit_table WHERE id = :id")
+    suspend fun geLimitById(id: String): LimitEntity?
+
+    @Query("""
+        SELECT limit_table.* FROM limit_table
+        INNER JOIN event_limit_table ON limit_table.id = event_limit_table.limitId
+        WHERE event_limit_table.eventId = :eventId
+    """)
+    fun getAllLimitsForEvent(eventId: String): Flow<List<LimitEntity>>
 
     @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
     suspend fun deleteLimitSpeciesXRefsForLimit(limitId: String)

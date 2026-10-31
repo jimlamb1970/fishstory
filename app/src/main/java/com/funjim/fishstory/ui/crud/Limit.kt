@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.screens.FractionalLengthField
@@ -47,11 +47,11 @@ import kotlin.math.floor
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimitDialog(
-    limitToEdit: Limit? = null,
+    limitToEdit: LimitWithSpecies? = null,
     useImperial: Boolean,
     species: List<Species>,
     speciesThumbnailProvider: @Composable (Species, Dp) -> Unit,
-    onConfirm: (Limit) -> Unit,
+    onConfirm: (LimitWithSpecies) -> Unit,
     onDismiss: () -> Unit
 ) {
     // Determine mode
@@ -308,7 +308,7 @@ fun LimitDialog(
                         lowerInclusive = lowerInclusive,
                         upperSize = if (selectedType == LimitType.MAX_SIZE || selectedType == LimitType.SLOT_LIMIT || selectedType == LimitType.TROPHY_LIMIT) upperSize else null,
                         upperInclusive = upperInclusive
-                    ) ?: Limit(
+                    ) ?: LimitWithSpecies(
                         type = selectedType,
                         name = name.trimEnd(),
                         species = selectedSpecies,
@@ -359,7 +359,7 @@ fun AddLimitDialog(
     species: List<Species>,
     speciesThumbnailProvider: @Composable (Species, Dp) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (Limit) -> Unit
+    onConfirm: (LimitWithSpecies) -> Unit
 ) {
     var selectedType by remember { mutableStateOf(LimitType.BAG_LIMIT) }
     var expandedTypeDropdown by remember { mutableStateOf(false) }
@@ -511,7 +511,7 @@ fun AddLimitDialog(
                 onClick = {
                     val countVal = countText.toIntOrNull() ?: 0
 
-                    val limit = Limit(
+                    val limit = LimitWithSpecies(
                         type = selectedType,
                         name = "",
                         species = selectedSpecies,

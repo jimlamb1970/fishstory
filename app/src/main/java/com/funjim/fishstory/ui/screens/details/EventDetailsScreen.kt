@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
@@ -138,7 +138,7 @@ fun EventDetailsScreen(
     var showDeleteBodyOfWaterDialog by remember { mutableStateOf(false) }
     var fishermanToDelete by remember { mutableStateOf<Fisherman?>(null) }
     var showDeleteFishermanDialog by remember { mutableStateOf(false) }
-    var limitToDelete by remember { mutableStateOf<Limit?>(null) }
+    var limitToDelete by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var showDeleteLimitDialog by remember { mutableStateOf(false) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var showDeleteNoteDialog by remember { mutableStateOf(false) }
@@ -149,7 +149,7 @@ fun EventDetailsScreen(
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     var showDeleteWeatherDialog by remember { mutableStateOf(false) }
 
-    var limitToEdit by remember { mutableStateOf<Limit?>(null) }
+    var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }

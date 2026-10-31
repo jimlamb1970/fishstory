@@ -2,7 +2,6 @@ package com.funjim.fishstory.ui.cards
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,24 +30,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Event
-import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.model.LimitType
@@ -57,7 +52,6 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.GumballStatus
 import com.funjim.fishstory.ui.utils.StatusGumball
-import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -67,7 +61,7 @@ import com.funjim.fishstory.ui.utils.rememberGumballStatus
 import com.funjim.fishstory.ui.utils.toLengthDisplayString
 
 fun formatSizeConstraint(
-    limit: Limit,
+    limit: LimitWithSpecies,
     useImperial: Boolean
 ): String {
     val lowerInches = limit.lowerSize?.toLengthDisplayString(useImperial = useImperial, useFractions = true)
@@ -88,7 +82,7 @@ fun formatSizeConstraint(
 
 @Composable
 fun LimitCard(
-    item: Limit,
+    item: LimitWithSpecies,
     index: Int,
     count: Int,
     useImperial: Boolean,
@@ -276,8 +270,8 @@ fun LimitSummaryCard(
     speciesThumbnailProvider: @Composable (Species) -> Unit,
     index: Int = 0,
     totalItems: Int = 0,
-    onEdit: (Limit) -> Unit,
-    onDelete: (Limit) -> Unit
+    onEdit: (LimitWithSpecies) -> Unit,
+    onDelete: (LimitWithSpecies) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
