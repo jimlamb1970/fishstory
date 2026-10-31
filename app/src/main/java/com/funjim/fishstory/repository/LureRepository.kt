@@ -1,5 +1,6 @@
 package com.funjim.fishstory.repository
 
+import androidx.room.Transaction
 import com.funjim.fishstory.database.dao.BaitDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LureDao
@@ -9,8 +10,10 @@ import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toLureColorDomainList
+import com.funjim.fishstory.database.toLureDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toLureWithColorsSummaryDomainList
+import com.funjim.fishstory.database.toNoteDomainList
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
@@ -38,22 +41,35 @@ class LureRepository(
         .map { list -> list.toBaitDomainList() }
 
     fun getAllLures(): Flow<List<LureWithColors>> {
-        return lureDao.getLuresWithColors()
+        return lureDao.getAllLuresWithColors()
             .map { list -> list.toLureWithColorsDomainList() }
+    }
+    fun getAllLuresForEvent(eventId: String): Flow<List<Lure>> {
+        return lureDao.getAllLuresForEvent(eventId)
+            .map { list -> list.toLureDomainList() }
+    }
+    fun getAllLureColorsForEvent(eventId: String): Flow<List<LureColor>> {
+        return lureDao.getAllLureColorsForEvent(eventId)
+            .map { list -> list.toLureColorDomainList() }
     }
 
     fun getLureSummariesWithColors(): Flow<List<LureWithColorsSummary>> {
         return lureDao.getLureSummariesWithColors()
             .map { list -> list.toLureWithColorsSummaryDomainList() }
     }
-
     fun getLureWithColors(id: String): Flow<LureWithColors?> {
         return lureDao.getLureWithColors(id)
             .map { entity -> entity?.toDomain() }
     }
-
     suspend fun getLureWithDetails(id: String): LureWithDetails? {
         return lureDao.getLureWithDetails(id)?.toDomain()
+    }
+
+    @Transaction
+    suspend fun deleteLureColors(lureId: String) {
+        lureDao.deletePrimaryColorsForLure(lureId)
+        lureDao.deleteSecondaryColorsForLure(lureId)
+        lureDao.deleteGlowColorsForLure(lureId)
     }
 
     suspend fun upsertLurePrimaryColor(crossRef: LurePrimaryColor) {
@@ -98,19 +114,21 @@ class LureRepository(
         lureDao.deleteLureColor(lureColor.toEntity())
     }
 
+    // Bait Operations
     suspend fun addBait(bait: Bait) {
         baitDao.insertBait(bait.toEntity())
     }
-    suspend fun updateBait(bait: Bait) {
-        baitDao.updateBait(bait.toEntity())
-    }
     suspend fun deleteBait(bait: Bait) {
         baitDao.deleteBait(bait.toEntity())
+    }
+    suspend fun updateBait(bait: Bait) {
+        baitDao.updateBait(bait.toEntity())
     }
     fun getAllBaitsForEvent(eventId: String): Flow<List<Bait>> {
         return baitDao.getAllBaitsForEvent(eventId).map { list -> list.toBaitDomainList() }
     }
 
+    // TODO move to fisherman repo
     suspend fun getFishermanById(id: String): Fisherman? {
         return fishermanDao.getFishermanById(id)?.toDomain()
     }

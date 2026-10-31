@@ -285,6 +285,7 @@ class LureViewModel(
             )
             lureRepo.upsertLure(newLure)
 
+            lureRepo.deleteLureColors(id)
             primaryColors.forEach { primaryColor ->
                 lureRepo.upsertLurePrimaryColor(
                     LurePrimaryColor(id, primaryColor.id)

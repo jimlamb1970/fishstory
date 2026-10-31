@@ -10,7 +10,9 @@ import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toEventSummaryDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
+import com.funjim.fishstory.database.toNoteDomainList
 import com.funjim.fishstory.database.toSpeciesDomainList
+import com.funjim.fishstory.database.toTackleBoxDomainList
 import com.funjim.fishstory.database.toTripDomainList
 import com.funjim.fishstory.database.toTripSummaryDomainList
 import com.funjim.fishstory.model.Event
@@ -22,6 +24,8 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.EventWithInfo
+import com.funjim.fishstory.model.Note
+import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFisherman
@@ -306,25 +310,26 @@ class TripRepository(
         }
     }
 
+    // Note Operations
     suspend fun addNoteToTrip(tripId: String, content: String) {
         noteDao.addNoteToTrip(tripId, content)
     }
-
     suspend fun addNoteToEvent(eventId: String, content: String) {
         noteDao.addNoteToEvent(eventId, content)
     }
-
     suspend fun addNoteToFish(fishId: String, content: String) {
         noteDao.addNoteToFish(fishId, content)
     }
-
+    suspend fun deleteNote(noteId: String) {
+        noteDao.deleteNoteById(noteId)
+    }
     suspend fun updateNote(
         noteId: String,
         noteText: String) {
         noteDao.updateNoteContent(noteId, noteText)
     }
-
-    suspend fun deleteNote(noteId: String) {
-        noteDao.deleteNoteById(noteId)
+    fun getAllNotesForEvent(eventId: String): Flow<List<Note>> {
+        return noteDao.getAllNotesForEvent(eventId)
+            .map { list -> list.toNoteDomainList() }
     }
 }
