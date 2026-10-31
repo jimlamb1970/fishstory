@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.collections.map
 
 class AddEventViewModel(
     private val locationProvider: LocationProvider,
@@ -151,7 +150,7 @@ class AddEventViewModel(
 
         _eventBodiesOfWater.value.forEach { item ->
             viewModelScope.launch {
-                envRepo.insertEventBodyOfWater(
+                envRepo.insertBodyOfWaterForEvent(
                     EventBodyOfWater(
                         eventId = eventId,
                         bodyOfWaterId = item.id)

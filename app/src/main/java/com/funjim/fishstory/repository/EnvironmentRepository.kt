@@ -7,10 +7,12 @@ import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
+import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toDomainList
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toEventBodyOfWaterEntityList
+import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
 import com.funjim.fishstory.model.SkyCondition
@@ -46,12 +48,11 @@ class EnvironmentRepository(
     suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWater) {
         bodyOfWaterDao.deleteBodyOfWater(bodyOfWater.toEntity())
     }
-
-    suspend fun insertTripBodyOfWater(
+    suspend fun insertBodyOfWaterForTrip(
         crossRef: TripBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.insertTripBodyOfWater(crossRef.toEntity())
+            bodyOfWaterDao.insertBodyOfWaterForTrip(crossRef.toEntity())
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
                 if (eventIds.isNotEmpty()) {
@@ -63,23 +64,21 @@ class EnvironmentRepository(
             }
         }
     }
-
-    suspend fun deleteTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
+    suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String) {
         database.withTransaction {
-            bodyOfWaterDao.deleteTripBodyOfWater(tripId, bodyOfWaterId)
+            bodyOfWaterDao.deleteBodyOfWaterForTrip(tripId, bodyOfWaterId)
             val eventIds = eventDao.getEventIdsForTrip(tripId)
             bodyOfWaterDao.deleteBodyOfWaterForEvents(eventIds, bodyOfWaterId)
         }
     }
-
-    suspend fun insertEventBodyOfWater(
+    suspend fun insertBodyOfWaterForEvent(
         crossRef: EventBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.insertEventBodyOfWater(crossRef.toEntity())
+            bodyOfWaterDao.insertBodyOfWaterForEvent(crossRef.toEntity())
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
-                bodyOfWaterDao.insertTripBodyOfWater(
+                bodyOfWaterDao.insertBodyOfWaterForTrip(
                     TripBodyOfWaterEntity(
                         tripId = tripId,
                         bodyOfWaterId = crossRef.bodyOfWaterId
@@ -88,9 +87,11 @@ class EnvironmentRepository(
             }
         }
     }
-
-    suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String) =
-        bodyOfWaterDao.deleteEventBodyOfWater(eventId, bodyOfWaterId)
+    suspend fun deleteBodyOfWaterForEvent(eventId: String, bodyOfWaterId: String) =
+        bodyOfWaterDao.deleteBodyOfWaterForEvent(eventId, bodyOfWaterId)
+    fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWater>> {
+        return bodyOfWaterDao.getAllBodiesOfWaterForEvent(eventId).map { list -> list.toBodyOfWaterDomainList() }
+    }
 
     suspend fun addWater(water: Water) {
         waterDao.insertWater(water.toEntity())

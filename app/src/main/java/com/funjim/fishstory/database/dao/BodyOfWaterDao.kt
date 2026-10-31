@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.funjim.fishstory.database.entity.BaitEntity
 import com.funjim.fishstory.database.entity.BodyOfWaterEntity
 import com.funjim.fishstory.database.entity.EventBodyOfWaterEntity
 import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
@@ -14,27 +15,25 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BodyOfWaterDao {
-
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
-
-    @Update
-    suspend fun updateBodyOfWater(bodyOfWater: BodyOfWaterEntity)
-
     @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>
+    @Query("DELETE FROM body_of_water_table")
+    suspend fun deleteAllBodiesOfWater()
+
+    @Delete
+    suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWaterEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
+    @Update
+    suspend fun updateBodyOfWater(bodyOfWater: BodyOfWaterEntity)
 
     @Query("SELECT * FROM body_of_water_table WHERE id = :id")
     fun getBodyOfWater (id: String): Flow<BodyOfWaterEntity?>
 
-    @Delete
-    suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWaterEntity)
-
-    @Query("DELETE FROM body_of_water_table")
-    suspend fun deleteAllBodiesOfWater()
-
     @Query("SELECT * FROM trip_body_of_water")
     fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>
+    @Query("DELETE FROM trip_body_of_water")
+    suspend fun deleteAllTripBodiesOfWater()
 
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
@@ -42,42 +41,45 @@ interface BodyOfWaterDao {
         WHERE trip_body_of_water.tripId = :tripId
         GROUP BY body_of_water_table.id
         """)
-    fun getTripBodiesOfWater(tripId: String): Flow<List<BodyOfWaterEntity>>
-
+    fun getBodiesOfWaterForTrip(tripId: String): Flow<List<BodyOfWaterEntity>>
     @Upsert
-    suspend fun insertTripBodyOfWater(crossRef: TripBodyOfWaterEntity)
-
+    suspend fun insertBodyOfWaterForTrip(crossRef: TripBodyOfWaterEntity)
     @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteTripBodyOfWater(tripId: String, bodyOfWaterId: String)
+    suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String)
 
-    @Query("DELETE FROM trip_body_of_water")
-    suspend fun deleteAllTripBodiesOfWater()
 
     @Query("SELECT * FROM event_body_of_water")
     fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
+    @Query("DELETE FROM event_body_of_water")
+    suspend fun deleteAllEventBodiesOfWater()
 
+    @Query("""
+        SELECT body_of_water_table.* FROM body_of_water_table
+        INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
+        WHERE event_body_of_water.eventId = :eventId
+        
+        UNION
+        
+        SELECT body_of_water_table.* FROM body_of_water_table 
+        INNER JOIN fish_table ON body_of_water_table.id = fish_table.baitId  
+        WHERE fish_table.eventId = :eventId
+    """)
+    fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
         WHERE event_body_of_water.eventId = :eventId
         GROUP BY body_of_water_table.id
         """)
-    fun getEventBodiesOfWater(eventId: String): Flow<List<BodyOfWaterEntity>>
-
+    fun getBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Upsert
-    suspend fun insertEventBodyOfWater(crossRef: EventBodyOfWaterEntity)
-
+    suspend fun insertBodyOfWaterForEvent(crossRef: EventBodyOfWaterEntity)
     @Upsert
     suspend fun insertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWaterEntity>)
-
     @Query("DELETE FROM event_body_of_water WHERE eventId = :eventId AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteEventBodyOfWater(eventId: String, bodyOfWaterId: String)
-
+    suspend fun deleteBodyOfWaterForEvent(eventId: String, bodyOfWaterId: String)
     @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
-
-    @Query("DELETE FROM event_body_of_water")
-    suspend fun deleteAllEventBodiesOfWater()
 
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table 

@@ -32,6 +32,7 @@ import com.funjim.fishstory.database.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.toTripDomainList
 import com.funjim.fishstory.database.toWaterSummaryDomainList
 import com.funjim.fishstory.database.toWeatherSummaryDomainList
+import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
@@ -145,7 +146,7 @@ class FishRepository(
             .map { entity -> entity?.toDomain() }
     }
     fun getEventById(id: String): Flow<Event?> {
-        return eventDao.getEventById(id)
+        return eventDao.getEvent(id)
             .map { entity -> entity?.toDomain() }
     }
     fun getFisherman(id: String): Flow<Fisherman?> {

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -198,6 +200,19 @@ fun EventDetailsScreen(
             }
         }
     )
+
+    val saveFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                viewModel.exportDatabaseAsJson(context, uri).let { success ->
+                    val message = if (success) "Event exported as JSON successfully!" else "Database export failed."
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
+        }
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -639,6 +654,20 @@ fun EventDetailsScreen(
                                                 Icons.Default.Delete,
                                                 contentDescription = "Delete Event",
                                                 tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = { Text("Export") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            saveFileLauncher.launch("event_export.json")
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.ImportExport,
+                                                contentDescription = "Export Event"
                                             )
                                         }
                                     )

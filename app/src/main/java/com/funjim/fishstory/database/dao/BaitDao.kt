@@ -14,30 +14,27 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BaitDao {
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertBait(bait: BaitEntity)
-
-    @Upsert
-    suspend fun upsertBait(bait: BaitEntity)
-
-    @Update
-    suspend fun updateBait(bait: BaitEntity)
-
-
     @Query("SELECT * FROM bait_table ORDER BY name ASC")
     fun getAllBaits(): Flow<List<BaitEntity>>
+    @Query("DELETE FROM bait_table")
+    suspend fun deleteAllBaits()
+
+    @Delete
+    suspend fun deleteBait(bait: BaitEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertBait(bait: BaitEntity)
+    @Update
+    suspend fun updateBait(bait: BaitEntity)
+    @Upsert
+    suspend fun upsertBait(bait: BaitEntity)
 
     @Query("SELECT * FROM bait_table WHERE id = :id")
     fun getBait (id: String): Flow<BaitEntity?>
 
-    @Delete
-    suspend fun deleteBait(bait: BaitEntity)
-
-    @Query("DELETE FROM bait_table")
-    suspend fun deleteAllBaits()
-
     @Query("SELECT * FROM trip_bait")
     fun getAllTripBaits(): Flow<List<TripBaitEntity>>
+    @Query("DELETE FROM trip_bait")
+    suspend fun deleteAllTripBaits()
 
     @Query("""
         SELECT bait_table.* FROM bait_table
@@ -45,42 +42,45 @@ interface BaitDao {
         WHERE trip_bait.tripId = :tripId
         GROUP BY bait_table.id
         """)
-    fun getTripBaits(tripId: String): Flow<List<BaitEntity>>
-
+    fun getBaitsForTrip(tripId: String): Flow<List<BaitEntity>>
     @Upsert
-    suspend fun insertTripBait(crossRef: TripBaitEntity)
-
+    suspend fun insertBaitForTrip(crossRef: TripBaitEntity)
     @Query("DELETE FROM trip_bait WHERE tripId = :tripId AND baitId = :baitId")
-    suspend fun deleteTripBait(tripId: String, baitId: String)
+    suspend fun deleteBaitForTrip(tripId: String, baitId: String)
 
-    @Query("DELETE FROM trip_bait")
-    suspend fun deleteAllTripBaits()
 
     @Query("SELECT * FROM event_bait")
     fun getAllEventBaits(): Flow<List<EventBaitEntity>>
+    @Query("DELETE FROM event_bait")
+    suspend fun deleteAllEventBaits()
 
+    @Query("""
+        SELECT bait_table.* FROM bait_table
+        INNER JOIN event_bait ON bait_table.id = event_bait.baitId
+        WHERE event_bait.eventId = :eventId
+        
+        UNION
+        
+        SELECT bait_table.* FROM bait_table 
+        INNER JOIN fish_table ON bait_table.id = fish_table.baitId  
+        WHERE fish_table.eventId = :eventId
+    """)
+    fun getAllBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
     @Query("""
         SELECT bait_table.* FROM bait_table
         INNER JOIN event_bait ON bait_table.id = event_bait.baitId
         WHERE event_bait.eventId = :eventId
         GROUP BY bait_table.id
         """)
-    fun getEventBaits(eventId: String): Flow<List<BaitEntity>>
-
+    fun getBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
     @Upsert
-    suspend fun insertEventBait(crossRef: EventBaitEntity)
-
+    suspend fun insertBaitForEvent(crossRef: EventBaitEntity)
     @Upsert
     suspend fun insertBaitForEvents(crossRefs: List<EventBaitEntity>)
-
     @Query("DELETE FROM event_bait WHERE eventId = :eventId AND baitId = :baitId")
-    suspend fun deleteEventBait(eventId: String, baitId: String)
-
+    suspend fun deleteBaitForEvent(eventId: String, baitId: String)
     @Query("DELETE FROM event_bait WHERE eventId IN (:eventIds) AND baitId = :baitId")
     suspend fun deleteBaitForEvents(eventIds: List<String>, baitId: String)
-
-    @Query("DELETE FROM event_bait")
-    suspend fun deleteAllEventBaits()
 
     @Query("""
         SELECT bait_table.* FROM bait_table 

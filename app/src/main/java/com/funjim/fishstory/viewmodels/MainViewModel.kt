@@ -65,7 +65,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.collections.List
 
-// Placeholder data structure for serialization example. Replace with actual DB entities.
 @Serializable
 data class DatabaseExportData(
     val trips: List<TripEntity> = emptyList(),
@@ -247,11 +246,11 @@ class MainViewModel(
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
                     data.baits.forEach { baitDao.insertBait(it) }
-                    data.tripBait.forEach { baitDao.insertTripBait(it) }
-                    data.eventBait.forEach { baitDao.insertEventBait(it) }
+                    data.tripBait.forEach { baitDao.insertBaitForTrip(it) }
+                    data.eventBait.forEach { baitDao.insertBaitForEvent(it) }
                     data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
-                    data.tripBodyOfWater.forEach { bodyOfWaterDao.insertTripBodyOfWater(it) }
-                    data.eventBodyOfWater.forEach { bodyOfWaterDao.insertEventBodyOfWater(it) }
+                    data.tripBodyOfWater.forEach { bodyOfWaterDao.insertBodyOfWaterForTrip(it) }
+                    data.eventBodyOfWater.forEach { bodyOfWaterDao.insertBodyOfWaterForEvent(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tripFishermen.forEach { tripDao.insertTripFisherman(it) }

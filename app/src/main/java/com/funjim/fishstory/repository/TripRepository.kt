@@ -48,17 +48,27 @@ class TripRepository(
         .map { list -> list.toTripDomainList() }
     val allTripSummaries: Flow<List<TripSummary>> = tripDao.getTripSummaries()
         .map { list -> list.toTripSummaryDomainList() }
-    
+
+    fun getTripById(tripId: String): Trip? {
+        return tripDao.getTripById(tripId)?.toDomain()
+    }
+    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?> {
+        return tripDao.getTripDetailedSummary(tripId)
+            .map { it?.toDomain() }
+    }
+    fun getTripSummary(tripId: String): Flow<TripSummary?> {
+        return tripDao.getTripSummary(tripId)
+            .map { it?.toDomain() }
+    }
+
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
             .map { it?.toDomain() }
     }
-
     fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithInfo?> {
         return tripDao.getTripWithFishermenAndSpecies(tripId)
             .map { it?.toDomain() }
     }
-
     fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
         return tripDao.getTripWithFishermen(tripId)
             .map { it?.toDomain() }
@@ -130,31 +140,21 @@ class TripRepository(
             .map { list -> list.toEventSummaryDomainList() }
     }
 
-    fun getTripSummary(tripId: String): Flow<TripSummary?> {
-        return tripDao.getTripSummary(tripId)
-            .map { it?.toDomain() }
+    fun getEventById(eventId: String): Event? {
+        return eventDao.getEventById(eventId)?.toDomain()
     }
-
-    fun getTripDetailedSummary(tripId: String): Flow<TripDetailedSummary?> {
-        return tripDao.getTripDetailedSummary(tripId)
-            .map { it?.toDomain() }
-    }
-
-    fun getEventSummary(eventId: String): Flow<EventSummary?> {
-        return eventDao.getEventSummary(eventId)
-            .map { it?.toDomain() }
-    }
-
     fun getEventDetailedSummary(eventId: String): Flow<EventDetailedSummary?> {
         return eventDao.getEventDetailedSummary(eventId)
             .map { it?.toDomain() }
     }
-
+    fun getEventSummary(eventId: String): Flow<EventSummary?> {
+        return eventDao.getEventSummary(eventId)
+            .map { it?.toDomain() }
+    }
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> {
         return eventDao.getEventWithDetails(eventId)
             .map { it?.toDomain() }
     }
-
     fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> {
         return eventDao.getEventWithInfo(eventId)
             .map { it?.toDomain() }

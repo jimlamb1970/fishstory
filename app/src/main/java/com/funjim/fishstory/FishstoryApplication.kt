@@ -175,6 +175,7 @@ class FishstoryApplication : Application() {
             environmentRepository,
             fishermanRepository,
             fishRepository,
+            lureRepository,
             photoRepository,
             tripRepository)
 

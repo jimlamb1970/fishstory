@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
@@ -13,6 +14,7 @@ import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
@@ -27,12 +29,46 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+@Serializable
+data class EventExportData(
+    val trip: Trip,
+    val event: Event,
+    val baits: List<Bait> = emptyList(),
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),
+    val fishermen: List<Fisherman> = emptyList(),
+    val limits: List<Limit> = emptyList(),
+    val lures: List<Lure> = emptyList(),
+    val lureColors: List<LureColor> = emptyList(),
+    val notes: List<Note> = emptyList(),
+    val species: List<Species> = emptyList(),
+    val skyConditions: List<SkyCondition> = emptyList(),
+    val tackleBoxes: List<TackleBox> = emptyList(),
+    val waterClarities: List<WaterClarity> = emptyList(),
+    val waterConditions: List<Water> = emptyList(),
+    val weatherConditions: List<Weather> = emptyList(),
+    val fish: List<Fish> = emptyList(),
+
+    val eventBaits: List<EventBait> = emptyList(),
+    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),
+    val eventFishermen: List<EventFisherman> = emptyList(),
+    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
+    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
+    val lureGlowColors: List<LureGlowColor> = emptyList(),
+    val tackleBoxLures: List<TackleBoxLure> = emptyList(),
+    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
+)
+
 
 class EventViewModel(
     private val locationProvider: LocationProvider,
@@ -40,6 +76,7 @@ class EventViewModel(
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
@@ -393,7 +430,7 @@ class EventViewModel(
     }
     fun addEventBodyOfWater(eventId: String, bodyOfWaterId: String) {
         viewModelScope.launch {
-            envRepo.insertEventBodyOfWater(
+            envRepo.insertBodyOfWaterForEvent(
                 EventBodyOfWater(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
             )
         }
@@ -434,7 +471,7 @@ class EventViewModel(
 
     fun removeEventBodyOfWater(eventId: String, bodyOfWaterId: String) {
         viewModelScope.launch {
-            envRepo.deleteEventBodyOfWater(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
+            envRepo.deleteBodyOfWaterForEvent(eventId = eventId, bodyOfWaterId = bodyOfWaterId)
         }
     }
 
@@ -774,6 +811,54 @@ class EventViewModel(
             configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
+
+    private val json = Json { prettyPrint = true }
+
+    suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {
+        val eventId = _selectedEventId.value ?: return false
+        val tripId = _selectedTripId.value ?: return false
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val trip = tripRepo.getTripById(tripId) ?: return@withContext false
+                val event = tripRepo.getEventById(eventId) ?: return@withContext false
+
+                val eventData = EventExportData(
+                    trip = trip,
+                    event = event,
+                    baits = lureRepo.getAllBaitsForEvent(eventId).firstOrNull() ?: emptyList(),
+                    bodiesOfWater = envRepo.getAllBodiesOfWaterForEvent(eventId).firstOrNull() ?: emptyList(),
+                    fishermen = emptyList(),
+                    limits = emptyList(),
+                    lures = emptyList(),
+                    lureColors = emptyList(),
+                    notes = emptyList(),
+                    species = emptyList(),
+                    skyConditions = emptyList(),
+                    tackleBoxes = emptyList(),
+                    waterClarities = emptyList(),
+                    waterConditions = emptyList(),
+                    weatherConditions = emptyList(),
+                    fish = emptyList(),
+                    eventBaits = emptyList(),
+                    eventBodiesOfWater = emptyList(),
+                    eventFishermen = emptyList(),
+                    eventTargetSpecies = emptyList(),
+                    lurePrimaryColors = emptyList(),
+                    lureSecondaryColors = emptyList(),
+                    lureGlowColors = emptyList(),
+                    tackleBoxLures = emptyList(),
+                )
+
+                val jsonString = json.encodeToString(eventData)
+                context.contentResolver.openOutputStream(uri)?.use { it.write(jsonString.toByteArray()) }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
 }
 
 sealed interface EventDetailsUiState {
@@ -791,6 +876,7 @@ class EventViewModelFactory(
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
+    private val lureRepository: LureRepository,
     private val photoRepository: PhotoRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
@@ -807,6 +893,7 @@ class EventViewModelFactory(
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,
+                lureRepository,
                 photoRepository,
                 tripRepository,
                 savedStateHandle) as T

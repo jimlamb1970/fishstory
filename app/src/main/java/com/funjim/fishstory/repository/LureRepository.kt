@@ -107,6 +107,9 @@ class LureRepository(
     suspend fun deleteBait(bait: Bait) {
         baitDao.deleteBait(bait.toEntity())
     }
+    fun getAllBaitsForEvent(eventId: String): Flow<List<Bait>> {
+        return baitDao.getAllBaitsForEvent(eventId).map { list -> list.toBaitDomainList() }
+    }
 
     suspend fun getFishermanById(id: String): Fisherman? {
         return fishermanDao.getFishermanById(id)?.toDomain()

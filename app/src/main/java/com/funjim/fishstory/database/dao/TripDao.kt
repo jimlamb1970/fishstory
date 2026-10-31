@@ -26,27 +26,30 @@ import kotlinx.coroutines.flow.Flow
 interface TripDao {
     @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
     fun getAllTrips(): Flow<List<TripEntity>>
-
     @Query("DELETE FROM trip_table")
     suspend fun deleteAllTrips()
 
+    @Delete
+    suspend fun deleteTrip(trip: TripEntity)
+    @Query("DELETE FROM trip_table WHERE id = :tripId")
+    suspend fun deleteTripById(tripId: String)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertTrip(trip: TripEntity)
-
     @Upsert
     suspend fun upsertTrip(trip: TripEntity)
 
-    @Update
-    suspend fun updateTrip(trip: TripEntity)
-
-    @Delete
-    suspend fun deleteTrip(trip: TripEntity)
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE id = :tripId")
+    fun getTrip(tripId: String): Flow<TripEntity?>
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE id = :tripId")
+    fun getTripById(tripId: String): TripEntity?
+    @Transaction
+    @Query("SELECT * FROM trip_table WHERE name = :name")
+    fun getTripByName(name: String): TripEntity?
 
     @Query("SELECT id FROM event_table WHERE tripId = :tripId")
     suspend fun getEventIdsForTrip(tripId: String): List<String>
-
-    @Query("DELETE FROM trip_table WHERE id = :tripId")
-    suspend fun deleteTripById(tripId: String)
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -60,18 +63,6 @@ interface TripDao {
             newTrip.id
         }
     }
-
-    @Transaction
-    @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTrip(tripId: String): Flow<TripEntity?>
-
-    @Transaction
-    @Query("SELECT * FROM trip_table WHERE id = :tripId")
-    fun getTripById(tripId: String): Flow<TripEntity?>
-
-    @Transaction
-    @Query("SELECT * FROM trip_table WHERE name = :name")
-    fun getTripByName(name: String): TripEntity?
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")

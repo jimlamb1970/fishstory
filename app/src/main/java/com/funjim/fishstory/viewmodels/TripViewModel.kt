@@ -782,7 +782,7 @@ class TripViewModel(
 
     fun addTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
         viewModelScope.launch {
-            envRepo.insertTripBodyOfWater(
+            envRepo.insertBodyOfWaterForTrip(
                 TripBodyOfWater(tripId = tripId, bodyOfWaterId = bodyOfWaterId)
             )
         }
@@ -796,7 +796,7 @@ class TripViewModel(
 
     fun removeTripBodyOfWater(tripId: String, bodyOfWaterId: String) {
         viewModelScope.launch {
-            envRepo.deleteTripBodyOfWater(tripId = tripId, bodyOfWaterId = bodyOfWaterId)
+            envRepo.deleteBodyOfWaterForTrip(tripId = tripId, bodyOfWaterId = bodyOfWaterId)
         }
     }
 

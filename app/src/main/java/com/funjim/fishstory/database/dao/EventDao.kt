@@ -18,6 +18,7 @@ import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.TripEntity
 import com.funjim.fishstory.database.entity.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -25,13 +26,29 @@ import kotlinx.coroutines.flow.Flow
 interface EventDao {
     @Query("SELECT * FROM event_table ORDER BY startTime DESC")
     fun getAllEvents(): Flow<List<EventEntity>>
-
     @Transaction
     @Query("SELECT * FROM event_table")
     fun getAllEventsWithInfo(): Flow<List<EventEntityWithInfo>>
-
     @Query("DELETE FROM event_table")
     suspend fun deleteAllEvents()
+
+
+    @Delete
+    suspend fun deleteEvent(event: EventEntity)
+    @Query("DELETE FROM event_table WHERE id = :id")
+    suspend fun deleteEventById(id: String)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    suspend fun insertEvent(event: EventEntity)
+    @Upsert
+    suspend fun upsertEvent(event: EventEntity)
+
+    @Transaction
+    @Query("SELECT * FROM event_table WHERE id = :id")
+    fun getEvent(id: String): Flow<EventEntity?>
+    @Query("SELECT * FROM event_table WHERE id = :id")
+    fun getEventById(id: String): EventEntity?
+    @Query("SELECT * FROM event_table WHERE tripId = :tripId AND name = :name")
+    suspend fun getEventByName(tripId: String, name: String): EventEntity?
 
     @Query("SELECT * FROM event_table WHERE tripId = :tripId")
     fun getEventsForTrip(tripId: String): Flow<List<EventEntity>>
@@ -78,9 +95,6 @@ ORDER BY s.startTime ASC
     )
     fun getEventsForActiveTrips(currentTime: Long): Flow<List<EventEntitySummary>>
 
-    @Query("SELECT * FROM event_table WHERE id = :id")
-    fun getEventById(id: String): Flow<EventEntity?>
-
     @Transaction
     @Query("SELECT * FROM event_table WHERE tripId = :tripId")
     fun getEventsWithDetailsForTrip(tripId: String): Flow<List<EventEntityWithDetails>>
@@ -108,29 +122,10 @@ ORDER BY s.startTime ASC
     @Query("SELECT * FROM event_table WHERE id = :eventId")
     fun getEventWithInfo(eventId: String): Flow<EventEntityWithInfo?>
 
-    // TODO - convert these upsert
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertEvent(event: EventEntity)
-
-    @Upsert
-    suspend fun upsertEvent(event: EventEntity)
-
-    @Update
-    suspend fun updateEvent(event: EventEntity)
-
-    @Delete
-    suspend fun deleteEvent(event: EventEntity)
-
-    @Query("DELETE FROM event_table WHERE id = :id")
-    suspend fun deleteEventById(id: String)
-
-    @Query("SELECT * FROM event_table WHERE tripId = :tripId AND name = :name")
-    suspend fun findEventByName(tripId: String, name: String): EventEntity?
-
     // TODO - rename these getOrCreate functions
     @Transaction
     suspend fun getOrCreate(tripId: String, name: String): String {
-        val foundEvent = findEventByName(tripId, name)
+        val foundEvent = getEventByName(tripId, name)
         return if (foundEvent != null) {
             foundEvent.id
         } else {

@@ -307,7 +307,7 @@ class AddTripViewModel(
     fun persistBodiesOfWater() {
         _tripBodiesOfWater.value.forEach { item ->
             viewModelScope.launch {
-                envRepo.insertTripBodyOfWater(
+                envRepo.insertBodyOfWaterForTrip(
                     TripBodyOfWater(
                         tripId = tripDraft.value.id,
                         bodyOfWaterId = item.id)
