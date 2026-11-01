@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.BaitEntity
+import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.FishermanEntityFullStatistics
 import com.funjim.fishstory.database.entity.FishermanEntitySummary
@@ -61,6 +62,11 @@ interface FishermanDao {
         WHERE fish_table.eventId = :eventId
     """)
     fun getAllFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
+    @Query("""
+        SELECT event_fisherman_cross_ref.* FROM event_fisherman_cross_ref
+        WHERE event_fisherman_cross_ref.eventId = :eventId
+    """)
+    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFishermanEntity>>
     @Query("""SELECT f.* FROM fisherman_table AS f
             JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
             WHERE sref.eventId = :eventId

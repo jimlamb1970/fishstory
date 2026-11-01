@@ -11,7 +11,6 @@ import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.TripFisherman
 
-// FishermanEntity <-> Fisherman
 fun FishermanEntity.toDomain(): Fisherman {
     return Fisherman(
         id = id,
@@ -22,11 +21,9 @@ fun FishermanEntity.toDomain(): Fisherman {
         isFavorite = isFavorite
     )
 }
-
 fun List<FishermanEntity>.toFishermanDomainList(): List<Fisherman> {
     return map { it.toDomain() }
 }
-
 fun Fisherman.toEntity(): FishermanEntity {
     return FishermanEntity(
         id = id,
@@ -38,7 +35,6 @@ fun Fisherman.toEntity(): FishermanEntity {
     )
 }
 
-// FishermanEntitySummary <-> FishermanSummary
 fun FishermanEntitySummary.toDomain(): FishermanSummary {
     return FishermanSummary(
         fisherman = fisherman.toDomain(),
@@ -57,7 +53,6 @@ fun List<FishermanEntitySummary>.toFishermanSummaryDomainList(): List<FishermanS
     return map { it.toDomain() }
 }
 
-// FishermanEntityFullStatistics <-> FishermanFullStatistics
 fun FishermanEntityFullStatistics.toDomain(): FishermanFullStatistics {
     return FishermanFullStatistics(
         fisherman = fisherman.toDomain(),
@@ -87,7 +82,16 @@ fun FishermanEntityFullStatistics.toDomain(): FishermanFullStatistics {
     )
 }
 
-// EventFishermanEntity <-> EventFisherman
+fun EventFishermanEntity.toDomain(): EventFisherman {
+    return EventFisherman(
+        eventId = eventId,
+        fishermanId = fishermanId,
+        tackleBoxId = tackleBoxId
+    )
+}
+fun List<EventFishermanEntity>.toEventFishermanDomainList(): List<EventFisherman> {
+    return map { it.toDomain() }
+}
 fun EventFisherman.toEntity(): EventFishermanEntity {
     return EventFishermanEntity(
         eventId = eventId,
@@ -96,7 +100,6 @@ fun EventFisherman.toEntity(): EventFishermanEntity {
     )
 }
 
-// TripFishermanEntity <-> TripFisherman
 fun TripFisherman.toEntity(): TripFishermanEntity {
     return TripFishermanEntity(
         tripId = tripId,

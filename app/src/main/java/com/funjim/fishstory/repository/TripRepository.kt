@@ -8,7 +8,9 @@ import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
+import com.funjim.fishstory.database.mapper.toEventNoteDomainList
 import com.funjim.fishstory.database.mapper.toEventSummaryDomainList
+import com.funjim.fishstory.database.mapper.toFishNoteDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toNoteDomainList
 import com.funjim.fishstory.database.mapper.toSpeciesDomainList
@@ -24,6 +26,9 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Note
+import com.funjim.fishstory.model.NoteEvent
+import com.funjim.fishstory.model.NoteFish
+import com.funjim.fishstory.model.NoteTrip
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFisherman
@@ -329,5 +334,13 @@ class TripRepository(
     fun getAllNotesForEvent(eventId: String): Flow<List<Note>> {
         return noteDao.getAllNotesForEvent(eventId)
             .map { list -> list.toNoteDomainList() }
+    }
+    fun getEventNotesForEvent(eventId: String): Flow<List<NoteEvent>> {
+        return noteDao.getEventNotesForEvent(eventId)
+            .map { list -> list.toEventNoteDomainList() }
+    }
+    fun getFishNotesForEvent(eventId: String): Flow<List<NoteFish>> {
+        return noteDao.getFishNotesForEvent(eventId)
+            .map { list -> list.toFishNoteDomainList() }
     }
 }

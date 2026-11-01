@@ -11,11 +11,13 @@ import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.BaitSummaryEntity
 import com.funjim.fishstory.database.entity.BodyOfWaterSummaryEntity
 import com.funjim.fishstory.database.entity.EventEntityWithCounts
+import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishCountsEntity
 import com.funjim.fishstory.database.entity.FishEntity
 import com.funjim.fishstory.database.entity.FishEntityWithDetails
 import com.funjim.fishstory.database.entity.FishEntityWithPhotos
 import com.funjim.fishstory.database.entity.FishermanEntityWithCounts
+import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LureEntityWithCounts
 import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.SpeciesEntityWithCounts
@@ -73,11 +75,29 @@ interface FishDao {
         
         UNION
         
+        SELECT species_table.* FROM species_table
+        INNER JOIN limit_species_table ON species_table.id = limit_species_table.speciesId
+        INNER JOIN event_limit_table ON limit_species_table.limitId = event_limit_table.limitId
+        WHERE event_limit_table.eventId = :eventId
+        
+        UNION 
+        
         SELECT species_table.* FROM species_table 
         INNER JOIN fish_table ON species_table.id = fish_table.speciesId  
         WHERE fish_table.eventId = :eventId
     """)
     fun getAllSpeciesForEvent(eventId: String): Flow<List<SpeciesEntity>>
+    @Query("""
+        SELECT event_target_species.* FROM event_target_species
+        WHERE event_target_species.eventId = :eventId
+    """)
+    fun getEventTargetSpeciesForEvent(eventId: String): Flow<List<EventTargetSpeciesEntity>>
+    @Query("""
+        SELECT limit_species_table.* FROM limit_species_table
+        INNER JOIN event_limit_table ON limit_species_table.limitId = event_limit_table.limitId
+        WHERE event_limit_table.eventId = :eventId
+    """)
+    fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpeciesEntity>>
 
     @Transaction
     @Query("SELECT * FROM species_table WHERE id = :speciesId")

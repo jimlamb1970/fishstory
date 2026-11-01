@@ -22,11 +22,14 @@ import com.funjim.fishstory.database.mapper.toSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toSpeciesEntityList
 import com.funjim.fishstory.database.mapper.toEventDomainList
+import com.funjim.fishstory.database.mapper.toEventLimitDomainList
+import com.funjim.fishstory.database.mapper.toEventTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toFishDomainList
 import com.funjim.fishstory.database.mapper.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toFishermanSummaryDomainList
 import com.funjim.fishstory.database.mapper.toLimitDomainList
+import com.funjim.fishstory.database.mapper.toLimitSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toLimitWithSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toNoteDomainList
@@ -38,6 +41,8 @@ import com.funjim.fishstory.model.BaitSummary
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.Event
+import com.funjim.fishstory.model.EventLimit
+import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.EventWithCounts
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishCounts
@@ -46,6 +51,7 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitSpecies
 import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.LureWithColors
@@ -92,6 +98,14 @@ class FishRepository(
     fun getAllSpeciesForEvent(eventId: String): Flow<List<Species>> {
         return fishDao.getAllSpeciesForEvent(eventId)
             .map { list -> list.toSpeciesDomainList() }
+    }
+    fun getEventTargetSpeciesForEvent(eventId: String): Flow<List<EventTargetSpecies>> {
+        return fishDao.getEventTargetSpeciesForEvent(eventId)
+            .map { list -> list.toEventTargetSpeciesDomainList() }
+    }
+    fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpecies>> {
+        return fishDao.getLimitSpeciesForEvent(eventId)
+            .map { list -> list.toLimitSpeciesDomainList() }
     }
 
     fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {
@@ -383,6 +397,10 @@ class FishRepository(
     fun getAllLimitsForEvent(eventId: String): Flow<List<Limit>> {
         return limitDao.getAllLimitsForEvent(eventId)
             .map { list -> list.toLimitDomainList() }
+    }
+    fun getEventLimitsForEvent(eventId: String): Flow<List<EventLimit>> {
+        return limitDao.getEventLimitsForEvent(eventId)
+            .map { list -> list.toEventLimitDomainList() }
     }
 
     fun getLimitsForEvent(eventId: String): Flow<List<LimitWithSpecies>> {

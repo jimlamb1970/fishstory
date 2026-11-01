@@ -1,8 +1,12 @@
 package com.funjim.fishstory.database.mapper
 
+import com.funjim.fishstory.database.entity.EventLimitEntity
 import com.funjim.fishstory.database.entity.LimitEntity
+import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
+import com.funjim.fishstory.model.EventLimit
 import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitSpecies
 import com.funjim.fishstory.model.LimitWithSpecies
 
 /**
@@ -57,3 +61,35 @@ fun List<LimitEntity>.toLimitDomainList(): List<Limit> = map { it.toDomain() }
 fun List<LimitWithSpeciesEntity>.toLimitWithSpeciesDomainList(): List<LimitWithSpecies> = map { it.toDomain() }
 
 fun List<LimitWithSpecies>.toLimitEntityList(): List<LimitEntity> = map { it.toEntity() }
+
+fun EventLimitEntity.toDomain(): EventLimit {
+    return EventLimit(
+        eventId = eventId,
+        limitId = limitId
+    )
+}
+fun List<EventLimitEntity>.toEventLimitDomainList(): List<EventLimit> {
+    return map { it.toDomain() }
+}
+fun EventLimit.toEntity(): EventLimitEntity {
+    return EventLimitEntity(
+        eventId = eventId,
+        limitId = limitId
+    )
+}
+
+fun LimitSpeciesEntity.toDomain(): LimitSpecies {
+    return LimitSpecies(
+        limitId = limitId,
+        speciesId = speciesId
+    )
+}
+fun List<LimitSpeciesEntity>.toLimitSpeciesDomainList(): List<LimitSpecies> {
+    return map { it.toDomain() }
+}
+fun LimitSpecies.toEntity(): LimitSpeciesEntity {
+    return LimitSpeciesEntity(
+        limitId = limitId,
+        speciesId = speciesId
+    )
+}

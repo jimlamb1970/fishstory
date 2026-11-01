@@ -5,10 +5,12 @@ import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.entity.TackleBoxEntity
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
+import com.funjim.fishstory.database.mapper.toEventFishermanDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
+import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
@@ -33,6 +35,10 @@ class FishermanRepository(
     fun getAllFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
         return fishermanDao.getAllFishermenForEvent(eventId)
             .map { list -> list.toFishermanDomainList() }
+    }
+    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFisherman>> {
+        return fishermanDao.getEventFishermenForEvent(eventId)
+            .map { list -> list.toEventFishermanDomainList() }
     }
     fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
         return fishermanDao.getFishermenForEvent(eventId)
