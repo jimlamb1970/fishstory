@@ -90,7 +90,7 @@ class FishermanRepository(
             }
 
     suspend fun addFisherman(fisherman: Fisherman) {
-        fishermanDao.insert(fisherman.toEntity())
+        fishermanDao.insertFisherman(fisherman.toEntity())
         // Automatic Tackle Box creation
         val existing = tackleBoxDao.getExistingTackleBoxForFisherman(fisherman.id)
         if (existing == null) {
@@ -117,7 +117,7 @@ class FishermanRepository(
     }
 
     suspend fun updateFisherman(fisherman: Fisherman) {
-        fishermanDao.update(fisherman.toEntity())
+        fishermanDao.upsertFisherman(fisherman.toEntity())
     }
 
     fun getTripSummariesForFisherman(id: String): Flow<List<TripSummary>> {

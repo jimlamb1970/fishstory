@@ -6,9 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.BaitEntity
 import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.FishermanEntityFullStatistics
@@ -21,45 +19,42 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishermanDao {
+    @Query("DELETE FROM fisherman_table")
+    suspend fun deleteAllFishermen()
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<FishermanEntity>>
-    @Query("DELETE FROM fisherman_table") suspend fun deleteAllFishermen()
 
     @Delete
     suspend fun deleteFisherman(fisherman: FishermanEntity)
     @Query("DELETE FROM fisherman_table WHERE id = :id")
     suspend fun deleteFishermanById(id: String)
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insert(fisherman: FishermanEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertFisherman(fisherman: FishermanEntity)
-    @Update
-    suspend fun update(fisherman: FishermanEntity)
     @Upsert
-    suspend fun upsert(fisherman: FishermanEntity)
+    suspend fun upsertFisherman(fisherman: FishermanEntity)
 
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
     fun getFisherman (id: String): Flow<FishermanEntity?>
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
     suspend fun getFishermanById(id: String): FishermanEntity?
 
-    @Query("""SELECT f.* FROM fisherman_table AS f
-            JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
-            WHERE tref.tripId = :tripId 
-            ORDER BY f.firstName, f.nickname, f.lastName ASC
-            """)
+    @Query("""
+        SELECT f.* FROM fisherman_table AS f
+        JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
+        WHERE tref.tripId = :tripId 
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
     fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
 
     @Query("""
-        SELECT fisherman_table.* FROM fisherman_table
-        INNER JOIN event_fisherman_cross_ref ON fisherman_table.id = event_fisherman_cross_ref.fishermanId
-        WHERE event_fisherman_cross_ref.eventId = :eventId
-        
+        SELECT f.* FROM fisherman_table AS f
+        INNER JOIN event_fisherman_cross_ref ON f.id = event_fisherman_cross_ref.fishermanId
+        WHERE event_fisherman_cross_ref.eventId = :eventId 
         UNION
-        
-        SELECT fisherman_table.* FROM fisherman_table 
-        INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId  
+        SELECT f.* FROM fisherman_table AS f
+        INNER JOIN fish_table ON f.id = fish_table.fishermanId  
         WHERE fish_table.eventId = :eventId
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
     """)
     fun getAllFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
     @Query("""
@@ -67,15 +62,22 @@ interface FishermanDao {
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
     fun getEventFishermenForEvent(eventId: String): Flow<List<EventFishermanEntity>>
-    @Query("""SELECT f.* FROM fisherman_table AS f
-            JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
-            WHERE sref.eventId = :eventId
-            ORDER BY f.firstName, f.nickname, f.lastName ASC
-            """)
+    @Query("""
+        SELECT f.* FROM fisherman_table AS f
+        JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
+        WHERE sref.eventId = :eventId
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
     fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
 
-    @Query("SELECT * FROM fisherman_table WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1")
-    suspend fun getFishermanByName(first: String, last: String, nickname: String): FishermanEntity?
+    @Query("""
+        SELECT * FROM fisherman_table
+        WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1
+    """)
+    suspend fun getFishermanByName(
+        first: String,
+        last: String,
+        nickname: String): FishermanEntity?
 
     // TODO - rename these getOrCreate functions
     @Transaction
@@ -90,7 +92,7 @@ interface FishermanDao {
                     lastName = lastName,
                     nickname = nickname ?: ""
                 )
-            upsert(newFisherman)
+            upsertFisherman(newFisherman)
             newFisherman.id
         }
     }
@@ -104,387 +106,395 @@ interface FishermanDao {
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanEntityWithDetails?>
 
     @Query("""
-    SELECT 
-        f.*,
-        SUM(fish.caughtCount) AS fishCaught,
-        SUM(fish.keptCount) AS fishKept,
-        MAX(fish.length) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
-        (
-            SELECT COALESCE(SUM(
-                CASE 
-                    WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
-                    ELSE 0 
-                END
-            ), 0)
-            FROM fish_table AS ft_sub
-            LEFT JOIN event_target_species AS target 
-                ON ft_sub.eventId = target.eventId 
-                AND ft_sub.speciesId = target.speciesId
-            WHERE ft_sub.fishermanId = f.id
-        ) as targetFishCaught,
-        (
-            SELECT COALESCE(SUM(
-                CASE 
-                    WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
-                    ELSE 0 
-                END
-            ), 0)
-            FROM fish_table AS ft_sub
-            LEFT JOIN event_target_species AS target 
-                ON ft_sub.eventId = target.eventId 
-                AND ft_sub.speciesId = target.speciesId
-            WHERE ft_sub.fishermanId = f.id
-        ) as targetFishKept,
-
-        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
-        (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
-    FROM fisherman_table AS f
-    LEFT JOIN fish_table AS fish ON f.id = fish.fishermanId
-    GROUP BY f.id
-""")
+        SELECT 
+            f.*,
+            SUM(fish.caughtCount) AS fishCaught,
+            SUM(fish.keptCount) AS fishKept,
+            MAX(fish.length) AS largestFish,
+            COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
+            (
+                SELECT COALESCE(SUM(
+                    CASE 
+                        WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                        ELSE 0 
+                    END
+                ), 0)
+                FROM fish_table AS ft_sub
+                LEFT JOIN event_target_species AS target 
+                    ON ft_sub.eventId = target.eventId 
+                    AND ft_sub.speciesId = target.speciesId
+                WHERE ft_sub.fishermanId = f.id
+            ) as targetFishCaught,
+            (
+                SELECT COALESCE(SUM(
+                    CASE 
+                        WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                        ELSE 0 
+                    END
+                ), 0)
+                FROM fish_table AS ft_sub
+                LEFT JOIN event_target_species AS target 
+                    ON ft_sub.eventId = target.eventId 
+                    AND ft_sub.speciesId = target.speciesId
+                WHERE ft_sub.fishermanId = f.id
+            ) as targetFishKept,
+    
+            (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
+            (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
+        FROM fisherman_table AS f
+        LEFT JOIN fish_table AS fish ON f.id = fish.fishermanId
+        GROUP BY f.id
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
     fun getFishermanSummaries(): Flow<List<FishermanEntitySummary>>
 
     @Query("""
-    SELECT 
-        f.*, 
-        COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
-        COALESCE(SUM(fish.keptCount), 0) AS fishKept,
-        COALESCE(MAX(fish.length), 0) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
-        
-        -- Target species catches strictly evaluated against eventId
-        COALESCE(SUM(
-            CASE 
-                WHEN target.eventId IS NOT NULL THEN fish.caughtCount 
-                ELSE 0 
-            END
-        ), 0) AS targetFishCaught,
-        
-        COALESCE(SUM(
-            CASE 
-                WHEN target.eventId IS NOT NULL THEN fish.keptCount 
-                ELSE 0 
-            END
-        ), 0) AS targetFishKept,
-
-        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
-        (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
-    FROM fisherman_table AS f
-    LEFT JOIN event_fisherman_cross_ref AS ef 
-        ON ef.fishermanId = f.id AND ef.eventId = :eventId
-    LEFT JOIN fish_table AS fish 
-        ON f.id = fish.fishermanId 
-        AND fish.eventId = :eventId
-    LEFT JOIN event_target_species AS target 
-        ON target.eventId = :eventId 
-        AND target.speciesId = fish.speciesId 
-    WHERE 
-        (
-            EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
-            AND ef.eventId = :eventId
-        )
-    GROUP BY f.id
-""")
+        SELECT 
+            f.*, 
+            COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
+            COALESCE(SUM(fish.keptCount), 0) AS fishKept,
+            COALESCE(MAX(fish.length), 0) AS largestFish,
+            COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
+            
+            -- Target species catches strictly evaluated against eventId
+            COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN fish.caughtCount 
+                    ELSE 0 
+                END
+            ), 0) AS targetFishCaught,
+            
+            COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN fish.keptCount 
+                    ELSE 0 
+                END
+            ), 0) AS targetFishKept,
+    
+            (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
+            (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
+        FROM fisherman_table AS f
+        LEFT JOIN event_fisherman_cross_ref AS ef 
+            ON ef.fishermanId = f.id AND ef.eventId = :eventId
+        LEFT JOIN fish_table AS fish 
+            ON f.id = fish.fishermanId 
+            AND fish.eventId = :eventId
+        LEFT JOIN event_target_species AS target 
+            ON target.eventId = :eventId 
+            AND target.speciesId = fish.speciesId 
+        WHERE 
+            (
+                EXISTS (SELECT 1 FROM event_fisherman_cross_ref WHERE eventId = :eventId)
+                AND ef.eventId = :eventId
+            )
+        GROUP BY f.id
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
     fun getEventFishermanSummaries(
         eventId: String
     ): Flow<List<FishermanEntitySummary>>
 
     @Query("""
-    SELECT 
-        f.*, 
-        COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
-        COALESCE(SUM(fish.keptCount), 0) AS fishKept,
-        COALESCE(MAX(fish.length), 0) AS largestFish,
-        COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
-        
-        -- Target species catches strictly evaluated against eventId
-        COALESCE(SUM(
-            CASE 
-                WHEN target.eventId IS NOT NULL THEN fish.caughtCount 
-                ELSE 0 
-            END
-        ), 0) AS targetFishCaught,
-        
-        COALESCE(SUM(
-            CASE 
-                WHEN target.eventId IS NOT NULL THEN fish.keptCount 
-                ELSE 0 
-            END
-        ), 0) AS targetFishKept,
-
-        (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
-        (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
-    FROM fisherman_table AS f
-    LEFT JOIN trip_fisherman_cross_ref AS tf 
-        ON tf.fishermanId = f.id AND tf.tripId = :tripId
-    LEFT JOIN fish_table AS fish 
-        ON f.id = fish.fishermanId 
-        AND fish.tripId = :tripId
-    LEFT JOIN event_target_species AS target 
-        ON target.eventId = fish.eventId 
-        AND target.speciesId = fish.speciesId 
-    WHERE 
-        (
-            EXISTS (SELECT 1 FROM trip_fisherman_cross_ref WHERE tripId = :tripId)
-            AND tf.tripId = :tripId
-        )
-    GROUP BY f.id
-""")
+        SELECT 
+            f.*, 
+            COALESCE(SUM(fish.caughtCount), 0) AS fishCaught,
+            COALESCE(SUM(fish.keptCount), 0) AS fishKept,
+            COALESCE(MAX(fish.length), 0) AS largestFish,
+            COALESCE(MIN(CASE WHEN fish.length > 0 THEN fish.length END), 0) AS smallestFish,
+            
+            -- Target species catches strictly evaluated against eventId
+            COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN fish.caughtCount 
+                    ELSE 0 
+                END
+            ), 0) AS targetFishCaught,
+            
+            COALESCE(SUM(
+                CASE 
+                    WHEN target.eventId IS NOT NULL THEN fish.keptCount 
+                    ELSE 0 
+                END
+            ), 0) AS targetFishKept,
+    
+            (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = f.id) AS totalTrips,
+            (SELECT COUNT(*) FROM tackle_box_table WHERE fishermanId = f.id) AS totalTackleBoxes
+        FROM fisherman_table AS f
+        LEFT JOIN trip_fisherman_cross_ref AS tf 
+            ON tf.fishermanId = f.id AND tf.tripId = :tripId
+        LEFT JOIN fish_table AS fish 
+            ON f.id = fish.fishermanId 
+            AND fish.tripId = :tripId
+        LEFT JOIN event_target_species AS target 
+            ON target.eventId = fish.eventId 
+            AND target.speciesId = fish.speciesId 
+        WHERE 
+            (
+                EXISTS (SELECT 1 FROM trip_fisherman_cross_ref WHERE tripId = :tripId)
+                AND tf.tripId = :tripId
+            )
+        GROUP BY f.id
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
     fun getTripFishermanSummaries(
         tripId: String
     ): Flow<List<FishermanEntitySummary>>
 
     @Transaction
-    @Query(
-        """
-WITH 
--- 1. Identify the Largest Fish for this fisherman
-LargestFish AS (
-    SELECT f.length, f.timestamp, sp.name as speciesName
-    FROM fish_table f
-    JOIN species_table sp ON f.speciesId = sp.id
-    WHERE f.fishermanId = :fId
-    ORDER BY f.length DESC, f.timestamp DESC LIMIT 1
-),
--- 2. Identify the Smallest Fish for this fisherman
-SmallestFish AS (
-    SELECT f.length, f.timestamp, sp.name as speciesName
-    FROM fish_table f
-    JOIN species_table sp ON f.speciesId = sp.id
-    WHERE f.fishermanId = :fId AND f.length > 0
-    ORDER BY f.length ASC, f.timestamp DESC LIMIT 1
-),
--- 3. Calculate Trip stats (Only for trips that have already started)
-TripStats AS (
-    SELECT 
-        t.name, t.startDate, 
-        COUNT(fish.id) as catchCount,
-        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, t.id DESC) as best_row,
-        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, t.id DESC) as worst_row
-    FROM trip_fisherman_cross_ref tref
-    JOIN trip_table t ON tref.tripId = t.id
-    LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
-    WHERE tref.fishermanId = :fId 
-      AND t.startDate <= :currentTime  -- Exclude future trips
-    GROUP BY t.id
-),
--- 4. Calculate Event stats (Only for events that have already started)
-EventStats AS (
-    SELECT 
-        s.name, s.startTime, t.name as tripName,
-        COUNT(fish.id) as catchCount,
-        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, s.id DESC) as best_row,
-        ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, s.id DESC) as worst_row
-    FROM event_fisherman_cross_ref sref
-    JOIN event_table s ON sref.eventId = s.id
-    JOIN trip_table t ON s.tripId = t.id
-    LEFT JOIN fish_table fish ON s.id = fish.eventId AND fish.fishermanId = :fId
-    WHERE sref.fishermanId = :fId 
-      AND s.startTime <= :currentTime -- Exclude future events
-    GROUP BY s.id
-)
-
-SELECT 
-    f.*,
-
-    -- Overall Totals
-    (SELECT COUNT(*) FROM fish_table WHERE fishermanId = :fId) AS totalFishCaught,
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = :fId) AS totalTrips,
-    
-    -- Largest Fish
-    (SELECT length FROM LargestFish) AS largestFishLength,
-    (SELECT timestamp FROM LargestFish) AS largestFishTimestamp,
-    (SELECT speciesName FROM LargestFish) AS largestFishSpecies,
-
-    -- Smallest Fish
-    (SELECT length FROM SmallestFish) AS smallestFishLength,
-    (SELECT timestamp FROM SmallestFish) AS smallestFishTimestamp,
-    (SELECT speciesName FROM SmallestFish) AS smallestFishSpecies,
-
-    -- Best Trip
-    (SELECT catchCount FROM TripStats WHERE best_row = 1) AS mostTripCatches,
-    (SELECT name FROM TripStats WHERE best_row = 1) AS bestTripName,
-    (SELECT startDate FROM TripStats WHERE best_row = 1) AS bestTripTime,
-
-    -- Worst Trip (Skunk Trip)
-    (SELECT catchCount FROM TripStats WHERE worst_row = 1) AS fewestTripCatches,
-    (SELECT name FROM TripStats WHERE worst_row = 1) AS worstTripName,
-    (SELECT startDate FROM TripStats WHERE worst_row = 1) AS worstTripTime,
-
-    -- Best Event
-    (SELECT catchCount FROM EventStats WHERE best_row = 1) AS mostEventCatches,
-    (SELECT name FROM EventStats WHERE best_row = 1) AS bestEventName,
-    (SELECT tripName FROM EventStats WHERE best_row = 1) AS bestEventTripName,
-    (SELECT startTime FROM EventStats WHERE best_row = 1) AS bestEventTime,
-
-    -- Worst Event (Skunk Event)
-    (SELECT catchCount FROM EventStats WHERE worst_row = 1) AS fewestEventCatches,
-    (SELECT name FROM EventStats WHERE worst_row = 1) AS worstEventName,
-    (SELECT tripName FROM EventStats WHERE worst_row = 1) AS worstEventTripName,
-    (SELECT startTime FROM EventStats WHERE worst_row = 1) AS worstEventTime
-
-FROM fisherman_table AS f
-WHERE f.id = :fId
-"""
-    )
-    fun getFishermanFullStatistics(fId: String, currentTime: Long): Flow<FishermanEntityFullStatistics?>
+    @Query("""
+        WITH 
+        -- 1. Identify the Largest Fish for this fisherman
+        LargestFish AS (
+            SELECT f.length, f.timestamp, sp.name as speciesName
+            FROM fish_table f
+            JOIN species_table sp ON f.speciesId = sp.id
+            WHERE f.fishermanId = :fId
+            ORDER BY f.length DESC, f.timestamp DESC LIMIT 1
+        ),
+        -- 2. Identify the Smallest Fish for this fisherman
+        SmallestFish AS (
+            SELECT f.length, f.timestamp, sp.name as speciesName
+            FROM fish_table f
+            JOIN species_table sp ON f.speciesId = sp.id
+            WHERE f.fishermanId = :fId AND f.length > 0
+            ORDER BY f.length ASC, f.timestamp DESC LIMIT 1
+        ),
+        -- 3. Calculate Trip stats (Only for trips that have already started)
+        TripStats AS (
+            SELECT 
+                t.name, t.startDate, 
+                COUNT(fish.id) as catchCount,
+                ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, t.id DESC) as best_row,
+                ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, t.id DESC) as worst_row
+            FROM trip_fisherman_cross_ref tref
+            JOIN trip_table t ON tref.tripId = t.id
+            LEFT JOIN fish_table fish ON t.id = fish.tripId AND fish.fishermanId = :fId
+            WHERE tref.fishermanId = :fId 
+              AND t.startDate <= :currentTime  -- Exclude future trips
+            GROUP BY t.id
+        ),
+        -- 4. Calculate Event stats (Only for events that have already started)
+        EventStats AS (
+            SELECT 
+                s.name, s.startTime, t.name as tripName,
+                COUNT(fish.id) as catchCount,
+                ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) DESC, s.id DESC) as best_row,
+                ROW_NUMBER() OVER (ORDER BY COUNT(fish.id) ASC, s.id DESC) as worst_row
+            FROM event_fisherman_cross_ref sref
+            JOIN event_table s ON sref.eventId = s.id
+            JOIN trip_table t ON s.tripId = t.id
+            LEFT JOIN fish_table fish ON s.id = fish.eventId AND fish.fishermanId = :fId
+            WHERE sref.fishermanId = :fId 
+              AND s.startTime <= :currentTime -- Exclude future events
+            GROUP BY s.id
+        )
+        
+        SELECT 
+            f.*,
+        
+            -- Overall Totals
+            (SELECT COUNT(*) FROM fish_table WHERE fishermanId = :fId) AS totalFishCaught,
+            (SELECT COUNT(*) FROM trip_fisherman_cross_ref WHERE fishermanId = :fId) AS totalTrips,
+            
+            -- Largest Fish
+            (SELECT length FROM LargestFish) AS largestFishLength,
+            (SELECT timestamp FROM LargestFish) AS largestFishTimestamp,
+            (SELECT speciesName FROM LargestFish) AS largestFishSpecies,
+        
+            -- Smallest Fish
+            (SELECT length FROM SmallestFish) AS smallestFishLength,
+            (SELECT timestamp FROM SmallestFish) AS smallestFishTimestamp,
+            (SELECT speciesName FROM SmallestFish) AS smallestFishSpecies,
+        
+            -- Best Trip
+            (SELECT catchCount FROM TripStats WHERE best_row = 1) AS mostTripCatches,
+            (SELECT name FROM TripStats WHERE best_row = 1) AS bestTripName,
+            (SELECT startDate FROM TripStats WHERE best_row = 1) AS bestTripTime,
+        
+            -- Worst Trip (Skunk Trip)
+            (SELECT catchCount FROM TripStats WHERE worst_row = 1) AS fewestTripCatches,
+            (SELECT name FROM TripStats WHERE worst_row = 1) AS worstTripName,
+            (SELECT startDate FROM TripStats WHERE worst_row = 1) AS worstTripTime,
+        
+            -- Best Event
+            (SELECT catchCount FROM EventStats WHERE best_row = 1) AS mostEventCatches,
+            (SELECT name FROM EventStats WHERE best_row = 1) AS bestEventName,
+            (SELECT tripName FROM EventStats WHERE best_row = 1) AS bestEventTripName,
+            (SELECT startTime FROM EventStats WHERE best_row = 1) AS bestEventTime,
+        
+            -- Worst Event (Skunk Event)
+            (SELECT catchCount FROM EventStats WHERE worst_row = 1) AS fewestEventCatches,
+            (SELECT name FROM EventStats WHERE worst_row = 1) AS worstEventName,
+            (SELECT tripName FROM EventStats WHERE worst_row = 1) AS worstEventTripName,
+            (SELECT startTime FROM EventStats WHERE worst_row = 1) AS worstEventTime
+        
+        FROM fisherman_table AS f
+        WHERE f.id = :fId
+    """)
+    fun getFishermanFullStatistics(
+        fId: String,
+        currentTime: Long
+    ): Flow<FishermanEntityFullStatistics?>
 
     @Transaction
     @Query("""
-    SELECT 
-        t.*, 
-        0 as eventCount,
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        -1 as fishermanCount,
-        -1 as tackleBoxCount,
-        SUM(f.caughtCount) AS targetFishCaught,
-        SUM(f.keptCount) AS targetFishKept
-    FROM trip_table AS t
-    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
-    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
-    WHERE tref.fishermanId = :fishermanId
-    GROUP BY t.id
-    ORDER BY t.startDate DESC
-""")
+        SELECT 
+            t.*, 
+            0 as eventCount,
+            SUM(f.caughtCount) AS fishCaught,
+            SUM(f.keptCount) AS fishKept,
+            -1 as fishermanCount,
+            -1 as tackleBoxCount,
+            SUM(f.caughtCount) AS targetFishCaught,
+            SUM(f.keptCount) AS targetFishKept
+        FROM trip_table AS t
+        JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+        LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+        WHERE tref.fishermanId = :fishermanId
+        GROUP BY t.id
+        ORDER BY t.startDate DESC
+    """)
     fun getTripSummariesForFisherman(fishermanId: String): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
-    SELECT 
-        t.*, 
-        0 as eventCount,
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        -1 as fishermanCount,
-        -1 as tackleBoxCount,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.caughtCount 
-                ELSE 0 
-            END
-        ) AS targetFishCaught,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.keptCount 
-                ELSE 0 
-            END
-        ) AS targetFishKept
-    FROM trip_table AS t
-    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
-    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
-    WHERE tref.fishermanId = :fishermanId
-      AND (t.startDate > :currentTime)
-    GROUP BY t.id
-    ORDER BY t.startDate ASC
-""")
-    fun getUpcomingTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
+        SELECT 
+            t.*, 
+            0 as eventCount,
+            SUM(f.caughtCount) AS fishCaught,
+            SUM(f.keptCount) AS fishKept,
+            -1 as fishermanCount,
+            -1 as tackleBoxCount,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.caughtCount 
+                    ELSE 0 
+                END
+            ) AS targetFishCaught,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.keptCount 
+                    ELSE 0 
+                END
+            ) AS targetFishKept
+        FROM trip_table AS t
+        JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+        LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+        WHERE tref.fishermanId = :fishermanId
+          AND (t.startDate > :currentTime)
+        GROUP BY t.id
+        ORDER BY t.startDate ASC
+    """)
+    fun getUpcomingTripSummariesForFisherman(
+        fishermanId: String,
+        currentTime: Long
+    ): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
-    SELECT 
-        t.*, 
-        0 as eventCount,
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        -1 as fishermanCount,
-        -1 as tackleBoxCount,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.caughtCount 
-                ELSE 0 
-            END
-        ) AS targetFishCaught,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.keptCount 
-                ELSE 0 
-            END
-        ) AS targetFishKept
-    FROM trip_table AS t
-    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
-    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
-    WHERE tref.fishermanId = :fishermanId
-      AND (t.startDate <= :currentTime) AND (t.endDate >= :currentTime)
-    GROUP BY t.id
-    ORDER BY t.startDate DESC
-""")
+        SELECT 
+            t.*, 
+            0 as eventCount,
+            SUM(f.caughtCount) AS fishCaught,
+            SUM(f.keptCount) AS fishKept,
+            -1 as fishermanCount,
+            -1 as tackleBoxCount,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.caughtCount 
+                    ELSE 0 
+                END
+            ) AS targetFishCaught,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.keptCount 
+                    ELSE 0 
+                END
+            ) AS targetFishKept
+        FROM trip_table AS t
+        JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+        LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+        WHERE tref.fishermanId = :fishermanId
+          AND (t.startDate <= :currentTime) AND (t.endDate >= :currentTime)
+        GROUP BY t.id
+        ORDER BY t.startDate DESC
+    """)
     fun getActiveTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
 
     @Transaction
     @Query("""
-    SELECT 
-        t.*, 
-        0 as eventCount,
-        SUM(f.caughtCount) AS fishCaught,
-        SUM(f.keptCount) AS fishKept,
-        -1 as fishermanCount,
-        -1 as tackleBoxCount,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.caughtCount 
-                ELSE 0 
-            END
-        ) AS targetFishCaught,
-        SUM(
-            CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM event_target_species AS target 
-                    WHERE target.eventId = f.eventId 
-                      AND target.speciesId = f.speciesId
-                ) THEN f.keptCount 
-                ELSE 0 
-            END
-        ) AS targetFishKept
-    FROM trip_table AS t
-    JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
-    LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
-    WHERE tref.fishermanId = :fishermanId
-      AND (t.endDate < :currentTime)
-    GROUP BY t.id
-    ORDER BY t.startDate DESC
-""")
-    fun getPastTripSummariesForFisherman(fishermanId: String, currentTime: Long): Flow<List<TripEntitySummary>>
-
-    @Insert
-    suspend fun insertCrossRef(crossRef: TripFishermanEntity)
+        SELECT 
+            t.*, 
+            0 as eventCount,
+            SUM(f.caughtCount) AS fishCaught,
+            SUM(f.keptCount) AS fishKept,
+            -1 as fishermanCount,
+            -1 as tackleBoxCount,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.caughtCount 
+                    ELSE 0 
+                END
+            ) AS targetFishCaught,
+            SUM(
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM event_target_species AS target 
+                        WHERE target.eventId = f.eventId 
+                          AND target.speciesId = f.speciesId
+                    ) THEN f.keptCount 
+                    ELSE 0 
+                END
+            ) AS targetFishKept
+        FROM trip_table AS t
+        JOIN trip_fisherman_cross_ref AS tref ON t.id = tref.tripId
+        LEFT JOIN fish_table AS f ON t.id = f.tripId AND f.fishermanId = :fishermanId
+        WHERE tref.fishermanId = :fishermanId
+          AND (t.endDate < :currentTime)
+        GROUP BY t.id
+        ORDER BY t.startDate DESC
+    """)
+    fun getPastTripSummariesForFisherman(
+        fishermanId: String,
+        currentTime: Long
+    ): Flow<List<TripEntitySummary>>
 
     @Query("""
-        SELECT fisherman_table.* FROM fisherman_table 
-        INNER JOIN fish_table ON fisherman_table.id = fish_table.fishermanId 
+        SELECT f.* FROM fisherman_table AS f
+        INNER JOIN fish_table ON f.id = fish_table.fishermanId 
         WHERE (:bodyOfWaterId IS NULL OR fish_table.bodyOfWaterId = :bodyOfWaterId)
           AND (:eventId IS NULL OR fish_table.eventId = :eventId)
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
           AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
-        GROUP BY fisherman_table.id
+        GROUP BY f.id
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
     """)
     fun getFishermenWithFish(
         bodyOfWaterId: String? = null,

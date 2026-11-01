@@ -24,13 +24,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventDao {
+    @Query("DELETE FROM event_table")
+    suspend fun deleteAllEvents()
     @Query("SELECT * FROM event_table ORDER BY startTime DESC")
     fun getAllEvents(): Flow<List<EventEntity>>
     @Transaction
     @Query("SELECT * FROM event_table")
     fun getAllEventsWithInfo(): Flow<List<EventEntityWithInfo>>
-    @Query("DELETE FROM event_table")
-    suspend fun deleteAllEvents()
 
     @Delete
     suspend fun deleteEvent(event: EventEntity)
