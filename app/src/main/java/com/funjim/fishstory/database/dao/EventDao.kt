@@ -18,7 +18,6 @@ import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
-import com.funjim.fishstory.database.entity.TripEntity
 import com.funjim.fishstory.database.entity.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -45,7 +44,7 @@ interface EventDao {
     @Query("SELECT * FROM event_table WHERE id = :id")
     fun getEvent(id: String): Flow<EventEntity?>
     @Query("SELECT * FROM event_table WHERE id = :id")
-    fun getEventById(id: String): EventEntity?
+    suspend fun getEventById(id: String): EventEntity?
     @Query("SELECT * FROM event_table WHERE tripId = :tripId AND name = :name")
     suspend fun getEventByName(tripId: String, name: String): EventEntity?
 
@@ -183,10 +182,8 @@ ORDER BY s.startTime DESC"""
 
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
-
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
-
     @Upsert
     suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
 

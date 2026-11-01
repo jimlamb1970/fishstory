@@ -37,42 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-
-@Serializable
-data class EventExportData(
-    val trip: Trip,
-    val event: Event,
-    val baits: List<Bait> = emptyList(),
-    val bodiesOfWater: List<BodyOfWater> = emptyList(),
-    val fishermen: List<Fisherman> = emptyList(),
-    val limits: List<Limit> = emptyList(),
-    val lures: List<Lure> = emptyList(),
-    val lureColors: List<LureColor> = emptyList(),
-    val notes: List<Note> = emptyList(),
-    val species: List<Species> = emptyList(),
-    val skyConditions: List<SkyCondition> = emptyList(),
-    val tackleBoxes: List<TackleBox> = emptyList(),
-    val waterClarities: List<WaterClarity> = emptyList(),
-    val waterConditions: List<Water> = emptyList(),
-    val weatherConditions: List<Weather> = emptyList(),
-    val fish: List<Fish> = emptyList(),
-
-    val eventBaits: List<EventBait> = emptyList(),
-    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),
-    val eventFishermen: List<EventFisherman> = emptyList(),
-    val eventLimits: List<EventLimit> = emptyList(),
-    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
-    val limitSpecies: List<LimitSpecies> = emptyList(),
-    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
-    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
-    val lureGlowColors: List<LureGlowColor> = emptyList(),
-    val notesEvent: List<NoteEvent> = emptyList(),
-    val notesFish: List<NoteFish> = emptyList(),
-    val tackleBoxLures: List<TackleBoxLure> = emptyList(),
-)
-
 
 class EventViewModel(
     private val locationProvider: LocationProvider,
@@ -827,7 +792,7 @@ class EventViewModel(
                 val trip = tripRepo.getTripById(tripId) ?: return@withContext false
                 val event = tripRepo.getEventById(eventId) ?: return@withContext false
 
-                val eventData = EventExportData(
+                val eventData = FishStoryEventData(
                     trip = trip,
                     event = event,
                     baits = lureRepo.getAllBaitsForEvent(eventId).firstOrNull() ?: emptyList(),

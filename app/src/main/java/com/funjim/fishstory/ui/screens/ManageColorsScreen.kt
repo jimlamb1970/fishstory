@@ -336,8 +336,9 @@ fun ManageColorsScreen(
                                             },
                                             leadingIcon = {
                                                 Icon(
-                                                    imageVector = AppIcons.Default.Palette,
-                                                    contentDescription = "Select Color"
+                                                    AppIcons.Default.Palette,
+                                                    contentDescription = "Select Color",
+                                                    modifier = Modifier.size(28.dp)
                                                 )
                                             }
                                         )
@@ -350,8 +351,9 @@ fun ManageColorsScreen(
                                             },
                                             leadingIcon = {
                                                 Icon(
-                                                    imageVector = AppIcons.Default.Palette,
-                                                    contentDescription = "Select Colors"
+                                                    AppIcons.Default.Palette,
+                                                    contentDescription = "Select Colors",
+                                                    modifier = Modifier.size(28.dp)
                                                 )
                                             }
                                         )

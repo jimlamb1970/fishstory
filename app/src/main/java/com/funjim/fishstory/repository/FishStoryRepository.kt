@@ -81,7 +81,7 @@ class FishStoryRepository(
                 // 0:Year, 1:Day, 2:First, 3:Last, 4:Hole, 5:Date, 6:Time, 7:Lure...
 
                 // 1. Handle the Trip (Year)
-                val tripId = tripDao.getOrCreate(name = row[0])
+                val tripId = tripDao.getOrCreateTrip(name = row[0])
                 // 2. Handle the Segment (Day)
                 val segmentId = eventDao.getOrCreate(tripId, name = row[1])
                 // 3. Handle the Fisherman

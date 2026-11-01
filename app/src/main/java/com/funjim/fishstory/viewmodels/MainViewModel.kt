@@ -266,7 +266,7 @@ class MainViewModel(
                     data.tackleBoxLures.forEach { tackleBoxDao.insertLureToTackleBox(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.eventTargetSpecies.forEach { eventDao.insertEventTargetSpecies(it) }
-                    data.tripTargetSpecies.forEach { tripDao.insertTripTargetSpecies(it) }
+                    data.tripTargetSpecies.forEach { tripDao.upsertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
                     data.photosBait.forEach { photoDao.addBaitPhoto(it) }

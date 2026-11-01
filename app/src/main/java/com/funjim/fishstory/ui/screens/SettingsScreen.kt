@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui.screens
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +39,12 @@ fun SettingsScreen(
 
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        importViewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Launcher for saving a file (Export to JSON)
     val saveFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -59,12 +66,19 @@ fun SettingsScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             coroutineScope.launch {
-                // TODO: Implement JSON deserialization and Room import logic inside the ViewModel
                 viewModel.importDatabaseFromJson(context, uri).let { success ->
                     val message = if (success) "Database imported successfully! Restart app to see changes." else "Database import failed."
                     hostState.showSnackbar(message)
                 }
             }
+        }
+    }
+
+    val pickEventFileLauncher: ActivityResultLauncher<Array<String>> = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            importViewModel.importEvent(context, uri)
         }
     }
 
@@ -125,6 +139,17 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Database from JSON")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    // Trigger the file picker to select a JSON database file for import
+                    pickEventFileLauncher.launch(arrayOf("application/json"))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Import Event")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -200,7 +200,14 @@ class FishstoryApplication : Application() {
     )
 
     fun getImportViewModelFactory() = ImportViewModelFactory(
-        fishStoryRepository
+        fishStoryRepository,
+        configurationRepository,
+        environmentRepository,
+        fishermanRepository,
+        fishRepository,
+        lureRepository,
+        photoRepository,
+        tripRepository
     )
 
     fun getLimitViewModelFactory() = LimitViewModelFactory(
