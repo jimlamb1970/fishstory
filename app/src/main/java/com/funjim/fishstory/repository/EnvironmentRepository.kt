@@ -8,6 +8,7 @@ import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
 import com.funjim.fishstory.database.mapper.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toDomainList
 import com.funjim.fishstory.database.mapper.toEventBodyOfWaterDomainList
@@ -16,6 +17,7 @@ import com.funjim.fishstory.database.mapper.toWaterDomainList
 import com.funjim.fishstory.database.mapper.toWeatherDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
+import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.TripBodyOfWater
 import com.funjim.fishstory.model.Water
@@ -114,6 +116,15 @@ class EnvironmentRepository(
     }
     fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWater>> {
         return bodyOfWaterDao.getEventBodiesOfWaterForEvent(eventId).map { list -> list.toEventBodyOfWaterDomainList() }
+    }
+    suspend fun findOrCreateBodyOfWater(bodyOfWater: BodyOfWater): InsertResult<BodyOfWater> {
+        val existing = bodyOfWaterDao.getBodyOfWaterByName(bodyOfWater.name)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            updateBodyOfWater(bodyOfWater)
+            InsertResult(bodyOfWater, true)
+        }
     }
 
     suspend fun addWater(water: Water) {

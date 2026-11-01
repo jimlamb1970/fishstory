@@ -28,6 +28,8 @@ interface BaitDao {
 
     @Query("SELECT * FROM bait_table WHERE id = :id")
     fun getBait (id: String): Flow<BaitEntity?>
+    @Query("SELECT * FROM bait_table WHERE name = :name LIMIT 1")
+    suspend fun getBaitByName(name: String): BaitEntity?
 
     @Query("SELECT * FROM trip_bait")
     fun getAllTripBaits(): Flow<List<TripBaitEntity>>

@@ -131,9 +131,30 @@ class ImportViewModel(
     }
 
     private suspend fun processImportData(exportData: FishStoryEventData) {
+        val baitMap = mutableMapOf<String, String>()
+        val bodyOfWaterMap = mutableMapOf<String, String>()
+
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
         if (!tripResult.wasCreated) {
             _toastMessage.emit("Trip already exists: ${exportData.trip.name}")
+        }
+        val eventResult = tripRepo.findOrCreateEvent(exportData.event)
+        if (!eventResult.wasCreated) {
+            _toastMessage.emit("Event already exists: ${exportData.event.name}")
+        }
+        for (bait in exportData.baits) {
+            val baitResult = lureRepo.findOrCreateBait(bait)
+            baitMap[bait.id] = baitResult.item.id
+            if (!baitResult.wasCreated) {
+                _toastMessage.emit("Bait already exists: ${bait.name}")
+            }
+        }
+        for (bodyOfWater in exportData.bodiesOfWater) {
+            val bodyOfWaterResult = envRepo.findOrCreateBodyOfWater(bodyOfWater)
+            bodyOfWaterMap[bodyOfWater.id] = bodyOfWaterResult.item.id
+            if (!bodyOfWaterResult.wasCreated) {
+                _toastMessage.emit("Body of water already exists: ${bodyOfWater.name}")
+            }
         }
     }
 

@@ -28,6 +28,8 @@ interface BodyOfWaterDao {
 
     @Query("SELECT * FROM body_of_water_table WHERE id = :id")
     fun getBodyOfWater (id: String): Flow<BodyOfWaterEntity?>
+    @Query("SELECT * FROM body_of_water_table WHERE name = :name LIMIT 1")
+    suspend fun getBodyOfWaterByName(name: String): BodyOfWaterEntity?
 
     @Query("SELECT * FROM trip_body_of_water")
     fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>

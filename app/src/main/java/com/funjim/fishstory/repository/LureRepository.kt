@@ -18,8 +18,10 @@ import com.funjim.fishstory.database.mapper.toLureSecondaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsSummaryDomainList
 import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor
@@ -145,6 +147,16 @@ class LureRepository(
     }
     fun getEventBaitsForEvent(eventId: String): Flow<List<EventBait>> {
         return baitDao.getEventsBaitsForEvent(eventId).map { list -> list.toEventBaitDomainList() }
+    }
+
+    suspend fun findOrCreateBait(bait: Bait): InsertResult<Bait> {
+        val existing = baitDao.getBaitByName(bait.name)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            updateBait(bait)
+            InsertResult(bait, true)
+        }
     }
 
     // TODO move to fisherman repo
