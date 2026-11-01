@@ -23,8 +23,6 @@ interface BaitDao {
     suspend fun deleteBait(bait: BaitEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertBait(bait: BaitEntity)
-    @Update
-    suspend fun updateBait(bait: BaitEntity)
     @Upsert
     suspend fun upsertBait(bait: BaitEntity)
 
@@ -41,6 +39,7 @@ interface BaitDao {
         INNER JOIN trip_bait ON bait_table.id = trip_bait.baitId
         WHERE trip_bait.tripId = :tripId
         GROUP BY bait_table.id
+        ORDER BY name ASC
         """)
     fun getBaitsForTrip(tripId: String): Flow<List<BaitEntity>>
     @Upsert
@@ -58,12 +57,11 @@ interface BaitDao {
         SELECT bait_table.* FROM bait_table
         INNER JOIN event_bait ON bait_table.id = event_bait.baitId
         WHERE event_bait.eventId = :eventId
-        
         UNION
-        
         SELECT bait_table.* FROM bait_table 
         INNER JOIN fish_table ON bait_table.id = fish_table.baitId  
         WHERE fish_table.eventId = :eventId
+        ORDER BY name ASC
     """)
     fun getAllBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
     @Query("""
@@ -75,7 +73,7 @@ interface BaitDao {
         SELECT bait_table.* FROM bait_table
         INNER JOIN event_bait ON bait_table.id = event_bait.baitId
         WHERE event_bait.eventId = :eventId
-        GROUP BY bait_table.id
+        ORDER BY name ASC
         """)
     fun getBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
     @Upsert
@@ -95,6 +93,7 @@ interface BaitDao {
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY bait_table.id
+        ORDER BY name ASC
     """)
     fun getBaitsWithFish(
         eventId: String?,

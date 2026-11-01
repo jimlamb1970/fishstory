@@ -39,13 +39,13 @@ interface BodyOfWaterDao {
         INNER JOIN trip_body_of_water ON body_of_water_table.id = trip_body_of_water.bodyOfWaterId
         WHERE trip_body_of_water.tripId = :tripId
         GROUP BY body_of_water_table.id
+        ORDER BY name ASC
         """)
     fun getBodiesOfWaterForTrip(tripId: String): Flow<List<BodyOfWaterEntity>>
     @Upsert
     suspend fun insertBodyOfWaterForTrip(crossRef: TripBodyOfWaterEntity)
     @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String)
-
 
     @Query("SELECT * FROM event_body_of_water")
     fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
@@ -56,12 +56,11 @@ interface BodyOfWaterDao {
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
         WHERE event_body_of_water.eventId = :eventId
-        
         UNION
-        
         SELECT body_of_water_table.* FROM body_of_water_table 
-        INNER JOIN fish_table ON body_of_water_table.id = fish_table.baitId  
+        INNER JOIN fish_table ON body_of_water_table.id = fish_table.bodyOfWaterId  
         WHERE fish_table.eventId = :eventId
+        ORDER BY name ASC
     """)
     fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Query("""
@@ -74,6 +73,7 @@ interface BodyOfWaterDao {
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
         WHERE event_body_of_water.eventId = :eventId
         GROUP BY body_of_water_table.id
+        ORDER BY name ASC
         """)
     fun getBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Upsert
@@ -94,6 +94,7 @@ interface BodyOfWaterDao {
           AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
           AND (:tripId IS NULL OR fish_table.tripId = :tripId)
         GROUP BY body_of_water_table.id
+        ORDER BY name ASC
     """)
     fun getBodiesOfWaterWithFish(
         eventId: String? = null,
