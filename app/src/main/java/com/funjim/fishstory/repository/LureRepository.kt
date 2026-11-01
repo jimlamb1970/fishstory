@@ -18,7 +18,6 @@ import com.funjim.fishstory.database.mapper.toLureSecondaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsSummaryDomainList
 import com.funjim.fishstory.model.Bait
-import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.InsertResult
@@ -70,6 +69,24 @@ class LureRepository(
         return lureDao.getLureGlowColorsForEvent(eventId)
             .map { list -> list.toLureGlowColorDomainList() }
     }
+    suspend fun findOrCreateLureColor(lureColor: LureColor): InsertResult<LureColor> {
+        val existing = lureDao.getLureColorById(lureColor.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val existing = lureDao.getLureColor(
+                name = lureColor.name,
+                hexCode = lureColor.hexCode
+            )
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                lureDao.upsertLureColor(lureColor.toEntity())
+                InsertResult(lureColor, true)
+            }
+        }
+    }
+
 
     fun getLureSummariesWithColors(): Flow<List<LureWithColorsSummary>> {
         return lureDao.getLureSummariesWithColors()
@@ -126,7 +143,7 @@ class LureRepository(
         lureDao.insertLureColor(lureColor.toEntity())
     }
     suspend fun updateLureColor(lureColor: LureColor) {
-        lureDao.updateLureColor(lureColor.toEntity())
+        lureDao.upsertLureColor(lureColor.toEntity())
     }
     suspend fun deleteLureColor(lureColor: LureColor) {
         lureDao.deleteLureColor(lureColor.toEntity())

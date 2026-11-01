@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.LureColorEntity
 import com.funjim.fishstory.database.entity.LureEntity
@@ -17,7 +16,6 @@ import com.funjim.fishstory.database.entity.LureEntityWithPhotos
 import com.funjim.fishstory.database.entity.LureGlowColorEntity
 import com.funjim.fishstory.database.entity.LurePrimaryColorEntity
 import com.funjim.fishstory.database.entity.LureSecondaryColorEntity
-import com.funjim.fishstory.database.entity.NoteEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -98,8 +96,21 @@ interface LureDao {
     suspend fun deleteLureColor(color: LureColorEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertLureColor(color: LureColorEntity)
-    @Update
-    suspend fun updateLureColor(color: LureColorEntity)
+    @Upsert
+    suspend fun upsertLureColor(color: LureColorEntity)
+
+    @Query("SELECT * FROM lure_color_table WHERE id = :id")
+    suspend fun getLureColorById(id: String): LureColorEntity?
+    @Query("""
+        SELECT * FROM lure_color_table AS l
+        WHERE l.name = :name
+          AND l.hexCode IS :hexCode
+        LIMIT 1
+    """)
+    suspend fun getLureColor(
+        name: String,
+        hexCode: String?
+    ): LureColorEntity?
 
     @Query(
         """

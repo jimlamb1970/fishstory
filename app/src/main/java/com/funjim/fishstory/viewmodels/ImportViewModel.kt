@@ -76,7 +76,7 @@ data class FishStoryEventData(
     val baits: List<Bait> = emptyList(),                    // Imported
     val bodiesOfWater: List<BodyOfWater> = emptyList(),     // Imported
     val fishermen: List<Fisherman> = emptyList(),           // Imported
-    val limits: List<Limit> = emptyList(),
+    val limits: List<Limit> = emptyList(),                  // Imported
     val lures: List<Lure> = emptyList(),
     val lureColors: List<LureColor> = emptyList(),
     val notes: List<Note> = emptyList(),                    // Imported
@@ -135,6 +135,7 @@ class ImportViewModel(
         val bodyOfWaterMap = mutableMapOf<String, String>()
         val fishermanMap = mutableMapOf<String, String>()
         val limitMap = mutableMapOf<String, String>()
+        val lureColorMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
 
         // Map not needed for Trip
@@ -174,12 +175,11 @@ class ImportViewModel(
                 }
             val limitResult = fishRepo.findOrCreateLimit(limit, species)
             limitMap[limit.id] = limitResult.item.id
-            if (limitResult.wasCreated) {
-                _toastMessage.emit("Created Limit: ${limit.name}")
-            } else {
-                _toastMessage.emit("Updated Limit: ${limit.name}")
-            }
-
+        }
+        // Map need for LureColors
+        for (color in exportData.lureColors) {
+            val colorResult = lureRepo.findOrCreateLureColor(color)
+            lureColorMap[color.id] = colorResult.item.id
         }
     }
 

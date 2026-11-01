@@ -108,15 +108,6 @@ class FishRepository(
         return fishDao.getLimitSpeciesForEvent(eventId)
             .map { list -> list.toLimitSpeciesDomainList() }
     }
-    suspend fun findOrCreateSpecies(species: Species): InsertResult<Species> {
-        val existing = fishDao.getSpeciesByName(species.name)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
-        } else {
-            updateSpecies(species)
-            InsertResult(species, true)
-        }
-    }
     suspend fun findOrCreateLimit(limit: Limit, species: List<String>): InsertResult<Limit> {
         val existing = limitDao.geLimitById(limit.id)
         return if (existing != null) {
@@ -138,6 +129,15 @@ class FishRepository(
                 limitDao.upsertLimit(limit.toEntity())
                 InsertResult(limit, true)
             }
+        }
+    }
+    suspend fun findOrCreateSpecies(species: Species): InsertResult<Species> {
+        val existing = fishDao.getSpeciesByName(species.name)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            updateSpecies(species)
+            InsertResult(species, true)
         }
     }
 
