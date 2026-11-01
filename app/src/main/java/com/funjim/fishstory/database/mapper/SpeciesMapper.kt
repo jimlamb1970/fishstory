@@ -1,4 +1,4 @@
-package com.funjim.fishstory.database
+package com.funjim.fishstory.database.mapper
 
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity

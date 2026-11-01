@@ -34,7 +34,7 @@ import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
 import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
 import com.funjim.fishstory.database.entity.PhotoTripEntity
 import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
-import com.funjim.fishstory.database.toPhotoDomainList
+import com.funjim.fishstory.database.mapper.toPhotoDomainList
 import kotlinx.coroutines.flow.map
 
 data class PhotoMetadata(

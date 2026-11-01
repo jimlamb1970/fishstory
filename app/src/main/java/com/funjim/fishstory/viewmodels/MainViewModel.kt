@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.funjim.fishstory.database.*
 import com.funjim.fishstory.database.dao.BaitDao
 import com.funjim.fishstory.database.dao.BodyOfWaterDao
 import com.funjim.fishstory.database.dao.EventDao
@@ -46,6 +45,10 @@ import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.entity.TripEntity
 import com.funjim.fishstory.database.entity.TripFishermanEntity
 import com.funjim.fishstory.database.entity.TripTargetSpeciesEntity
+import com.funjim.fishstory.database.mapper.toEventDomainList
+import com.funjim.fishstory.database.mapper.toFishWithDetailsDomainList
+import com.funjim.fishstory.database.mapper.toSpeciesDomainList
+import com.funjim.fishstory.database.mapper.toTripDomainList
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.repository.ConfigurationRepository
