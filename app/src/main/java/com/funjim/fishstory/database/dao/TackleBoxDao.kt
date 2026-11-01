@@ -37,6 +37,12 @@ interface TackleBoxDao {
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
     fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBoxEntity>>
+    @Query("""
+        SELECT tackle_box_lure_cross_ref.* FROM tackle_box_lure_cross_ref
+        INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
+        WHERE event_fisherman_cross_ref.eventId = :eventId
+    """)
+    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLureEntity>>
 
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
     fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureEntity>>

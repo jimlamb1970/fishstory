@@ -2,10 +2,11 @@ package com.funjim.fishstory.database.mapper
 
 import com.funjim.fishstory.database.entity.TackleBoxEntity
 import com.funjim.fishstory.database.entity.TackleBoxEntityWithLures
+import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.TackleBoxLure
 import com.funjim.fishstory.model.TackleBoxWithLures
 
-// Extension: Database Entity -> Domain Model
 fun TackleBoxEntity.toDomain(): TackleBox {
     return TackleBox(
         id = id,
@@ -13,18 +14,30 @@ fun TackleBoxEntity.toDomain(): TackleBox {
         name = name
     )
 }
-
-// Extension: List of Entities -> List of Domain Models
 fun List<TackleBoxEntity>.toTackleBoxDomainList(): List<TackleBox> {
     return map { it.toDomain() }
 }
-
-// Extension: Domain Model -> Database Entity (for Inserts / Updates)
 fun TackleBox.toEntity(): TackleBoxEntity {
     return TackleBoxEntity(
         id = id,
         fishermanId = fishermanId,
         name = name
+    )
+}
+
+fun TackleBoxLureEntity.toDomain(): TackleBoxLure {
+    return TackleBoxLure(
+        tackleBoxId = tackleBoxId,
+        lureId = lureId
+    )
+}
+fun List<TackleBoxLureEntity>.toTackleBoxLureDomainList(): List<TackleBoxLure> {
+    return map { it.toDomain() }
+}
+fun TackleBoxLure.toEntity(): TackleBoxLureEntity {
+    return TackleBoxLureEntity(
+        tackleBoxId = tackleBoxId,
+        lureId = lureId
     )
 }
 

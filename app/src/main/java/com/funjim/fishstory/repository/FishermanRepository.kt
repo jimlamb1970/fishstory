@@ -9,6 +9,7 @@ import com.funjim.fishstory.database.mapper.toEventFishermanDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxDomainList
+import com.funjim.fishstory.database.mapper.toTackleBoxLureDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.Fisherman
@@ -16,6 +17,7 @@ import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.TackleBoxLure
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +49,10 @@ class FishermanRepository(
     fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBox>> {
         return tackleBoxDao.getAllTackleBoxesForEvent(eventId)
             .map { list -> list.toTackleBoxDomainList() }
+    }
+    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLure>> {
+        return tackleBoxDao.getTackleBoxLuresForEvent(eventId)
+            .map { list -> list.toTackleBoxLureDomainList() }
     }
 
     /**

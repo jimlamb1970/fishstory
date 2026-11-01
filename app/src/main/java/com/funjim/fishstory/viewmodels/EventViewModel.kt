@@ -855,7 +855,7 @@ class EventViewModel(
                     lurePrimaryColors = emptyList(),
                     lureSecondaryColors = emptyList(),
                     lureGlowColors = emptyList(),
-                    tackleBoxLures = emptyList(),
+                    tackleBoxLures = fishermanRepo.getTackleBoxLuresForEvent(eventId).firstOrNull() ?: emptyList()
                 )
 
                 val jsonString = json.encodeToString(eventData)
