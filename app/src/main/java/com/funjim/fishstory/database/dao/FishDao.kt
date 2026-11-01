@@ -27,6 +27,56 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishDao {
+    @Delete
+    suspend fun deleteFish(fish: FishEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    suspend fun insertFish(fish: FishEntity)
+    @Update
+    suspend fun updateFish(fish: FishEntity)
+    @Upsert
+    suspend fun upsertFish(fish: FishEntity)
+
+    @Query("DELETE FROM fish_table")
+    suspend fun deleteAllFish()
+    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
+    fun getAllFish(): Flow<List<FishEntity>>
+
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFish(id: String): FishEntity?
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFishById(id: String): FishEntity?
+
+    @Delete
+    suspend fun deleteSpecies(species: SpeciesEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertSpecies(species: SpeciesEntity)
+    @Update
+    suspend fun updateSpecies(species: SpeciesEntity)
+
+    @Query("DELETE FROM species_table")
+    suspend fun deleteAllSpecies()
+    @Query("SELECT * FROM species_table ORDER BY name ASC")
+    fun getAllSpecies(): Flow<List<SpeciesEntity>>
+    @Query("SELECT * FROM species_table ORDER BY name ASC")
+    suspend fun getAllSpeciesList(): List<SpeciesEntity>
+
+    @Query("""
+        SELECT species_table.* FROM species_table
+        INNER JOIN event_target_species ON species_table.id = event_target_species.speciesId
+        WHERE event_target_species.eventId = :eventId
+        
+        UNION
+        
+        SELECT species_table.* FROM species_table 
+        INNER JOIN fish_table ON species_table.id = fish_table.speciesId  
+        WHERE fish_table.eventId = :eventId
+    """)
+    fun getAllSpeciesForEvent(eventId: String): Flow<List<SpeciesEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM species_table WHERE id = :speciesId")
+    fun getSpecies(speciesId: String): Flow<SpeciesEntity?>
+
     @Transaction
     @Query(
         """
@@ -107,54 +157,10 @@ interface FishDao {
     )
     fun getFishForEvent(eventId: String): Flow<List<FishEntityWithDetails>>
 
-    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
-    fun getAllFish(): Flow<List<FishEntity>>
-
-    @Query("DELETE FROM fish_table")
-    suspend fun deleteAllFish()
-
-    @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFishById(id: String): FishEntity?
-    @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFish(id: String): FishEntity?
 
     @Transaction
     @Query("SELECT * FROM fish_table WHERE id = :id")
     fun getFishWithPhotos(id: String): Flow<FishEntityWithPhotos>
-
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertFish(fish: FishEntity)
-
-    @Upsert
-    suspend fun upsertFish(fish: FishEntity)
-
-    @Update
-    suspend fun updateFish(fish: FishEntity)
-
-    @Delete
-    suspend fun deleteFish(fish: FishEntity)
-
-    @Transaction
-    @Query("SELECT * FROM species_table WHERE id = :speciesId")
-    fun getSpecies(speciesId: String): Flow<SpeciesEntity?>
-
-    @Query("SELECT * FROM species_table ORDER BY name ASC")
-    fun getAllSpecies(): Flow<List<SpeciesEntity>>
-
-    @Query("SELECT * FROM species_table ORDER BY name ASC")
-    suspend fun getAllSpeciesList(): List<SpeciesEntity>
-
-    @Query("DELETE FROM species_table")
-    suspend fun deleteAllSpecies()
-
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertSpecies(species: SpeciesEntity)
-
-    @Update
-    suspend fun updateSpecies(species: SpeciesEntity)
-
-    @Delete
-    suspend fun deleteSpecies(species: SpeciesEntity)
 
     @Query("""
     SELECT 

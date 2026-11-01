@@ -12,7 +12,8 @@ import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toDomainList
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toEventBodyOfWaterEntityList
-import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.database.toWaterDomainList
+import com.funjim.fishstory.database.toWeatherDomainList
 import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventBodyOfWater
 import com.funjim.fishstory.model.SkyCondition
@@ -38,6 +39,25 @@ class EnvironmentRepository(
         .map { list -> list.toDomainList() }
     val allWaterClarity: Flow<List<WaterClarity>> = waterDao.getAllWaterClarity()
         .map { list -> list.toDomainList() }
+
+    fun getAllSkyConditionsForEvent(eventId: String): Flow<List<SkyCondition>> {
+        return weatherDao.getAllSkyConditionsForEvent(eventId)
+            .map { list -> list.toDomainList() }
+    }
+    fun getAllWaterClarityForEvent(eventId: String): Flow<List<WaterClarity>> {
+        return waterDao.getAllWaterClarityForEvent(eventId)
+            .map { list -> list.toDomainList() }
+    }
+
+    fun getAllWaterConditionsForEvent(eventId: String): Flow<List<Water>> {
+        return waterDao.getAllWaterConditionsForEvent(eventId)
+            .map { list -> list.toWaterDomainList() }
+    }
+
+    fun getAllWeatherConditionsForEvent(eventId: String): Flow<List<Weather>> {
+        return weatherDao.getAllWeatherConditionsForEvent(eventId)
+            .map { list -> list.toWeatherDomainList() }
+    }
 
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) {
         bodyOfWaterDao.insertBodyOfWater(bodyOfWater.toEntity())

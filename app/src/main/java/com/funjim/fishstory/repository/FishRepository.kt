@@ -84,6 +84,11 @@ class FishRepository(
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
         .map { list -> list.toSpeciesSummaryDomainList() }
 
+    fun getAllSpeciesForEvent(eventId: String): Flow<List<Species>> {
+        return fishDao.getAllSpeciesForEvent(eventId)
+            .map { list -> list.toSpeciesDomainList() }
+    }
+
     fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {
         return bodyOfWaterDao.getBodiesOfWaterWithFish(
             eventId = filter.eventId,
