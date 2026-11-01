@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
+import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.mapper.toDomain
@@ -47,6 +48,7 @@ data class AddFishermanResult(
 class TripRepository(
     private val database: FishstoryDatabase,
     private val eventDao: EventDao,
+    private val fishermanDao: FishermanDao,
     private val noteDao: NoteDao,
     private val tripDao: TripDao
 ) {
@@ -198,7 +200,7 @@ class TripRepository(
 
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFisherman(crossRef: TripFisherman) {
-        tripDao.upsertTripFisherman(crossRef.toEntity())
+        fishermanDao.upsertTripFisherman(crossRef.toEntity())
     }
     suspend fun updateEventFisherman(crossRef: EventFisherman) {
         eventDao.upsertEventFisherman(crossRef.toEntity())
@@ -209,7 +211,7 @@ class TripRepository(
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        tripDao.addTripFisherman(
+        fishermanDao.addTripFisherman(
             tripId = tripId,
             fishermanId = fishermanId,
             tackleBoxId = tackleBoxId
@@ -222,7 +224,7 @@ class TripRepository(
         fishermanId: String,
         tackleBoxId: String? = null
     ): AddFishermanResult {
-        val onTrip = tripDao.doesTripFishermanExist(
+        val onTrip = fishermanDao.doesTripFishermanExist(
             tripId = tripId,
             fishermanId = fishermanId
         )
@@ -247,12 +249,12 @@ class TripRepository(
     }
 
     fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> =
-        tripDao.getTripFishermenTackleBoxIds(tripId)
+        fishermanDao.getTripFishermenTackleBoxIds(tripId)
     fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> =
         eventDao.getFishermanTackleBoxMapping(eventId)
 
     fun getTripFishermen(tripId: String): Flow<List<Fisherman>> {
-        return tripDao.getFishermenForTrip(tripId)
+        return fishermanDao.getFishermenForTrip(tripId)
             .map { list -> list.toFishermanDomainList() }
     }
     fun getEventFishermen(eventId: String): Flow<List<Fisherman>> {
@@ -263,9 +265,6 @@ class TripRepository(
     suspend fun deleteEventFisherman(crossRef: EventFisherman) {
         eventDao.deleteEventFishermanCrossRef(crossRef.toEntity())
     }
-
-    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) =
-        tripDao.removeFishermanFromTrip(tripId, fishermanId)
 
     // Target Species
     fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {

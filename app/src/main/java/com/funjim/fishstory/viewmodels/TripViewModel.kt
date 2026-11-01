@@ -675,7 +675,9 @@ class TripViewModel(
         val tripId = _selectedTripId.value ?: return
 
         viewModelScope.launch {
-            tripRepo.removeFishermanFromTrip(tripId, fishermanId)
+            fishermanRepo.removeFishermanFromTrip(
+                fishermanId = fishermanId,
+                tripId = tripId)
         }
     }
 

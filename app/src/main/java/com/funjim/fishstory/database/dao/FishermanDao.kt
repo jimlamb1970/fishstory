@@ -3,6 +3,7 @@ package com.funjim.fishstory.database.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
@@ -503,4 +504,84 @@ interface FishermanDao {
         speciesId: String? = null,
         tripId: String? = null
     ): Flow<List<FishermanEntity>>
+
+    // Trip-Fisherman
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
+    @Upsert
+    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
+
+    @Query("DELETE FROM trip_fisherman_cross_ref")
+    suspend fun deleteAllTripFishermen()
+    @Query("SELECT * FROM trip_fisherman_cross_ref")
+    fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
+    @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
+    fun getTripFishermenForTrip(tripId: String): Flow<List<TripFishermanEntity>>
+
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM trip_fisherman_cross_ref 
+            WHERE tripId = :tripId AND fishermanId = :fishermanId
+        )
+""")
+    suspend fun doesTripFishermanExist(
+        tripId: String,
+        fishermanId: String): Boolean
+
+    @Query("""
+    SELECT fishermanId, tackleBoxId 
+    FROM trip_fisherman_cross_ref 
+    WHERE tripId = :tripId
+""")
+    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<
+            @MapColumn(columnName = "fishermanId") String,
+            @MapColumn(columnName = "tackleBoxId") String?
+            >>
+
+    @Query("SELECT id FROM event_table WHERE tripId = :tripId")
+    suspend fun getEventIdsForTrip(tripId: String): List<String>
+
+    @Transaction
+    suspend fun addTripFisherman(
+        tripId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        insertTripFisherman(
+            TripFishermanEntity(
+                tripId = tripId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+
+        val eventIds = getEventIdsForTrip(tripId)
+
+        if (eventIds.isNotEmpty()) {
+            val eventFishermen = eventIds.map { eventId ->
+                EventFishermanEntity(
+                    eventId = eventId,
+                    fishermanId = fishermanId,
+                    tackleBoxId = tackleBoxId
+                )
+            }
+            insertEventFishermen(eventFishermen)
+        }
+    }
+
+    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
+    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
+    @Query("""
+    DELETE FROM event_fisherman_cross_ref 
+    WHERE fishermanId = :fishermanId 
+    AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
+""")
+    suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
+    @Transaction
+    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
+        deleteFishermanFromTrip(tripId, fishermanId)
+        deleteFishermanFromEvents(tripId, fishermanId)
+    }
 }

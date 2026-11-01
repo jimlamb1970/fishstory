@@ -90,7 +90,7 @@ class FishStoryRepository(
                 val tackleBoxName = "LOTW ${row[0]}"
                 val tackleBoxId = tackleBoxDao.getOrCreate(fishermanId, tackleBoxName)
 
-                tripDao.upsertTripFisherman(
+                fishermanDao.upsertTripFisherman(
                     TripFishermanEntity(
                         tripId,
                         fishermanId,

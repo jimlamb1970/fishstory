@@ -174,7 +174,7 @@ class MainViewModel(
                     tripBodyOfWater = bodyOfWaterDao.getAllTripBodiesOfWater().firstOrNull() ?: emptyList(),
                     eventBodyOfWater = bodyOfWaterDao.getAllEventBodiesOfWater().firstOrNull() ?: emptyList(),
                     fishermen = fishermanDao.getAllFishermen().firstOrNull() ?: emptyList(),
-                    tripFishermen = tripDao.getAllTripFishermen().firstOrNull() ?: emptyList(),
+                    tripFishermen = fishermanDao.getAllTripFishermen().firstOrNull() ?: emptyList(),
                     eventFishermen = eventDao.getAllEventFishermanCrossRefs().firstOrNull() ?: emptyList(),
                     colors = lureDao.getAllLureColors().firstOrNull() ?: emptyList(),
                     lures = lureDao.getAllLures().firstOrNull() ?: emptyList(),
@@ -223,7 +223,7 @@ class MainViewModel(
                     bodyOfWaterDao.deleteAllTripBodiesOfWater()
                     bodyOfWaterDao.deleteAllEventBodiesOfWater()
                     fishermanDao.deleteAllFishermen()
-                    tripDao.deleteAllTripFishermen()
+                    fishermanDao.deleteAllTripFishermen()
                     eventDao.deleteAllEventFishermanCrossRefs()
                     lureDao.deleteAllLureColors()
                     lureDao.deleteAllLures()
@@ -256,7 +256,7 @@ class MainViewModel(
                     data.eventBodyOfWater.forEach { bodyOfWaterDao.insertBodyOfWaterForEvent(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
-                    data.tripFishermen.forEach { tripDao.insertTripFisherman(it) }
+                    data.tripFishermen.forEach { fishermanDao.insertTripFisherman(it) }
                     data.eventFishermen.forEach { eventDao.insertEventFisherman(it) }
                     data.colors.forEach { lureDao.insertLureColor(it) }
                     data.lures.forEach { lureDao.insertLure(it) }

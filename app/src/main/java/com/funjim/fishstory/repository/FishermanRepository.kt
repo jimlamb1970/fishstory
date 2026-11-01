@@ -138,6 +138,12 @@ class FishermanRepository(
             .map { list -> list.toTripSummaryDomainList() }
     }
 
+    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) =
+        fishermanDao.removeFishermanFromTrip(
+            fishermanId = fishermanId,
+            tripId = tripId
+        )
+
     // --- Tackle Box Logic ---
     suspend fun createTackleBox(tackleBox: TackleBox) {
         tackleBoxDao.insertTackleBox(tackleBox.toEntity())
