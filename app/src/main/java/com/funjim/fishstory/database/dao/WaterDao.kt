@@ -26,15 +26,19 @@ interface WaterDao {
     @Query("SELECT * FROM water_clarity_table ORDER BY name ASC")
     fun getAllWaterClarity(): Flow<List<WaterClarityEntity>>
 
-    @Query("SELECT * FROM water_clarity_table WHERE id = :id")
-    fun getWaterClarity(id: String): Flow<WaterClarityEntity?>
-
     @Query("""
         SELECT water_clarity_table.* FROM water_clarity_table 
         INNER JOIN water_table ON water_clarity_table.id = water_table.clarityId  
         WHERE water_table.eventId = :eventId
     """)
     fun getAllWaterClarityForEvent(eventId: String): Flow<List<WaterClarityEntity>>
+
+    @Query("SELECT * FROM water_clarity_table WHERE id = :id")
+    fun getWaterClarity(id: String): Flow<WaterClarityEntity?>
+    @Query("SELECT * FROM water_clarity_table WHERE id = :id")
+    suspend fun getWaterClarityById(id: String): WaterClarityEntity?
+    @Query("SELECT * FROM water_clarity_table WHERE name = :name")
+    suspend fun getWaterClarityByName(name: String): WaterClarityEntity?
 
     @Query("DELETE FROM water_table WHERE id = :id")
     suspend fun deleteWater(id: String)

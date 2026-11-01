@@ -78,12 +78,12 @@ data class FishStoryEventData(
     val fishermen: List<Fisherman> = emptyList(),           // Imported
     val limits: List<Limit> = emptyList(),                  // Imported
     val lures: List<Lure> = emptyList(),
-    val lureColors: List<LureColor> = emptyList(),
+    val lureColors: List<LureColor> = emptyList(),          // Imported
     val notes: List<Note> = emptyList(),                    // Imported
     val species: List<Species> = emptyList(),               // Imported
-    val skyConditions: List<SkyCondition> = emptyList(),
+    val skyConditions: List<SkyCondition> = emptyList(),    // Imported
     val tackleBoxes: List<TackleBox> = emptyList(),
-    val waterClarities: List<WaterClarity> = emptyList(),
+    val waterClarities: List<WaterClarity> = emptyList(),   // Imported
     val waterConditions: List<Water> = emptyList(),
     val weatherConditions: List<Weather> = emptyList(),
     val fish: List<Fish> = emptyList(),
@@ -136,7 +136,9 @@ class ImportViewModel(
         val fishermanMap = mutableMapOf<String, String>()
         val limitMap = mutableMapOf<String, String>()
         val lureColorMap = mutableMapOf<String, String>()
+        val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
+        val waterClarityMap = mutableMapOf<String, String>()
 
         // Map not needed for Trip
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
@@ -176,10 +178,20 @@ class ImportViewModel(
             val limitResult = fishRepo.findOrCreateLimit(limit, species)
             limitMap[limit.id] = limitResult.item.id
         }
-        // Map need for LureColors
+        // Map needed for LureColors
         for (color in exportData.lureColors) {
             val colorResult = lureRepo.findOrCreateLureColor(color)
             lureColorMap[color.id] = colorResult.item.id
+        }
+        // Map needed for SkyCondition
+        for (condition in exportData.skyConditions) {
+            val conditionResult = envRepo.findOrCreateSkyCondition(condition)
+            skyConditionMap[condition.id] = conditionResult.item.id
+        }
+        // Map needed for WaterClarity
+        for (clarity in exportData.waterClarities) {
+            val clarityResult = envRepo.findOrCreateWaterClarity(clarity)
+            waterClarityMap[clarity.id] = clarityResult.item.id
         }
     }
 

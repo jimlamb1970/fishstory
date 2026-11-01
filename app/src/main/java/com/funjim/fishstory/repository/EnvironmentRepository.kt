@@ -126,6 +126,34 @@ class EnvironmentRepository(
             InsertResult(bodyOfWater, true)
         }
     }
+    suspend fun findOrCreateSkyCondition(skyCondition: SkyCondition): InsertResult<SkyCondition> {
+        val existing = weatherDao.getSkyConditionById(skyCondition.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val existing = weatherDao.getSkyConditionByName(skyCondition.name)
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                weatherDao.insertSkyCondition(skyCondition.toEntity())
+                InsertResult(skyCondition, true)
+            }
+        }
+    }
+    suspend fun findOrCreateWaterClarity(waterClarity: WaterClarity): InsertResult<WaterClarity> {
+        val existing = waterDao.getWaterClarityById(waterClarity.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val existing = waterDao.getWaterClarityByName(waterClarity.name)
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                waterDao.insertWaterClarity(waterClarity.toEntity())
+                InsertResult(waterClarity, true)
+            }
+        }
+    }
 
     suspend fun addWater(water: Water) {
         waterDao.insertWater(water.toEntity())
