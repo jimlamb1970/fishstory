@@ -24,6 +24,19 @@ fun LimitEntity.toDomain(): Limit {
         upperInclusive = upperInclusive
     )
 }
+fun Limit.toEntity(): LimitEntity {
+    return LimitEntity(
+        id = id,
+        name = name,
+        type = type,
+        count = count,
+        lowerSize = lowerSize,
+        lowerInclusive = lowerInclusive,
+        upperSize = upperSize,
+        upperInclusive = upperInclusive
+    )
+}
+
 fun LimitWithSpeciesEntity.toDomain(): LimitWithSpecies {
     return LimitWithSpecies(
         id = limit.id,

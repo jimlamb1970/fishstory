@@ -61,6 +61,9 @@ interface FishDao {
     @Update
     suspend fun updateSpecies(species: SpeciesEntity)
 
+    @Query("SELECT * FROM species_table WHERE name = :name")
+    suspend fun getSpeciesByName(name: String): SpeciesEntity?
+
     @Query("DELETE FROM species_table")
     suspend fun deleteAllSpecies()
     @Query("SELECT * FROM species_table ORDER BY name ASC")

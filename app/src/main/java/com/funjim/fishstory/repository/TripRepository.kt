@@ -83,21 +83,6 @@ class TripRepository(
             .map { it?.toDomain() }
     }
 
-    /**
-     * An active trip is one where the current time is between start and end.
-     * We'll take the most recent one if multiple overlap.
-     */
-    fun getActiveTrip(): Flow<Trip?> = tripDao.getAllTrips().map { trips ->
-        val now = System.currentTimeMillis()
-        trips.firstOrNull { now in it.startDate..it.endDate }?.toDomain()
-    }
-
-    fun getActiveTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
-        val now = System.currentTimeMillis()
-        trips.filter { now in it.startDate..it.endDate }
-            .toTripDomainList()
-    }
-
     fun getActiveTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
         trips.filter { now in it.trip.startDate..it.trip.endDate }
@@ -220,7 +205,7 @@ class TripRepository(
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        fishermanDao.addTripFisherman(
+        fishermanDao.addFishermanToTrip(
             tripId = tripId,
             fishermanId = fishermanId,
             tackleBoxId = tackleBoxId
@@ -360,5 +345,14 @@ class TripRepository(
     fun getFishNotesForEvent(eventId: String): Flow<List<NoteFish>> {
         return noteDao.getFishNotesForEvent(eventId)
             .map { list -> list.toFishNoteDomainList() }
+    }
+    suspend fun findOrCreateNote(note: Note): InsertResult<Note> {
+        val existing = noteDao.getNoteById(note.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            noteDao.upsertNote(note.toEntity())
+            InsertResult(note, true)
+        }
     }
 }

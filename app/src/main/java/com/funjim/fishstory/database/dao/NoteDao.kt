@@ -15,14 +15,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-
+    @Query("DELETE FROM note_table WHERE id = :id")
+    suspend fun deleteNoteById(id: String)
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertNote(note: NoteEntity)
     @Upsert
     suspend fun upsertNote(note: NoteEntity)
 
-    @Query("DELETE FROM note_table WHERE id = :id")
-    suspend fun deleteNoteById(id: String)
+    @Query("SELECT * FROM note_table WHERE id = :id")
+    suspend fun getNoteById(id: String): NoteEntity?
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTripNote(crossRef: NoteTripEntity)

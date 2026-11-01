@@ -14,6 +14,8 @@ import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
+import com.funjim.fishstory.model.Limit
+import com.funjim.fishstory.model.LimitType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,6 +37,32 @@ interface LimitDao {
     fun getLimit(id: String): Flow<LimitEntity?>
     @Query("SELECT * FROM limit_table WHERE id = :id")
     suspend fun geLimitById(id: String): LimitEntity?
+
+    @Query("""
+        SELECT * FROM limit_table AS l
+        WHERE l.name = :name
+          AND l.type = :type
+          AND l.count = :count
+          AND l.lowerSize IS :lowerSize
+          AND l.lowerInclusive = :lowerInclusive
+          AND l.upperSize IS :upperSize
+          AND l.upperInclusive = :upperInclusive
+          AND (
+            SELECT COALESCE(GROUP_CONCAT(speciesId, ','), '') 
+            FROM (SELECT speciesId FROM limit_species_table WHERE limitId = l.id ORDER BY speciesId)
+          ) = :sortedSpeciesIds
+        LIMIT 1
+    """)
+    suspend fun getLimitByLimit(
+        name: String,
+        type: LimitType,
+        count: Int = 0,
+        lowerSize: Long? = null,
+        lowerInclusive: Boolean = true,
+        upperSize: Long? = null,
+        upperInclusive: Boolean = true,
+        sortedSpeciesIds: String
+    ): LimitEntity?
 
     @Query("""
         SELECT limit_table.* FROM limit_table

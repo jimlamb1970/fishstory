@@ -11,10 +11,12 @@ import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxLureDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
+import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLure
@@ -42,6 +44,19 @@ class FishermanRepository(
         return fishermanDao.getEventFishermenForEvent(eventId)
             .map { list -> list.toEventFishermanDomainList() }
     }
+    suspend fun findOrCreateFisherman(fisherman: Fisherman): InsertResult<Fisherman> {
+        val existing = fishermanDao.getFishermanByName(
+            first = fisherman.firstName,
+            last = fisherman.lastName,
+            nickname = fisherman.nickname)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            updateFisherman(fisherman)
+            InsertResult(fisherman, true)
+        }
+    }
+
     fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
         return fishermanDao.getFishermenForEvent(eventId)
             .map { list -> list.toFishermanDomainList() }

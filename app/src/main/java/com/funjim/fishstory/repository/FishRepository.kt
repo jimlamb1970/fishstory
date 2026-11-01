@@ -50,6 +50,7 @@ import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.FishermanWithCounts
+import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSpecies
 import com.funjim.fishstory.model.LimitWithSpecies
@@ -106,6 +107,38 @@ class FishRepository(
     fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpecies>> {
         return fishDao.getLimitSpeciesForEvent(eventId)
             .map { list -> list.toLimitSpeciesDomainList() }
+    }
+    suspend fun findOrCreateSpecies(species: Species): InsertResult<Species> {
+        val existing = fishDao.getSpeciesByName(species.name)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            updateSpecies(species)
+            InsertResult(species, true)
+        }
+    }
+    suspend fun findOrCreateLimit(limit: Limit, species: List<String>): InsertResult<Limit> {
+        val existing = limitDao.geLimitById(limit.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val sortedSpecies = species.sorted().joinToString(",")
+            val existing = limitDao.getLimitByLimit(
+                name = limit.name,
+                type = limit.type,
+                count = limit.count,
+                lowerSize = limit.lowerSize,
+                lowerInclusive = limit.lowerInclusive,
+                upperSize = limit.upperSize,
+                upperInclusive = limit.upperInclusive,
+                sortedSpecies)
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                limitDao.upsertLimit(limit.toEntity())
+                InsertResult(limit, true)
+            }
+        }
     }
 
     fun getBodiesOfWater(filter: FishFilter): Flow<List<BodyOfWater>> {

@@ -71,16 +71,16 @@ enum class TripResolution { CREATE_NEW, LINK_EXISTING, SKIP }
 data class FishStoryEventData(
     val fileType: String = "FishStoryEventData",
     val schemaVersion: Int = 1,
-    val trip: Trip,
-    val event: Event,
-    val baits: List<Bait> = emptyList(),
-    val bodiesOfWater: List<BodyOfWater> = emptyList(),
-    val fishermen: List<Fisherman> = emptyList(),
+    val trip: Trip,                                         // Imported
+    val event: Event,                                       // Imported
+    val baits: List<Bait> = emptyList(),                    // Imported
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),     // Imported
+    val fishermen: List<Fisherman> = emptyList(),           // Imported
     val limits: List<Limit> = emptyList(),
     val lures: List<Lure> = emptyList(),
     val lureColors: List<LureColor> = emptyList(),
-    val notes: List<Note> = emptyList(),
-    val species: List<Species> = emptyList(),
+    val notes: List<Note> = emptyList(),                    // Imported
+    val species: List<Species> = emptyList(),               // Imported
     val skyConditions: List<SkyCondition> = emptyList(),
     val tackleBoxes: List<TackleBox> = emptyList(),
     val waterClarities: List<WaterClarity> = emptyList(),
@@ -133,28 +133,53 @@ class ImportViewModel(
     private suspend fun processImportData(exportData: FishStoryEventData) {
         val baitMap = mutableMapOf<String, String>()
         val bodyOfWaterMap = mutableMapOf<String, String>()
+        val fishermanMap = mutableMapOf<String, String>()
+        val limitMap = mutableMapOf<String, String>()
+        val speciesMap = mutableMapOf<String, String>()
 
+        // Map not needed for Trip
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
-        if (!tripResult.wasCreated) {
-            _toastMessage.emit("Trip already exists: ${exportData.trip.name}")
-        }
+        // Map not needed for Event
         val eventResult = tripRepo.findOrCreateEvent(exportData.event)
-        if (!eventResult.wasCreated) {
-            _toastMessage.emit("Event already exists: ${exportData.event.name}")
-        }
+        // Map needed for Bait
         for (bait in exportData.baits) {
             val baitResult = lureRepo.findOrCreateBait(bait)
             baitMap[bait.id] = baitResult.item.id
-            if (!baitResult.wasCreated) {
-                _toastMessage.emit("Bait already exists: ${bait.name}")
-            }
         }
+        // Map needed for Body of Water
         for (bodyOfWater in exportData.bodiesOfWater) {
             val bodyOfWaterResult = envRepo.findOrCreateBodyOfWater(bodyOfWater)
             bodyOfWaterMap[bodyOfWater.id] = bodyOfWaterResult.item.id
-            if (!bodyOfWaterResult.wasCreated) {
-                _toastMessage.emit("Body of water already exists: ${bodyOfWater.name}")
+        }
+        // Map needed for Fisherman
+        for (fisherman in exportData.fishermen) {
+            val fishermanResult = fishermanRepo.findOrCreateFisherman(fisherman)
+            fishermanMap[fisherman.id] = fishermanResult.item.id
+        }
+        // Map not needed for Note
+        for (note in exportData.notes) {
+            val noteResult = tripRepo.findOrCreateNote(note)
+        }
+        // Map needed for Species
+        for (species in exportData.species) {
+            val speciesResult = fishRepo.findOrCreateSpecies(species)
+            speciesMap[species.id] = speciesResult.item.id
+        }
+        // Map needed for Limits
+        for (limit in exportData.limits) {
+            val species: List<String> = exportData.limitSpecies
+                .filter { it.limitId == limit.id }
+                .mapNotNull { limitSpecies ->
+                    speciesMap[limitSpecies.speciesId]
+                }
+            val limitResult = fishRepo.findOrCreateLimit(limit, species)
+            limitMap[limit.id] = limitResult.item.id
+            if (limitResult.wasCreated) {
+                _toastMessage.emit("Created Limit: ${limit.name}")
+            } else {
+                _toastMessage.emit("Updated Limit: ${limit.name}")
             }
+
         }
     }
 
