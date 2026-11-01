@@ -849,12 +849,12 @@ class EventViewModel(
                     eventFishermen = fishermanRepo.getEventFishermenForEvent(eventId).firstOrNull() ?: emptyList(),
                     eventLimits = fishRepo.getEventLimitsForEvent(eventId).firstOrNull() ?: emptyList(),
                     eventTargetSpecies = fishRepo.getEventTargetSpeciesForEvent(eventId).firstOrNull() ?: emptyList(),
+                    limitSpecies = fishRepo.getLimitSpeciesForEvent(eventId).firstOrNull() ?: emptyList(),
+                    lurePrimaryColors = lureRepo.getLurePrimaryColorsForEvent(eventId).firstOrNull() ?: emptyList(),
+                    lureSecondaryColors = lureRepo.getLureSecondaryColorsForEvent(eventId).firstOrNull() ?: emptyList(),
+                    lureGlowColors = lureRepo.getLureGlowColorsForEvent(eventId).firstOrNull() ?: emptyList(),
                     notesEvent = tripRepo.getEventNotesForEvent(eventId).firstOrNull() ?: emptyList(),
                     notesFish = tripRepo.getFishNotesForEvent(eventId).firstOrNull() ?: emptyList(),
-                    limitSpecies = fishRepo.getLimitSpeciesForEvent(eventId).firstOrNull() ?: emptyList(),
-                    lurePrimaryColors = emptyList(),
-                    lureSecondaryColors = emptyList(),
-                    lureGlowColors = emptyList(),
                     tackleBoxLures = fishermanRepo.getTackleBoxLuresForEvent(eventId).firstOrNull() ?: emptyList()
                 )
 

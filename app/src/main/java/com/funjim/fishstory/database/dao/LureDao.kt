@@ -127,6 +127,60 @@ interface LureDao {
     """
     )
     fun getAllLureColorsForEvent(eventId: String): Flow<List<LureColorEntity>>
+    @Query(
+        """
+        WITH EventLures AS (
+            -- Lures available through participants' tackle boxes for this event
+            SELECT tackle_box_lure_cross_ref.lureId FROM tackle_box_lure_cross_ref
+            INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
+            WHERE event_fisherman_cross_ref.eventId = :eventId
+            
+            UNION
+            
+            -- Lures used on fish caught during this event
+            SELECT fish_table.lureId FROM fish_table
+            WHERE fish_table.eventId = :eventId AND fish_table.lureId IS NOT NULL
+        )
+        SELECT * FROM lure_primary_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
+    """
+    )
+    fun getLurePrimaryColorsForEvent(eventId: String): Flow<List<LurePrimaryColorEntity>>
+    @Query(
+        """
+        WITH EventLures AS (
+            -- Lures available through participants' tackle boxes for this event
+            SELECT tackle_box_lure_cross_ref.lureId FROM tackle_box_lure_cross_ref
+            INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
+            WHERE event_fisherman_cross_ref.eventId = :eventId
+            
+            UNION
+            
+            -- Lures used on fish caught during this event
+            SELECT fish_table.lureId FROM fish_table
+            WHERE fish_table.eventId = :eventId AND fish_table.lureId IS NOT NULL
+        )
+        SELECT * FROM lure_secondary_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
+    """
+    )
+    fun getLureSecondaryColorsForEvent(eventId: String): Flow<List<LureSecondaryColorEntity>>
+    @Query(
+        """
+        WITH EventLures AS (
+            -- Lures available through participants' tackle boxes for this event
+            SELECT tackle_box_lure_cross_ref.lureId FROM tackle_box_lure_cross_ref
+            INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
+            WHERE event_fisherman_cross_ref.eventId = :eventId
+            
+            UNION
+            
+            -- Lures used on fish caught during this event
+            SELECT fish_table.lureId FROM fish_table
+            WHERE fish_table.eventId = :eventId AND fish_table.lureId IS NOT NULL
+        )
+        SELECT * FROM lure_glow_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
+    """
+    )
+    fun getLureGlowColorsForEvent(eventId: String): Flow<List<LureGlowColorEntity>>
 
     @Query("SELECT * FROM lure_primary_color_cross_ref")
     fun getAllLurePrimaryColors(): Flow<List<LurePrimaryColorEntity>>

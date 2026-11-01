@@ -12,6 +12,9 @@ import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toEventBaitDomainList
 import com.funjim.fishstory.database.mapper.toLureColorDomainList
 import com.funjim.fishstory.database.mapper.toLureDomainList
+import com.funjim.fishstory.database.mapper.toLureGlowColorDomainList
+import com.funjim.fishstory.database.mapper.toLurePrimaryColorDomainList
+import com.funjim.fishstory.database.mapper.toLureSecondaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsSummaryDomainList
 import com.funjim.fishstory.model.Bait
@@ -52,6 +55,18 @@ class LureRepository(
     fun getAllLureColorsForEvent(eventId: String): Flow<List<LureColor>> {
         return lureDao.getAllLureColorsForEvent(eventId)
             .map { list -> list.toLureColorDomainList() }
+    }
+    fun getLurePrimaryColorsForEvent(eventId: String): Flow<List<LurePrimaryColor>> {
+        return lureDao.getLurePrimaryColorsForEvent(eventId)
+            .map { list -> list.toLurePrimaryColorDomainList() }
+    }
+    fun getLureSecondaryColorsForEvent(eventId: String): Flow<List<LureSecondaryColor>> {
+        return lureDao.getLureSecondaryColorsForEvent(eventId)
+            .map { list -> list.toLureSecondaryColorDomainList() }
+    }
+    fun getLureGlowColorsForEvent(eventId: String): Flow<List<LureGlowColor>> {
+        return lureDao.getLureGlowColorsForEvent(eventId)
+            .map { list -> list.toLureGlowColorDomainList() }
     }
 
     fun getLureSummariesWithColors(): Flow<List<LureWithColorsSummary>> {
