@@ -9,7 +9,6 @@ import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.EventBodyOfWater
 import com.funjim.fishstory.model.TripBodyOfWater
 
-// Extension: Database Entity -> Domain Model
 fun BodyOfWaterEntity.toDomain(): BodyOfWater {
     return BodyOfWater(
         id = id,
@@ -18,13 +17,9 @@ fun BodyOfWaterEntity.toDomain(): BodyOfWater {
         longitude = longitude
     )
 }
-
-// Extension: List of Entities -> List of Domain Models
 fun List<BodyOfWaterEntity>.toBodyOfWaterDomainList(): List<BodyOfWater> {
     return map { it.toDomain() }
 }
-
-// Extension: Domain Model -> Database Entity (for Inserts / Updates)
 fun BodyOfWater.toEntity(): BodyOfWaterEntity {
     return BodyOfWaterEntity(
         id = id,
@@ -34,7 +29,6 @@ fun BodyOfWater.toEntity(): BodyOfWaterEntity {
     )
 }
 
-// Extension: Database Entity -> Domain Model
 fun BodyOfWaterSummaryEntity.toDomain(): BodyOfWaterSummary {
     return BodyOfWaterSummary(
         bodyOfWater = bodyOfWater.toDomain(),
@@ -46,13 +40,9 @@ fun BodyOfWaterSummaryEntity.toDomain(): BodyOfWaterSummary {
         smallestFish = smallestFish
     )
 }
-
-// Extension: List of Entities -> List of Domain Models
 fun List<BodyOfWaterSummaryEntity>.toBodyOfWaterSummaryDomainList(): List<BodyOfWaterSummary> {
     return map { it.toDomain() }
 }
-
-// Extension: Domain Model -> Database Entity (for Inserts / Updates)
 fun BodyOfWaterSummary.toEntity(): BodyOfWaterSummaryEntity {
     return BodyOfWaterSummaryEntity(
         bodyOfWater = bodyOfWater.toEntity(),
@@ -68,18 +58,15 @@ fun BodyOfWaterSummary.toEntity(): BodyOfWaterSummaryEntity {
 fun List<EventBodyOfWater>.toEventBodyOfWaterEntityList(): List<EventBodyOfWaterEntity> {
     return map { it.toEntity() }
 }
-
 fun EventBodyOfWater.toEntity(): EventBodyOfWaterEntity {
     return EventBodyOfWaterEntity(
         eventId = eventId,
         bodyOfWaterId = bodyOfWaterId
     )
 }
-
 fun List<EventBodyOfWaterEntity>.toEventBodyOfWaterDomainList(): List<EventBodyOfWater> {
     return map { it.toDomain() }
 }
-
 fun EventBodyOfWaterEntity.toDomain(): EventBodyOfWater {
     return EventBodyOfWater(
         eventId = eventId,

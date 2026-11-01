@@ -7,10 +7,10 @@ import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
-import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.toDomainList
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toEventBodyOfWaterDomainList
 import com.funjim.fishstory.database.toEventBodyOfWaterEntityList
 import com.funjim.fishstory.database.toWaterDomainList
 import com.funjim.fishstory.database.toWeatherDomainList
@@ -112,15 +112,15 @@ class EnvironmentRepository(
     fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWater>> {
         return bodyOfWaterDao.getAllBodiesOfWaterForEvent(eventId).map { list -> list.toBodyOfWaterDomainList() }
     }
+    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWater>> {
+        return bodyOfWaterDao.getEventBodiesOfWaterForEvent(eventId).map { list -> list.toEventBodyOfWaterDomainList() }
+    }
 
     suspend fun addWater(water: Water) {
         waterDao.insertWater(water.toEntity())
     }
     suspend fun upsertWater(water: Water) {
         waterDao.upsertWater(water.toEntity())
-    }
-    suspend fun deleteWater(water: Water) {
-        waterDao.deleteWater(water.toEntity())
     }
     suspend fun deleteWater(id: String) {
         waterDao.deleteWater(id)
@@ -141,9 +141,6 @@ class EnvironmentRepository(
     }
     suspend fun upsertWeather(weather: Weather) {
         weatherDao.upsertWeather(weather.toEntity())
-    }
-    suspend fun deleteWeather(weather: Weather) {
-        weatherDao.deleteWeather(weather.toEntity())
     }
     suspend fun deleteWeather(id: String) {
         weatherDao.deleteWeather(id)

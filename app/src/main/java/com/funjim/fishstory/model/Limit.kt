@@ -42,6 +42,18 @@ data class Limit(
     val upperInclusive: Boolean = true
 )
 
+@Serializable
+data class LimitSpecies(
+    val limitId: String,
+    val speciesId: String
+)
+
+@Serializable
+data class EventLimit(
+    val eventId: String,
+    val limitId: String
+)
+
 data class LimitWithSpecies(
     val id: String = UUID.randomUUID().toString(),
     val name: String,

@@ -67,6 +67,11 @@ interface BaitDao {
     """)
     fun getAllBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
     @Query("""
+        SELECT event_bait.* FROM event_bait WHERE eventId = :eventId
+    """)
+    fun getEventsBaitsForEvent(eventId: String): Flow<List<EventBaitEntity>>
+
+    @Query("""
         SELECT bait_table.* FROM bait_table
         INNER JOIN event_bait ON bait_table.id = event_bait.baitId
         WHERE event_bait.eventId = :eventId

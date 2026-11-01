@@ -9,12 +9,14 @@ import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import com.funjim.fishstory.database.toBaitDomainList
 import com.funjim.fishstory.database.toDomain
 import com.funjim.fishstory.database.toEntity
+import com.funjim.fishstory.database.toEventBaitDomainList
 import com.funjim.fishstory.database.toLureColorDomainList
 import com.funjim.fishstory.database.toLureDomainList
 import com.funjim.fishstory.database.toLureWithColorsDomainList
 import com.funjim.fishstory.database.toLureWithColorsSummaryDomainList
 import com.funjim.fishstory.database.toNoteDomainList
 import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
@@ -126,6 +128,9 @@ class LureRepository(
     }
     fun getAllBaitsForEvent(eventId: String): Flow<List<Bait>> {
         return baitDao.getAllBaitsForEvent(eventId).map { list -> list.toBaitDomainList() }
+    }
+    fun getEventBaitsForEvent(eventId: String): Flow<List<EventBait>> {
+        return baitDao.getEventsBaitsForEvent(eventId).map { list -> list.toEventBaitDomainList() }
     }
 
     // TODO move to fisherman repo

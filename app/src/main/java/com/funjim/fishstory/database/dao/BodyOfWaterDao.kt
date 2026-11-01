@@ -65,6 +65,11 @@ interface BodyOfWaterDao {
     """)
     fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Query("""
+        SELECT event_body_of_water.* FROM event_body_of_water WHERE eventId = :eventId
+    """)
+    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWaterEntity>>
+
+    @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
         WHERE event_body_of_water.eventId = :eventId
