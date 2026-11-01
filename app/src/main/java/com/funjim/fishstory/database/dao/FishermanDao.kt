@@ -521,16 +521,6 @@ interface FishermanDao {
     fun getTripFishermenForTrip(tripId: String): Flow<List<TripFishermanEntity>>
 
     @Query("""
-        SELECT EXISTS(
-            SELECT 1 FROM trip_fisherman_cross_ref 
-            WHERE tripId = :tripId AND fishermanId = :fishermanId
-        )
-""")
-    suspend fun doesTripFishermanExist(
-        tripId: String,
-        fishermanId: String): Boolean
-
-    @Query("""
     SELECT fishermanId, tackleBoxId 
     FROM trip_fisherman_cross_ref 
     WHERE tripId = :tripId
@@ -540,11 +530,21 @@ interface FishermanDao {
             @MapColumn(columnName = "tackleBoxId") String?
             >>
 
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM trip_fisherman_cross_ref 
+            WHERE tripId = :tripId AND fishermanId = :fishermanId
+        )
+""")
+    suspend fun doesTripFishermanExist(
+        tripId: String,
+        fishermanId: String): Boolean
+
+    // Logic to add/remove a fisherman from a trip
     @Query("SELECT id FROM event_table WHERE tripId = :tripId")
     suspend fun getEventIdsForTrip(tripId: String): List<String>
-
     @Transaction
-    suspend fun addTripFisherman(
+    suspend fun addFishermanToTrip(
         tripId: String,
         fishermanId: String,
         tackleBoxId: String? = null
@@ -558,7 +558,6 @@ interface FishermanDao {
         )
 
         val eventIds = getEventIdsForTrip(tripId)
-
         if (eventIds.isNotEmpty()) {
             val eventFishermen = eventIds.map { eventId ->
                 EventFishermanEntity(
@@ -571,14 +570,14 @@ interface FishermanDao {
         }
     }
 
-    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
-    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
     @Query("""
     DELETE FROM event_fisherman_cross_ref 
     WHERE fishermanId = :fishermanId 
     AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
 """)
     suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
+    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
+    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
     @Transaction
     suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
         deleteFishermanFromTrip(tripId, fishermanId)
