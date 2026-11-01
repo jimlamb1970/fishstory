@@ -22,6 +22,7 @@ import com.funjim.fishstory.database.toSpeciesDomainList
 import com.funjim.fishstory.database.toEntity
 import com.funjim.fishstory.database.toSpeciesEntityList
 import com.funjim.fishstory.database.toEventDomainList
+import com.funjim.fishstory.database.toFishDomainList
 import com.funjim.fishstory.database.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.toFishermanDomainList
 import com.funjim.fishstory.database.toFishermanSummaryDomainList
@@ -84,6 +85,10 @@ class FishRepository(
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
         .map { list -> list.toSpeciesSummaryDomainList() }
 
+    fun getAllFishForEvent(eventId: String): Flow<List<Fish>> {
+        return fishDao.getAllFishForEvent(eventId)
+            .map { list -> list.toFishDomainList() }
+    }
     fun getAllSpeciesForEvent(eventId: String): Flow<List<Species>> {
         return fishDao.getAllSpeciesForEvent(eventId)
             .map { list -> list.toSpeciesDomainList() }

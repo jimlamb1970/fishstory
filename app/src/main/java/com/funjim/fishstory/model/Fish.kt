@@ -15,6 +15,7 @@ data class Fish(
     val lureId: String? = null,
     val baitId: String? = null,
     val length: Long? = null,
+    val weight: Long? = null,
     val timestamp: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,

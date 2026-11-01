@@ -839,7 +839,7 @@ class EventViewModel(
                     waterClarities = envRepo.getAllWaterClarityForEvent(eventId).firstOrNull() ?: emptyList(),
                     waterConditions = envRepo.getAllWaterConditionsForEvent(eventId).firstOrNull() ?: emptyList(),
                     weatherConditions = envRepo.getAllWeatherConditionsForEvent(eventId).firstOrNull() ?: emptyList(),
-                    fish = emptyList(),
+                    fish = fishRepo.getAllFishForEvent(eventId).firstOrNull() ?: emptyList(),
                     eventBaits = emptyList(),
                     eventBodiesOfWater = emptyList(),
                     eventFishermen = emptyList(),

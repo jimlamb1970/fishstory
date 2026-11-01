@@ -129,7 +129,7 @@ class MainViewModel(
     }
 
     private val json = Json { prettyPrint = true }
-    private val json_import = Json { ignoreUnknownKeys = true }
+    private val jsonImport = Json { ignoreUnknownKeys = true }
 
     private val _selectEvent = MutableStateFlow(0)
     val selectEvent = _selectEvent.asStateFlow()
@@ -209,7 +209,7 @@ class MainViewModel(
             try {
                 context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     val jsonString = inputStream.bufferedReader().use { it.readText() }
-                    val data = json_import.decodeFromString<DatabaseExportData>(jsonString)
+                    val data = jsonImport.decodeFromString<DatabaseExportData>(jsonString)
 
                     tripDao.deleteAllTrips()
                     eventDao.deleteAllEvents()
