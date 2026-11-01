@@ -106,12 +106,12 @@ class DashboardViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activeTripEvents: StateFlow<EventGroups> = currentTime
         .flatMapLatest { now ->
-            tripRepo.getEventsForActiveTrips(now).map { allSegments ->
+            tripRepo.getEventsForActiveTrips(now).map { allEvents ->
                 // Split them into the 3 groups here
                 EventGroups(
-                    previous = allSegments.filter { it.event.endTime < now },
-                    active = allSegments.filter { now in it.event.startTime..it.event.endTime },
-                    upcoming = allSegments.filter { it.event.startTime > now }
+                    previous = allEvents.filter { it.event.endTime < now },
+                    active = allEvents.filter { now in it.event.startTime..it.event.endTime },
+                    upcoming = allEvents.filter { it.event.startTime > now }
                 )
             }
         }

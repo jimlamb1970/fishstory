@@ -32,7 +32,6 @@ interface EventDao {
     @Query("DELETE FROM event_table")
     suspend fun deleteAllEvents()
 
-
     @Delete
     suspend fun deleteEvent(event: EventEntity)
     @Query("DELETE FROM event_table WHERE id = :id")
@@ -58,14 +57,6 @@ interface EventDao {
 
     @Query(" SELECT tripId FROM event_table WHERE id = :eventId")
     suspend fun getTripIdForEvent(eventId: String): String
-
-    @Query("""
-    SELECT s.* FROM event_table AS s
-    JOIN trip_table AS t ON s.tripId = t.id
-    WHERE strftime('%s', 'now') BETWEEN t.startDate AND t.endDate
-    ORDER BY s.startTime ASC
-""")
-    fun getEventsForActiveTrips(): Flow<List<EventEntity>>
 
     @Transaction
     @Query(
@@ -270,6 +261,7 @@ ORDER BY s.startTime DESC"""
           AND (:lureId IS NULL OR fish_table.lureId = :lureId)
           AND (:speciesId IS NULL OR fish_table.speciesId = :speciesId)
         GROUP BY event_table.id
+        ORDER BY startTime DESC
     """)
     fun getEventsWithFish(
         bodyOfWaterId: String? = null,
