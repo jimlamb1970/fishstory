@@ -180,12 +180,15 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
+    // TODO -- move these to fisherman dao
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
     @Upsert
     suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
+    @Upsert
+    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
 
     @Update
     suspend fun updateEventFishermanCrossRef(crossRef: EventFishermanEntity)
@@ -195,7 +198,7 @@ ORDER BY s.startTime DESC"""
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        insertEventFisherman(
+        upsertEventFisherman(
             EventFishermanEntity(
                 eventId = eventId,
                 fishermanId = fishermanId,
@@ -211,7 +214,7 @@ ORDER BY s.startTime DESC"""
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        insertEventFisherman(
+        upsertEventFisherman(
             EventFishermanEntity(
                 eventId = eventId,
                 fishermanId = fishermanId,
@@ -219,7 +222,7 @@ ORDER BY s.startTime DESC"""
             )
         )
 
-        insertTripFisherman(
+        upsertTripFisherman(
             TripFishermanEntity(
                 tripId = tripId,
                 fishermanId = fishermanId,

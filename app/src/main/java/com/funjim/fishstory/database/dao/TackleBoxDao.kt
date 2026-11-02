@@ -44,13 +44,21 @@ interface TackleBoxDao {
     """)
     fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLureEntity>>
 
+    @Query("SELECT * FROM tackle_box_table WHERE id = :id")
+    fun getTackleBox(id: String): Flow<TackleBoxEntity?>
+    @Query("SELECT * FROM tackle_box_table WHERE id = :id")
+    suspend fun getTackleBoxById(id: String): TackleBoxEntity?
+    @Query("SELECT * FROM tackle_box_table WHERE name = :name AND fishermanId = :fishermanId LIMIT 1")
+    suspend fun getTackleBoxByName(
+        name: String,
+        fishermanId: String
+    ): TackleBoxEntity?
+
+
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
     fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureEntity>>
     @Query("DELETE FROM tackle_box_lure_cross_ref")
     suspend fun deleteAllTackleBoxLureCrossRefs()
-
-    @Query("SELECT * FROM tackle_box_table WHERE id = :id")
-    fun getTackleBoxById(id: String): Flow<TackleBoxEntity?>
 
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
     suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBoxEntity?

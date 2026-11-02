@@ -182,6 +182,7 @@ class TripRepository(
             InsertResult(event, true)
         }
     }
+
     suspend fun upsertEvent(event: Event) {
         eventDao.upsertEvent(event.toEntity())
     }
@@ -192,6 +193,7 @@ class TripRepository(
         eventDao.deleteEventById(id)
     }
 
+    // TODO -- move these to fish story repository
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFisherman(crossRef: TripFisherman) {
         fishermanDao.upsertTripFisherman(crossRef.toEntity())

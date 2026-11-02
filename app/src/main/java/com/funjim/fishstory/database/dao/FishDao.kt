@@ -505,6 +505,7 @@ interface FishDao {
 """)
     fun getSpeciesSummariesEx(): Flow<List<SpeciesSummaryEntity>>
 
+    @Transaction
     @Query("""
     SELECT 
         water.*, 
@@ -555,6 +556,7 @@ interface FishDao {
         eventId: String? = null
     ): Flow<List<WaterSummaryEntity>>
 
+    @Transaction
     @Query("""
     SELECT 
         weather.*, 
@@ -603,6 +605,7 @@ interface FishDao {
         eventId: String? = null
     ): Flow<List<WeatherSummaryEntity>>
 
+    @Transaction
     @Query("""
     SELECT 
         water.*, 
@@ -643,6 +646,7 @@ interface FishDao {
 """)
     fun getWaterSummary(waterId: String): Flow<WaterSummaryEntity?>
 
+    @Transaction
     @Query("""
     SELECT 
         weather.*, 

@@ -82,7 +82,7 @@ data class FishStoryEventData(
     val notes: List<Note> = emptyList(),                    // Imported
     val species: List<Species> = emptyList(),               // Imported
     val skyConditions: List<SkyCondition> = emptyList(),    // Imported
-    val tackleBoxes: List<TackleBox> = emptyList(),
+    val tackleBoxes: List<TackleBox> = emptyList(),         // Imported
     val waterClarities: List<WaterClarity> = emptyList(),   // Imported
     val waterConditions: List<Water> = emptyList(),         // Imported
     val weatherConditions: List<Weather> = emptyList(),     // Imported
@@ -90,8 +90,8 @@ data class FishStoryEventData(
 
     val eventBaits: List<EventBait> = emptyList(),                  // Imported
     val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),   // Imported
-    val eventFishermen: List<EventFisherman> = emptyList(),
-    val eventLimits: List<EventLimit> = emptyList(),
+    val eventFishermen: List<EventFisherman> = emptyList(),         // Imported
+    val eventLimits: List<EventLimit> = emptyList(),                // Imported
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
     val limitSpecies: List<LimitSpecies> = emptyList(),             // Imported
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),    // Imported
@@ -139,6 +139,7 @@ class ImportViewModel(
         val lureMap = mutableMapOf<String, String>()
         val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
+        val tackleBoxMap = mutableMapOf<String, String>()
         val waterClarityMap = mutableMapOf<String, String>()
         val waterMap = mutableMapOf<String, String>()
         val weatherMap = mutableMapOf<String, String>()
@@ -147,7 +148,10 @@ class ImportViewModel(
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
         // Map not needed for Event
         val eventResult = tripRepo.findOrCreateEvent(exportData.event)
-        // Map needed for Bait
+
+        // Map needed for Bait.
+        // Import and keep track of new/existing id
+        // When adding cross reference, use the mapped id
         for (bait in exportData.baits) {
             val baitResult = lureRepo.findOrCreateBait(bait)
             baitMap[bait.id] = baitResult.item.id
@@ -160,6 +164,8 @@ class ImportViewModel(
         }
 
         // Map needed for Body of Water
+        // Import and keep track of new/existing id
+        // When adding body of water to event (and trip), use the mapped id
         for (bodyOfWater in exportData.bodiesOfWater) {
             val bodyOfWaterResult = envRepo.findOrCreateBodyOfWater(bodyOfWater)
             bodyOfWaterMap[bodyOfWater.id] = bodyOfWaterResult.item.id
@@ -173,13 +179,32 @@ class ImportViewModel(
         }
 
         // Map needed for Fisherman
+        // Map needed for TackleBox
+        // When adding fisherman/tacklebox to event (and trip), use the mapped ids
         for (fisherman in exportData.fishermen) {
             val fishermanResult = fishermanRepo.findOrCreateFisherman(fisherman)
             fishermanMap[fisherman.id] = fishermanResult.item.id
         }
+        for (tackleBox in exportData.tackleBoxes) {
+            val tackleBoxResult = fishermanRepo.findOrCreateTackleBox(tackleBox)
+            tackleBoxMap[tackleBox.id] = tackleBoxResult.item.id
+        }
+        for (eventFisherman in exportData.eventFishermen) {
+            val fishermanId = fishermanMap[eventFisherman.fishermanId]
+            val tackleBoxId = tackleBoxMap[eventFisherman.tackleBoxId]
+            if (fishermanId != null) {
+                tripRepo.addFishermanToEventAndTrip(
+                    tripId = exportData.trip.id,
+                    eventId = eventFisherman.eventId,
+                    fishermanId = fishermanId,
+                    tackleBoxId = tackleBoxId
+                )
+            }
+        }
+
         // Map not needed for Note
         for (note in exportData.notes) {
-            val noteResult = tripRepo.findOrCreateNote(note)
+            tripRepo.findOrCreateNote(note)
         }
         for (eventNote in exportData.notesEvent) {
             tripRepo.insertEventNote(eventNote)

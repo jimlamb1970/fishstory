@@ -225,7 +225,7 @@ class LureViewModel(
     val selectedTackleBox: StateFlow<TackleBox?> = _selectedTackleBoxId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
-            else lureRepo.getTackleBoxById(id) // Room DAO should return Flow<TackleBox>
+            else lureRepo.getTackleBox(id) // Room DAO should return Flow<TackleBox>
         }
         .stateIn(
             scope = viewModelScope,

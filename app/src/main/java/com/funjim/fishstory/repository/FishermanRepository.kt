@@ -36,38 +36,61 @@ class FishermanRepository(
         return fishermanDao.getFishermenForTrip(tripId)
             .map { list -> list.toFishermanDomainList() }
     }
+
+    // The following flows are used for export
     fun getAllFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
         return fishermanDao.getAllFishermenForEvent(eventId)
-            .map { list -> list.toFishermanDomainList() }
-    }
-    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFisherman>> {
-        return fishermanDao.getEventFishermenForEvent(eventId)
-            .map { list -> list.toEventFishermanDomainList() }
-    }
-    suspend fun findOrCreateFisherman(fisherman: Fisherman): InsertResult<Fisherman> {
-        val existing = fishermanDao.getFishermanByName(
-            first = fisherman.firstName,
-            last = fisherman.lastName,
-            nickname = fisherman.nickname)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
-        } else {
-            updateFisherman(fisherman)
-            InsertResult(fisherman, true)
-        }
-    }
-
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
-        return fishermanDao.getFishermenForEvent(eventId)
             .map { list -> list.toFishermanDomainList() }
     }
     fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBox>> {
         return tackleBoxDao.getAllTackleBoxesForEvent(eventId)
             .map { list -> list.toTackleBoxDomainList() }
     }
+    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFisherman>> {
+        return fishermanDao.getEventFishermenForEvent(eventId)
+            .map { list -> list.toEventFishermanDomainList() }
+    }
     fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLure>> {
         return tackleBoxDao.getTackleBoxLuresForEvent(eventId)
             .map { list -> list.toTackleBoxLureDomainList() }
+    }
+    suspend fun findOrCreateFisherman(fisherman: Fisherman): InsertResult<Fisherman> {
+        val existing = fishermanDao.getFishermanById(fisherman.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val existing = fishermanDao.getFishermanByName(
+                first = fisherman.firstName,
+                last = fisherman.lastName,
+                nickname = fisherman.nickname)
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                fishermanDao.upsertFisherman(fisherman.toEntity())
+                InsertResult(fisherman, true)
+            }
+        }
+    }
+    suspend fun findOrCreateTackleBox(tackleBox: TackleBox): InsertResult<TackleBox> {
+        val existing = tackleBoxDao.getTackleBoxById(tackleBox.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val existing = tackleBoxDao.getTackleBoxByName(
+                name = tackleBox.name,
+                fishermanId = tackleBox.fishermanId)
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                tackleBoxDao.insertTackleBox(tackleBox.toEntity())
+                InsertResult(tackleBox, true)
+            }
+        }
+    }
+
+    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
+        return fishermanDao.getFishermenForEvent(eventId)
+            .map { list -> list.toFishermanDomainList() }
     }
 
     /**

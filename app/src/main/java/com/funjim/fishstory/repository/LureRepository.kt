@@ -233,8 +233,8 @@ class LureRepository(
     suspend fun getFishermanById(id: String): Fisherman? {
         return fishermanDao.getFishermanById(id)?.toDomain()
     }
-    fun getTackleBoxById(id: String): Flow<TackleBox?> {
-        return tackleBoxDao.getTackleBoxById(id).map { entity -> entity?.toDomain() }
+    fun getTackleBox(id: String): Flow<TackleBox?> {
+        return tackleBoxDao.getTackleBox(id).map { entity -> entity?.toDomain() }
     }
     suspend fun updateTackleBox(tackleBox: TackleBox) {
         tackleBoxDao.updateTackleBox(tackleBox.toEntity())
