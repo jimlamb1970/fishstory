@@ -272,7 +272,7 @@ class TripRepository(
         crossRef: EventTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
-            eventDao.insertEventTargetSpecies(crossRef.toEntity())
+            eventDao.upsertEventTargetSpecies(crossRef.toEntity())
 
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
@@ -294,7 +294,7 @@ class TripRepository(
         }
     }
 
-    suspend fun insertTripTargetSpecies(
+    suspend fun addTargetSpeciesToTrip(
         crossRef: TripTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
@@ -305,12 +305,12 @@ class TripRepository(
                     val eventTargets = eventIds.map { eventId ->
                         EventTargetSpeciesEntity(eventId = eventId, speciesId = crossRef.speciesId)
                     }
-                    eventDao.insertTargetSpeciesForEvents(eventTargets)
+                    eventDao.upsertTargetSpeciesForEvents(eventTargets)
                 }
             }
         }
     }
-    suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String) {
+    suspend fun deleteTargetSpeciesFromTrip(tripId: String, speciesId: String) {
         database.withTransaction {
             tripDao.deleteTripTargetSpecies(tripId, speciesId)
             val eventIds = eventDao.getEventIdsForTrip(tripId)

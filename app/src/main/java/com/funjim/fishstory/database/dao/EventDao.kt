@@ -283,10 +283,9 @@ ORDER BY s.startTime DESC"""
     fun getEventTargetSpecies(eventId: String): Flow<List<SpeciesEntity>>
 
     @Upsert
-    suspend fun insertEventTargetSpecies(crossRef: EventTargetSpeciesEntity)
-
+    suspend fun upsertEventTargetSpecies(crossRef: EventTargetSpeciesEntity)
     @Upsert
-    suspend fun insertTargetSpeciesForEvents(targets: List<EventTargetSpeciesEntity>)
+    suspend fun upsertTargetSpeciesForEvents(targets: List<EventTargetSpeciesEntity>)
 
     @Query("DELETE FROM event_target_species WHERE eventId = :eventId AND speciesId = :speciesId")
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String)

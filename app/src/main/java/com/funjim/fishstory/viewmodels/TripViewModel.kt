@@ -752,7 +752,7 @@ class TripViewModel(
 
     fun addTripTargetSpecies(tripId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.insertTripTargetSpecies(
+            tripRepo.addTargetSpeciesToTrip(
                 TripTargetSpecies(tripId = tripId, speciesId = speciesId)
             )
         }
@@ -760,7 +760,7 @@ class TripViewModel(
 
     fun removeTripTargetSpecies(tripId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.deleteTripTargetSpecies(tripId = tripId, speciesId = speciesId)
+            tripRepo.deleteTargetSpeciesFromTrip(tripId = tripId, speciesId = speciesId)
         }
     }
 

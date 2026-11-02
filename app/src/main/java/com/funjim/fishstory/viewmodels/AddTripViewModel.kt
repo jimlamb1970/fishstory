@@ -323,7 +323,7 @@ class AddTripViewModel(
     fun persistTargetSpecies() {
         _tripTargetSpecies.value.forEach { species ->
             viewModelScope.launch {
-                tripRepo.insertTripTargetSpecies(
+                tripRepo.addTargetSpeciesToTrip(
                     TripTargetSpecies(
                         tripId = tripDraft.value.id,
                         speciesId = species.id

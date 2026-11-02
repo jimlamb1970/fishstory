@@ -215,6 +215,18 @@ class ImportViewModel(
             val speciesResult = fishRepo.findOrCreateSpecies(species)
             speciesMap[species.id] = speciesResult.item.id
         }
+        for (targetSpecies in exportData.eventTargetSpecies) {
+            val speciesId = speciesMap[targetSpecies.speciesId]
+            if (speciesId != null) {
+                tripRepo.insertEventTargetSpecies(
+                    EventTargetSpecies(
+                        eventId = targetSpecies.eventId,
+                        speciesId = speciesId,
+                    ),
+                    cascade = true
+                )
+            }
+        }
 
         // Map needed for Limits
         for (limit in exportData.limits) {
