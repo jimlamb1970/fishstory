@@ -37,6 +37,33 @@ interface LureDao {
     fun getLure(id: String): Flow<LureEntity?>
     @Query("SELECT * FROM lure_table WHERE id = :id")
     suspend fun getLureById(id: String): LureEntity?
+    @Query("""
+    SELECT * FROM lure_table AS l
+    WHERE l.name = :name 
+      AND l.hookCount = :hookCount 
+      AND l.glows = :glows
+      AND (
+          SELECT COALESCE(GROUP_CONCAT(colorId, ','), '') 
+          FROM (SELECT colorId FROM lure_primary_color_cross_ref WHERE lureId = l.id ORDER BY colorId)
+      ) = :sortedPrimaryColors
+      AND (
+          SELECT COALESCE(GROUP_CONCAT(colorId, ','), '') 
+          FROM (SELECT colorId FROM lure_secondary_color_cross_ref WHERE lureId = l.id ORDER BY colorId)
+      ) = :sortedSecondaryColors
+      AND (
+          SELECT COALESCE(GROUP_CONCAT(colorId, ','), '') 
+          FROM (SELECT colorId FROM lure_glow_color_cross_ref WHERE lureId = l.id ORDER BY colorId)
+      ) = :sortedGlowColors
+    LIMIT 1
+""")
+    suspend fun getLure(
+        name: String,
+        hookCount: Int,
+        glows: Boolean,
+        sortedPrimaryColors: String,
+        sortedSecondaryColors: String,
+        sortedGlowColors: String
+    ): LureEntity?
 
     @Transaction
     @Query("SELECT * FROM lure_table WHERE id = :lureId")

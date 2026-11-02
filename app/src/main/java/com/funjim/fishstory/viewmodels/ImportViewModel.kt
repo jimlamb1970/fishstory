@@ -77,7 +77,7 @@ data class FishStoryEventData(
     val bodiesOfWater: List<BodyOfWater> = emptyList(),     // Imported
     val fishermen: List<Fisherman> = emptyList(),           // Imported
     val limits: List<Limit> = emptyList(),                  // Imported
-    val lures: List<Lure> = emptyList(),
+    val lures: List<Lure> = emptyList(),                    // Imported
     val lureColors: List<LureColor> = emptyList(),          // Imported
     val notes: List<Note> = emptyList(),                    // Imported
     val species: List<Species> = emptyList(),               // Imported
@@ -94,9 +94,9 @@ data class FishStoryEventData(
     val eventLimits: List<EventLimit> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
     val limitSpecies: List<LimitSpecies> = emptyList(),
-    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
-    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
-    val lureGlowColors: List<LureGlowColor> = emptyList(),
+    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),        // Imported
+    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),    // Imported
+    val lureGlowColors: List<LureGlowColor> = emptyList(),              // Imported
     val notesEvent: List<NoteEvent> = emptyList(),
     val notesFish: List<NoteFish> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
@@ -136,6 +136,7 @@ class ImportViewModel(
         val fishermanMap = mutableMapOf<String, String>()
         val limitMap = mutableMapOf<String, String>()
         val lureColorMap = mutableMapOf<String, String>()
+        val lureMap = mutableMapOf<String, String>()
         val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
         val waterClarityMap = mutableMapOf<String, String>()
@@ -182,6 +183,25 @@ class ImportViewModel(
         for (color in exportData.lureColors) {
             val colorResult = lureRepo.findOrCreateLureColor(color)
             lureColorMap[color.id] = colorResult.item.id
+        }
+        for (lure in exportData.lures) {
+            val primaryColors: List<String> = exportData.lurePrimaryColors
+                .filter { it.lureId == lure.id }
+                .mapNotNull { primaryColor ->
+                    lureColorMap[primaryColor.colorId]
+                }
+            val secondaryColors: List<String> = exportData.lureSecondaryColors
+                .filter { it.lureId == lure.id }
+                .mapNotNull { secondaryColor ->
+                    lureColorMap[secondaryColor.colorId]
+                }
+            val glowColors: List<String> = exportData.lureGlowColors
+                .filter { it.lureId == lure.id }
+                .mapNotNull { glowColor ->
+                    lureColorMap[glowColor.colorId]
+                }
+            val lureResult = lureRepo.findOrCreateLure(lure, primaryColors, secondaryColors, glowColors)
+            lureMap[lure.id] = lureResult.item.id
         }
         // Map needed for SkyCondition
         for (condition in exportData.skyConditions) {

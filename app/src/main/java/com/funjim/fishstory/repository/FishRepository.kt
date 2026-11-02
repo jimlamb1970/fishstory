@@ -126,7 +126,7 @@ class FishRepository(
             if (existing != null) {
                 InsertResult(existing.toDomain(), false)
             } else {
-                limitDao.upsertLimit(limit.toEntity())
+                limitDao.insertLimit(limit.toEntity(), species)
                 InsertResult(limit, true)
             }
         }
@@ -447,15 +447,17 @@ class FishRepository(
     }
 
     suspend fun addLimit(limit: LimitWithSpecies) {
+        val speciesIds: List<String> = limit.species.map { it.id }
         limitDao.insertLimit(
             limit = limit.toEntity(),
-            species = limit.species.toSpeciesEntityList()
+            species = speciesIds
         )
     }
     suspend fun addLimitToEvent(eventId: String, limit: LimitWithSpecies) {
+        val speciesIds: List<String> = limit.species.map { it.id }
         limitDao.insertLimitForEvent(
             limit = limit.toEntity(),
-            species = limit.species.toSpeciesEntityList(),
+            species = speciesIds,
             eventId = eventId
         )
     }
@@ -468,9 +470,10 @@ class FishRepository(
         )
     }
     suspend fun addLimitToTrip(tripId: String, limit: LimitWithSpecies) {
+        val speciesIds: List<String> = limit.species.map { it.id }
         limitDao.insertLimitForTrip(
             limit = limit.toEntity(),
-            species = limit.species.toSpeciesEntityList(),
+            species = speciesIds,
             tripId = tripId
         )
     }

@@ -86,7 +86,51 @@ class LureRepository(
             }
         }
     }
+    suspend fun findOrCreateLure(
+        lure: Lure,
+        primaryColors: List<String>,
+        secondaryColors: List<String>,
+        glowColors: List<String>): InsertResult<Lure> {
+        val existing = lureDao.getLureById(lure.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            val sortedPrimaryColors = primaryColors.sorted().joinToString(",")
+            val sortedSecondaryColors = secondaryColors.sorted().joinToString(",")
+            val sortedGlowColors = glowColors.sorted().joinToString(",")
 
+            val existing = lureDao.getLure(
+                lure.name,
+                lure.hookCount,
+                lure.glows,
+                sortedPrimaryColors,
+                sortedSecondaryColors,
+                sortedGlowColors
+                )
+            if (existing != null) {
+                InsertResult(existing.toDomain(), false)
+            } else {
+                lureDao.upsertLure(lure.toEntity())
+                deleteLureColors(lure.id)
+                primaryColors.forEach { primaryColor ->
+                    upsertLurePrimaryColor(
+                        LurePrimaryColor(lure.id, primaryColor)
+                    )
+                }
+                secondaryColors.forEach { secondaryColor ->
+                    upsertLureSecondaryColor(
+                        LureSecondaryColor(lure.id, secondaryColor)
+                    )
+                }
+                glowColors.forEach { glowColor ->
+                    upsertLureGlowColor(
+                        LureGlowColor(lure.id, glowColor)
+                    )
+                }
+                InsertResult(lure, true)
+            }
+        }
+    }
 
     fun getLureSummariesWithColors(): Flow<List<LureWithColorsSummary>> {
         return lureDao.getLureSummariesWithColors()

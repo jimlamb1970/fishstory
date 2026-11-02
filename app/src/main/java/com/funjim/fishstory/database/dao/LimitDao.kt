@@ -95,7 +95,7 @@ interface LimitDao {
     @Transaction
     suspend fun insertLimit(
         limit: LimitEntity,
-        species: List<SpeciesEntity>
+        species: List<String>
     ) {
         upsertLimit(limit)
         deleteLimitSpeciesXRefsForLimit(limit.id)
@@ -103,7 +103,7 @@ interface LimitDao {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
                     limitId = limit.id,
-                    speciesId = species.id
+                    speciesId = species
                 )
             }
             insertLimitSpeciesXRefs(speciesXRefs)
@@ -113,7 +113,7 @@ interface LimitDao {
     @Transaction
     suspend fun insertLimitForEvent(
         limit: LimitEntity,
-        species: List<SpeciesEntity>,
+        species: List<String>,
         eventId: String
     ) {
         upsertLimit(limit)
@@ -122,7 +122,7 @@ interface LimitDao {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
                     limitId = limit.id,
-                    speciesId = species.id
+                    speciesId = species
                 )
             }
             insertLimitSpeciesXRefs(speciesXRefs)
@@ -138,7 +138,7 @@ interface LimitDao {
     @Transaction
     suspend fun insertLimitForTrip(
         limit: LimitEntity,
-        species: List<SpeciesEntity>,
+        species: List<String>,
         tripId: String
     ) {
         upsertLimit(limit)
@@ -147,7 +147,7 @@ interface LimitDao {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
                     limitId = limit.id,
-                    speciesId = species.id
+                    speciesId = species
                 )
             }
             insertLimitSpeciesXRefs(speciesXRefs)
