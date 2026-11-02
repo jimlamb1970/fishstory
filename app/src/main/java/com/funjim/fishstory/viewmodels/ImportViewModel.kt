@@ -92,7 +92,7 @@ data class FishStoryEventData(
     val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),   // Imported
     val eventFishermen: List<EventFisherman> = emptyList(),         // Imported
     val eventLimits: List<EventLimit> = emptyList(),                // Imported
-    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
+    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(), // Imported
     val limitSpecies: List<LimitSpecies> = emptyList(),             // Imported
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),    // Imported
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),// Imported
@@ -272,6 +272,17 @@ class ImportViewModel(
             val lureResult = lureRepo.findOrCreateLure(lure, primaryColors, secondaryColors, glowColors)
             lureMap[lure.id] = lureResult.item.id
         }
+        for (tackleBoxLure in exportData.tackleBoxLures) {
+            val lureId = lureMap[tackleBoxLure.lureId]
+            val tackleBoxId = tackleBoxMap[tackleBoxLure.tackleBoxId]
+            if (lureId != null && tackleBoxId != null) {
+                lureRepo.addLureToTackleBox(
+                    tackleBoxId = tackleBoxId,
+                    lureId = lureId
+                )
+            }
+        }
+
         // Map needed for SkyCondition
         for (condition in exportData.skyConditions) {
             val conditionResult = envRepo.findOrCreateSkyCondition(condition)

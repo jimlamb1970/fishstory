@@ -82,11 +82,10 @@ interface TackleBoxDao {
         return newTackleBox.id
     }
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertLureToTackleBox(crossRef: TackleBoxLureEntity)
-
     @Delete
-    suspend fun removeLureFromTackleBox(crossRef: TackleBoxLureEntity)
+    suspend fun deleteTackleBoxLure(crossRef: TackleBoxLureEntity)
+    @Upsert
+    suspend fun upsertTackleBoxLure(crossRef: TackleBoxLureEntity)
 
     @Transaction
     @Query("""

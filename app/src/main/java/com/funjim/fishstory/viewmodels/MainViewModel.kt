@@ -263,7 +263,7 @@ class MainViewModel(
                     data.lurePrimaryColors.forEach { lureDao.upsertLurePrimaryColor(it) }
                     data.lureSecondaryColors.forEach { lureDao.upsertLureSecondaryColor(it) }
                     data.lureGlowColors.forEach { lureDao.upsertLureGlowColor(it) }
-                    data.tackleBoxLures.forEach { tackleBoxDao.insertLureToTackleBox(it) }
+                    data.tackleBoxLures.forEach { tackleBoxDao.upsertTackleBoxLure(it) }
                     data.species.forEach { fishDao.insertSpecies(it) }
                     data.eventTargetSpecies.forEach { eventDao.upsertEventTargetSpecies(it) }
                     data.tripTargetSpecies.forEach { tripDao.upsertTripTargetSpecies(it) }

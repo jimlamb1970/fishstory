@@ -170,11 +170,18 @@ class LureRepository(
     }
 
     suspend fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
-        tackleBoxDao.insertLureToTackleBox(TackleBoxLureEntity(tackleBoxId, lureId))
+        tackleBoxDao.upsertTackleBoxLure(
+            TackleBoxLureEntity(
+                tackleBoxId = tackleBoxId,
+                lureId =lureId)
+        )
     }
-
     suspend fun removeLureFromTackleBox(tackleBoxId: String, lureId: String) {
-        tackleBoxDao.removeLureFromTackleBox(TackleBoxLureEntity(tackleBoxId, lureId))
+        tackleBoxDao.deleteTackleBoxLure(
+            TackleBoxLureEntity(
+                tackleBoxId = tackleBoxId,
+                lureId =lureId)
+        )
     }
 
     // Lure Operations
