@@ -97,7 +97,7 @@ data class FishStoryEventData(
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),    // Imported
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),// Imported
     val lureGlowColors: List<LureGlowColor> = emptyList(),          // Imported
-    val notesEvent: List<NoteEvent> = emptyList(),
+    val notesEvent: List<NoteEvent> = emptyList(),                  // Imported
     val notesFish: List<NoteFish> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
 )
@@ -181,11 +181,16 @@ class ImportViewModel(
         for (note in exportData.notes) {
             val noteResult = tripRepo.findOrCreateNote(note)
         }
+        for (eventNote in exportData.notesEvent) {
+            tripRepo.insertEventNote(eventNote)
+        }
+
         // Map needed for Species
         for (species in exportData.species) {
             val speciesResult = fishRepo.findOrCreateSpecies(species)
             speciesMap[species.id] = speciesResult.item.id
         }
+
         // Map needed for Limits
         for (limit in exportData.limits) {
             val species: List<String> = exportData.limitSpecies
@@ -196,6 +201,16 @@ class ImportViewModel(
             val limitResult = fishRepo.findOrCreateLimit(limit, species)
             limitMap[limit.id] = limitResult.item.id
         }
+        for (eventLimit in exportData.eventLimits) {
+            val limitId = limitMap[eventLimit.limitId]
+            if (limitId != null) {
+                fishRepo.addLimitToEvent(
+                    eventId = eventLimit.eventId,
+                    limitId = limitId
+                )
+            }
+        }
+
         // Map needed for LureColors
         for (color in exportData.lureColors) {
             val colorResult = lureRepo.findOrCreateLureColor(color)

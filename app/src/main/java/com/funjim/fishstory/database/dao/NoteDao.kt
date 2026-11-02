@@ -27,10 +27,16 @@ interface NoteDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTripNote(crossRef: NoteTripEntity)
+    @Upsert
+    suspend fun upsertTripNote(crossRef: NoteTripEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEventNote(crossRef: NoteEventEntity)
+    @Upsert
+    suspend fun upsertEventNote(crossRef: NoteEventEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertFishNote(crossRef: NoteFishEntity)
+    @Upsert
+    suspend fun upsertFishNote(crossRef: NoteFishEntity)
 
     @Query("UPDATE note_table SET content = :content WHERE id = :noteId")
     suspend fun updateNoteContent(noteId: String, content: String)

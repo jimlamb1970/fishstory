@@ -323,8 +323,14 @@ class TripRepository(
     suspend fun addNoteToEvent(eventId: String, content: String) {
         noteDao.addNoteToEvent(eventId, content)
     }
+    suspend fun insertEventNote(eventNote: NoteEvent) {
+        noteDao.upsertEventNote(eventNote.toEntity())
+    }
     suspend fun addNoteToFish(fishId: String, content: String) {
         noteDao.addNoteToFish(fishId, content)
+    }
+    suspend fun insertFishNote(fishNote: NoteFish) {
+        noteDao.upsertFishNote(fishNote.toEntity())
     }
     suspend fun deleteNote(noteId: String) {
         noteDao.deleteNoteById(noteId)
