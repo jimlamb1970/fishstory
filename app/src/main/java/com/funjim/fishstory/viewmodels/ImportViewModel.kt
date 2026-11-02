@@ -71,33 +71,33 @@ enum class TripResolution { CREATE_NEW, LINK_EXISTING, SKIP }
 data class FishStoryEventData(
     val fileType: String = "FishStoryEventData",
     val schemaVersion: Int = 1,
-    val trip: Trip,                                         // Imported
-    val event: Event,                                       // Imported
-    val baits: List<Bait> = emptyList(),                    // Imported
-    val bodiesOfWater: List<BodyOfWater> = emptyList(),     // Imported
-    val fishermen: List<Fisherman> = emptyList(),           // Imported
-    val limits: List<Limit> = emptyList(),                  // Imported
-    val lures: List<Lure> = emptyList(),                    // Imported
-    val lureColors: List<LureColor> = emptyList(),          // Imported
-    val notes: List<Note> = emptyList(),                    // Imported
-    val species: List<Species> = emptyList(),               // Imported
-    val skyConditions: List<SkyCondition> = emptyList(),    // Imported
-    val tackleBoxes: List<TackleBox> = emptyList(),         // Imported
-    val waterClarities: List<WaterClarity> = emptyList(),   // Imported
-    val waterConditions: List<Water> = emptyList(),         // Imported
-    val weatherConditions: List<Weather> = emptyList(),     // Imported
+    val trip: Trip,
+    val event: Event,
+    val baits: List<Bait> = emptyList(),
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),
+    val fishermen: List<Fisherman> = emptyList(),
+    val limits: List<Limit> = emptyList(),
+    val lures: List<Lure> = emptyList(),
+    val lureColors: List<LureColor> = emptyList(),
+    val notes: List<Note> = emptyList(),
+    val species: List<Species> = emptyList(),
+    val skyConditions: List<SkyCondition> = emptyList(),
+    val tackleBoxes: List<TackleBox> = emptyList(),
+    val waterClarities: List<WaterClarity> = emptyList(),
+    val waterConditions: List<Water> = emptyList(),
+    val weatherConditions: List<Weather> = emptyList(),
     val fish: List<Fish> = emptyList(),
 
-    val eventBaits: List<EventBait> = emptyList(),                  // Imported
-    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),   // Imported
-    val eventFishermen: List<EventFisherman> = emptyList(),         // Imported
-    val eventLimits: List<EventLimit> = emptyList(),                // Imported
-    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(), // Imported
-    val limitSpecies: List<LimitSpecies> = emptyList(),             // Imported
-    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),    // Imported
-    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),// Imported
-    val lureGlowColors: List<LureGlowColor> = emptyList(),          // Imported
-    val notesEvent: List<NoteEvent> = emptyList(),                  // Imported
+    val eventBaits: List<EventBait> = emptyList(),
+    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),
+    val eventFishermen: List<EventFisherman> = emptyList(),
+    val eventLimits: List<EventLimit> = emptyList(),
+    val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
+    val limitSpecies: List<LimitSpecies> = emptyList(),
+    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
+    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
+    val lureGlowColors: List<LureGlowColor> = emptyList(),
+    val notesEvent: List<NoteEvent> = emptyList(),
     val notesFish: List<NoteFish> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
 )
@@ -149,6 +149,8 @@ class ImportViewModel(
         // Map not needed for Event
         val eventResult = tripRepo.findOrCreateEvent(exportData.event)
 
+        // TODO - add logic to validate matching IDs
+        // TODO - add logic to validate mapping IDs
         // Map needed for Bait.
         // Import and keep track of new/existing id
         // When adding cross reference, use the mapped id
@@ -200,14 +202,6 @@ class ImportViewModel(
                     tackleBoxId = tackleBoxId
                 )
             }
-        }
-
-        // Map not needed for Note
-        for (note in exportData.notes) {
-            tripRepo.findOrCreateNote(note)
-        }
-        for (eventNote in exportData.notesEvent) {
-            tripRepo.insertEventNote(eventNote)
         }
 
         // Map needed for Species
@@ -304,6 +298,39 @@ class ImportViewModel(
             val newWeather = weather.copy(skyConditionId = skyCondition)
             val weatherResult = envRepo.findOrCreateWeatherCondition(newWeather)
             weatherMap[weather.id] = weatherResult.item.id
+        }
+
+        for (fish in exportData.fish) {
+            val baitId = baitMap[fish.baitId]
+            val bodyOfWaterId = bodyOfWaterMap[fish.bodyOfWaterId]
+            val fishermanId = fishermanMap[fish.fishermanId]
+            val lureId = lureMap[fish.lureId]
+            val speciesId = speciesMap[fish.speciesId]
+            val waterId = waterMap[fish.waterId]
+            val weatherId = weatherMap[fish.weatherId]
+            if ((fishermanId != null) && (speciesId != null)) {
+                val newFish = fish.copy(
+                    baitId = baitId,
+                    bodyOfWaterId = bodyOfWaterId,
+                    fishermanId = fishermanId,
+                    lureId = lureId,
+                    speciesId = speciesId,
+                    waterId = waterId,
+                    weatherId = weatherId
+                )
+                fishRepo.upsertFish(newFish)
+            }
+        }
+
+        // Map not needed for Note
+        for (note in exportData.notes) {
+            tripRepo.findOrCreateNote(note)
+        }
+        for (eventNote in exportData.notesEvent) {
+            tripRepo.insertEventNote(eventNote)
+        }
+        for (fishNote in exportData.notesFish) {
+            tripRepo.insertFishNote(fishNote)
         }
     }
 
