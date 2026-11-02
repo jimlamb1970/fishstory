@@ -84,19 +84,19 @@ data class FishStoryEventData(
     val skyConditions: List<SkyCondition> = emptyList(),    // Imported
     val tackleBoxes: List<TackleBox> = emptyList(),
     val waterClarities: List<WaterClarity> = emptyList(),   // Imported
-    val waterConditions: List<Water> = emptyList(),
-    val weatherConditions: List<Weather> = emptyList(),
+    val waterConditions: List<Water> = emptyList(),         // Imported
+    val weatherConditions: List<Weather> = emptyList(),     // Imported
     val fish: List<Fish> = emptyList(),
 
-    val eventBaits: List<EventBait> = emptyList(),
-    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),
+    val eventBaits: List<EventBait> = emptyList(),                  // Imported
+    val eventBodiesOfWater: List<EventBodyOfWater> = emptyList(),   // Imported
     val eventFishermen: List<EventFisherman> = emptyList(),
     val eventLimits: List<EventLimit> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
-    val limitSpecies: List<LimitSpecies> = emptyList(),                 // Imported
-    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),        // Imported
-    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),    // Imported
-    val lureGlowColors: List<LureGlowColor> = emptyList(),              // Imported
+    val limitSpecies: List<LimitSpecies> = emptyList(),             // Imported
+    val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),    // Imported
+    val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),// Imported
+    val lureGlowColors: List<LureGlowColor> = emptyList(),          // Imported
     val notesEvent: List<NoteEvent> = emptyList(),
     val notesFish: List<NoteFish> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
@@ -152,11 +152,26 @@ class ImportViewModel(
             val baitResult = lureRepo.findOrCreateBait(bait)
             baitMap[bait.id] = baitResult.item.id
         }
+        for (eventBait in exportData.eventBaits) {
+            val bait = baitMap[eventBait.baitId]
+            if (bait != null) {
+                lureRepo.addBaitToEvent(bait, eventBait.eventId)
+            }
+        }
+
         // Map needed for Body of Water
         for (bodyOfWater in exportData.bodiesOfWater) {
             val bodyOfWaterResult = envRepo.findOrCreateBodyOfWater(bodyOfWater)
             bodyOfWaterMap[bodyOfWater.id] = bodyOfWaterResult.item.id
         }
+        for (eventBodyOfWater in exportData.eventBodiesOfWater) {
+            val bodyOfWater = bodyOfWaterMap[eventBodyOfWater.bodyOfWaterId]
+            if (bodyOfWater != null) {
+                val newBodyOfWater = eventBodyOfWater.copy(bodyOfWaterId = bodyOfWater)
+                envRepo.insertBodyOfWaterForEvent(newBodyOfWater, true)
+            }
+        }
+
         // Map needed for Fisherman
         for (fisherman in exportData.fishermen) {
             val fishermanResult = fishermanRepo.findOrCreateFisherman(fisherman)

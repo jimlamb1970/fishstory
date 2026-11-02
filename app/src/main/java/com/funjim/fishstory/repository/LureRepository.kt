@@ -5,6 +5,7 @@ import com.funjim.fishstory.database.dao.BaitDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
+import com.funjim.fishstory.database.entity.EventBaitEntity
 import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import com.funjim.fishstory.database.mapper.toBaitDomainList
 import com.funjim.fishstory.database.mapper.toDomain
@@ -203,6 +204,14 @@ class LureRepository(
     suspend fun updateBait(bait: Bait) {
         baitDao.upsertBait(bait.toEntity())
     }
+
+    suspend fun addBaitToEvent(baitId: String, eventId: String) {
+        baitDao.insertBaitForEvent(EventBaitEntity(eventId, baitId))
+    }
+    suspend fun removeBaitFromEvent(baitId: String, eventId: String) {
+        baitDao.deleteBaitForEvent(eventId, baitId)
+    }
+
     fun getAllBaitsForEvent(eventId: String): Flow<List<Bait>> {
         return baitDao.getAllBaitsForEvent(eventId).map { list -> list.toBaitDomainList() }
     }
