@@ -154,6 +154,24 @@ class EnvironmentRepository(
             }
         }
     }
+    suspend fun findOrCreateWaterCondition(water: Water): InsertResult<Water> {
+        val existing = waterDao.getWaterById(water.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            waterDao.insertWater(water.toEntity())
+            InsertResult(water, true)
+        }
+    }
+    suspend fun findOrCreateWeatherCondition(weather: Weather): InsertResult<Weather> {
+        val existing = weatherDao.getWeatherById(weather.id)
+        return if (existing != null) {
+            InsertResult(existing.toDomain(), false)
+        } else {
+            weatherDao.insertWeather(weather.toEntity())
+            InsertResult(weather, true)
+        }
+    }
 
     suspend fun addWater(water: Water) {
         waterDao.insertWater(water.toEntity())

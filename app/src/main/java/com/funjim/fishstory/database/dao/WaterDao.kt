@@ -62,4 +62,6 @@ interface WaterDao {
 
     @Query("SELECT * FROM water_table WHERE id = :id")
     fun getWater(id: String): Flow<WaterEntity?>
+    @Query("SELECT * FROM water_table WHERE id = :id")
+    suspend fun getWaterById(id: String): WaterEntity?
 }

@@ -62,4 +62,6 @@ interface WeatherDao {
 
     @Query("SELECT * FROM weather_table WHERE id = :id")
     fun getWeather(id: String): Flow<WeatherEntity?>
+    @Query("SELECT * FROM weather_table WHERE id = :id")
+    suspend fun getWeatherById(id: String): WeatherEntity?
 }

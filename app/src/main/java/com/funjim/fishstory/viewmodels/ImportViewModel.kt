@@ -93,7 +93,7 @@ data class FishStoryEventData(
     val eventFishermen: List<EventFisherman> = emptyList(),
     val eventLimits: List<EventLimit> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
-    val limitSpecies: List<LimitSpecies> = emptyList(),
+    val limitSpecies: List<LimitSpecies> = emptyList(),                 // Imported
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),        // Imported
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),    // Imported
     val lureGlowColors: List<LureGlowColor> = emptyList(),              // Imported
@@ -140,6 +140,8 @@ class ImportViewModel(
         val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
         val waterClarityMap = mutableMapOf<String, String>()
+        val waterMap = mutableMapOf<String, String>()
+        val weatherMap = mutableMapOf<String, String>()
 
         // Map not needed for Trip
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
@@ -212,6 +214,18 @@ class ImportViewModel(
         for (clarity in exportData.waterClarities) {
             val clarityResult = envRepo.findOrCreateWaterClarity(clarity)
             waterClarityMap[clarity.id] = clarityResult.item.id
+        }
+        for (water in exportData.waterConditions) {
+            val clarity = waterClarityMap[water.clarityId]
+            val newWater = water.copy(clarityId = clarity)
+            val waterResult = envRepo.findOrCreateWaterCondition(water)
+            waterMap[water.id] = waterResult.item.id
+        }
+        for (weather in exportData.weatherConditions) {
+            val skyCondition = skyConditionMap[weather.skyConditionId]
+            val newWeather = weather.copy(skyConditionId = skyCondition)
+            val weatherResult = envRepo.findOrCreateWeatherCondition(newWeather)
+            weatherMap[weather.id] = weatherResult.item.id
         }
     }
 
