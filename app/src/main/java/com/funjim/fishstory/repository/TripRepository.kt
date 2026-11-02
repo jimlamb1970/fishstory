@@ -268,7 +268,7 @@ class TripRepository(
             speciesList.toSpeciesDomainList()
         }
     }
-    suspend fun insertEventTargetSpecies(
+    suspend fun addTargetSpeciesToEvent(
         crossRef: EventTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {

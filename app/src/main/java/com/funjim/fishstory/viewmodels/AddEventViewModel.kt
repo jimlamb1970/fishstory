@@ -169,7 +169,7 @@ class AddEventViewModel(
 
         _eventTargetSpecies.value.forEach { species ->
             viewModelScope.launch {
-                tripRepo.insertEventTargetSpecies(
+                tripRepo.addTargetSpeciesToEvent(
                     EventTargetSpecies(
                         eventId = eventId,
                         speciesId = species.id

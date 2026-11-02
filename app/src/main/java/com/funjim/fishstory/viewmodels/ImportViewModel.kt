@@ -218,7 +218,7 @@ class ImportViewModel(
         for (targetSpecies in exportData.eventTargetSpecies) {
             val speciesId = speciesMap[targetSpecies.speciesId]
             if (speciesId != null) {
-                tripRepo.insertEventTargetSpecies(
+                tripRepo.addTargetSpeciesToEvent(
                     EventTargetSpecies(
                         eventId = targetSpecies.eventId,
                         speciesId = speciesId,

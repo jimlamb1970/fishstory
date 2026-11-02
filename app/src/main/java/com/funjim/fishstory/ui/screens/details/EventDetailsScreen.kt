@@ -1687,7 +1687,7 @@ Selecting them places those species at the top of the list when logging catches 
                     items = allSpecies,
                     selectedItems = eventDetails.targetSpecies,
                     onSelected = { selectedSpecies ->
-                        viewModel.addEventTargetSpecies(eventId, selectedSpecies.id)
+                        viewModel.addTargetSpeciesToEvent(eventId, selectedSpecies.id)
                     },
                     onUnselected = { selectedSpecies ->
                         speciesToDelete = selectedSpecies
@@ -1802,7 +1802,7 @@ Selecting them places those species at the top of the list when logging catches 
         AddSpeciesDialog(
             onDismiss = { showAddSpeciesDialog = false },
             onConfirm = { name ->
-                viewModel.addEventTargetSpecies(eventId, Species(name = name))
+                viewModel.addTargetSpeciesToEvent(eventId, Species(name = name))
                 showAddSpeciesDialog = false
             }
         )

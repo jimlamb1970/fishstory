@@ -425,16 +425,16 @@ class EventViewModel(
             }
         }
     }
-    fun addEventTargetSpecies(eventId: String, speciesId: String) {
+    fun addTargetSpeciesToEvent(eventId: String, speciesId: String) {
         viewModelScope.launch {
-            tripRepo.insertEventTargetSpecies(
+            tripRepo.addTargetSpeciesToEvent(
                 EventTargetSpecies(eventId = eventId, speciesId = speciesId)
             )
         }
     }
-    fun addEventTargetSpecies(eventId: String, species: Species) {
+    fun addTargetSpeciesToEvent(eventId: String, species: Species) {
         addSpecies(species) { addedSpecies ->
-            addEventTargetSpecies(eventId, addedSpecies.id)
+            addTargetSpeciesToEvent(eventId, addedSpecies.id)
         }
     }
 
