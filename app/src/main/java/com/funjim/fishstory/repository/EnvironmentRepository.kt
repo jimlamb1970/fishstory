@@ -141,50 +141,114 @@ class EnvironmentRepository(
             }
         }
     }
-    suspend fun findOrCreateSkyCondition(skyCondition: SkyCondition): InsertResult<SkyCondition> {
-        val existing = weatherDao.getSkyConditionById(skyCondition.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateSkyCondition(item: SkyCondition): InsertResult<SkyCondition> {
+        // Check for existing ID and equality
+        val existingId = weatherDao.getSkyConditionById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            val existing = weatherDao.getSkyConditionByName(skyCondition.name)
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Check for existing data and equality
+            val existingData = weatherDao.getSkyConditionByName(item.name)
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                weatherDao.insertSkyCondition(skyCondition.toEntity())
-                InsertResult(skyCondition, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    weatherDao.insertSkyCondition(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    weatherDao.insertSkyCondition(item.toEntity())
+                    InsertResult(item, true)
+                }
             }
         }
     }
-    suspend fun findOrCreateWaterClarity(waterClarity: WaterClarity): InsertResult<WaterClarity> {
-        val existing = waterDao.getWaterClarityById(waterClarity.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateWaterClarity(item: WaterClarity): InsertResult<WaterClarity> {
+        // Check for existing ID and equality
+        val existingId = waterDao.getWaterClarityById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            val existing = waterDao.getWaterClarityByName(waterClarity.name)
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Check for existing data and equality
+            val existingData = waterDao.getWaterClarityByName(item.name)
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                waterDao.insertWaterClarity(waterClarity.toEntity())
-                InsertResult(waterClarity, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    waterDao.insertWaterClarity(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    waterDao.insertWaterClarity(item.toEntity())
+                    InsertResult(item, true)
+                }
             }
         }
     }
-    suspend fun findOrCreateWaterCondition(water: Water): InsertResult<Water> {
-        val existing = waterDao.getWaterById(water.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateWaterCondition(item: Water): InsertResult<Water> {
+        // Check for existing ID and equality
+        val existingId = waterDao.getWaterById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            waterDao.insertWater(water.toEntity())
-            InsertResult(water, true)
+            // Check for existing data and equality
+            val existingData = waterDao.getWaterByData(
+                tripId = item.tripId,
+                eventId = item.eventId,
+                depth = item.depth,
+                temperature = item.temperature,
+                clarityId = item.clarityId,
+                timestamp = item.timestamp
+            )
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    waterDao.insertWater(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    waterDao.insertWater(item.toEntity())
+                    InsertResult(item, true)
+                }
+            }
         }
     }
-    suspend fun findOrCreateWeatherCondition(weather: Weather): InsertResult<Weather> {
-        val existing = weatherDao.getWeatherById(weather.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateWeatherCondition(item: Weather): InsertResult<Weather> {
+        // Check for existing ID and equality
+        val existingId = weatherDao.getWeatherById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            weatherDao.insertWeather(weather.toEntity())
-            InsertResult(weather, true)
+            // Check for existing data and equality
+            val existingData = weatherDao.getWeatherByData(
+                tripId = item.tripId,
+                eventId = item.eventId,
+                temperature = item.temperature,
+                skyConditionId = item.skyConditionId,
+                windDirection = item.windDirection,
+                windSpeed = item.windSpeed,
+                atmosphericPressure = item.atmosphericPressure,
+                airVisibility = item.airVisibility,
+                airHumidity = item.airHumidity,
+                timestamp = item.timestamp,
+            )
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    weatherDao.insertWeather(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    weatherDao.insertWeather(item.toEntity())
+                    InsertResult(item, true)
+                }
+            }
         }
     }
 

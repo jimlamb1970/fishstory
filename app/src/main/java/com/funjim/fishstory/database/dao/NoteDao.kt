@@ -7,10 +7,12 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.FishermanEntity
+import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.NoteEntity
 import com.funjim.fishstory.database.entity.NoteEventEntity
 import com.funjim.fishstory.database.entity.NoteFishEntity
 import com.funjim.fishstory.database.entity.NoteTripEntity
+import com.funjim.fishstory.model.LimitType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,9 +23,8 @@ interface NoteDao {
     suspend fun insertNote(note: NoteEntity)
     @Upsert
     suspend fun upsertNote(note: NoteEntity)
-
-    @Query("SELECT * FROM note_table WHERE id = :id")
-    suspend fun getNoteById(id: String): NoteEntity?
+    @Query("UPDATE note_table SET content = :content WHERE id = :noteId")
+    suspend fun updateNoteContent(noteId: String, content: String)
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTripNote(crossRef: NoteTripEntity)
@@ -37,9 +38,6 @@ interface NoteDao {
     suspend fun insertFishNote(crossRef: NoteFishEntity)
     @Upsert
     suspend fun upsertFishNote(crossRef: NoteFishEntity)
-
-    @Query("UPDATE note_table SET content = :content WHERE id = :noteId")
-    suspend fun updateNoteContent(noteId: String, content: String)
 
     @Transaction
     suspend fun addNoteToTrip(tripId: String, noteText: String) {
@@ -60,6 +58,18 @@ interface NoteDao {
         insertFishNote(NoteFishEntity(fishId = fishId, noteId = note.id))
     }
 
+    @Query("SELECT * FROM note_table WHERE id = :id")
+    suspend fun getNoteById(id: String): NoteEntity?
+    @Query("""
+        SELECT * FROM note_table AS n
+        WHERE n.content = :content AND n.timestamp = :timestamp
+        LIMIT 1
+    """)
+    suspend fun getNoteByData(
+        content: String,
+        timestamp: Long
+    ): NoteEntity?
+
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n
@@ -73,9 +83,7 @@ interface NoteDao {
         SELECT note_table.* FROM note_table
         INNER JOIN note_event_cross_ref ON note_table.id = note_event_cross_ref.noteId
         WHERE note_event_cross_ref.eventId = :eventId
-        
         UNION
-        
         SELECT note_table.* FROM note_table 
         INNER JOIN note_fish_cross_ref ON note_table.id = note_fish_cross_ref.noteId
         INNER JOIN fish_table ON note_fish_cross_ref.fishId = fish_table.id  

@@ -11,6 +11,7 @@ import com.funjim.fishstory.database.entity.SkyConditionEntity
 import com.funjim.fishstory.database.entity.WaterClarityEntity
 import com.funjim.fishstory.database.entity.WeatherEntity
 import com.funjim.fishstory.model.SkyCondition
+import com.funjim.fishstory.model.WindDirection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -64,4 +65,30 @@ interface WeatherDao {
     fun getWeather(id: String): Flow<WeatherEntity?>
     @Query("SELECT * FROM weather_table WHERE id = :id")
     suspend fun getWeatherById(id: String): WeatherEntity?
+    @Query("""
+        SELECT weather_table.* FROM weather_table 
+        WHERE weather_table.tripId = :tripId 
+          AND weather_table.eventId = :eventId
+          AND weather_table.temperature = :temperature
+          AND weather_table.skyConditionId = :skyConditionId
+          AND weather_table.windDirection = :windDirection
+          AND weather_table.windSpeed = :windSpeed
+          AND weather_table.atmosphericPressure = :atmosphericPressure
+          AND weather_table.airVisibility = :airVisibility
+          AND weather_table.airHumidity = :airHumidity
+          AND weather_table.timestamp = :timestamp
+        LIMIT 1
+    """)
+    suspend fun getWeatherByData(
+        tripId: String,
+        eventId: String,
+        temperature: Long? = null,
+        skyConditionId: String? = null,
+        windDirection: WindDirection? = null,
+        windSpeed: Long? = null,
+        atmosphericPressure: Long? = null,
+        airVisibility: Long? = null,
+        airHumidity: Long? = null,
+        timestamp: Long = System.currentTimeMillis()
+    ): WeatherEntity?
 }

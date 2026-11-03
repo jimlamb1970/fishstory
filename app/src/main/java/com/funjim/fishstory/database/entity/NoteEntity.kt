@@ -14,7 +14,21 @@ data class NoteEntity(
     val id: String = UUID.randomUUID().toString(), // GUID string primary key
     val content: String,
     val timestamp: Long = System.currentTimeMillis()
-)
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is NoteEntity) return false
+        return content == other.content &&
+                timestamp == other.timestamp
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + content.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        return result
+    }
+}
 
 @Serializable
 @Entity(

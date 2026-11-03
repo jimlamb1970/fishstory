@@ -40,6 +40,8 @@ import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripWithInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
+import kotlin.concurrent.timer
 
 data class AddFishermanResult(
     val addedToTrip: Boolean,
@@ -353,13 +355,30 @@ class TripRepository(
         return noteDao.getFishNotesForEvent(eventId)
             .map { list -> list.toFishNoteDomainList() }
     }
-    suspend fun findOrCreateNote(note: Note): InsertResult<Note> {
-        val existing = noteDao.getNoteById(note.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateNote(item: Note): InsertResult<Note> {
+        // Check for existing ID and equality
+        val existingId = noteDao.getNoteById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            noteDao.upsertNote(note.toEntity())
-            InsertResult(note, true)
+            // Check for existing data and equality
+            val existingData = noteDao.getNoteByData(
+                content = item.content,
+                timestamp = item.timestamp
+            )
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    noteDao.upsertNote(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    noteDao.upsertNote(item.toEntity())
+                    InsertResult(item, true)
+                }
+            }
         }
     }
 }

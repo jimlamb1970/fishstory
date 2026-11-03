@@ -137,6 +137,7 @@ class ImportViewModel(
         val limitMap = mutableMapOf<String, String>()
         val lureColorMap = mutableMapOf<String, String>()
         val lureMap = mutableMapOf<String, String>()
+        val noteMap = mutableMapOf<String, String>()
         val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
         val tackleBoxMap = mutableMapOf<String, String>()
@@ -303,7 +304,7 @@ class ImportViewModel(
         for (water in exportData.waterConditions) {
             val clarity = waterClarityMap[water.clarityId]
             val newWater = water.copy(clarityId = clarity)
-            val waterResult = envRepo.findOrCreateWaterCondition(water)
+            val waterResult = envRepo.findOrCreateWaterCondition(newWater)
             waterMap[water.id] = waterResult.item.id
         }
         for (weather in exportData.weatherConditions) {
@@ -335,15 +336,19 @@ class ImportViewModel(
             }
         }
 
-        // Map not needed for Note
         for (note in exportData.notes) {
-            tripRepo.findOrCreateNote(note)
+            val noteResult = tripRepo.findOrCreateNote(note)
+            noteMap[note.id] = noteResult.item.id
         }
         for (eventNote in exportData.notesEvent) {
-            tripRepo.insertEventNote(eventNote)
+            val noteId = noteMap[eventNote.noteId] ?: continue
+            val newEventNote = eventNote.copy(noteId = noteId)
+            tripRepo.insertEventNote(newEventNote)
         }
         for (fishNote in exportData.notesFish) {
-            tripRepo.insertFishNote(fishNote)
+            val noteId = noteMap[fishNote.noteId] ?: continue
+            val newFishNote = fishNote.copy(noteId = noteId)
+            tripRepo.insertFishNote(newFishNote)
         }
     }
 

@@ -12,7 +12,28 @@ data class Water(
     val temperature: Long? = null,
     val clarityId: String? = null,
     val timestamp: Long = System.currentTimeMillis()
-    )
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Water) return false
+        return tripId == other.tripId &&
+                eventId == other.eventId &&
+                depth == other.depth &&
+                temperature == other.temperature &&
+                clarityId == other.clarityId &&
+                timestamp == other.timestamp
+    }
+
+    override fun hashCode(): Int {
+        var result = tripId.hashCode()
+        result = 31 * result + eventId.hashCode()
+        result = 31 * result + (depth?.hashCode() ?: 0)
+        result = 31 * result + (temperature?.hashCode() ?: 0)
+        result = 31 * result + (clarityId?.hashCode() ?: 0)
+        result = 31 * result + timestamp.hashCode()
+        return result
+    }
+}
 
 data class WaterWithDetails(
     val water: Water,
