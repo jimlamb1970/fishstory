@@ -7,7 +7,21 @@ import java.util.UUID
 data class Species(
     val id: String = UUID.randomUUID().toString(),
     val name: String
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+
+        if (other !is Species) return false
+
+        return this.name == other.name
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        return result
+    }
+}
 
 @Serializable
 data class EventTargetSpecies(

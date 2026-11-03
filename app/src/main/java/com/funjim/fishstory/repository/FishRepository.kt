@@ -20,7 +20,6 @@ import com.funjim.fishstory.database.mapper.toBodyOfWaterSummaryDomainList
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toEntity
-import com.funjim.fishstory.database.mapper.toSpeciesEntityList
 import com.funjim.fishstory.database.mapper.toEventDomainList
 import com.funjim.fishstory.database.mapper.toEventLimitDomainList
 import com.funjim.fishstory.database.mapper.toEventTargetSpeciesDomainList
@@ -69,6 +68,7 @@ import com.funjim.fishstory.model.WeatherSummary
 import com.funjim.fishstory.ui.utils.FishFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 class FishRepository(
     private val database: FishstoryDatabase,
@@ -108,36 +108,65 @@ class FishRepository(
         return fishDao.getLimitSpeciesForEvent(eventId)
             .map { list -> list.toLimitSpeciesDomainList() }
     }
-    suspend fun findOrCreateLimit(limit: Limit, species: List<String>): InsertResult<Limit> {
-        val existing = limitDao.geLimitById(limit.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateLimit(
+        item: Limit,
+        species: List<String>
+    ): InsertResult<Limit> {
+        val sortedSpecies = species.sorted().joinToString(",")
+
+        // Check for existing ID and equality
+        val existingId = limitDao.getLimitWithSpeciesById(item.id)
+        return if ((existingId != null) && (existingId.toDomain().equals(item, sortedSpecies))) {
+            InsertResult(item, false)
         } else {
-            val sortedSpecies = species.sorted().joinToString(",")
-            val existing = limitDao.getLimitByLimit(
-                name = limit.name,
-                type = limit.type,
-                count = limit.count,
-                lowerSize = limit.lowerSize,
-                lowerInclusive = limit.lowerInclusive,
-                upperSize = limit.upperSize,
-                upperInclusive = limit.upperInclusive,
+            // Check for existing name and equality
+            val existingData = limitDao.getLimitByData(
+                name = item.name,
+                type = item.type,
+                count = item.count,
+                lowerSize = item.lowerSize,
+                lowerInclusive = item.lowerInclusive,
+                upperSize = item.upperSize,
+                upperInclusive = item.upperInclusive,
                 sortedSpecies)
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Unlike other 'findOrCreate' functions, this one is not verifying that the items
+            // are equal.  In this case, relying entirely on the DAO to check for equality
+            if (existingData != null) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                limitDao.insertLimit(limit.toEntity(), species)
-                InsertResult(limit, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newItem = item.copy(id = UUID.randomUUID().toString())
+                    limitDao.insertLimit(newItem.toEntity(), species)
+                    InsertResult(newItem, true)
+                } else {
+                    limitDao.insertLimit(item.toEntity(), species)
+                    InsertResult(item, true)
+                }
             }
         }
     }
-    suspend fun findOrCreateSpecies(species: Species): InsertResult<Species> {
-        val existing = fishDao.getSpeciesByName(species.name)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateSpecies(item: Species): InsertResult<Species> {
+        // Check for existing ID and equality
+        val existingId = fishDao.getSpeciesById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            updateSpecies(species)
-            InsertResult(species, true)
+            // Check for existing name and equality
+            val existingData = fishDao.getSpeciesByName(name = item.name)
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    updateSpecies(newObject)
+                    InsertResult(newObject, true)
+                } else {
+                    updateSpecies(item)
+                    InsertResult(item, true)
+                }
+            }
         }
     }
 

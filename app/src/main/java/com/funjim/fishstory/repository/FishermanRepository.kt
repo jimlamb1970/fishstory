@@ -58,15 +58,15 @@ class FishermanRepository(
     suspend fun findOrCreateFisherman(item: Fisherman): InsertResult<Fisherman> {
         // Check for existing ID and equality
         val existingId = fishermanDao.getFishermanById(item.id)
-        return if ((existingId != null) && (existingId.equals(item))) {
-            InsertResult(existingId.toDomain(), false)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
             // Check for existing name and equality
             val existingData = fishermanDao.getFishermanByName(
                 first = item.firstName,
                 last = item.lastName,
                 nickname = item.nickname)
-            if ((existingData != null) && (existingData.equals(item))) {
+            if ((existingData != null) && (existingData.toDomain() == item)) {
                 InsertResult(existingData.toDomain(), false)
             } else {
                 // Determine if existing ID be used or if a new one needed
@@ -85,15 +85,15 @@ class FishermanRepository(
     suspend fun findOrCreateTackleBox(item: TackleBox): InsertResult<TackleBox> {
         // Check for existing ID and equality
         val existingId = tackleBoxDao.getTackleBoxById(item.id)
-        return if ((existingId != null) && (existingId.equals(item))) {
-            InsertResult(existingId.toDomain(), false)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
             // Check for existing name and equality
             val existingData = tackleBoxDao.getTackleBoxByName(
                 name = item.name,
                 fishermanId = item.fishermanId
             )
-            if ((existingData != null) && (existingData.equals(item))) {
+            if ((existingData != null) && (existingData.toDomain() == item)) {
                 InsertResult(existingData.toDomain(), false)
             } else {
                 // Determine if existing ID be used or if a new one needed

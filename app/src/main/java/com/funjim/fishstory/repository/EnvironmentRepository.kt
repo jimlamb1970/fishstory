@@ -121,12 +121,12 @@ class EnvironmentRepository(
     suspend fun findOrCreateBodyOfWater(item: BodyOfWater): InsertResult<BodyOfWater> {
         // Check for existing ID and equality
         val existingId = bodyOfWaterDao.getBodyOfWaterById(item.id)
-        return if ((existingId != null) && (existingId.equals(item))) {
-            InsertResult(existingId.toDomain(), false)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
             // Check for existing name and equality
             val existingData = bodyOfWaterDao.getBodyOfWaterByName(item.name)
-            if ((existingData != null) && (existingData.equals(item))) {
+            if ((existingData != null) && (existingData.toDomain() == item)) {
                 InsertResult(existingData.toDomain(), false)
             } else {
                 // Determine if existing ID be used or if a new one needed

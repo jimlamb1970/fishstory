@@ -37,22 +37,8 @@ interface FishDao {
     suspend fun updateFish(fish: FishEntity)
     @Upsert
     suspend fun upsertFish(fish: FishEntity)
-
     @Query("DELETE FROM fish_table")
     suspend fun deleteAllFish()
-    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
-    fun getAllFish(): Flow<List<FishEntity>>
-
-    @Query("""
-        SELECT fish_table.* FROM fish_table 
-        WHERE fish_table.eventId = :eventId
-    """)
-    fun getAllFishForEvent(eventId: String): Flow<List<FishEntity>>
-
-    @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFish(id: String): FishEntity?
-    @Query("SELECT * FROM fish_table WHERE id = :id")
-    suspend fun getFishById(id: String): FishEntity?
 
     @Delete
     suspend fun deleteSpecies(species: SpeciesEntity)
@@ -60,17 +46,34 @@ interface FishDao {
     suspend fun insertSpecies(species: SpeciesEntity)
     @Update
     suspend fun updateSpecies(species: SpeciesEntity)
+    @Query("DELETE FROM species_table")
+    suspend fun deleteAllSpecies()
 
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFish(id: String): FishEntity?
+    @Query("SELECT * FROM fish_table WHERE id = :id")
+    suspend fun getFishById(id: String): FishEntity?
+
+    @Transaction
+    @Query("SELECT * FROM species_table WHERE id = :speciesId")
+    fun getSpecies(speciesId: String): Flow<SpeciesEntity?>
+    @Query("SELECT * FROM species_table WHERE id = :id")
+    suspend fun getSpeciesById(id: String): SpeciesEntity?
     @Query("SELECT * FROM species_table WHERE name = :name")
     suspend fun getSpeciesByName(name: String): SpeciesEntity?
 
-    @Query("DELETE FROM species_table")
-    suspend fun deleteAllSpecies()
+    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
+    fun getAllFish(): Flow<List<FishEntity>>
+    @Query("""
+        SELECT fish_table.* FROM fish_table 
+        WHERE fish_table.eventId = :eventId
+    """)
+    fun getAllFishForEvent(eventId: String): Flow<List<FishEntity>>
+
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<SpeciesEntity>>
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     suspend fun getAllSpeciesList(): List<SpeciesEntity>
-
     @Query("""
         SELECT species_table.* FROM species_table
         INNER JOIN event_target_species ON species_table.id = event_target_species.speciesId
@@ -90,6 +93,7 @@ interface FishDao {
         WHERE fish_table.eventId = :eventId
     """)
     fun getAllSpeciesForEvent(eventId: String): Flow<List<SpeciesEntity>>
+
     @Query("""
         SELECT event_target_species.* FROM event_target_species
         WHERE event_target_species.eventId = :eventId
@@ -101,10 +105,6 @@ interface FishDao {
         WHERE event_limit_table.eventId = :eventId
     """)
     fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpeciesEntity>>
-
-    @Transaction
-    @Query("SELECT * FROM species_table WHERE id = :speciesId")
-    fun getSpecies(speciesId: String): Flow<SpeciesEntity?>
 
     @Transaction
     @Query(

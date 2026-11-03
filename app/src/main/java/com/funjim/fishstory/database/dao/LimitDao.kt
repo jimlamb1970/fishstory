@@ -8,13 +8,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.EventLimitEntity
-import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
-import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
-import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitType
 import kotlinx.coroutines.flow.Flow
 
@@ -53,7 +50,7 @@ interface LimitDao {
           ) = :sortedSpeciesIds
         LIMIT 1
     """)
-    suspend fun getLimitByLimit(
+    suspend fun getLimitByData(
         name: String,
         type: LimitType,
         count: Int = 0,
@@ -208,4 +205,10 @@ interface LimitDao {
         SELECT limit_table.* FROM limit_table
     """)
     fun getAllLimitsWithSpecies(): Flow<List<LimitWithSpeciesEntity>>
+    @Transaction
+    @Query("""
+        SELECT limit_table.* FROM limit_table 
+        WHERE limit_table.id = :limitId
+        """)
+    suspend fun getLimitWithSpeciesById(limitId: String): LimitWithSpeciesEntity?
 }

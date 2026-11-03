@@ -230,6 +230,19 @@ class ImportViewModel(
                     speciesMap[limitSpecies.speciesId]
                 }
             val limitResult = fishRepo.findOrCreateLimit(limit, species)
+            if (limitResult.wasCreated) {
+                if (limitResult.item.id != limit.id) {
+                    _toastMessage.emit("Limit was created with a different ID")
+                } else {
+                    _toastMessage.emit("Limit was created with same ID")
+                }
+            } else {
+                if (limitResult.item.id != limit.id) {
+                    _toastMessage.emit("Existing Limit with a different ID")
+                } else {
+                    _toastMessage.emit("Existing Limit with same ID")
+                }
+            }
             limitMap[limit.id] = limitResult.item.id
         }
         for (eventLimit in exportData.eventLimits) {

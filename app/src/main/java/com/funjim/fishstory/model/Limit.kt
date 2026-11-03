@@ -40,7 +40,33 @@ data class Limit(
     val lowerInclusive: Boolean = true,
     val upperSize: Long? = null,
     val upperInclusive: Boolean = true
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+
+        if (other !is Limit) return false
+
+        return this.name == other.name &&
+                this.type == other.type &&
+                this.count == other.count &&
+                this.lowerSize == other.lowerSize &&
+                this.lowerInclusive == other.lowerInclusive &&
+                this.upperSize == other.upperSize &&
+                this.upperInclusive == other.upperInclusive
+    }
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + count.hashCode()
+        result = 31 * result + (lowerSize?.hashCode() ?: 0)
+        result = 31 * result + lowerInclusive.hashCode()
+        result = 31 * result + (upperSize?.hashCode() ?: 0)
+        result = 31 * result + upperInclusive.hashCode()
+        return result
+    }
+
+}
 
 @Serializable
 data class LimitSpecies(
@@ -64,7 +90,27 @@ data class LimitWithSpecies(
     val upperSize: Long? = null,
     val upperInclusive: Boolean = true,
     val species: List<Species> = emptyList()
-)
+) {
+    fun equals(other: Any?, species: String): Boolean {
+        if (this === other) return true
+
+        if (other !is Limit) return false
+
+        val sortedSpecies: String = this.species
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+
+        return this.name == other.name &&
+                this.type == other.type &&
+                this.count == other.count &&
+                this.lowerSize == other.lowerSize &&
+                this.lowerInclusive == other.lowerInclusive &&
+                this.upperSize == other.upperSize &&
+                this.upperInclusive == other.upperInclusive &&
+                sortedSpecies == species
+    }
+}
 
 enum class LimitScope {
     EVENT,
