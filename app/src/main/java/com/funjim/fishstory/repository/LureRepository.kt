@@ -33,6 +33,7 @@ import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.TackleBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 class LureRepository(
     private val baitDao: BaitDao,
@@ -213,7 +214,7 @@ class LureRepository(
     }
 
     suspend fun addBaitToEvent(baitId: String, eventId: String) {
-        baitDao.insertBaitForEvent(EventBaitEntity(eventId, baitId))
+        baitDao.upsertBaitForEvent(EventBaitEntity(eventId, baitId))
     }
     suspend fun removeBaitFromEvent(baitId: String, eventId: String) {
         baitDao.deleteBaitForEvent(eventId, baitId)
@@ -226,13 +227,27 @@ class LureRepository(
         return baitDao.getEventsBaitsForEvent(eventId).map { list -> list.toEventBaitDomainList() }
     }
 
-    suspend fun findOrCreateBait(bait: Bait): InsertResult<Bait> {
-        val existing = baitDao.getBaitByName(bait.name)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateBait(item: Bait): InsertResult<Bait> {
+        // Check for existing ID and equality
+        val existingId = baitDao.getBaitById(item.id)
+        return if ((existingId != null) && (existingId.equals(item))) {
+            InsertResult(existingId.toDomain(), false)
         } else {
-            updateBait(bait)
-            InsertResult(bait, true)
+            // Check for existing name and equality
+            val existingData = baitDao.getBaitByName(item.name)
+            if ((existingData != null) && (existingData.equals(item))) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    addBait(newObject)
+                    InsertResult(newObject, true)
+                } else {
+                    addBait(item)
+                    InsertResult(item, true)
+                }
+            }
         }
     }
 

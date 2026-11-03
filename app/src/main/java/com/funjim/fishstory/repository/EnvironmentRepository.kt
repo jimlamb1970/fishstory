@@ -135,6 +135,7 @@ class EnvironmentRepository(
                     addBodyOfWater(newObject)
                     InsertResult(newObject, true)
                 } else {
+                    addBodyOfWater(item)
                     InsertResult(item, true)
                 }
             }

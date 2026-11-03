@@ -249,8 +249,8 @@ class MainViewModel(
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
                     data.baits.forEach { baitDao.insertBait(it) }
-                    data.tripBait.forEach { baitDao.insertBaitForTrip(it) }
-                    data.eventBait.forEach { baitDao.insertBaitForEvent(it) }
+                    data.tripBait.forEach { baitDao.upsertBaitForTrip(it) }
+                    data.eventBait.forEach { baitDao.upsertBaitForEvent(it) }
                     data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
                     data.tripBodyOfWater.forEach { bodyOfWaterDao.upsertBodyOfWaterForTrip(it) }
                     data.eventBodyOfWater.forEach { bodyOfWaterDao.upsertBodyOfWaterForEvent(it) }
