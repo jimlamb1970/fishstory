@@ -150,11 +150,8 @@ class ImportViewModel(
         // Map not needed for Event
         val eventResult = tripRepo.findOrCreateEvent(exportData.event)
 
-        // TODO - add logic to validate matching IDs
-        // TODO - add logic to validate mapping IDs
-        // Map needed for Bait.
         // Import and keep track of new/existing id
-        // When adding cross reference, use the mapped id
+        // When adding bait to event, use the mapped id
         for (bait in exportData.baits) {
             val baitResult = lureRepo.findOrCreateBait(bait)
             baitMap[bait.id] = baitResult.item.id
@@ -166,7 +163,6 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for Body of Water
         // Import and keep track of new/existing id
         // When adding body of water to event (and trip), use the mapped id
         for (bodyOfWater in exportData.bodiesOfWater) {
@@ -181,8 +177,6 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for Fisherman
-        // Map needed for TackleBox
         // When adding fisherman/tacklebox to event (and trip), use the mapped ids
         for (fisherman in exportData.fishermen) {
             val fishermanResult = fishermanRepo.findOrCreateFisherman(fisherman)
@@ -205,7 +199,7 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for Species
+        // When adding target species to event (and trip), use the mapped ids
         for (species in exportData.species) {
             val speciesResult = fishRepo.findOrCreateSpecies(species)
             speciesMap[species.id] = speciesResult.item.id
@@ -223,7 +217,7 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for Limits
+        // When adding limit to event, use the mapped ids
         for (limit in exportData.limits) {
             val species: List<String> = exportData.limitSpecies
                 .filter { it.limitId == limit.id }
@@ -231,19 +225,6 @@ class ImportViewModel(
                     speciesMap[limitSpecies.speciesId]
                 }
             val limitResult = fishRepo.findOrCreateLimit(limit, species)
-            if (limitResult.wasCreated) {
-                if (limitResult.item.id != limit.id) {
-                    _toastMessage.emit("Limit was created with a different ID")
-                } else {
-                    _toastMessage.emit("Limit was created with same ID")
-                }
-            } else {
-                if (limitResult.item.id != limit.id) {
-                    _toastMessage.emit("Existing Limit with a different ID")
-                } else {
-                    _toastMessage.emit("Existing Limit with same ID")
-                }
-            }
             limitMap[limit.id] = limitResult.item.id
         }
         for (eventLimit in exportData.eventLimits) {
@@ -256,7 +237,7 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for LureColors
+        // When adding colors to lures, use the mapped ids
         for (color in exportData.lureColors) {
             val colorResult = lureRepo.findOrCreateLureColor(color)
             lureColorMap[color.id] = colorResult.item.id
@@ -280,6 +261,7 @@ class ImportViewModel(
             val lureResult = lureRepo.findOrCreateLure(lure, primaryColors, secondaryColors, glowColors)
             lureMap[lure.id] = lureResult.item.id
         }
+        // When adding lures to tackle boxes, use the mapped ids
         for (tackleBoxLure in exportData.tackleBoxLures) {
             val lureId = lureMap[tackleBoxLure.lureId]
             val tackleBoxId = tackleBoxMap[tackleBoxLure.tackleBoxId]
@@ -291,12 +273,19 @@ class ImportViewModel(
             }
         }
 
-        // Map needed for SkyCondition
+        // When adding sky condition to weather, use the mapped ids
         for (condition in exportData.skyConditions) {
             val conditionResult = envRepo.findOrCreateSkyCondition(condition)
             skyConditionMap[condition.id] = conditionResult.item.id
         }
-        // Map needed for WaterClarity
+        for (weather in exportData.weatherConditions) {
+            val skyCondition = skyConditionMap[weather.skyConditionId]
+            val newWeather = weather.copy(skyConditionId = skyCondition)
+            val weatherResult = envRepo.findOrCreateWeatherCondition(newWeather)
+            weatherMap[weather.id] = weatherResult.item.id
+        }
+
+        // When adding water clarity to water, use the mapped ids
         for (clarity in exportData.waterClarities) {
             val clarityResult = envRepo.findOrCreateWaterClarity(clarity)
             waterClarityMap[clarity.id] = clarityResult.item.id
@@ -306,12 +295,6 @@ class ImportViewModel(
             val newWater = water.copy(clarityId = clarity)
             val waterResult = envRepo.findOrCreateWaterCondition(newWater)
             waterMap[water.id] = waterResult.item.id
-        }
-        for (weather in exportData.weatherConditions) {
-            val skyCondition = skyConditionMap[weather.skyConditionId]
-            val newWeather = weather.copy(skyConditionId = skyCondition)
-            val weatherResult = envRepo.findOrCreateWeatherCondition(newWeather)
-            weatherMap[weather.id] = weatherResult.item.id
         }
 
         for (fish in exportData.fish) {

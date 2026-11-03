@@ -116,7 +116,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[primaryName] ?: run {
-                        val newColor = LureColorEntity(name = row[8])
+                        val newColor = LureColorEntity(name = row[8], hexCode = "")
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id
@@ -128,7 +128,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[secondaryName] ?: run {
-                        val newColor = LureColorEntity(name = row[9])
+                        val newColor = LureColorEntity(name = row[9], hexCode = "")
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id
@@ -142,7 +142,7 @@ class FishStoryRepository(
                     null
                 } else {
                     colorMap[glowName] ?: run {
-                        val newColor = LureColorEntity(name = row[11])
+                        val newColor = LureColorEntity(name = row[11], hexCode = "")
                         lureDao.upsertLureColor(newColor)
                         colorMap[newColor.name] = newColor.id
                         newColor.id

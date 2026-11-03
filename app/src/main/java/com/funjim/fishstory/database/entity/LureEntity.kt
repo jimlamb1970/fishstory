@@ -13,13 +13,15 @@ import java.util.UUID
 @Serializable
 @Entity(
     tableName = "lure_color_table",
-    indices = [Index(value = ["name"], unique = true)]
+    indices = [
+        Index(value = ["name", "hexCode"], unique = true)
+    ]
 )
 data class LureColorEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val hexCode: String? = null
+    val hexCode: String
 )
 
 @Serializable

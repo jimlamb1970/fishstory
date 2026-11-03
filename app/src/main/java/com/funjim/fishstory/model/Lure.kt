@@ -7,8 +7,20 @@ import java.util.UUID
 data class LureColor(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val hexCode: String? = null
-)
+    val hexCode: String
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LureColor) return false
+        return name == other.name && hexCode == other.hexCode
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + (hexCode?.hashCode() ?: 0)
+        return result
+    }
+}
 
 @Serializable
 data class Lure(

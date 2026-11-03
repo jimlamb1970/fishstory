@@ -71,20 +71,29 @@ class LureRepository(
         return lureDao.getLureGlowColorsForEvent(eventId)
             .map { list -> list.toLureGlowColorDomainList() }
     }
-    suspend fun findOrCreateLureColor(lureColor: LureColor): InsertResult<LureColor> {
-        val existing = lureDao.getLureColorById(lureColor.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateLureColor(item: LureColor): InsertResult<LureColor> {
+        // Check for existing ID and equality
+        val existingId = lureDao.getLureColorById(item.id)
+        return if ((existingId != null) && (existingId.toDomain() == item)) {
+            InsertResult(item, false)
         } else {
-            val existing = lureDao.getLureColor(
-                name = lureColor.name,
-                hexCode = lureColor.hexCode
+            // Check for existing data and equality
+            val existingData = lureDao.getLureColorByData(
+                name = item.name,
+                hexCode = item.hexCode
             )
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            if ((existingData != null) && (existingData.toDomain() == item)) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                lureDao.upsertLureColor(lureColor.toEntity())
-                InsertResult(lureColor, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newItem = item.copy(id = UUID.randomUUID().toString())
+                    lureDao.upsertLureColor(newItem.toEntity())
+                    InsertResult(newItem, true)
+                } else {
+                    lureDao.upsertLureColor(item.toEntity())
+                    InsertResult(item, true)
+                }
             }
         }
     }
@@ -101,14 +110,14 @@ class LureRepository(
             val sortedSecondaryColors = secondaryColors.sorted().joinToString(",")
             val sortedGlowColors = glowColors.sorted().joinToString(",")
 
-            val existing = lureDao.getLure(
+            val existing = lureDao.getLureByData(
                 lure.name,
                 lure.hookCount,
                 lure.glows,
                 sortedPrimaryColors,
                 sortedSecondaryColors,
                 sortedGlowColors
-                )
+            )
             if (existing != null) {
                 InsertResult(existing.toDomain(), false)
             } else {
@@ -148,9 +157,9 @@ class LureRepository(
 
     @Transaction
     suspend fun deleteLureColors(lureId: String) {
-        lureDao.deletePrimaryColorsForLure(lureId)
-        lureDao.deleteSecondaryColorsForLure(lureId)
-        lureDao.deleteGlowColorsForLure(lureId)
+        lureDao.deleteLurePrimaryColors(lureId)
+        lureDao.deleteLureSecondaryColors(lureId)
+        lureDao.deleteLureGlowColors(lureId)
     }
 
     suspend fun upsertLurePrimaryColor(crossRef: LurePrimaryColor) {

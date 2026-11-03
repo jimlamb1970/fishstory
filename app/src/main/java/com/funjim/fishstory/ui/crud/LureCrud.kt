@@ -18,7 +18,7 @@ fun AddColorDialog(
     onDismiss: () -> Unit,
 ) {
     EditColorDialog(
-        item = LureColor(name = ""),
+        item = LureColor(name = "", hexCode = ""),
         title = "Add",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
