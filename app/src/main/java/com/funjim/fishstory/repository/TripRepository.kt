@@ -225,7 +225,7 @@ class TripRepository(
         )
 
         if (onTrip) {
-            fishermanDao.addEventFisherman(
+            fishermanDao.addFishermanToEvent(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 tackleBoxId = tackleBoxId)

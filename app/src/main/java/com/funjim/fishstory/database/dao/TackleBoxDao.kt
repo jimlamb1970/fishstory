@@ -8,7 +8,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.BodyOfWaterEntity
 import com.funjim.fishstory.database.entity.LureEntity
 import com.funjim.fishstory.database.entity.LureEntityWithColors
 import com.funjim.fishstory.database.entity.TackleBoxEntity
@@ -17,11 +16,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TackleBoxDao {
-    @Query("SELECT * FROM tackle_box_table")
-    fun getAllTackleBoxes(): Flow<List<TackleBoxEntity>>
-    @Query("DELETE FROM tackle_box_table")
-    suspend fun deleteAllTackleBoxes()
-
+    // CRUD operations
     @Delete
     suspend fun deleteTackleBox(tackleBox: TackleBoxEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
@@ -30,20 +25,18 @@ interface TackleBoxDao {
     suspend fun updateTackleBox(tackleBox: TackleBoxEntity)
     @Upsert
     suspend fun upsertTackleBox(tackleBox: TackleBoxEntity)
+    @Query("DELETE FROM tackle_box_table")
+    suspend fun deleteAllTackleBoxes()
 
-    @Query("""
-        SELECT tackle_box_table.* FROM tackle_box_table
-        INNER JOIN event_fisherman_cross_ref ON tackle_box_table.id = event_fisherman_cross_ref.tackleBoxId
-        WHERE event_fisherman_cross_ref.eventId = :eventId
-    """)
-    fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBoxEntity>>
-    @Query("""
-        SELECT tackle_box_lure_cross_ref.* FROM tackle_box_lure_cross_ref
-        INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
-        WHERE event_fisherman_cross_ref.eventId = :eventId
-    """)
-    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLureEntity>>
+    // CRUD operations for TackleBox-Lure cross-references
+    @Delete
+    suspend fun deleteTackleBoxLure(crossRef: TackleBoxLureEntity)
+    @Upsert
+    suspend fun upsertTackleBoxLure(crossRef: TackleBoxLureEntity)
+    @Query("DELETE FROM tackle_box_lure_cross_ref")
+    suspend fun deleteAllTackleBoxLures()
 
+    // Single object queries
     @Query("SELECT * FROM tackle_box_table WHERE id = :id")
     fun getTackleBox(id: String): Flow<TackleBoxEntity?>
     @Query("SELECT * FROM tackle_box_table WHERE id = :id")
@@ -54,12 +47,26 @@ interface TackleBoxDao {
         fishermanId: String
     ): TackleBoxEntity?
 
+    // Multiple object queries
+    @Query("SELECT * FROM tackle_box_table")
+    fun getAllTackleBoxes(): Flow<List<TackleBoxEntity>>
+    @Query("""
+        SELECT tackle_box_table.* FROM tackle_box_table
+        INNER JOIN event_fisherman_cross_ref ON tackle_box_table.id = event_fisherman_cross_ref.tackleBoxId
+        WHERE event_fisherman_cross_ref.eventId = :eventId
+    """)
+    fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBoxEntity>>
 
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
-    fun getAllTackleBoxLureCrossRefs(): Flow<List<TackleBoxLureEntity>>
-    @Query("DELETE FROM tackle_box_lure_cross_ref")
-    suspend fun deleteAllTackleBoxLureCrossRefs()
+    fun getAllTackleBoxLures(): Flow<List<TackleBoxLureEntity>>
+    @Query("""
+        SELECT tackle_box_lure_cross_ref.* FROM tackle_box_lure_cross_ref
+        INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
+        WHERE event_fisherman_cross_ref.eventId = :eventId
+    """)
+    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLureEntity>>
 
+    // Special Queries
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")
     suspend fun getExistingTackleBoxForFisherman(fishermanId: String): TackleBoxEntity?
 
@@ -69,7 +76,6 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBoxEntity>>
 
-    // TODO - rename these getOrCreate functions
     @Transaction
     suspend fun getOrCreate(fishermanId: String, name: String): String {
         val existingTackleBox = getExistingTackleBoxForFishermanByName(name, fishermanId)
@@ -81,11 +87,6 @@ interface TackleBoxDao {
         upsertTackleBox(newTackleBox)
         return newTackleBox.id
     }
-
-    @Delete
-    suspend fun deleteTackleBoxLure(crossRef: TackleBoxLureEntity)
-    @Upsert
-    suspend fun upsertTackleBoxLure(crossRef: TackleBoxLureEntity)
 
     @Transaction
     @Query("""

@@ -82,19 +82,29 @@ class FishermanRepository(
         }
     }
 
-    suspend fun findOrCreateTackleBox(tackleBox: TackleBox): InsertResult<TackleBox> {
-        val existing = tackleBoxDao.getTackleBoxById(tackleBox.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateTackleBox(item: TackleBox): InsertResult<TackleBox> {
+        // Check for existing ID and equality
+        val existingId = tackleBoxDao.getTackleBoxById(item.id)
+        return if ((existingId != null) && (existingId.equals(item))) {
+            InsertResult(existingId.toDomain(), false)
         } else {
-            val existing = tackleBoxDao.getTackleBoxByName(
-                name = tackleBox.name,
-                fishermanId = tackleBox.fishermanId)
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Check for existing name and equality
+            val existingData = tackleBoxDao.getTackleBoxByName(
+                name = item.name,
+                fishermanId = item.fishermanId
+            )
+            if ((existingData != null) && (existingData.equals(item))) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                tackleBoxDao.insertTackleBox(tackleBox.toEntity())
-                InsertResult(tackleBox, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    tackleBoxDao.insertTackleBox(newObject.toEntity())
+                    InsertResult(newObject, true)
+                } else {
+                    tackleBoxDao.insertTackleBox(item.toEntity())
+                    InsertResult(item, true)
+                }
             }
         }
     }

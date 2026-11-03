@@ -182,7 +182,7 @@ class MainViewModel(
                     lureSecondaryColors = lureDao.getAllLureSecondaryColors().firstOrNull() ?: emptyList(),
                     lureGlowColors = lureDao.getAllLureGlowColors().firstOrNull() ?: emptyList(),
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
-                    tackleBoxLures = tackleBoxDao.getAllTackleBoxLureCrossRefs().firstOrNull() ?: emptyList(),
+                    tackleBoxLures = tackleBoxDao.getAllTackleBoxLures().firstOrNull() ?: emptyList(),
                     species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
                     eventTargetSpecies = eventDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
@@ -231,7 +231,7 @@ class MainViewModel(
                     lureDao.deleteAllLureSecondaryColorCrossRefs()
                     lureDao.deleteAllLureGlowColorCrossRefs()
                     tackleBoxDao.deleteAllTackleBoxes()
-                    tackleBoxDao.deleteAllTackleBoxLureCrossRefs()
+                    tackleBoxDao.deleteAllTackleBoxLures()
                     fishDao.deleteAllSpecies()
                     tripDao.deleteAllTripTargetSpecies()
                     eventDao.deleteAllEventTargetSpecies()
