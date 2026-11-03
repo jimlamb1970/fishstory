@@ -97,7 +97,7 @@ class FishStoryRepository(
                         tackleBoxId
                     )
                 )
-                eventDao.upsertEventFisherman(
+                fishermanDao.upsertEventFisherman(
                     EventFishermanEntity(
                         segmentId,
                         fishermanId,

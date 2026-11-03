@@ -7,18 +7,15 @@ import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.EventEntity
 import com.funjim.fishstory.database.entity.EventEntityDetailedSummary
 import com.funjim.fishstory.database.entity.EventEntitySummary
 import com.funjim.fishstory.database.entity.EventEntityWithDetails
 import com.funjim.fishstory.database.entity.EventEntityWithInfo
-import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
-import com.funjim.fishstory.database.entity.TripFishermanEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -180,59 +177,7 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-    // TODO -- move these to fisherman dao
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
-    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
-    @Upsert
-    suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
-    @Upsert
-    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
 
-    @Update
-    suspend fun updateEventFishermanCrossRef(crossRef: EventFishermanEntity)
-
-    suspend fun addEventFisherman(
-        eventId: String,
-        fishermanId: String,
-        tackleBoxId: String? = null
-    ) {
-        upsertEventFisherman(
-            EventFishermanEntity(
-                eventId = eventId,
-                fishermanId = fishermanId,
-                tackleBoxId = tackleBoxId
-            )
-        )
-    }
-
-    @Transaction
-    suspend fun addFishermanToEventAndTrip(
-        tripId: String,
-        eventId: String,
-        fishermanId: String,
-        tackleBoxId: String? = null
-    ) {
-        upsertEventFisherman(
-            EventFishermanEntity(
-                eventId = eventId,
-                fishermanId = fishermanId,
-                tackleBoxId = tackleBoxId
-            )
-        )
-
-        upsertTripFisherman(
-            TripFishermanEntity(
-                tripId = tripId,
-                fishermanId = fishermanId,
-                tackleBoxId = tackleBoxId
-            )
-        )
-    }
-
-    @Query("SELECT * FROM event_fisherman_cross_ref")
-    fun getAllEventFishermanCrossRefs(): Flow<List<EventFishermanEntity>>
 
     @Query(
         """
@@ -245,12 +190,6 @@ ORDER BY s.startTime DESC"""
             @MapColumn(columnName = "fishermanId") String,
             @MapColumn(columnName = "tackleBoxId") String?
             >>
-
-    @Delete
-    suspend fun deleteEventFishermanCrossRef(crossRef: EventFishermanEntity)
-
-    @Query("DELETE FROM event_fisherman_cross_ref")
-    suspend fun deleteAllEventFishermanCrossRefs()
 
     @Query("""
         SELECT event_table.* FROM event_table 

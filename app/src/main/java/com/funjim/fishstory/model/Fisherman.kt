@@ -20,6 +20,28 @@ data class Fisherman(
         } else {
             "$firstName $lastName".trim()
         }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+
+        if (other !is Fisherman) return false
+
+        return this.firstName == other.firstName &&
+                this.lastName == other.lastName &&
+                this.nickname == other.nickname &&
+                this.isLocked == other.isLocked &&
+                this.isFavorite == other.isFavorite
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + firstName.hashCode()
+        result = 31 * result + lastName.hashCode()
+        result = 31 * result + nickname.hashCode()
+        result = 31 * result + isLocked.hashCode()
+        result = 31 * result + isFavorite.hashCode()
+        return result
+    }
 }
 
 data class FishermanWithTrips(

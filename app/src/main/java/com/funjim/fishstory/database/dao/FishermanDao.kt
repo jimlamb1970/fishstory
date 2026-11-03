@@ -20,11 +20,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FishermanDao {
-    @Query("DELETE FROM fisherman_table")
-    suspend fun deleteAllFishermen()
-    @Query("SELECT * FROM fisherman_table")
-    fun getAllFishermen(): Flow<List<FishermanEntity>>
-
+    // CRUD operations
     @Delete
     suspend fun deleteFisherman(fisherman: FishermanEntity)
     @Query("DELETE FROM fisherman_table WHERE id = :id")
@@ -33,12 +29,136 @@ interface FishermanDao {
     suspend fun insertFisherman(fisherman: FishermanEntity)
     @Upsert
     suspend fun upsertFisherman(fisherman: FishermanEntity)
+    @Query("DELETE FROM fisherman_table")
+    suspend fun deleteAllFishermen()
 
+    // CRUD operations for Trip Cross-References
+    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
+    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
+    @Upsert
+    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
+    @Query("DELETE FROM trip_fisherman_cross_ref")
+    suspend fun deleteAllTripFishermen()
+
+    // CRUD operations for Event Cross-References
+    @Delete
+    suspend fun deleteEventFisherman(crossRef: EventFishermanEntity)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
+    @Upsert
+    suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
+
+    @Query("DELETE FROM event_fisherman_cross_ref")
+    suspend fun deleteAllEventFishermen()
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
+    @Query("""
+    DELETE FROM event_fisherman_cross_ref 
+    WHERE fishermanId = :fishermanId 
+    AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
+""")
+    suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
+
+    // Helper functions for adding fishermen to Events and Trips
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM trip_fisherman_cross_ref 
+            WHERE tripId = :tripId AND fishermanId = :fishermanId
+        )
+    """)
+    suspend fun doesTripFishermanExist(
+        tripId: String,
+        fishermanId: String): Boolean
+
+    @Query("SELECT id FROM event_table WHERE tripId = :tripId")
+    suspend fun getEventIdsForTrip(tripId: String): List<String>
+    suspend fun addFishermanToEvent(
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        upsertEventFisherman(
+            EventFishermanEntity(
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+    }
+    @Transaction
+    suspend fun addFishermanToEventAndTrip(
+        tripId: String,
+        eventId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        upsertEventFisherman(
+            EventFishermanEntity(
+                eventId = eventId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+
+        upsertTripFisherman(
+            TripFishermanEntity(
+                tripId = tripId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+    }
+    @Transaction
+    suspend fun addFishermanToTrip(
+        tripId: String,
+        fishermanId: String,
+        tackleBoxId: String? = null
+    ) {
+        insertTripFisherman(
+            TripFishermanEntity(
+                tripId = tripId,
+                fishermanId = fishermanId,
+                tackleBoxId = tackleBoxId
+            )
+        )
+
+        val eventIds = getEventIdsForTrip(tripId)
+        if (eventIds.isNotEmpty()) {
+            val eventFishermen = eventIds.map { eventId ->
+                EventFishermanEntity(
+                    eventId = eventId,
+                    fishermanId = fishermanId,
+                    tackleBoxId = tackleBoxId
+                )
+            }
+            insertEventFishermen(eventFishermen)
+        }
+    }
+    @Transaction
+    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
+        deleteFishermanFromTrip(tripId, fishermanId)
+        deleteFishermanFromEvents(tripId, fishermanId)
+    }
+
+    // Single object queries
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
     fun getFisherman (id: String): Flow<FishermanEntity?>
     @Query("SELECT * FROM fisherman_table WHERE id = :id")
     suspend fun getFishermanById(id: String): FishermanEntity?
+    @Query("""
+        SELECT * FROM fisherman_table
+        WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1
+    """)
+    suspend fun getFishermanByName(
+        first: String,
+        last: String,
+        nickname: String): FishermanEntity?
 
+    // Multiple object queries
+    @Query("SELECT * FROM fisherman_table")
+    fun getAllFishermen(): Flow<List<FishermanEntity>>
     @Query("""
         SELECT f.* FROM fisherman_table AS f
         JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId
@@ -46,7 +166,13 @@ interface FishermanDao {
         ORDER BY f.firstName, f.nickname, f.lastName ASC
     """)
     fun getFishermenForTrip(tripId: String): Flow<List<FishermanEntity>>
-
+    @Query("""
+        SELECT f.* FROM fisherman_table AS f
+        JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
+        WHERE sref.eventId = :eventId
+        ORDER BY f.firstName, f.nickname, f.lastName ASC
+    """)
+    fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
     @Query("""
         SELECT f.* FROM fisherman_table AS f
         INNER JOIN event_fisherman_cross_ref ON f.id = event_fisherman_cross_ref.fishermanId
@@ -58,29 +184,24 @@ interface FishermanDao {
         ORDER BY f.firstName, f.nickname, f.lastName ASC
     """)
     fun getAllFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
+
+    @Query("SELECT * FROM trip_fisherman_cross_ref")
+    fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
     @Query("""
-        SELECT event_fisherman_cross_ref.* FROM event_fisherman_cross_ref
+        SELECT * FROM trip_fisherman_cross_ref 
+        WHERE tripId = :tripId
+    """)
+    fun getTripFishermenForTrip(tripId: String): Flow<List<TripFishermanEntity>>
+
+    @Query("SELECT * FROM event_fisherman_cross_ref")
+    fun getAllEventFishermen(): Flow<List<EventFishermanEntity>>
+    @Query("""
+        SELECT * FROM event_fisherman_cross_ref
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
     fun getEventFishermenForEvent(eventId: String): Flow<List<EventFishermanEntity>>
-    @Query("""
-        SELECT f.* FROM fisherman_table AS f
-        JOIN event_fisherman_cross_ref AS sref ON f.id = sref.fishermanId
-        WHERE sref.eventId = :eventId
-        ORDER BY f.firstName, f.nickname, f.lastName ASC
-    """)
-    fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
 
-    @Query("""
-        SELECT * FROM fisherman_table
-        WHERE firstName = :first AND lastName = :last AND nickname = :nickname LIMIT 1
-    """)
-    suspend fun getFishermanByName(
-        first: String,
-        last: String,
-        nickname: String): FishermanEntity?
 
-    // TODO - rename these getOrCreate functions
     @Transaction
     suspend fun getOrCreate(firstName: String, lastName: String, nickname: String? = null): String {
         val existingFisherman = getFishermanByName(firstName, lastName, nickname ?: "")
@@ -505,20 +626,7 @@ interface FishermanDao {
         tripId: String? = null
     ): Flow<List<FishermanEntity>>
 
-    // Trip-Fisherman
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
-    suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
-    suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
-    @Upsert
-    suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
 
-    @Query("DELETE FROM trip_fisherman_cross_ref")
-    suspend fun deleteAllTripFishermen()
-    @Query("SELECT * FROM trip_fisherman_cross_ref")
-    fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
-    @Query("SELECT * FROM trip_fisherman_cross_ref WHERE tripId = :tripId")
-    fun getTripFishermenForTrip(tripId: String): Flow<List<TripFishermanEntity>>
 
     @Query("""
     SELECT fishermanId, tackleBoxId 
@@ -529,58 +637,4 @@ interface FishermanDao {
             @MapColumn(columnName = "fishermanId") String,
             @MapColumn(columnName = "tackleBoxId") String?
             >>
-
-    @Query("""
-        SELECT EXISTS(
-            SELECT 1 FROM trip_fisherman_cross_ref 
-            WHERE tripId = :tripId AND fishermanId = :fishermanId
-        )
-""")
-    suspend fun doesTripFishermanExist(
-        tripId: String,
-        fishermanId: String): Boolean
-
-    // Logic to add/remove a fisherman from a trip
-    @Query("SELECT id FROM event_table WHERE tripId = :tripId")
-    suspend fun getEventIdsForTrip(tripId: String): List<String>
-    @Transaction
-    suspend fun addFishermanToTrip(
-        tripId: String,
-        fishermanId: String,
-        tackleBoxId: String? = null
-    ) {
-        insertTripFisherman(
-            TripFishermanEntity(
-                tripId = tripId,
-                fishermanId = fishermanId,
-                tackleBoxId = tackleBoxId
-            )
-        )
-
-        val eventIds = getEventIdsForTrip(tripId)
-        if (eventIds.isNotEmpty()) {
-            val eventFishermen = eventIds.map { eventId ->
-                EventFishermanEntity(
-                    eventId = eventId,
-                    fishermanId = fishermanId,
-                    tackleBoxId = tackleBoxId
-                )
-            }
-            insertEventFishermen(eventFishermen)
-        }
-    }
-
-    @Query("""
-    DELETE FROM event_fisherman_cross_ref 
-    WHERE fishermanId = :fishermanId 
-    AND eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)
-""")
-    suspend fun deleteFishermanFromEvents(tripId: String, fishermanId: String)
-    @Query("DELETE FROM trip_fisherman_cross_ref WHERE tripId = :tripId AND fishermanId = :fishermanId")
-    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
-    @Transaction
-    suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
-        deleteFishermanFromTrip(tripId, fishermanId)
-        deleteFishermanFromEvents(tripId, fishermanId)
-    }
 }

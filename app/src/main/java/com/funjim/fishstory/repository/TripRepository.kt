@@ -193,13 +193,12 @@ class TripRepository(
         eventDao.deleteEventById(id)
     }
 
-    // TODO -- move these to fish story repository
     // Fishermen and TackleBox Operations
     suspend fun upsertTripFisherman(crossRef: TripFisherman) {
         fishermanDao.upsertTripFisherman(crossRef.toEntity())
     }
     suspend fun updateEventFisherman(crossRef: EventFisherman) {
-        eventDao.upsertEventFisherman(crossRef.toEntity())
+        fishermanDao.upsertEventFisherman(crossRef.toEntity())
     }
 
     suspend fun addTripFisherman(
@@ -226,12 +225,12 @@ class TripRepository(
         )
 
         if (onTrip) {
-            eventDao.addEventFisherman(
+            fishermanDao.addEventFisherman(
                 eventId = eventId,
                 fishermanId = fishermanId,
                 tackleBoxId = tackleBoxId)
         } else {
-            eventDao.addFishermanToEventAndTrip(
+            fishermanDao.addFishermanToEventAndTrip(
                 tripId = tripId,
                 eventId = eventId,
                 fishermanId = fishermanId,
@@ -259,7 +258,7 @@ class TripRepository(
     }
 
     suspend fun deleteEventFisherman(crossRef: EventFisherman) {
-        eventDao.deleteEventFishermanCrossRef(crossRef.toEntity())
+        fishermanDao.deleteEventFisherman(crossRef.toEntity())
     }
 
     // Target Species

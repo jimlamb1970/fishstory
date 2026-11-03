@@ -25,6 +25,7 @@ import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 class FishermanRepository(
     private val fishermanDao: FishermanDao,
@@ -54,23 +55,33 @@ class FishermanRepository(
         return tackleBoxDao.getTackleBoxLuresForEvent(eventId)
             .map { list -> list.toTackleBoxLureDomainList() }
     }
-    suspend fun findOrCreateFisherman(fisherman: Fisherman): InsertResult<Fisherman> {
-        val existing = fishermanDao.getFishermanById(fisherman.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateFisherman(item: Fisherman): InsertResult<Fisherman> {
+        // Check for existing ID and equality
+        val existingId = fishermanDao.getFishermanById(item.id)
+        return if ((existingId != null) && (existingId.equals(item))) {
+            InsertResult(existingId.toDomain(), false)
         } else {
-            val existing = fishermanDao.getFishermanByName(
-                first = fisherman.firstName,
-                last = fisherman.lastName,
-                nickname = fisherman.nickname)
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Check for existing name and equality
+            val existingData = fishermanDao.getFishermanByName(
+                first = item.firstName,
+                last = item.lastName,
+                nickname = item.nickname)
+            if ((existingData != null) && (existingData.equals(item))) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                fishermanDao.upsertFisherman(fisherman.toEntity())
-                InsertResult(fisherman, true)
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    addFisherman(newObject)
+                    InsertResult(newObject, true)
+                } else {
+                    addFisherman(item)
+                    InsertResult(item, true)
+                }
             }
         }
     }
+
     suspend fun findOrCreateTackleBox(tackleBox: TackleBox): InsertResult<TackleBox> {
         val existing = tackleBoxDao.getTackleBoxById(tackleBox.id)
         return if (existing != null) {
