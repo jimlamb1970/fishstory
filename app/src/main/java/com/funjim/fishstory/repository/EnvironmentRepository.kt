@@ -25,6 +25,7 @@ import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import kotlin.collections.map
 
 class EnvironmentRepository(
@@ -74,14 +75,14 @@ class EnvironmentRepository(
         crossRef: TripBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.insertBodyOfWaterForTrip(crossRef.toEntity())
+            bodyOfWaterDao.upsertBodyOfWaterForTrip(crossRef.toEntity())
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
                 if (eventIds.isNotEmpty()) {
                     val crossRefs = eventIds.map { eventId ->
                         EventBodyOfWater(eventId = eventId, bodyOfWaterId = crossRef.bodyOfWaterId)
                     }
-                    bodyOfWaterDao.insertBodyOfWaterForEvents(crossRefs.toEventBodyOfWaterEntityList())
+                    bodyOfWaterDao.upsertBodyOfWaterForEvents(crossRefs.toEventBodyOfWaterEntityList())
                 }
             }
         }
@@ -97,10 +98,10 @@ class EnvironmentRepository(
         crossRef: EventBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.insertBodyOfWaterForEvent(crossRef.toEntity())
+            bodyOfWaterDao.upsertBodyOfWaterForEvent(crossRef.toEntity())
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
-                bodyOfWaterDao.insertBodyOfWaterForTrip(
+                bodyOfWaterDao.upsertBodyOfWaterForTrip(
                     TripBodyOfWaterEntity(
                         tripId = tripId,
                         bodyOfWaterId = crossRef.bodyOfWaterId
@@ -117,13 +118,26 @@ class EnvironmentRepository(
     fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWater>> {
         return bodyOfWaterDao.getEventBodiesOfWaterForEvent(eventId).map { list -> list.toEventBodyOfWaterDomainList() }
     }
-    suspend fun findOrCreateBodyOfWater(bodyOfWater: BodyOfWater): InsertResult<BodyOfWater> {
-        val existing = bodyOfWaterDao.getBodyOfWaterByName(bodyOfWater.name)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
+    suspend fun findOrCreateBodyOfWater(item: BodyOfWater): InsertResult<BodyOfWater> {
+        // Check for existing ID and equality
+        val existingId = bodyOfWaterDao.getBodyOfWaterById(item.id)
+        return if ((existingId != null) && (existingId.equals(item))) {
+            InsertResult(existingId.toDomain(), false)
         } else {
-            updateBodyOfWater(bodyOfWater)
-            InsertResult(bodyOfWater, true)
+            // Check for existing name and equality
+            val existingData = bodyOfWaterDao.getBodyOfWaterByName(item.name)
+            if ((existingData != null) && (existingData.equals(item))) {
+                InsertResult(existingData.toDomain(), false)
+            } else {
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newObject = item.copy(id = UUID.randomUUID().toString())
+                    addBodyOfWater(newObject)
+                    InsertResult(newObject, true)
+                } else {
+                    InsertResult(item, true)
+                }
+            }
         }
     }
     suspend fun findOrCreateSkyCondition(skyCondition: SkyCondition): InsertResult<SkyCondition> {

@@ -14,28 +14,47 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BodyOfWaterDao {
-    @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
-    fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>
-    @Query("DELETE FROM body_of_water_table")
-    suspend fun deleteAllBodiesOfWater()
-
+    // CRUD operations for Body Of Water
     @Delete
     suspend fun deleteBodyOfWater(bodyOfWater: BodyOfWaterEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertBodyOfWater(bodyOfWater: BodyOfWaterEntity)
     @Update
     suspend fun updateBodyOfWater(bodyOfWater: BodyOfWaterEntity)
+    @Query("DELETE FROM body_of_water_table")
+    suspend fun deleteAllBodiesOfWater()
 
-    @Query("SELECT * FROM body_of_water_table WHERE id = :id")
-    fun getBodyOfWater (id: String): Flow<BodyOfWaterEntity?>
-    @Query("SELECT * FROM body_of_water_table WHERE name = :name LIMIT 1")
-    suspend fun getBodyOfWaterByName(name: String): BodyOfWaterEntity?
-
-    @Query("SELECT * FROM trip_body_of_water")
-    fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>
+    // CRUD operations for Body Of Water-Trip Cross-References
+    @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
+    suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String)
+    @Upsert
+    suspend fun upsertBodyOfWaterForTrip(crossRef: TripBodyOfWaterEntity)
     @Query("DELETE FROM trip_body_of_water")
     suspend fun deleteAllTripBodiesOfWater()
 
+    // CRUD operations for Body Of Water-Event Cross-References
+    @Query("DELETE FROM event_body_of_water WHERE eventId = :eventId AND bodyOfWaterId = :bodyOfWaterId")
+    suspend fun deleteBodyOfWaterForEvent(eventId: String, bodyOfWaterId: String)
+    @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
+    suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
+    @Upsert
+    suspend fun upsertBodyOfWaterForEvent(crossRef: EventBodyOfWaterEntity)
+    @Upsert
+    suspend fun upsertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWaterEntity>)
+    @Query("DELETE FROM event_body_of_water")
+    suspend fun deleteAllEventBodiesOfWater()
+
+    // Single object Body of Water queries
+    @Query("SELECT * FROM body_of_water_table WHERE id = :id")
+    fun getBodyOfWater (id: String): Flow<BodyOfWaterEntity?>
+    @Query("SELECT * FROM body_of_water_table WHERE id = :id LIMIT 1")
+    suspend fun getBodyOfWaterById(id: String): BodyOfWaterEntity?
+    @Query("SELECT * FROM body_of_water_table WHERE name = :name LIMIT 1")
+    suspend fun getBodyOfWaterByName(name: String): BodyOfWaterEntity?
+
+    // Multiple object Body of Water queries
+    @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
+    fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN trip_body_of_water ON body_of_water_table.id = trip_body_of_water.bodyOfWaterId
@@ -44,16 +63,6 @@ interface BodyOfWaterDao {
         ORDER BY name ASC
         """)
     fun getBodiesOfWaterForTrip(tripId: String): Flow<List<BodyOfWaterEntity>>
-    @Upsert
-    suspend fun insertBodyOfWaterForTrip(crossRef: TripBodyOfWaterEntity)
-    @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String)
-
-    @Query("SELECT * FROM event_body_of_water")
-    fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
-    @Query("DELETE FROM event_body_of_water")
-    suspend fun deleteAllEventBodiesOfWater()
-
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
@@ -66,11 +75,6 @@ interface BodyOfWaterDao {
     """)
     fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
     @Query("""
-        SELECT event_body_of_water.* FROM event_body_of_water WHERE eventId = :eventId
-    """)
-    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWaterEntity>>
-
-    @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
         WHERE event_body_of_water.eventId = :eventId
@@ -78,15 +82,20 @@ interface BodyOfWaterDao {
         ORDER BY name ASC
         """)
     fun getBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
-    @Upsert
-    suspend fun insertBodyOfWaterForEvent(crossRef: EventBodyOfWaterEntity)
-    @Upsert
-    suspend fun insertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWaterEntity>)
-    @Query("DELETE FROM event_body_of_water WHERE eventId = :eventId AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteBodyOfWaterForEvent(eventId: String, bodyOfWaterId: String)
-    @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
-    suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
 
+    // Multiple object Body of Water-Trip Cross-References queries
+    @Query("SELECT * FROM trip_body_of_water")
+    fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>
+
+    // Multiple object Body of Water-Event Cross-References queries
+    @Query("SELECT * FROM event_body_of_water")
+    fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
+    @Query("""
+        SELECT event_body_of_water.* FROM event_body_of_water WHERE eventId = :eventId
+    """)
+    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWaterEntity>>
+
+    // Specialized queries
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table 
         INNER JOIN fish_table ON body_of_water_table.id = fish_table.bodyOfWaterId  
