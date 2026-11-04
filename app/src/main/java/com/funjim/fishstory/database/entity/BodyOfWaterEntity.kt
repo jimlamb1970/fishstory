@@ -9,13 +9,18 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-@Entity(tableName = "body_of_water_table")
+@Entity(
+    tableName = "body_of_water_table",
+    indices = [
+        Index(value = ["name", "latitude", "longitude"], unique = true)
+    ]
+)
 data class BodyOfWaterEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val latitude: Double? = null,
-    val longitude: Double? = null
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
 @Serializable

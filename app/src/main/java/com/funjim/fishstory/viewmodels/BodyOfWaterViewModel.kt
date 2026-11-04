@@ -1,5 +1,6 @@
 package com.funjim.fishstory.viewmodels
 
+import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -11,8 +12,10 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,6 +26,9 @@ class BodyOfWaterViewModel(
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
     val appSettings: StateFlow<AppSettings> = configRepo.appSettings
         .stateIn(
             scope = viewModelScope,
@@ -44,15 +50,37 @@ class BodyOfWaterViewModel(
             initialValue = emptyList()
         )
 
-    fun addBodyOfWater(bodyOfWater: BodyOfWater) {
+    fun addBodyOfWater(
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
         viewModelScope.launch {
-            envRepo.addBodyOfWater(bodyOfWater)
+            try {
+                envRepo.addBodyOfWater(item)
+                onSuccess(item)
+            } catch (_: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Body of Water '${item.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding body of water.")
+            }
         }
     }
 
-    fun updateBodyOfWater(bodyOfWater: BodyOfWater) {
+    fun updateBodyOfWater(
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
         viewModelScope.launch {
-            envRepo.updateBodyOfWater(bodyOfWater)
+            try {
+            envRepo.updateBodyOfWater(item)
+                onSuccess(item)
+            } catch (_: SQLiteConstraintException) {
+                // Catches duplicate UNIQUE constraint failures
+                _toastMessage.emit("Body of Water '${item.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding body of water.")
+            }
         }
     }
 

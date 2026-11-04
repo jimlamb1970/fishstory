@@ -86,10 +86,10 @@ class AddTripViewModel(
             try {
                 envRepo.addBodyOfWater(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Body of Water '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding body of water.")
             }
         }

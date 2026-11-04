@@ -49,6 +49,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,8 @@ fun ManageBodiesOfWaterScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<BodyOfWater?>(null) }
+
+    var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var currentItemForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
@@ -110,6 +113,12 @@ fun ManageBodiesOfWaterScreen(
 
     val showAddButton = searchQuery.isNotBlank() &&
                 allItems.none { it.bodyOfWater.name.equals(searchQuery.trim(), ignoreCase = true) }
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -177,7 +186,9 @@ fun ManageBodiesOfWaterScreen(
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addBodyOfWater(BodyOfWater(name = searchQuery.trim()))
+                            viewModel.addBodyOfWater(BodyOfWater(name = searchQuery.trim())) {
+                                // Do nothing on success
+                            }
                             searchQuery = ""
                         }) {
                             Icon(
@@ -316,6 +327,7 @@ fun ManageBodiesOfWaterScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item.bodyOfWater
+                                            showEditDialog = true
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -415,22 +427,28 @@ This cannot be undone."""
 
     if (addItem) {
         AddBodyOfWaterDialog(
-            onDismiss = { addItem = false },
+            onDismiss = { addItem = !addItem },
             onConfirm = { name ->
-                viewModel.addBodyOfWater(BodyOfWater(name = name))
-                addItem = false
+                viewModel.addBodyOfWater(BodyOfWater(name = name)) {
+                    // Do nothing on success
+                }
+                addItem = !addItem
             }
         )
     }
 
-    itemToEdit?.let { item ->
-        EditBodyOfWaterDialog(
-            item = item,
-            onDismiss = { itemToEdit = null },
-            onConfirm = { item ->
-                viewModel.updateBodyOfWater(item)
-                itemToEdit = null
-            }
-        )
+    if (showEditDialog) {
+        itemToEdit?.let { item ->
+            EditBodyOfWaterDialog(
+                item = item,
+                onDismiss = { showEditDialog = !showEditDialog },
+                onConfirm = { item ->
+                    viewModel.updateBodyOfWater(item) {
+                        // Do nothing on success
+                    }
+                    showEditDialog = !showEditDialog
+                }
+            )
+        }
     }
 }

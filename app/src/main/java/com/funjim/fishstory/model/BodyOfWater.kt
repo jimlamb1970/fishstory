@@ -7,8 +7,8 @@ import java.util.UUID
 data class BodyOfWater(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val latitude: Double? = null,
-    val longitude: Double? = null
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
