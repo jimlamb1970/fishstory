@@ -148,8 +148,20 @@ class FishermanDetailsViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-    fun createTackleBox(tackleBox: TackleBox) {
-        viewModelScope.launch { repository.createTackleBox(tackleBox) }
+    fun createTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.insertTackleBox(tackleBox)
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
+        }
     }
 
     fun deleteTackleBox(tackleBox: TackleBox) {

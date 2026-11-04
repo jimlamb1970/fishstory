@@ -296,11 +296,17 @@ class AddTripViewModel(
 
     fun createTackleBox(
         tackleBox: TackleBox,
-        onSuccess: (TackleBox) -> Unit = {}
+        onSuccess: (TackleBox) -> Unit
     ) {
         viewModelScope.launch {
-            fishermanRepo.createTackleBox(tackleBox)
-            onSuccess(tackleBox)
+            try {
+                fishermanRepo.insertTackleBox(tackleBox)
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
         }
     }
 

@@ -1036,7 +1036,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     showFishermanSelection = true
                                                 },
                                                 onAddTackleBox = { tackleBox ->
-                                                    viewModel.createAndAssignTackleBox(tackleBox)
+                                                    viewModel.createAndAssignTackleBox(tackleBox) {
+                                                        // Do nothing on success
+                                                    }
                                                 },
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)

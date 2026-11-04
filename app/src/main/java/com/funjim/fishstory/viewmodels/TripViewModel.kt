@@ -707,23 +707,43 @@ class TripViewModel(
         }
     }
 
-    fun insertTackleBox(tackleBox: TackleBox) {
+    fun insertTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
         viewModelScope.launch {
-            fishermanRepo.insertTackleBox(tackleBox)
+            try {
+                fishermanRepo.insertTackleBox(tackleBox)
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
         }
     }
 
-    fun createAndAssignTackleBox(tackleBox: TackleBox) {
+    fun createAndAssignTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
-            fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.upsertTripFisherman(
-                TripFisherman(
-                    tripId,
-                    tackleBox.fishermanId,
-                    tackleBox.id
+            try {
+                fishermanRepo.insertTackleBox(tackleBox)
+                tripRepo.upsertTripFisherman(
+                    TripFisherman(
+                        tripId,
+                        tackleBox.fishermanId,
+                        tackleBox.id
+                    )
                 )
-            )
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
         }
     }
 

@@ -676,8 +676,9 @@ Tackle boxes and fish (${details.totalFishCaught}) logged for ${details.fisherma
             fishermanId = fishermanId,
             onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
             onConfirm = { tackleBox ->
-                viewModel.createTackleBox(tackleBox)
-                showAddTackleBoxDialog = !showAddTackleBoxDialog
+                viewModel.createTackleBox(tackleBox) {
+                    showAddTackleBoxDialog = !showAddTackleBoxDialog
+                }
             }
         )
     }

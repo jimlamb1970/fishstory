@@ -150,7 +150,6 @@ class FishermanRepository(
 
     suspend fun addFisherman(fisherman: Fisherman) {
         fishermanDao.insertFisherman(fisherman.toEntity())
-        // Automatic Tackle Box creation
         val existing = tackleBoxDao.getExistingTackleBoxForFisherman(fisherman.id)
         if (existing == null) {
             tackleBoxDao.insertTackleBox(

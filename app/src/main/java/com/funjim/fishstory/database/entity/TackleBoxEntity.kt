@@ -21,7 +21,9 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["fishermanId"])]
+    indices = [
+        Index(value = ["name", "fishermanId"], unique = true)
+    ]
 )
 data class TackleBoxEntity(
     @PrimaryKey

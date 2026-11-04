@@ -19,7 +19,7 @@ interface TackleBoxDao {
     // CRUD operations
     @Delete
     suspend fun deleteTackleBox(tackleBox: TackleBoxEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertTackleBox(tackleBox: TackleBoxEntity)
     @Update
     suspend fun updateTackleBox(tackleBox: TackleBoxEntity)

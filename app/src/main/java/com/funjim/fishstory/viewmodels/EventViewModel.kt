@@ -685,17 +685,27 @@ class EventViewModel(
         }
     }
 
-    fun createAndAssignTackleBox(tackleBox: TackleBox) {
+    fun createAndAssignTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
-            fishermanRepo.insertTackleBox(tackleBox)
-            tripRepo.updateEventFisherman(
-                EventFisherman(
-                    eventId,
-                    tackleBox.fishermanId,
-                    tackleBox.id
+            try {
+                fishermanRepo.insertTackleBox(tackleBox)
+                tripRepo.updateEventFisherman(
+                    EventFisherman(
+                        eventId,
+                        tackleBox.fishermanId,
+                        tackleBox.id
+                    )
                 )
-            )
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
         }
     }
 
@@ -764,9 +774,19 @@ class EventViewModel(
         _eventCrewOverride.value = override
     }
 
-    fun insertTackleBox(tackleBox: TackleBox) {
+    fun insertTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
         viewModelScope.launch {
-            fishermanRepo.insertTackleBox(tackleBox)
+            try {
+                fishermanRepo.insertTackleBox(tackleBox)
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while adding tackle box.")
+            }
         }
     }
 

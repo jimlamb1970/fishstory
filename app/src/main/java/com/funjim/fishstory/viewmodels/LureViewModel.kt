@@ -237,9 +237,19 @@ class LureViewModel(
         _selectedTackleBoxId.value = id
     }
 
-    fun updateTackleBox(tackleBox: TackleBox) {
+    fun updateTackleBox(
+        tackleBox: TackleBox,
+        onSuccess: (TackleBox) -> Unit
+    ) {
         viewModelScope.launch {
-            lureRepo.updateTackleBox(tackleBox)
+            try {
+                lureRepo.updateTackleBox(tackleBox)
+                onSuccess(tackleBox)
+            } catch (_: SQLiteConstraintException) {
+                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
+            } catch (_: Exception) {
+                _toastMessage.emit("An error occurred while updating tackle box.")
+            }
         }
     }
 

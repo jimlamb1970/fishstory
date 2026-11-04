@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui.screens
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -31,6 +32,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,9 +74,17 @@ fun FishermanTackleBoxScreen(
     onEdit: (String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(fishermanId) {
         viewModel.selectFisherman(fishermanId)
         viewModel.selectTackleBox(tackleBoxId)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
@@ -486,14 +496,18 @@ If you delete a tackle box, you may not be able to select a lure when logging a 
             )
         }
     }
-    if (showRenameDialog && (tackleBox != null)) {
-        EditTackleBoxDialog(
-            item = tackleBox!!,
-            onConfirm = {
-                showRenameDialog = !showRenameDialog
-                viewModel.updateTackleBox(it) },
-            onDismiss = { showRenameDialog = !showRenameDialog }
-        )
+    if (showRenameDialog) {
+        tackleBox?.let { tackleBox ->
+            EditTackleBoxDialog(
+                item = tackleBox,
+                onConfirm = {
+                    viewModel.updateTackleBox(it) {
+                        showRenameDialog = !showRenameDialog
+                    }
+                },
+                onDismiss = { showRenameDialog = !showRenameDialog }
+            )
+        }
     }
 }
 

@@ -165,8 +165,9 @@ fun SelectTripCrewScreen(
                             fishermanId = fishermanId,
                             name = tackleBoxName
                         )
-                    )
-                    workingTackleBoxMap[fishermanId] = boxId
+                    ) {
+                        workingTackleBoxMap[fishermanId] = boxId
+                    }
                 }
             )
         }
