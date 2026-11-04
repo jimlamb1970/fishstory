@@ -1891,7 +1891,7 @@ Selecting them places those species at the top of the list when logging catches 
                         if ((summary.fishCaught > 0) || (summary.eventCount > 0))
                             """There ${if (summary.fishCaught == 1) "is" else "are"} currently ${summary.fishCaught} fish associated with this trip.
                         |
-                        |There ${if (summary.eventCount == 1) "is" else "are"} currently ${summary.eventCount} event associated with this trip
+                        |There ${if (summary.eventCount == 1) "is" else "are"} currently ${summary.eventCount} ${if (summary.eventCount == 1) "event" else "events"} associated with this trip
                         |
                         |Deleting this trip will delete all fish and events associated with it. 
                         |

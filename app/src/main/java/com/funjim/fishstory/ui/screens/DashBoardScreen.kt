@@ -494,7 +494,7 @@ fun DashboardScreen(
                 if ((item.fishCaught > 0) || (item.eventCount > 0))
                     """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
                         |
-                        |There ${if (item.eventCount == 1) "is" else "are"} currently ${item.eventCount} event associated with this trip
+                        |There ${if (item.eventCount == 1) "is" else "are"} currently ${item.eventCount} ${if (item.eventCount == 1) "event" else "events"} associated with this trip
                         |
                         |Deleting this trip will delete all fish and events associated with it. 
                         |
