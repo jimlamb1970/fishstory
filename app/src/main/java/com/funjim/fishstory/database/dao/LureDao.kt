@@ -212,6 +212,10 @@ interface LureDao {
     fun getLureWithColors(lureId: String): Flow<LureEntityWithColors?>
     @Transaction
     @Query("SELECT * FROM lure_table WHERE id = :lureId")
+    suspend fun getLureWithColorsById(lureId: String): LureEntityWithColors?
+
+    @Transaction
+    @Query("SELECT * FROM lure_table WHERE id = :lureId")
     suspend fun getLureWithDetails(lureId: String): LureEntityWithDetails?
     @Transaction
     @Query("SELECT * FROM lure_table WHERE id = :lureId")

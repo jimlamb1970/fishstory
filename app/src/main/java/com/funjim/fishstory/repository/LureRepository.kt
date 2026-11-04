@@ -98,47 +98,78 @@ class LureRepository(
         }
     }
     suspend fun findOrCreateLure(
-        lure: Lure,
+        item: Lure,
         primaryColors: List<String>,
         secondaryColors: List<String>,
         glowColors: List<String>): InsertResult<Lure> {
-        val existing = lureDao.getLureById(lure.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
-        } else {
-            val sortedPrimaryColors = primaryColors.sorted().joinToString(",")
-            val sortedSecondaryColors = secondaryColors.sorted().joinToString(",")
-            val sortedGlowColors = glowColors.sorted().joinToString(",")
+        val sortedPrimaryColors = primaryColors.sorted().joinToString(",")
+        val sortedSecondaryColors = secondaryColors.sorted().joinToString(",")
+        val sortedGlowColors = glowColors.sorted().joinToString(",")
 
-            val existing = lureDao.getLureByData(
-                lure.name,
-                lure.hookCount,
-                lure.glows,
+        // Check for existing ID and equality
+        val existingId = lureDao.getLureWithColorsById(item.id)
+        return if ((existingId != null) &&
+            (existingId.toDomain().equals(
+                item,
+                sortedPrimaryColors,
+                sortedSecondaryColors,
+                sortedGlowColors))
+        ) {
+            InsertResult(item, false)
+        } else {
+            // Check for existing data and equality
+            val existingData = lureDao.getLureByData(
+                item.name,
+                item.hookCount,
+                item.glows,
                 sortedPrimaryColors,
                 sortedSecondaryColors,
                 sortedGlowColors
             )
-            if (existing != null) {
-                InsertResult(existing.toDomain(), false)
+            // Unlike other 'findOrCreate' functions, this one is not verifying that the items
+            // are equal.  In this case, relying entirely on the DAO to check for equality
+            if (existingData != null) {
+                InsertResult(existingData.toDomain(), false)
             } else {
-                lureDao.upsertLure(lure.toEntity())
-                deleteLureColors(lure.id)
-                primaryColors.forEach { primaryColor ->
-                    upsertLurePrimaryColor(
-                        LurePrimaryColor(lure.id, primaryColor)
-                    )
+                // Determine if existing ID be used or if a new one needed
+                if (existingId != null) {
+                    val newItem = item.copy(id = UUID.randomUUID().toString())
+                    lureDao.upsertLure(newItem.toEntity())
+                    primaryColors.forEach { primaryColor ->
+                        upsertLurePrimaryColor(
+                            LurePrimaryColor(newItem.id, primaryColor)
+                        )
+                    }
+                    secondaryColors.forEach { secondaryColor ->
+                        upsertLureSecondaryColor(
+                            LureSecondaryColor(newItem.id, secondaryColor)
+                        )
+                    }
+                    glowColors.forEach { glowColor ->
+                        upsertLureGlowColor(
+                            LureGlowColor(newItem.id, glowColor)
+                        )
+                    }
+                    InsertResult(newItem, true)
+                } else {
+                    lureDao.upsertLure(item.toEntity())
+                    primaryColors.forEach { primaryColor ->
+                        upsertLurePrimaryColor(
+                            LurePrimaryColor(item.id, primaryColor)
+                        )
+                    }
+                    secondaryColors.forEach { secondaryColor ->
+                        upsertLureSecondaryColor(
+                            LureSecondaryColor(item.id, secondaryColor)
+                        )
+                    }
+                    glowColors.forEach { glowColor ->
+                        upsertLureGlowColor(
+                            LureGlowColor(item.id, glowColor)
+                        )
+                    }
+                    InsertResult(item, true)
                 }
-                secondaryColors.forEach { secondaryColor ->
-                    upsertLureSecondaryColor(
-                        LureSecondaryColor(lure.id, secondaryColor)
-                    )
-                }
-                glowColors.forEach { glowColor ->
-                    upsertLureGlowColor(
-                        LureGlowColor(lure.id, glowColor)
-                    )
-                }
-                InsertResult(lure, true)
             }
         }
     }

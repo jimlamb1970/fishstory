@@ -175,16 +175,6 @@ class TripRepository(
     }
 
     // Event Operations
-    suspend fun findOrCreateEvent(event: Event): InsertResult<Event> {
-        val existing = eventDao.getEventById(event.id)
-        return if (existing != null) {
-            InsertResult(existing.toDomain(), false)
-        } else {
-            upsertEvent(event)
-            InsertResult(event, true)
-        }
-    }
-
     suspend fun upsertEvent(event: Event) {
         eventDao.upsertEvent(event.toEntity())
     }

@@ -17,7 +17,7 @@ data class LureColor(
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + (hexCode?.hashCode() ?: 0)
+        result = 31 * result + hexCode.hashCode()
         return result
     }
 }
@@ -31,12 +31,20 @@ data class Lure(
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 ) {
-    fun getDisplayName(): String {
-        val sb = StringBuilder(name)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Lure) return false
+        return this.name == other.name &&
+                this.hookCount == other.hookCount &&
+                this.glows == other.glows
+    }
 
-        sb.append(" : Need to fix for colors")
-
-        return sb.toString()
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + hookCount
+        result = 31 * result + glows.hashCode()
+        return result
     }
 }
 
@@ -58,17 +66,39 @@ data class LureGlowColor(
     val colorId: String  // Maps to color
 )
 
-data class LureWithPhotos(
-    val lure: Lure,
-    val photos: List<Photo>
-)
-
 data class LureWithColors(
     val lure: Lure,
     val primaryColors: List<LureColor>,
     val secondaryColors: List<LureColor>,
     val glowColors: List<LureColor>
-)
+) {
+    fun equals(other: Any?,
+               primaryColors: String,
+               secondaryColors: String,
+               glowColors: String
+    ): Boolean {
+        if (this === other) return true
+        if (other !is LureWithColors) return false
+
+        val sortedPrimaryColors: String = this.primaryColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+        val sortedSecondaryColors: String = this.secondaryColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+        val sortedGlowColors: String = this.glowColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+
+        return this.lure == other.lure &&
+                sortedPrimaryColors == primaryColors &&
+                sortedSecondaryColors == secondaryColors &&
+                sortedGlowColors == glowColors
+    }
+}
 
 data class LureWithDetails(
     val lure: Lure,

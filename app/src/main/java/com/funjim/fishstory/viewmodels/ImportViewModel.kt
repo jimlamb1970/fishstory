@@ -2,6 +2,7 @@ package com.funjim.fishstory.viewmodels
 
 import android.content.Context
 import android.net.Uri
+import androidx.collection.emptyLongSet
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +52,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.InputStream
+import kotlin.math.max
+import kotlin.math.min
 
 sealed interface ImportConflict {
     data class ExistingEvent(
@@ -145,10 +148,15 @@ class ImportViewModel(
         val waterMap = mutableMapOf<String, String>()
         val weatherMap = mutableMapOf<String, String>()
 
-        // Map not needed for Trip
+        // Trip is just a 'stub' but need to make sure that if a trip already exists,
+        // that its dates are updated to cover the event.
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
-        // Map not needed for Event
-        val eventResult = tripRepo.findOrCreateEvent(exportData.event)
+        val startTime = min(tripResult.item.startDate, exportData.event.startTime)
+        val endTime = max(tripResult.item.endDate, exportData.event.endTime)
+        tripRepo.upsertTrip(tripResult.item.copy(startDate = startTime, endDate = endTime))
+
+        // Always update the event
+        tripRepo.upsertEvent(exportData.event)
 
         // Import and keep track of new/existing id
         // When adding bait to event, use the mapped id
