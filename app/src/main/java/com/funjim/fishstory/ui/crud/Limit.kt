@@ -90,6 +90,33 @@ fun LimitDialog(
 
     val isValid = selectedSpecies.isNotEmpty() && countText.isNotEmpty() && name.isNotEmpty()
 
+    val hasChanged = if (isEditing && limitToEdit != null) {
+        val countVal = countText.toIntOrNull() ?: 0
+        val activeLowerSize =
+            if (selectedType == LimitType.MIN_SIZE || selectedType == LimitType.SLOT_LIMIT)
+                lowerSize
+            else
+                null
+        val activeUpperSize =
+            if (selectedType == LimitType.MAX_SIZE ||
+                selectedType == LimitType.SLOT_LIMIT ||
+                selectedType == LimitType.TROPHY_LIMIT)
+                upperSize
+            else
+                null
+
+        name.trimEnd() != limitToEdit.name ||
+                selectedType != limitToEdit.type ||
+                selectedSpecies != limitToEdit.species ||
+                countVal != limitToEdit.count ||
+                activeLowerSize != limitToEdit.lowerSize ||
+                lowerInclusive != limitToEdit.lowerInclusive ||
+                activeUpperSize != limitToEdit.upperSize ||
+                upperInclusive != limitToEdit.upperInclusive
+    } else {
+        true
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (isEditing) "Edit Limit" else "Add Limit") },
@@ -321,7 +348,7 @@ fun LimitDialog(
 
                     onConfirm(limit)
                 },
-                enabled = isValid
+                enabled = isValid && hasChanged
             ) {
                 Text(if (isEditing) "Update" else "Save")
             }
