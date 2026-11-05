@@ -50,6 +50,7 @@ import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
 import com.funjim.fishstory.ui.sections.FishermanSummarySection
 import com.funjim.fishstory.ui.sections.SpeciesSummarySection
@@ -790,104 +791,104 @@ Selecting them places those species at the top of the list when logging catches 
                         }
                     }
                 }
-
-                if (showBodyOfWaterSelection) {
-                    BodyOfWaterSelection(
-                        items = allBodiesOfWater,
-                        selectedItems = bodiesOfWater,
-                        onSelected = { selected ->
-                            viewModel.updateEventBodiesOfWater(bodiesOfWater + selected)
-                        },
-                        onUnselected = { unselected ->
-                            viewModel.updateEventBodiesOfWater(bodiesOfWater - unselected)
-                        },
-                        onAdd = {
-                            addNewBodyOfWater = true
-                        },
-                        onDone = { showBodyOfWaterSelection = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { item ->
-                            val thumbnailFlow = remember(item.id) {
-                                viewModel.getBodyOfWaterThumbnail(item.id)
-                            }
-
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.BodyOfWater,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-                if (showFishermanSelection) {
-                    val sorted = allFishermen.sortedBy { it.fullName }
-                    FishermanSelection(
-                        items = sorted,
-                        selectedItems = eventFishermen,
-                        onSelected = { selected->
-                            viewModel.updateEventFishermen(eventFishermen + selected)
-                        },
-                        onUnselected = { unselected ->
-                            viewModel.updateEventFishermen(eventFishermen - unselected)
-                        },
-                        onAdd = {
-                            addNewFisherman = true
-                        },
-                        onDone = { showFishermanSelection = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { item ->
-                            val thumbnailFlow = remember(item.id) {
-                                viewModel.getFishermanThumbnail(item.id)
-                            }
-
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.Fisherman,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
-                if (showSpeciesSelection) {
-                    SpeciesSelection(
-                        items = allSpecies,
-                        selectedItems = targetSpecies,
-                        onSelected = { selectedSpecies ->
-                            viewModel.updateEventTargetSpecies(targetSpecies + selectedSpecies)
-                        },
-                        onUnselected = { selectedSpecies ->
-                            viewModel.updateEventTargetSpecies(targetSpecies - selectedSpecies)
-                        },
-                        onAdd = {
-                            addNewSpecies = true
-                        },
-                        onDone = { showSpeciesSelection = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        thumbnailProvider = { species ->
-                            val thumbnailFlow = remember(species.id) {
-                                viewModel.getSpeciesThumbnail(species.id)
-                            }
-
-                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                            ThumbnailBox(
-                                thumbnail = thumbnail,
-                                imageVector = AppIcons.Default.TargetFish,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    )
-                }
             }
         }
     }
 
+    if (showBodyOfWaterSelection) {
+        BodyOfWaterSelection(
+            items = allBodiesOfWater,
+            selectedItems = bodiesOfWater,
+            onSelected = { selected ->
+                viewModel.updateEventBodiesOfWater(bodiesOfWater + selected)
+            },
+            onUnselected = { unselected ->
+                viewModel.updateEventBodiesOfWater(bodiesOfWater - unselected)
+            },
+            onAdd = {
+                addNewBodyOfWater = true
+            },
+            onDone = { showBodyOfWaterSelection = !showBodyOfWaterSelection },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { item ->
+                val thumbnailFlow = remember(item.id) {
+                    viewModel.getBodyOfWaterThumbnail(item.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.BodyOfWater,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+    if (showFishermanSelection) {
+        val sorted = allFishermen.sortedBy { it.fullName }
+        FishermanSelection(
+            items = sorted,
+            selectedItems = eventFishermen,
+            onSelected = { selected->
+                viewModel.updateEventFishermen(eventFishermen + selected)
+            },
+            onUnselected = { unselected ->
+                viewModel.updateEventFishermen(eventFishermen - unselected)
+            },
+            onAdd = {
+                addNewFisherman = true
+            },
+            onDone = { showFishermanSelection = !showFishermanSelection },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { item ->
+                val thumbnailFlow = remember(item.id) {
+                    viewModel.getFishermanThumbnail(item.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.Fisherman,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+    if (showSpeciesSelection) {
+        SpeciesSelection(
+            items = allSpecies,
+            selectedItems = targetSpecies,
+            onSelected = { selectedSpecies ->
+                viewModel.updateEventTargetSpecies(targetSpecies + selectedSpecies)
+            },
+            onUnselected = { selectedSpecies ->
+                viewModel.updateEventTargetSpecies(targetSpecies - selectedSpecies)
+            },
+            onAdd = {
+                addNewSpecies = true
+            },
+            onDone = { showSpeciesSelection = !showSpeciesSelection },
+            modifier = Modifier.fillMaxWidth(),
+            thumbnailProvider = { species ->
+                val thumbnailFlow = remember(species.id) {
+                    viewModel.getSpeciesThumbnail(species.id)
+                }
+
+                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                ThumbnailBox(
+                    thumbnail = thumbnail,
+                    imageVector = AppIcons.Default.TargetFish,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        )
+    }
+
     if (addNewBodyOfWater) {
-        AddSpeciesDialog(
+        AddBodyOfWaterDialog(
             onDismiss = { addNewBodyOfWater = !addNewBodyOfWater },
             onConfirm = { name ->
                 viewModel.updateEventBodiesOfWater(BodyOfWater(name = name))
