@@ -55,6 +55,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -95,15 +96,19 @@ fun ManageColorsScreen(
     }
 
     val colorsList by viewModel.lureColors.collectAsStateWithLifecycle(initialValue = emptyList())
-    var addItem by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var colorToDelete by remember { mutableStateOf<LureColor?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var colorToEdit by remember { mutableStateOf<LureColor?>(null) }
 
+    var showPickColorDialog by remember { mutableStateOf(false) }
     var colorToPickFor by remember { mutableStateOf<LureColor?>(null) }
-    var pickMaxHexCodes by remember { mutableStateOf(1) } // Supports 1 or 4 hex values
+    var pickMaxHexCodes by remember { mutableIntStateOf(1) } // Supports 1 or 4 hex values
 
+    var showPendingNewColorName by remember { mutableStateOf(false) }
     var pendingNewColorName by remember { mutableStateOf<String?>(null) }
 
     val filteredColors = remember(searchQuery, colorsList) {
@@ -143,7 +148,7 @@ fun ManageColorsScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { addItem = true }) {
+                    IconButton(onClick = { showAddDialog = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 AppIcons.Default.Palette,
@@ -181,6 +186,7 @@ fun ManageColorsScreen(
                     if (showAddButton) {
                         IconButton(onClick = {
                             pendingNewColorName = searchQuery.trim()
+                            showPendingNewColorName = true
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
@@ -233,7 +239,7 @@ fun ManageColorsScreen(
                                         }
                                     )
                                 ) {
-                                    if (item.hexCode.isNullOrBlank()) {
+                                    if (item.hexCode.isBlank()) {
                                         ThumbnailBox(
                                             thumbnail = null,
                                             imageVector = AppIcons.Default.Palette,
@@ -269,6 +275,7 @@ fun ManageColorsScreen(
                                                 thumbnailMenuExpanded = false
                                                 pickMaxHexCodes = 1
                                                 colorToPickFor = item
+                                                showPickColorDialog = true
                                             }
                                         )
                                         DropdownMenuItem(
@@ -277,26 +284,9 @@ fun ManageColorsScreen(
                                                 thumbnailMenuExpanded = false
                                                 pickMaxHexCodes = 4
                                                 colorToPickFor = item
+                                                showPickColorDialog = true
                                             }
                                         )
-                                        // Disable the clearing of the HEXCODE for the color
-                                        /*
-                                    if (!item.hexCode.isNullOrBlank()) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    "Clear Color(s)",
-                                                    color = MaterialTheme.colorScheme.error
-                                                )
-                                            },
-                                            onClick = {
-                                                thumbnailMenuExpanded = false
-                                                // Save out a null reference to clear
-                                                viewModel.upsertLureColor(item.copy(hexCode = null))
-                                            }
-                                        )
-                                    }
-*/
                                     }
                                 }
                             },
@@ -319,6 +309,7 @@ fun ManageColorsScreen(
                                             onClick = {
                                                 menuExpanded = false
                                                 colorToEdit = item
+                                                showEditDialog = true
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -330,9 +321,10 @@ fun ManageColorsScreen(
                                         DropdownMenuItem(
                                             text = { Text("Select Single Color") },
                                             onClick = {
-                                                thumbnailMenuExpanded = false
+                                                menuExpanded = false
                                                 pickMaxHexCodes = 1
                                                 colorToPickFor = item
+                                                showPickColorDialog = true
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -345,9 +337,10 @@ fun ManageColorsScreen(
                                         DropdownMenuItem(
                                             text = { Text("Select Multiple Colors (Up to 4)") },
                                             onClick = {
-                                                thumbnailMenuExpanded = false
+                                                menuExpanded = false
                                                 pickMaxHexCodes = 4
                                                 colorToPickFor = item
+                                                showPickColorDialog = true
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -357,32 +350,12 @@ fun ManageColorsScreen(
                                                 )
                                             }
                                         )
-// Disable the clearing of the HEXCODE for the color
-                                        /*
-                                    if (!item.hexCode.isNullOrBlank()) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    "Clear Color(s)",
-                                                    color = MaterialTheme.colorScheme.error
-                                                )
-                                            },
-                                            onClick = {
-                                                thumbnailMenuExpanded = false
-                                                // Save out a null reference to clear
-                                                viewModel.upsertLureColor(item.copy(hexCode = null))
-                                            },
-                                            leadingIcon = {
-                                                Icon(Icons.Default.Clear, contentDescription = "Edit")
-                                            }
-                                        )
-                                    }
-*/
                                         DropdownMenuItem(
                                             text = { Text("Delete") },
                                             onClick = {
                                                 menuExpanded = false
                                                 colorToDelete = item
+                                                showDeleteDialog = true
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -415,94 +388,103 @@ fun ManageColorsScreen(
     }
 
     // DELETE CONFIRMATION
-    colorToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { colorToDelete = null },
-            title = { Text("Delete Color?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+    if (showDeleteDialog) {
+        colorToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Color?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone.
 
 Lures that were using this color may not have a color assigned to them.
 """
-            ) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteLureColor(item)
-                        colorToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteLureColor(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = !showDeleteDialog }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { colorToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
-    if (addItem) {
+    if (showAddDialog) {
         AddColorDialog(
             onConfirm = {
                 pendingNewColorName = it
-                addItem = false
+                showAddDialog = !showAddDialog
+                showPendingNewColorName = true
             },
             onDismiss = {
                 pendingNewColorName = ""
-                addItem = false
+                showAddDialog = !showAddDialog
             }
         )
     }
 
     // EDIT DIALOG
-    colorToEdit?.let { item ->
-        EditColorDialog(
-            item = item,
-            onDismiss = { colorToEdit = null },
-            onConfirm = {
-                viewModel.updateLureColor(it) {
-                    // Do nothing on success
+    if (showEditDialog) {
+        colorToEdit?.let { item ->
+            EditColorDialog(
+                item = item,
+                onDismiss = { showEditDialog = !showEditDialog },
+                onConfirm = {
+                    viewModel.updateLureColor(it) {
+                        showEditDialog = !showEditDialog
+                    }
                 }
-                colorToEdit = null
-            }
-        )
+            )
+        }
     }
 
-    colorToPickFor?.let { item ->
-        AdvancedColorPickerDialog(
-            initialColor = item.hexCode,
-            maxAllowedColors = pickMaxHexCodes, // Tell picker if it allows multi-select
-            onDismiss = {
-                colorToPickFor = null
-            },
-            onConfirm = { finalizedCommaSeparatedString ->
-                viewModel.updateLureColor(item.copy(hexCode = finalizedCommaSeparatedString)) {
-                    // Do nothing on success
+    if (showPickColorDialog) {
+        colorToPickFor?.let { item ->
+            AdvancedColorPickerDialog(
+                initialColor = item.hexCode,
+                maxAllowedColors = pickMaxHexCodes, // Tell picker if it allows multi-select
+                onDismiss = {
+                    showPickColorDialog = !showPickColorDialog
+                },
+                onConfirm = { finalizedCommaSeparatedString ->
+                    viewModel.updateLureColor(item.copy(hexCode = finalizedCommaSeparatedString)) {
+                        showPickColorDialog = !showPickColorDialog
+                    }
                 }
-                colorToPickFor = null
-            }
-        )
+            )
+        }
     }
 
-    pendingNewColorName?.let { name ->
-        AdvancedColorPickerDialog(
-            initialColor = null,
-            maxAllowedColors = 1,
-            onDismiss = {
-                pendingNewColorName = null
-            },
-            onConfirm = { hexCode ->
-                viewModel.addLureColor(LureColor(name = name, hexCode = hexCode)) {
-                    // Do nothing on success
+    if (showPendingNewColorName) {
+        pendingNewColorName?.let { name ->
+            AdvancedColorPickerDialog(
+                initialColor = null,
+                maxAllowedColors = 1,
+                onDismiss = {
+                    showPendingNewColorName = !showPendingNewColorName
+                },
+                onConfirm = { hexCode ->
+                    viewModel.addLureColor(LureColor(name = name, hexCode = hexCode)) {
+                        showPendingNewColorName = !showPendingNewColorName
+                        searchQuery = ""
+                    }
                 }
-                pendingNewColorName = null
-                searchQuery = ""
-            }
-        )
+            )
+        }
     }
 }
 
@@ -512,7 +494,7 @@ fun MultiColorCirclePreview(hexList: List<String>) {
         hexList.map { hex ->
             try {
                 Color(hex.toColorInt())
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Color.Transparent
             }
         }
@@ -563,11 +545,11 @@ fun AdvancedColorPickerDialog(
         "#00FF00", // Lime Green
         "#FF69B4", // Hot Pink / Bubblegum
         "#FF00FF", // Magenta / Fuchsia
-        "#FF4500", // Orange (Firetiger Orange)
+        "#FF4500", // Orange (Fire-tiger Orange)
         "#FFCC00", // Bright Yellow
 
         // --- Natural & Forage Mimics ---
-        "#556B2F", // Green Pumpkin / Pumpkinseed
+        "#556B2F", // Green Pumpkin / Pumpkin seed
         "#708238", // Watermelon Green
         "#6B8E23", // Olive Drab
         "#4682B4", // Shad Blue / Tennessee Shad
@@ -576,7 +558,7 @@ fun AdvancedColorPickerDialog(
         "#990000", // Crawfish Red
         "#8B4513", // Saddle Brown
 
-        // --- Metallics & Flash ---
+        // --- Metallic & Flash ---
         "#C0C0C0", // Silver / Chrome
         "#FFD700", // Gold
         "#B87333", // Copper
@@ -644,7 +626,6 @@ fun AdvancedColorPickerDialog(
                                 .background(chipColor)
                                 .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                                 .clickable {
-                                    // Tap a badge to remove it if multi-mode is on
                                     if (selectedHexList.size > 1) {
                                         selectedHexList = selectedHexList.filter { it != hex }
                                         activeFieldInput = selectedHexList.last()
@@ -710,7 +691,11 @@ fun AdvancedColorPickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     val fallbackPreview = remember(activeFieldInput) {
-                        try { Color("#$activeFieldInput".toColorInt()) } catch (e: Exception) { Color.LightGray }
+                        try {
+                            Color("#$activeFieldInput".toColorInt())
+                        } catch (_: Exception) {
+                            Color.LightGray
+                        }
                     }
 
                     Box(
@@ -785,11 +770,11 @@ fun AdvancedColorPickerDialog(
         "#00FF00", // Lime Green
         "#FF69B4", // Hot Pink / Bubblegum
         "#FF00FF", // Magenta / Fuchsia
-        "#FF4500", // Orange (Firetiger Orange)
+        "#FF4500", // Orange (Fire tiger Orange)
         "#FFCC00", // Bright Yellow
 
         // --- Natural & Forage Mimics ---
-        "#556B2F", // Green Pumpkin / Pumpkinseed
+        "#556B2F", // Green Pumpkin / Pumpkin seed
         "#708238", // Watermelon Green
         "#6B8E23", // Olive Drab
         "#4682B4", // Shad Blue / Tennessee Shad
@@ -798,7 +783,7 @@ fun AdvancedColorPickerDialog(
         "#990000", // Crawfish Red
         "#8B4513", // Saddle Brown
 
-        // --- Metallics & Flash ---
+        // --- Metallic & Flash ---
         "#C0C0C0", // Silver / Chrome
         "#FFD700", // Gold
         "#B87333", // Copper
@@ -831,7 +816,7 @@ fun AdvancedColorPickerDialog(
         try {
             // Re-add the '#' safely to parse
             Color("#$hexInput".toColorInt())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Color.LightGray // Fallback if the user is mid-typing an invalid hex
         }
     }
@@ -858,7 +843,7 @@ fun AdvancedColorPickerDialog(
                     modifier = Modifier.height(100.dp) // Bound the grid height in the dialog
                 ) {
                     items(predefinedColors) { hex ->
-                        val itemColor = remember { Color(android.graphics.Color.parseColor(hex)) }
+                        val itemColor = remember { Color(hex.toColorInt()) }
                         Box(
                             modifier = Modifier
                                 .aspectRatio(1f)
