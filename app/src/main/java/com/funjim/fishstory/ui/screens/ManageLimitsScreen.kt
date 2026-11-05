@@ -79,7 +79,9 @@ fun ManageLimitsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<LimitWithSpecies?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
 
     LaunchedEffect(Unit) {
@@ -196,8 +198,14 @@ fun ManageLimitsScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                         },
-                        onEdit = { itemToEdit = item },
-                        onDelete = { itemToDelete = item },
+                        onEdit = {
+                            itemToEdit = item
+                            showEditDialog = true
+                        },
+                        onDelete = {
+                            itemToDelete = item
+                            showDeleteDialog = true
+                        },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
@@ -222,65 +230,77 @@ fun ManageLimitsScreen(
                     modifier = Modifier.size(size)
                 )
             },
-            onDismiss = { showAddDialog = false },
+            onDismiss = { showAddDialog = !showAddDialog },
             onConfirm = { limit ->
-                viewModel.addLimit(limit)
-                showAddDialog = false
+                viewModel.addLimit(limit) { success ->
+                    if (success) {
+                        showAddDialog = !showAddDialog
+                    }
+                }
             }
         )
     }
 
-    itemToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete Limit?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+    if (showDeleteDialog) {
+        itemToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Limit?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone."""
-            ) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteLimit(item)
-                        itemToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteLimit(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = !showDeleteDialog }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
-    itemToEdit?.let { item ->
-        LimitDialog(
-            limitToEdit = item,
-            useImperial = appSettings.display.useImperialUnits,
-            species = allSpecies,
-            speciesThumbnailProvider = { species, size ->
-                val thumbnailFlow = remember(species.id) {
-                    viewModel.getSpeciesThumbnail(species.id)
-                }
+    if (showEditDialog) {
+        itemToEdit?.let { item ->
+            LimitDialog(
+                limitToEdit = item,
+                useImperial = appSettings.display.useImperialUnits,
+                species = allSpecies,
+                speciesThumbnailProvider = { species, size ->
+                    val thumbnailFlow = remember(species.id) {
+                        viewModel.getSpeciesThumbnail(species.id)
+                    }
 
-                val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                    val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-                ThumbnailBox(
-                    thumbnail = thumbnail,
-                    imageVector = AppIcons.Default.LeapingFishWithFins,
-                    modifier = Modifier.size(size)
-                )
-            },
-            onConfirm = { limit ->
-                viewModel.addLimit(limit)
-                itemToEdit = null
-            },
-            onDismiss = { itemToEdit = null }
-        )
+                    ThumbnailBox(
+                        thumbnail = thumbnail,
+                        imageVector = AppIcons.Default.LeapingFishWithFins,
+                        modifier = Modifier.size(size)
+                    )
+                },
+                onConfirm = { limit ->
+                    viewModel.addLimit(limit) { success ->
+                        if (success) {
+                            showEditDialog = !showEditDialog
+                        }
+                    }
+                },
+                onDismiss = { showEditDialog = !showEditDialog }
+            )
+        }
     }
-
 }

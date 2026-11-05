@@ -149,6 +149,7 @@ fun EventDetailsScreen(
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     var showDeleteWeatherDialog by remember { mutableStateOf(false) }
 
+    var showEditLimitDialog by remember { mutableStateOf(false) }
     var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
@@ -1126,7 +1127,10 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 limitToDelete = limit
                                                 showDeleteLimitDialog = true
                                             },
-                                            onEdit = { limitToEdit = it },
+                                            onEdit = {
+                                                limitToEdit = it
+                                                showEditLimitDialog = true
+                                            },
                                             onToggleHelp = { viewModel.toggleHelp() }                                        )
                                     }
                                     CategoryType.NOTES -> {
@@ -1454,6 +1458,7 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
 
+            if (showEditLimitDialog) {
             limitToEdit?.let { limit ->
                 LimitDialog(
                     limitToEdit = limit,
@@ -1473,12 +1478,16 @@ Selecting them places those species at the top of the list when logging catches 
                         )
                     },
                     onConfirm = { limit ->
-                        viewModel.addLimit(limit)
-                        limitToEdit = null
+                        viewModel.addLimit(limit) { success ->
+                            if (success) {
+                                showEditLimitDialog = !showEditLimitDialog
+                            }
+                        }
                     },
-                    onDismiss = { limitToEdit = null }
+                    onDismiss = { showEditLimitDialog = !showEditLimitDialog }
                 )
             }
+                }
             noteToEdit?.let { note ->
                 EditNoteDialog(
                     item = note,
@@ -1772,10 +1781,14 @@ Selecting them places those species at the top of the list when logging catches 
                     modifier = Modifier.size(size)
                 )
             },
-            onDismiss = { showAddLimitDialog = false },
+            onDismiss = { showAddLimitDialog = !showAddLimitDialog },
             onConfirm = { limit ->
-                viewModel.addLimit(limit)
-                showAddLimitDialog = false
+                viewModel.addLimit(limit) { success ->
+                    if (success) {
+                        showAddLimitDialog = !showAddLimitDialog
+                    }
+                }
+                showAddLimitDialog = !showAddLimitDialog
             }
         )
     }

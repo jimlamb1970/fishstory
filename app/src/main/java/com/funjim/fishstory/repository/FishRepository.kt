@@ -108,6 +108,24 @@ class FishRepository(
         return fishDao.getLimitSpeciesForEvent(eventId)
             .map { list -> list.toLimitSpeciesDomainList() }
     }
+    suspend fun limitExists(item: LimitWithSpecies): Boolean {
+        val sortedSpecies = item.species
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+
+        val existingData = limitDao.getLimitByData(
+            name = item.name,
+            type = item.type,
+            count = item.count,
+            lowerSize = item.lowerSize,
+            lowerInclusive = item.lowerInclusive,
+            upperSize = item.upperSize,
+            upperInclusive = item.upperInclusive,
+            sortedSpecies)
+        return existingData != null
+    }
+
     suspend fun findOrCreateLimit(
         item: Limit,
         species: List<String>

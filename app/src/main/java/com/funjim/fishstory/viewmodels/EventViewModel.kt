@@ -537,15 +537,25 @@ class EventViewModel(
     }
 
     // Limit functions
-    fun addLimit(limit: LimitWithSpecies) {
+    fun addLimit(
+        limit: LimitWithSpecies,
+        onSuccess: (Boolean) -> Unit
+    ) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
-            fishRepo.addLimitToEvent(
-                eventId = eventId,
-                limit = limit
-            )
+            if (fishRepo.limitExists(limit)) {
+                onSuccess(false)
+                _toastMessage.emit("Limit '${limit.name}' already exists.")
+            } else {
+                fishRepo.addLimitToEvent(
+                    eventId = eventId,
+                    limit = limit
+                )
+                onSuccess(true)
+            }
         }
     }
+
     fun addLimitToEvent(limit: LimitWithSpecies) {
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {

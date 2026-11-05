@@ -591,16 +591,25 @@ class TripViewModel(
         }
     }
 
-    fun addLimit(limit: LimitWithSpecies) {
+    fun addLimit(
+        limit: LimitWithSpecies,
+        onSuccess: (Boolean) -> Unit
+    ) {
         val tripId = _selectedTripId.value ?: return
-
         viewModelScope.launch {
-            fishRepo.addLimitToTrip(
-                tripId = tripId,
-                limit = limit
-            )
+            if (fishRepo.limitExists(limit)) {
+                onSuccess(false)
+                _toastMessage.emit("Limit '${limit.name}' already exists.")
+            } else {
+                fishRepo.addLimitToTrip(
+                    tripId = tripId,
+                    limit = limit
+                )
+                onSuccess(true)
+            }
         }
     }
+
     fun addLimitToTrip(limit: LimitWithSpecies) {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {

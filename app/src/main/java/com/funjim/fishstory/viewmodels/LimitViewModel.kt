@@ -77,9 +77,18 @@ class LimitViewModel(
     }
 
     // Limit functions
-    fun addLimit(limit: LimitWithSpecies) {
+    fun addLimit(
+        limit: LimitWithSpecies,
+        onSuccess: (Boolean) -> Unit
+    ) {
         viewModelScope.launch {
-            fishRepo.addLimit(limit)
+            if (fishRepo.limitExists(limit)) {
+                onSuccess(false)
+                _toastMessage.emit("Limit '${limit.name}' already exists.")
+            } else {
+                fishRepo.addLimit(limit)
+                onSuccess(true)
+            }
         }
     }
 

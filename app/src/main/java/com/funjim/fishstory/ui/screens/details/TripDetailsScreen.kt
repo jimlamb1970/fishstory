@@ -155,6 +155,7 @@ fun TripDetailsScreen(
     var weatherToDelete by remember { mutableStateOf<Weather?>(null) }
     var showDeleteWeatherDialog by remember { mutableStateOf(false) }
 
+    var showEditLimitDialog by remember { mutableStateOf(false) }
     var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
@@ -1288,7 +1289,10 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 limitToDelete = limit
                                                 showDeleteLimitDialog = true
                                             },
-                                            onEdit = { limitToEdit = it },
+                                            onEdit = {
+                                                limitToEdit = it
+                                                showEditLimitDialog = true
+                                            },
                                             onToggleHelp = { viewModel.toggleHelp() }
                                         )
                                     }
@@ -1608,30 +1612,35 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
 
-            limitToEdit?.let { limit ->
-                LimitDialog(
-                    limitToEdit = limit,
-                    useImperial = appSettings.display.useImperialUnits,
-                    species = allSpecies,
-                    speciesThumbnailProvider = { species, size ->
-                        val thumbnailFlow = remember(species.id) {
-                            viewModel.getSpeciesThumbnail(species.id)
-                        }
+            if (showEditLimitDialog) {
+                limitToEdit?.let { limit ->
+                    LimitDialog(
+                        limitToEdit = limit,
+                        useImperial = appSettings.display.useImperialUnits,
+                        species = allSpecies,
+                        speciesThumbnailProvider = { species, size ->
+                            val thumbnailFlow = remember(species.id) {
+                                viewModel.getSpeciesThumbnail(species.id)
+                            }
 
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.LeapingFishWithFins,
-                            modifier = Modifier.size(size)
-                        )
-                    },
-                    onConfirm = { limit ->
-                        viewModel.addLimit(limit)
-                        limitToEdit = null
-                    },
-                    onDismiss = { limitToEdit = null }
-                )
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.LeapingFishWithFins,
+                                modifier = Modifier.size(size)
+                            )
+                        },
+                        onConfirm = { limit ->
+                            viewModel.addLimit(limit) { success ->
+                                if (success) {
+                                    showEditLimitDialog = !showEditLimitDialog
+                                }
+                            }
+                        },
+                        onDismiss = { showEditLimitDialog = !showEditLimitDialog }
+                    )
+                }
             }
             noteToEdit?.let { note ->
                 EditNoteDialog(
@@ -1959,8 +1968,11 @@ Selecting them places those species at the top of the list when logging catches 
             },
             onDismiss = { showAddLimitDialog = !showAddLimitDialog },
             onConfirm = { limit ->
-                viewModel.addLimit(limit)
-                showAddLimitDialog = !showAddLimitDialog
+                viewModel.addLimit(limit)  { success ->
+                    if (success) {
+                        showAddLimitDialog = !showAddLimitDialog
+                    }
+                }
             }
         )
     }
