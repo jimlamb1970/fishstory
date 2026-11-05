@@ -293,6 +293,12 @@ class LureViewModel(
                 hookCount = hookCount,
                 glows = glows
             )
+
+            if (lureRepo.lureExists(newLure, primaryColors, secondaryColors, glowColors)) {
+                _toastMessage.emit("Lure '${name}' already exists.")
+                return@launch
+            }
+
             lureRepo.upsertLure(newLure)
 
             lureRepo.deleteLureColors(id)

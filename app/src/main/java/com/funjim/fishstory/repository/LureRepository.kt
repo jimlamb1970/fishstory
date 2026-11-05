@@ -22,6 +22,7 @@ import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.InsertResult
+import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor
@@ -34,6 +35,8 @@ import com.funjim.fishstory.model.TackleBox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
+import kotlin.collections.map
+import kotlin.collections.sorted
 
 class LureRepository(
     private val baitDao: BaitDao,
@@ -96,6 +99,36 @@ class LureRepository(
                 }
             }
         }
+    }
+    suspend fun lureExists(
+        item: Lure,
+        primaryColors: List<LureColor>,
+        secondaryColors: List<LureColor>,
+        glowColors: List<LureColor>
+    ): Boolean {
+        val sortedPrimaryColors = primaryColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+        val sortedSecondaryColors = secondaryColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+        val sortedGlowColors = glowColors
+            .map { it.id }
+            .sorted()
+            .joinToString(",")
+
+        val existingData = lureDao.getLureByData(
+            item.name,
+            item.hookCount,
+            item.glows,
+            sortedPrimaryColors,
+            sortedSecondaryColors,
+            sortedGlowColors
+        )
+
+        return existingData != null
     }
     suspend fun findOrCreateLure(
         item: Lure,
