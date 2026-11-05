@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.add
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -61,11 +61,13 @@ import com.funjim.fishstory.viewmodels.AddFishViewModel
 import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.crud.AddBaitDialog
 import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.toCm
+import kotlin.math.abs
 
 fun Long.toUtcMidnight(): Long =
     Instant.ofEpochMilli(this)
@@ -814,7 +816,7 @@ fun FractionalLengthField(
 
     // Identify current active selected fraction label match
     val currentFractionLabel = remember(fractionValue) {
-        fractions.minByOrNull { kotlin.math.abs(it.second - fractionValue) }?.first ?: "0"
+        fractions.minByOrNull { abs(it.second - fractionValue) }?.first ?: "0"
     }
 
     val safeWholeWeight = wholeWeight.coerceIn(0.1f, 0.9f)
@@ -883,7 +885,7 @@ fun FractionalLengthField(
                     fractions.forEach { (label, value) ->
                         // Check if this specific item is the one currently selected
                         // We use a small delta check (0.001) to safely compare Double values
-                        val isSelected = kotlin.math.abs(value - fractionValue) < 0.001
+                        val isSelected = abs(value - fractionValue) < 0.001
 
                         DropdownMenuItem(
                             text = {
@@ -893,8 +895,8 @@ fun FractionalLengthField(
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         // Optional: Make the text bold if it's selected
                                         fontWeight =
-                                            if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold
-                                            else androidx.compose.ui.text.font.FontWeight.Normal
+                                            if (isSelected) FontWeight.Bold
+                                            else FontWeight.Normal
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 )

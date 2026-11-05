@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.add
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -334,7 +334,7 @@ fun AddLureScreen(
 
     // Step 2: Hex picker — reuse AdvancedColorPickerDialog from ManageColorsScreen
     if (showColorPickerForNew) {
-        AdvancedColorPickerDialog(
+        _root_ide_package_.com.funjim.fishstory.ui.screens.AdvancedColorPickerDialog(
             initialColor = null,
             onDismiss = {
                 showColorPickerForNew = false
@@ -348,7 +348,9 @@ fun AddLureScreen(
                 viewModel.addLureColor(newColor) { color ->
                     when (showAddColorDialog) {
                         ColorTarget.PRIMARY -> selectedPrimaryColors = selectedPrimaryColors + color
-                        ColorTarget.SECONDARY -> selectedSecondaryColors = selectedSecondaryColors + color
+                        ColorTarget.SECONDARY -> selectedSecondaryColors =
+                            selectedSecondaryColors + color
+
                         ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + color
                         null -> {}
                     }

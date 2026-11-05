@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.Species
-import com.funjim.fishstory.ui.screens.FractionalLengthField
+import com.funjim.fishstory.ui.screens.add.FractionalLengthField
 import com.funjim.fishstory.ui.rows.TargetSpeciesRow
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.utils.inchesToStorage

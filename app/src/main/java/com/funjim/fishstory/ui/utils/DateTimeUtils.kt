@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.funjim.fishstory.ui.screens.toUtcMidnight
+import com.funjim.fishstory.ui.screens.add.toUtcMidnight
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime

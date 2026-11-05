@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.add
 
 import android.content.Intent
 import android.net.Uri

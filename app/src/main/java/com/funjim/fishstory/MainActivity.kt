@@ -47,10 +47,10 @@ import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.ui.theme.FishstoryTheme
 import com.funjim.fishstory.viewmodels.*
 import kotlinx.coroutines.delay
-import com.funjim.fishstory.ui.screens.AddFishScreen
-import com.funjim.fishstory.ui.screens.AddLureScreen
-import com.funjim.fishstory.ui.screens.AddEventScreen
-import com.funjim.fishstory.ui.screens.AddTripScreen
+import com.funjim.fishstory.ui.screens.add.AddFishScreen
+import com.funjim.fishstory.ui.screens.add.AddLureScreen
+import com.funjim.fishstory.ui.screens.add.AddEventScreen
+import com.funjim.fishstory.ui.screens.add.AddTripScreen
 import com.funjim.fishstory.ui.screens.SelectTripCrewScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
 import com.funjim.fishstory.ui.screens.details.FishDetailScreen
