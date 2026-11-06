@@ -505,7 +505,9 @@ If you delete a tackle box, you may not be able to select a lure when logging a 
                         showRenameDialog = !showRenameDialog
                     }
                 },
-                onDismiss = { showRenameDialog = !showRenameDialog }
+                onDismiss = {
+                    showRenameDialog = !showRenameDialog
+                }
             )
         }
     }

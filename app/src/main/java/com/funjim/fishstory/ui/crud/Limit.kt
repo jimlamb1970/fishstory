@@ -372,7 +372,6 @@ fun LimitDialog(
             },
             onAdd = null,
             onDone = { showSpeciesSelection = !showSpeciesSelection },
-            modifier = Modifier.fillMaxWidth(),
             thumbnailProvider = { species ->
                 speciesThumbnailProvider(species, 48.dp)
             }

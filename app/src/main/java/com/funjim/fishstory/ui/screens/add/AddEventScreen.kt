@@ -33,7 +33,7 @@ import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewFishermanDialog
 import com.funjim.fishstory.ui.crud.NewSpeciesDialog
-import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnVariantColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -870,7 +870,6 @@ Selecting them places those species at the top of the list when logging catches 
                 addNewSpecies = true
             },
             onDone = { showSpeciesSelection = !showSpeciesSelection },
-            modifier = Modifier.fillMaxWidth(),
             thumbnailProvider = { species ->
                 val thumbnailFlow = remember(species.id) {
                     viewModel.getSpeciesThumbnail(species.id)
@@ -986,7 +985,7 @@ Selecting them places those species at the top of the list when logging catches 
             .collectAsState(initial = emptyList()).value
 
         if (addNewTackleBox) {
-            AddTackleBoxDialog(
+            NewTackleBox(
                 fishermanId = selectedFisherman.id,
                 onDismiss = { addNewTackleBox = !addNewTackleBox },
                 onConfirm = { tackleBox ->
@@ -994,8 +993,8 @@ Selecting them places those species at the top of the list when logging catches 
                         viewModel.updateEventTackleBoxMap(
                             eventTackleBoxMap + (selectedFisherman.id to createdBox.id)
                         )
+                        addNewTackleBox = !addNewTackleBox
                     }
-                    addNewTackleBox = !addNewTackleBox
                 }
             )
         }

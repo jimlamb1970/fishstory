@@ -1715,8 +1715,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddSpeciesDialog = true
                     },
-                    onDone = { showSpeciesSelection = false },
-                    modifier = Modifier.fillMaxWidth(),
+                    onDone = { showSpeciesSelection = !showSpeciesSelection },
                     thumbnailProvider = { species ->
                         val thumbnailFlow = remember(species.id) {
                             viewModel.getSpeciesThumbnail(species.id)

@@ -732,8 +732,9 @@ Selecting them places those species at the top of the list when logging catches 
         NewSpeciesDialog(
             onDismiss = { addNewSpecies = !addNewSpecies },
             onConfirm = { name ->
-                viewModel.updateTripTargetSpecies(Species(name = name))
-                addNewSpecies = !addNewSpecies
+                viewModel.updateTripTargetSpecies(Species(name = name)) {
+                    addNewSpecies = !addNewSpecies
+                }
             }
         )
     }
@@ -812,8 +813,7 @@ Selecting them places those species at the top of the list when logging catches 
             onAdd = {
                 addNewSpecies = true
             },
-            onDone = { showSpeciesSelection = false },
-            modifier = Modifier.fillMaxWidth(),
+            onDone = { showSpeciesSelection = !showSpeciesSelection },
             thumbnailProvider = { species ->
                 val thumbnailFlow = remember(species.id) {
                     viewModel.getSpeciesThumbnail(species.id)

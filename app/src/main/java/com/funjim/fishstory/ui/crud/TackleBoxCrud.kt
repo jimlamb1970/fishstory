@@ -13,14 +13,14 @@ import androidx.compose.runtime.setValue
 import com.funjim.fishstory.model.TackleBox
 
 @Composable
-fun AddTackleBoxDialog(
+fun NewTackleBox(
     fishermanId: String,
     onConfirm: (TackleBox) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditTackleBoxDialog(
         item = TackleBox(name = "", fishermanId = fishermanId),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it) },
         onDismiss = onDismiss
     )

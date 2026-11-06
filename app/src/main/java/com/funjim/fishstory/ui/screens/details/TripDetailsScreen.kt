@@ -1858,7 +1858,6 @@ Selecting them places those species at the top of the list when logging catches 
                         showAddSpeciesDialog = true
                     },
                     onDone = { showSpeciesSelection = !showSpeciesSelection },
-                    modifier = Modifier.fillMaxWidth(),
                     usageMap = speciesUsageMap,
                     maxUsage = details.events.size,
                     thumbnailProvider = { species ->

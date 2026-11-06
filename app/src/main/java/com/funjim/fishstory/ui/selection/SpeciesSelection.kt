@@ -92,7 +92,7 @@ fun SpeciesSelection(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -235,7 +235,10 @@ fun SpeciesSelection(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Species",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -244,8 +247,11 @@ fun SpeciesSelection(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add species ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New species ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -308,7 +314,10 @@ fun SpeciesSelection(
                             item {
                                 ModalResetButton(
                                     title = "Reset Species",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -317,8 +326,11 @@ fun SpeciesSelection(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add species ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New species ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -334,7 +346,6 @@ fun SpeciesSelection(
 fun SpeciesSelection(
     items: List<Species>,
     selectedItems: List<Species>,
-    modifier: Modifier = Modifier,
     onSelected: (Species) -> Unit,
     onUnselected: (Species) -> Unit,
     onAdd: (() -> Unit)? = null,
@@ -351,7 +362,7 @@ fun SpeciesSelection(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                showSheet = false
+                showSheet = !showSheet
                 onDone()
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -385,7 +396,7 @@ fun SpeciesSelection(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                         onDone()
                     }
@@ -524,7 +535,7 @@ fun SpeciesSelection(
                         if (onAdd != null) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add species ...",
+                                    title = "New species ...",
                                     onAdd = { onAdd() }
                                 )
                             }
@@ -613,7 +624,7 @@ fun SpeciesSelection(
                         if (onAdd != null) {
                             item {
                                 ModalAddButton(
-                                    title = "Add species ...",
+                                    title = "New species ...",
                                     onAdd = { onAdd() }
                                 )
                             }

@@ -41,7 +41,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.cards.TripAction
 import com.funjim.fishstory.ui.cards.TripCard
-import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.crud.EditFishermanDialog
 import com.funjim.fishstory.ui.screens.UpcomingTripChip
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -671,7 +671,7 @@ Tackle boxes and fish (${details.totalFishCaught}) logged for ${details.fisherma
 
     // Create new tackle box dialog
     if (showAddTackleBoxDialog) {
-        AddTackleBoxDialog(
+        NewTackleBox(
             fishermanId = fishermanId,
             onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
             onConfirm = { tackleBox ->

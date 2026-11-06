@@ -54,7 +54,7 @@ import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -638,12 +638,12 @@ fun FishermanSummaryCard(
     }
 
     if (showAddTackleBoxDialog) {
-        AddTackleBoxDialog(
+        NewTackleBox(
             fishermanId = item.fisherman.id,
-            onDismiss = { showAddTackleBoxDialog = false },
+            onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
             onConfirm = { tackleBox ->
                 onAddTackleBox(tackleBox)
-                showAddTackleBoxDialog = false
+                showAddTackleBoxDialog = !showAddTackleBoxDialog
             }
         )
     }

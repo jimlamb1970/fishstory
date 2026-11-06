@@ -165,9 +165,13 @@ class AddTripViewModel(
 
     private val _tripTargetSpecies = MutableStateFlow<List<Species>>(emptyList())
     val tripTargetSpecies = _tripTargetSpecies.asStateFlow()
-    fun updateTripTargetSpecies(species: Species) {
-        addSpecies(species) { addedSpecies ->
-            _tripTargetSpecies.update { it -> it + addedSpecies }
+    fun updateTripTargetSpecies(
+        item: Species,
+        onSuccess: (Species) -> Unit
+    ) {
+        addSpecies(item) { added ->
+            _tripTargetSpecies.update { it -> it + added }
+            onSuccess(added)
         }
     }
     fun updateTripTargetSpecies(ids: List<Species>) {
