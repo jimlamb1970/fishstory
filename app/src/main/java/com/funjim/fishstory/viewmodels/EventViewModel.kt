@@ -404,9 +404,13 @@ class EventViewModel(
             )
         }
     }
-    fun addEventBodyOfWater(eventId: String, bodyOfWater: BodyOfWater) {
-        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
-            addEventBodyOfWater(eventId, addedBodyOfWater.id)
+    fun addEventBodyOfWater(
+        eventId: String,
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
+        addBodyOfWater(item) { added ->
+            addEventBodyOfWater(eventId, added.id)
         }
     }
     fun addSpecies(

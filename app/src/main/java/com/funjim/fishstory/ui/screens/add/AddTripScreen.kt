@@ -48,7 +48,7 @@ import com.funjim.fishstory.model.BodyOfWaterSummary
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.TackleBox
-import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
 import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
 import com.funjim.fishstory.ui.sections.FishermanSummarySection
 import com.funjim.fishstory.ui.sections.SpeciesSummarySection
@@ -706,11 +706,12 @@ Selecting them places those species at the top of the list when logging catches 
     }
 
     if (addNewBodyOfWater) {
-        AddBodyOfWaterDialog(
+        NewBodyOfWaterDialog(
             onDismiss = { addNewBodyOfWater = !addNewBodyOfWater },
             onConfirm = { name ->
-                viewModel.updateTripBodiesOfWater(BodyOfWater(name = name))
-                addNewBodyOfWater = !addNewBodyOfWater
+                viewModel.updateTripBodiesOfWater(BodyOfWater(name = name)) {
+                    addNewBodyOfWater = !addNewBodyOfWater
+                }
             }
         )
     }

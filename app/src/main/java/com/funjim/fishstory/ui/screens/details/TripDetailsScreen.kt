@@ -69,7 +69,7 @@ import com.funjim.fishstory.ui.utils.NotesIconButton
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.cards.TripHighlightCard
-import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.AddFishermanDialog
 import com.funjim.fishstory.ui.crud.AddNoteDialog
 import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
@@ -1925,11 +1925,12 @@ Selecting them places those species at the top of the list when logging catches 
     }
 
     if (showAddBodyOfWaterDialog) {
-        AddBodyOfWaterDialog(
+        NewBodyOfWaterDialog(
             onDismiss = { showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog },
             onConfirm = { name ->
-                viewModel.addTripBodyOfWater(tripId, BodyOfWater(name = name))
-                showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog
+                viewModel.addTripBodyOfWater(tripId, BodyOfWater(name = name)) {
+                    showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog
+                }
             }
         )
     }

@@ -70,9 +70,12 @@ class AddEventViewModel(
 
     private val _eventBodiesOfWater = MutableStateFlow<List<BodyOfWater>>(emptyList())
     val eventBodiesOfWater = _eventBodiesOfWater.asStateFlow()
-    fun updateEventBodiesOfWater(bodyOfWater: BodyOfWater) {
-        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
-            _eventBodiesOfWater.update { it -> it + addedBodyOfWater }
+    fun updateEventBodiesOfWater(
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
+        addBodyOfWater(item) { added ->
+            _eventBodiesOfWater.update { it -> it + added }
         }
     }
     fun updateEventBodiesOfWater(ids: List<BodyOfWater>) {

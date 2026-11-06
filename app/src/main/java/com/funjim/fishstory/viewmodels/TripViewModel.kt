@@ -819,9 +819,13 @@ class TripViewModel(
         }
     }
 
-    fun addTripBodyOfWater(tripId: String, bodyOfWater: BodyOfWater) {
-        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
-            addTripBodyOfWater(tripId, addedBodyOfWater.id)
+    fun addTripBodyOfWater(
+        tripId: String,
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
+        addBodyOfWater(item) { added ->
+            addTripBodyOfWater(tripId, added.id)
         }
     }
 

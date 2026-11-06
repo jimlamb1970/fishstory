@@ -13,14 +13,16 @@ import androidx.compose.runtime.setValue
 import com.funjim.fishstory.model.BodyOfWater
 
 @Composable
-fun AddBodyOfWaterDialog(
+fun NewBodyOfWaterDialog(
     onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditBodyOfWaterDialog(
         item = BodyOfWater(name = ""),
-        title = "Add",
-        onConfirm = { onConfirm(it.name) },
+        title = "New",
+        onConfirm = {
+            onConfirm(it.name)
+        },
         onDismiss = onDismiss
     )
 }

@@ -129,9 +129,12 @@ class AddTripViewModel(
 
     private val _tripBodiesOfWater = MutableStateFlow<List<BodyOfWater>>(emptyList())
     val tripBodiesOfWater = _tripBodiesOfWater.asStateFlow()
-    fun updateTripBodiesOfWater(bodyOfWater: BodyOfWater) {
-        addBodyOfWater(bodyOfWater) { addedBodyOfWater ->
-            _tripBodiesOfWater.update { it -> it + addedBodyOfWater }
+    fun updateTripBodiesOfWater(
+        item: BodyOfWater,
+        onSuccess: (BodyOfWater) -> Unit
+    ) {
+        addBodyOfWater(item) { added ->
+            _tripBodiesOfWater.update { it -> it + added }
         }
     }
     fun updateTripBodiesOfWater(ids: List<BodyOfWater>) {

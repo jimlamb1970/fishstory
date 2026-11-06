@@ -66,9 +66,8 @@ import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
+import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.EditBodyOfWaterDialog
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.BodyOfWaterViewModel
@@ -426,13 +425,12 @@ This cannot be undone."""
     }
 
     if (addItem) {
-        AddBodyOfWaterDialog(
+        NewBodyOfWaterDialog(
             onDismiss = { addItem = !addItem },
             onConfirm = { name ->
                 viewModel.addBodyOfWater(BodyOfWater(name = name)) {
-                    // Do nothing on success
+                    addItem = !addItem
                 }
-                addItem = !addItem
             }
         )
     }
@@ -444,9 +442,8 @@ This cannot be undone."""
                 onDismiss = { showEditDialog = !showEditDialog },
                 onConfirm = { item ->
                     viewModel.updateBodyOfWater(item) {
-                        // Do nothing on success
+                        showEditDialog = !showEditDialog
                     }
-                    showEditDialog = !showEditDialog
                 }
             )
         }
