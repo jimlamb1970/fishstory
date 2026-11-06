@@ -63,7 +63,7 @@ import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.utils.cmToStorage
-import com.funjim.fishstory.ui.crud.AddBaitDialog
+import com.funjim.fishstory.ui.crud.NewBaitDialog
 import com.funjim.fishstory.ui.crud.AddBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.toCm
@@ -769,11 +769,14 @@ fun AddFishScreen(
     }
 
     if (addBait) {
-        AddBaitDialog(
-            onDismiss = { addBait = false },
+        NewBaitDialog(
+            onDismiss = {
+                addBait = !addBait
+            },
             onConfirm = { baitName ->
-                viewModel.addAndUpdateBait(Bait(name = baitName))
-                addBait = false
+                viewModel.addAndSelectBait(Bait(name = baitName)) {
+                    addBait = !addBait
+                }
             }
         )
     }

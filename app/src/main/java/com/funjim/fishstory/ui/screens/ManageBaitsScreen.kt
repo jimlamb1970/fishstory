@@ -66,9 +66,8 @@ import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddBaitDialog
+import com.funjim.fishstory.ui.crud.NewBaitDialog
 import com.funjim.fishstory.ui.crud.EditBaitDialog
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.BaitViewModel
@@ -94,6 +93,8 @@ fun ManageBaitsScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<Bait?>(null) }
+
+    var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<Bait?>(null) }
 
     var currentItemForPhoto by remember { mutableStateOf<Bait?>(null) }
@@ -322,6 +323,7 @@ fun ManageBaitsScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item.bait
+                                            showEditDialog = true
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -420,26 +422,32 @@ This cannot be undone."""
     }
 
     if (addItem) {
-        AddBaitDialog(
-            onDismiss = { addItem = false },
+        NewBaitDialog(
+            onDismiss = {
+                addItem = !addItem
+            },
             onConfirm = { baitName ->
-                viewModel.addBait(Bait(name = baitName)) {}
-                addItem = false
+                viewModel.addBait(Bait(name = baitName)) {
+                    addItem = !addItem
+                }
             }
         )
     }
 
     // EDIT DIALOG
-    itemToEdit?.let { item ->
-        EditBaitDialog(
-            item = item,
-            onDismiss = { itemToEdit = null },
-            onConfirm = { bait ->
-                viewModel.updateBait(bait) {
-                    // Do nothing on success
+    if (showEditDialog) {
+        itemToEdit?.let { item ->
+            EditBaitDialog(
+                item = item,
+                onDismiss = {
+                    showEditDialog = !showEditDialog
+                },
+                onConfirm = { bait ->
+                    viewModel.updateBait(bait) {
+                        showEditDialog = !showEditDialog
+                    }
                 }
-                itemToEdit = null
-            }
-        )
+            )
+        }
     }
 }

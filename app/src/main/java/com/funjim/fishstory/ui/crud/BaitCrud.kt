@@ -13,14 +13,16 @@ import androidx.compose.runtime.setValue
 import com.funjim.fishstory.model.Bait
 
 @Composable
-fun AddBaitDialog(
+fun NewBaitDialog(
     onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditBaitDialog(
         item = Bait(name = ""),
-        title = "Add",
-        onConfirm = { onConfirm(it.name) },
+        title = "New",
+        onConfirm = {
+            onConfirm(it.name)
+        },
         onDismiss = onDismiss
     )
 }

@@ -404,8 +404,14 @@ class AddFishViewModel(
         _fishPhotos.value = photos
     }
 
-    fun addAndUpdateBait(bait: Bait) {
-        addBait(bait) { addedBait -> updateBait(addedBait) }
+    fun addAndSelectBait(
+        item: Bait,
+        onSuccess: (Bait) -> Unit
+    ) {
+        addBait(item) { added ->
+            updateBait(added)
+            onSuccess(added)
+        }
     }
 
     fun updateBait(bait: Bait) {
