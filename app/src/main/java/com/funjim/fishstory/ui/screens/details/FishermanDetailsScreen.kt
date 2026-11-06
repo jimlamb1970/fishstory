@@ -661,9 +661,8 @@ Tackle boxes and fish (${details.totalFishCaught}) logged for ${details.fisherma
                     onDismiss = { showEditFishermanDialog = !showEditFishermanDialog },
                     onConfirm = { fisherman ->
                         viewModel.updateFisherman(fisherman) {
-                            // Do nothing on success
+                            showEditFishermanDialog = !showEditFishermanDialog
                         }
-                        showEditFishermanDialog = !showEditFishermanDialog
                     }
                 )
             }

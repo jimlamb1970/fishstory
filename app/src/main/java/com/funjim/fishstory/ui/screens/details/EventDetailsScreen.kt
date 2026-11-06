@@ -68,7 +68,7 @@ import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
-import com.funjim.fishstory.ui.crud.AddFishermanDialog
+import com.funjim.fishstory.ui.crud.NewFishermanDialog
 import com.funjim.fishstory.ui.crud.AddNoteDialog
 import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
 import com.funjim.fishstory.ui.crud.AddSpeciesDialog
@@ -1750,8 +1750,8 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (showAddFishermanDialog) {
-        AddFishermanDialog(
-            onDismiss = { showAddFishermanDialog = false },
+        NewFishermanDialog(
+            onDismiss = { showAddFishermanDialog = !showAddFishermanDialog },
             onAdd = { first, last, nick ->
                 val fisherman = Fisherman(
                     firstName = first.trim(),
@@ -1759,9 +1759,9 @@ Selecting them places those species at the top of the list when logging catches 
                     nickname = nick.trim()
                 )
                 viewModel.addFisherman(fisherman) {
-                    // Do nothing on Success
+                    showAddFishermanDialog = !showAddFishermanDialog
+                    viewModel.addFishermanToEvent(fishermanId = fisherman.id)
                 }
-                showAddFishermanDialog = false
             }
         )
     }

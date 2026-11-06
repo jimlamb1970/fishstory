@@ -32,7 +32,7 @@ import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.SortChip
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.cards.FishermanItem
-import com.funjim.fishstory.ui.crud.AddFishermanDialog
+import com.funjim.fishstory.ui.crud.NewFishermanDialog
 import com.funjim.fishstory.ui.utils.getChipColor
 import com.funjim.fishstory.ui.utils.getOnChipColor
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
@@ -51,12 +51,14 @@ fun FishermanListScreen(
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val fishermanSummaries by viewModel.fishermanSummaries.collectAsStateWithLifecycle()
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var fishermanToDelete by remember { mutableStateOf<FishermanSummary?>(null) }
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
-    var showAddDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -213,7 +215,10 @@ fun FishermanListScreen(
                             onPhotoDeleted = { photo ->
                                 viewModel.deleteFishermanPhoto(fisherman.fisherman.id, photo.id)
                             },
-                            onDelete = { fishermanToDelete = fisherman }
+                            onDelete = {
+                                fishermanToDelete = fisherman
+                                showDeleteDialog = true
+                            }
                         )
                     }
                 }
@@ -233,54 +238,61 @@ fun FishermanListScreen(
         }
 
         if (showAddDialog) {
-            AddFishermanDialog(
-                onDismiss = { showAddDialog = false },
+            NewFishermanDialog(
+                onDismiss = { showAddDialog = !showAddDialog },
                 onAdd = { first, last, nick ->
                     val fisherman = Fisherman(
                         firstName = first.trim(),
                         lastName = last.trim(),
                         nickname = nick.trim()
                     )
-
                     viewModel.addFisherman(fisherman) {
-                        // Do nothing on Success
+                        showAddDialog = !showAddDialog
                     }
-
-                    showAddDialog = false
                 }
             )
         }
     }
 
     // DELETE CONFIRMATION
-    fishermanToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { fishermanToDelete = null },
-            title = { Text("Delete Fisherman?") },
-            text = { Text("""Are you sure you want to delete '${item.fisherman.fullName}'?
+    if (showDeleteDialog) {
+        fishermanToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = {
+                    showDeleteDialog = !showDeleteDialog
+                },
+                title = { Text("Delete Fisherman?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.fisherman.fullName}'?
 
 This cannot be undone.
 
 If you delete ${item.fisherman.fullName}, they will be removed from all trips (${item.totalTrips}) and events.
 
-Tackle boxes and fish (${item.fishCaught}) logged for ${item.fisherman.fullName} will also be deleted.""") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteFisherman(item.fisherman)
-                        fishermanToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+Tackle boxes and fish (${item.fishCaught}) logged for ${item.fisherman.fullName} will also be deleted."""
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteFisherman(item.fisherman)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = !showDeleteDialog
+                    }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { fishermanToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
 

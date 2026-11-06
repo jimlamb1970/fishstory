@@ -76,6 +76,7 @@ class AddEventViewModel(
     ) {
         addBodyOfWater(item) { added ->
             _eventBodiesOfWater.update { it -> it + added }
+            onSuccess(added)
         }
     }
     fun updateEventBodiesOfWater(ids: List<BodyOfWater>) {
@@ -84,9 +85,13 @@ class AddEventViewModel(
 
     private val _eventFishermen = MutableStateFlow<List<Fisherman>>(emptyList())
     val eventFishermen = _eventFishermen.asStateFlow()
-    fun updateEventFishermen(item: Fisherman) {
-        addFisherman(item) { addedItem ->
-            _eventFishermen.update { it -> it + addedItem }
+    fun updateEventFishermen(
+        item: Fisherman,
+        onSuccess: (Fisherman) -> Unit
+    ) {
+        addFisherman(item) { added ->
+            _eventFishermen.update { it -> it + added }
+            onSuccess(added)
         }
     }
     fun updateEventFishermen(ids: List<Fisherman>) {

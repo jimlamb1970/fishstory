@@ -32,7 +32,7 @@ import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddFishermanDialog
+import com.funjim.fishstory.ui.crud.NewFishermanDialog
 import com.funjim.fishstory.ui.crud.AddSpeciesDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.rememberLocationPickerState
@@ -716,14 +716,15 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (addNewFisherman) {
-        AddFishermanDialog(
+        NewFishermanDialog(
             onDismiss = { addNewFisherman = !addNewFisherman },
             onAdd = { firstName, lastName, nickname ->
                 viewModel.updateTripFishermen(Fisherman(
                     firstName = firstName,
                     lastName = lastName,
-                    nickname = nickname))
-                addNewFisherman = !addNewFisherman
+                    nickname = nickname)) {
+                    addNewFisherman = !addNewFisherman
+                }
             }
         )
     }

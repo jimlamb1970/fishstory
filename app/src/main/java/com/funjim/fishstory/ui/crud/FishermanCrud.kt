@@ -18,13 +18,13 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 
 @Composable
-fun AddFishermanDialog(
+fun NewFishermanDialog(
     onDismiss: () -> Unit,
     onAdd: (firstName: String, lastName: String, nickname: String) -> Unit
 ) {
     EditFishermanDialog(
         fisherman = Fisherman(firstName = "", lastName = "", nickname = ""),
-        title = "Add",
+        title = "New",
         onDismiss = onDismiss,
         onConfirm = { fisherman ->
             onAdd(fisherman.firstName, fisherman.lastName, fisherman.nickname)

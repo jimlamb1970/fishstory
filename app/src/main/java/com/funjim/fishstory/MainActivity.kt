@@ -51,7 +51,6 @@ import com.funjim.fishstory.ui.screens.add.AddFishScreen
 import com.funjim.fishstory.ui.screens.add.AddLureScreen
 import com.funjim.fishstory.ui.screens.add.AddEventScreen
 import com.funjim.fishstory.ui.screens.add.AddTripScreen
-import com.funjim.fishstory.ui.screens.SelectTripCrewScreen
 import com.funjim.fishstory.ui.screens.DashboardScreen
 import com.funjim.fishstory.ui.screens.details.FishDetailScreen
 import com.funjim.fishstory.ui.screens.FishListScreen
@@ -70,7 +69,6 @@ import com.funjim.fishstory.ui.screens.ManageLimitsScreen
 import com.funjim.fishstory.ui.screens.ManageSkyConditionsScreen
 import com.funjim.fishstory.ui.screens.ManageWaterClarityScreen
 import com.funjim.fishstory.ui.screens.ReportsScreen
-import com.funjim.fishstory.ui.screens.SelectEventCrewScreen
 import com.funjim.fishstory.ui.screens.SettingsScreen
 import com.funjim.fishstory.ui.screens.details.TripDetailsScreen
 import com.funjim.fishstory.ui.screens.TripListScreen
@@ -733,65 +731,6 @@ fun AppNavigation(
                 onAdd = { navController.navigate("add_lure") },
                 onEdit = { lureId ->
                     navController.navigate("add_lure?lureId=$lureId")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = "select_event_crew/{eventId}/{tripId}",
-            arguments = listOf(
-                navArgument("eventId") { type = NavType.StringType },
-                navArgument("tripId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-
-            val app = navController.context.applicationContext as FishstoryApplication
-            val viewModel: EventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = app.getEventViewModelFactory()
-            )
-
-            SelectEventCrewScreen(
-                viewModel = viewModel,
-                tripId = tripId,
-                eventId = eventId,
-                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
-                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = "select_trip_crew/{tripId}",
-            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
-
-            val app = navController.context.applicationContext as FishstoryApplication
-            val viewModel: TripViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = app.getTripViewModelFactory()
-            )
-
-            val allFishermen by viewModel.fishermen.collectAsState(initial = emptyList())
-            val tripWithFishermen by viewModel.getTripWithFishermen(tripId).collectAsState(initial = null)
-            val initialCrew = remember(tripWithFishermen) {
-                tripWithFishermen?.fishermen ?: emptyList()
-            }
-
-            SelectTripCrewScreen(
-                tripViewModel = viewModel,
-                tripId = tripId,
-                eligibleFishermen = allFishermen,
-                initialCrew = initialCrew,
-                navigateToEditTackleBox = { fishermanId, tackleBoxId ->
-                    navController.navigate("select_lures/$fishermanId/$tackleBoxId")
                 },
                 navigateBack = {
                     navController.popBackStack()

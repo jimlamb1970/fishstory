@@ -502,8 +502,10 @@ fun FishermanSelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add fisherman ...",
-                                onAdd = { onAdd() }
+                                title = "New fisherman ...",
+                                onAdd = {
+                                    onAdd()
+                                }
                             )
                         }
                     }
@@ -589,8 +591,10 @@ fun FishermanSelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add fisherman ...",
-                                onAdd = { onAdd() }
+                                title = "New fisherman ...",
+                                onAdd = {
+                                    onAdd()
+                                }
                             )
                         }
                     }

@@ -243,8 +243,11 @@ fun BaitSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add bait ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New bait ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -316,8 +319,11 @@ fun BaitSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add bait ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New bait ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
