@@ -1459,35 +1459,35 @@ Selecting them places those species at the top of the list when logging catches 
             }
 
             if (showEditLimitDialog) {
-            limitToEdit?.let { limit ->
-                LimitDialog(
-                    limitToEdit = limit,
-                    useImperial = appSettings.display.useImperialUnits,
-                    species = allSpecies,
-                    speciesThumbnailProvider = { species, size ->
-                        val thumbnailFlow = remember(species.id) {
-                            viewModel.getSpeciesThumbnail(species.id)
-                        }
-
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
-
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.LeapingFishWithFins,
-                            modifier = Modifier.size(size)
-                        )
-                    },
-                    onConfirm = { limit ->
-                        viewModel.addLimit(limit) { success ->
-                            if (success) {
-                                showEditLimitDialog = !showEditLimitDialog
+                limitToEdit?.let { limit ->
+                    LimitDialog(
+                        limitToEdit = limit,
+                        useImperial = appSettings.display.useImperialUnits,
+                        species = allSpecies,
+                        speciesThumbnailProvider = { species, size ->
+                            val thumbnailFlow = remember(species.id) {
+                                viewModel.getSpeciesThumbnail(species.id)
                             }
-                        }
-                    },
-                    onDismiss = { showEditLimitDialog = !showEditLimitDialog }
-                )
-            }
+
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
+
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.LeapingFishWithFins,
+                                modifier = Modifier.size(size)
+                            )
+                        },
+                        onConfirm = { limit ->
+                            viewModel.addLimit(limit) { success ->
+                                if (success) {
+                                    showEditLimitDialog = !showEditLimitDialog
+                                }
+                            }
+                        },
+                        onDismiss = { showEditLimitDialog = !showEditLimitDialog }
+                    )
                 }
+            }
             noteToEdit?.let { note ->
                 EditNoteDialog(
                     item = note,
