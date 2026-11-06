@@ -65,7 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.crud.NewBaitDialog
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
-import com.funjim.fishstory.ui.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.NewSpeciesDialog
 import com.funjim.fishstory.ui.utils.toCm
 import kotlin.math.abs
 
@@ -185,9 +185,9 @@ fun AddFishScreen(
     val allBaits by viewModel.allBaits.collectAsStateWithLifecycle()
     val allBodiesOfWater by viewModel.allBodiesOfWater.collectAsStateWithLifecycle()
 
-    var addBait by remember { mutableStateOf(false) }
-    var addBodyOfWater by remember { mutableStateOf(false) }
-    var addSpecies by remember { mutableStateOf(false) }
+    var showAddBaitDialog by remember { mutableStateOf(false) }
+    var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
+    var showAddSpeciesDialog by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -435,7 +435,7 @@ fun AddFishScreen(
                             items = bodiesOfWaterSorted,
                             selectedItem = selectedBodyOfWater,
                             onSelected = { bodyOfWater -> viewModel.updateBodyOfWater(bodyOfWater) },
-                            onAdd = { addBodyOfWater = true },
+                            onAdd = { showAddBodyOfWaterDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { bodyOfWater ->
                                 val thumbnailFlow = remember(bodyOfWater.id) {
@@ -456,7 +456,7 @@ fun AddFishScreen(
                             items = speciesList,
                             selectedItem = selectedSpecies,
                             onSelected = { species -> viewModel.updateSpecies(species) },
-                            onAdd = { addSpecies = true },
+                            onAdd = { showAddSpeciesDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                             defaultText = "Select Species",
                             thumbnailProvider = { species ->
@@ -534,7 +534,7 @@ fun AddFishScreen(
                             items = baitsSorted,
                             selectedItem = selectedBait,
                             onSelected = { bait -> viewModel.updateBait(bait) },
-                            onAdd = { addBait = true },
+                            onAdd = { showAddBaitDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                             thumbnailProvider = { bait ->
                                 val thumbnailFlow = remember(bait.id) {
@@ -758,35 +758,40 @@ fun AddFishScreen(
     }
 
     // New Species Dialog
-    if (addSpecies) {
-        AddSpeciesDialog(
-            onDismiss = { addSpecies = false },
-            onConfirm = { speciesName ->
-                viewModel.addAndUpdateSpecies(Species(name = speciesName))
-                addSpecies = false
-            }
-        )
-    }
-
-    if (addBait) {
-        NewBaitDialog(
+    if (showAddSpeciesDialog) {
+        NewSpeciesDialog(
             onDismiss = {
-                addBait = !addBait
+                showAddSpeciesDialog = !showAddSpeciesDialog
             },
-            onConfirm = { baitName ->
-                viewModel.addAndSelectBait(Bait(name = baitName)) {
-                    addBait = !addBait
+            onConfirm = { name ->
+                viewModel.addAndSelectSpecies(Species(name = name)) {
+                    showAddSpeciesDialog = !showAddSpeciesDialog
                 }
             }
         )
     }
 
-    if (addBodyOfWater) {
+    if (showAddBaitDialog) {
+        NewBaitDialog(
+            onDismiss = {
+                showAddBaitDialog = !showAddBaitDialog
+            },
+            onConfirm = { name ->
+                viewModel.addAndSelectBait(Bait(name = name)) {
+                    showAddBaitDialog = !showAddBaitDialog
+                }
+            }
+        )
+    }
+
+    if (showAddBodyOfWaterDialog) {
         NewBodyOfWaterDialog(
-            onDismiss = { addBodyOfWater = !addBodyOfWater },
+            onDismiss = {
+                showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog
+            },
             onConfirm = { name ->
                 viewModel.addAndSelectBodyOfWater(BodyOfWater(name = name)) {
-                    addBodyOfWater = !addBodyOfWater
+                    showAddBodyOfWaterDialog = !showAddBodyOfWaterDialog
                 }
             }
         )

@@ -411,6 +411,7 @@ class EventViewModel(
     ) {
         addBodyOfWater(item) { added ->
             addEventBodyOfWater(eventId, added.id)
+            onSuccess(added)
         }
     }
     fun addSpecies(
@@ -436,9 +437,14 @@ class EventViewModel(
             )
         }
     }
-    fun addTargetSpeciesToEvent(eventId: String, species: Species) {
-        addSpecies(species) { addedSpecies ->
-            addTargetSpeciesToEvent(eventId, addedSpecies.id)
+    fun addTargetSpeciesToEvent(
+        eventId: String,
+        item: Species,
+        onSuccess: (Species) -> Unit
+    ) {
+        addSpecies(item) { added ->
+            addTargetSpeciesToEvent(eventId, added.id)
+            onSuccess(added)
         }
     }
 

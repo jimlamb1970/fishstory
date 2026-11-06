@@ -69,9 +69,9 @@ import com.funjim.fishstory.ui.utils.StatusGumball
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.NewFishermanDialog
-import com.funjim.fishstory.ui.crud.AddNoteDialog
+import com.funjim.fishstory.ui.crud.NewNoteDialog
 import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
-import com.funjim.fishstory.ui.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.NewSpeciesDialog
 import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
 import com.funjim.fishstory.ui.crud.EditEventDialog
 import com.funjim.fishstory.ui.crud.EditNoteDialog
@@ -151,6 +151,7 @@ fun EventDetailsScreen(
 
     var showEditLimitDialog by remember { mutableStateOf(false) }
     var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
+    var showEditNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
@@ -1144,7 +1145,10 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 noteToDelete = it
                                                 showDeleteNoteDialog = true
                                             },
-                                            onEdit = { noteToEdit = it },
+                                            onEdit = {
+                                                noteToEdit = it
+                                                showEditNoteDialog = true
+                                            },
                                             onToggleHelp = { viewModel.toggleHelp() },
                                         )
                                     }
@@ -1488,15 +1492,19 @@ Selecting them places those species at the top of the list when logging catches 
                     )
                 }
             }
-            noteToEdit?.let { note ->
-                EditNoteDialog(
-                    item = note,
-                    onDismiss = { noteToEdit = null },
-                    onConfirm = { note ->
-                        viewModel.addNote(note.id, note.content)
-                        noteToEdit = null
-                    }
-                )
+            if (showEditNoteDialog) {
+                noteToEdit?.let { note ->
+                    EditNoteDialog(
+                        item = note,
+                        onDismiss = {
+                            showEditNoteDialog = !showEditNoteDialog
+                        },
+                        onConfirm = { note ->
+                            viewModel.addNote(note.id, note.content)
+                            showEditNoteDialog = !showEditNoteDialog
+                        }
+                    )
+                }
             }
             waterToEdit?.let { water ->
                 WaterDialog(
@@ -1794,11 +1802,13 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (showAddNoteDialog) {
-        AddNoteDialog(
-            onDismiss = { showAddNoteDialog = false },
+        NewNoteDialog(
+            onDismiss = {
+                showAddNoteDialog = !showAddNoteDialog
+            },
             onConfirm = { content ->
                 viewModel.addNote(null, content)
-                showAddNoteDialog = false
+                showAddNoteDialog = !showAddNoteDialog
             }
         )
     }
@@ -1815,11 +1825,14 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (showAddSpeciesDialog) {
-        AddSpeciesDialog(
-            onDismiss = { showAddSpeciesDialog = false },
+        NewSpeciesDialog(
+            onDismiss = {
+                showAddSpeciesDialog = !showAddSpeciesDialog
+            },
             onConfirm = { name ->
-                viewModel.addTargetSpeciesToEvent(eventId, Species(name = name))
-                showAddSpeciesDialog = false
+                viewModel.addTargetSpeciesToEvent(eventId, Species(name = name)) {
+                    showAddSpeciesDialog = !showAddSpeciesDialog
+                }
             }
         )
     }

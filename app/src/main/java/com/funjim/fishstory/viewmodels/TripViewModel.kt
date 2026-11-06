@@ -690,32 +690,6 @@ class TripViewModel(
         }
     }
 
-    fun addFisherman(
-        firstName: String,
-        lastName: String,
-        nickname: String,
-        onSuccess: () -> Unit
-    ) {
-        viewModelScope.launch {
-            val fisherman = fishermanRepo.getFishermanByName(firstName, lastName, nickname)
-            if (fisherman == null) {
-                val fisherman =
-                    Fisherman(firstName = firstName, lastName = lastName, nickname = nickname)
-
-                try {
-                    fishermanRepo.addFisherman(fisherman)
-                    onSuccess() // ONLY runs if addFisherman completes without throwing
-                } catch (_: SQLiteConstraintException) {
-                    _toastMessage.emit("Fisherman already exists.")
-                } catch (_: Exception) {
-                    _toastMessage.emit("An error occurred while adding fisherman.")
-                }
-            } else {
-                _toastMessage.emit("Fisherman already exists.")
-            }
-        }
-    }
-
     fun insertTackleBox(
         tackleBox: TackleBox,
         onSuccess: (TackleBox) -> Unit
@@ -772,10 +746,14 @@ class TripViewModel(
             }
         }
     }
-
-    fun addTripTargetSpecies(tripId: String, species: Species) {
-        addSpecies(species) { addedSpecies ->
-            addTripTargetSpecies(tripId, addedSpecies.id)
+    fun addTripTargetSpecies(
+        tripId: String,
+        item: Species,
+        onSuccess: (Species) -> Unit
+    ) {
+        addSpecies(item) { added ->
+            addTripTargetSpecies(tripId, added.id)
+            onSuccess(added)
         }
     }
 

@@ -35,13 +35,13 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun AddNoteDialog(
+fun NewNoteDialog(
     onConfirm: (content: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditNoteDialog(
         item = Note(content = ""),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it.content) },
         onDismiss = onDismiss
     )

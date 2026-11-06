@@ -68,12 +68,11 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.NewSpeciesDialog
 import com.funjim.fishstory.ui.crud.EditSpeciesDialog
 import com.funjim.fishstory.ui.utils.VerticalScrollToItemBar
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.viewmodels.FishViewModel
 
@@ -96,10 +95,11 @@ fun ManageSpeciesScreen(
     }
 
     val speciesSummaries by viewModel.speciesSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
-    var addItem by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
 
     var currentSpeciesForPhoto by remember { mutableStateOf<Species?>(null) }
@@ -158,7 +158,7 @@ fun ManageSpeciesScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { addItem = true }) {
+                    IconButton(onClick = { showAddDialog = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 AppIcons.Default.Species,
@@ -363,6 +363,7 @@ fun ManageSpeciesScreen(
                                             onClick = {
                                                 menuExpanded = false
                                                 speciesToEdit = species
+                                                showEditDialog = true
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -484,25 +485,31 @@ This cannot be undone."""
         )
     }
 
-    if (addItem) {
-        AddSpeciesDialog(
-            onDismiss = { addItem = false },
+    if (showAddDialog) {
+        NewSpeciesDialog(
+            onDismiss = {
+                showAddDialog = !showAddDialog
+            },
             onConfirm = { name ->
-                viewModel.addSpecies(Species(name = name)) {}
-                addItem = false
+                viewModel.addSpecies(Species(name = name)) {
+                    showAddDialog = !showAddDialog
+                }
             }
         )
     }
 
     // EDIT DIALOG
-    speciesToEdit?.let { species ->
-        EditSpeciesDialog(
-            item = species,
-            onDismiss = { speciesToEdit = null },
-            onConfirm = { item ->
-                viewModel.updateSpecies(item) {}
-                speciesToEdit = null
-            }
-        )
+    if (showEditDialog) {
+        speciesToEdit?.let { species ->
+            EditSpeciesDialog(
+                item = species,
+                onDismiss = { showEditDialog = !showEditDialog },
+                onConfirm = { item ->
+                    viewModel.updateSpecies(item) {
+                        showEditDialog = !showEditDialog
+                    }
+                }
+            )
+        }
     }
 }

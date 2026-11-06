@@ -32,7 +32,7 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.DateTimePickerButton
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewFishermanDialog
-import com.funjim.fishstory.ui.crud.AddSpeciesDialog
+import com.funjim.fishstory.ui.crud.NewSpeciesDialog
 import com.funjim.fishstory.ui.crud.AddTackleBoxDialog
 import com.funjim.fishstory.ui.utils.getOnMainColor
 import com.funjim.fishstory.ui.utils.getOnVariantColor
@@ -910,11 +910,14 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (addNewSpecies) {
-        AddSpeciesDialog(
-            onDismiss = { addNewSpecies = !addNewSpecies },
-            onConfirm = { name ->
-                viewModel.updateEventTargetSpecies(Species(name = name))
+        NewSpeciesDialog(
+            onDismiss = {
                 addNewSpecies = !addNewSpecies
+            },
+            onConfirm = { name ->
+                viewModel.updateEventTargetSpecies(Species(name = name)) {
+                    addNewSpecies = !addNewSpecies
+                }
             }
         )
     }

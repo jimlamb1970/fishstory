@@ -68,11 +68,13 @@ import com.funjim.fishstory.ui.utils.getGridCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 
 @Composable
-private fun AddColorButton(onAdd: () -> Unit) {
+private fun AddColorButton(
+    onAdd: () -> Unit
+) {
     ListItem(
         headlineContent = {
             Text(
-                "Add color ...",
+                "New color ...",
                 color = getOnCardColor(),
                 fontWeight = FontWeight.SemiBold
             )
@@ -92,7 +94,7 @@ private fun ColorPreviewIcon(
     isChecked: Boolean = false
 ) {
     val size = if (isGrid) 32.dp else 48.dp
-    if (item.hexCode.isNullOrBlank()) {
+    if (item.hexCode.isBlank()) {
         Box(
             modifier = Modifier.size(size)
         ) {
@@ -168,7 +170,7 @@ fun LureColorSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -200,7 +202,7 @@ fun LureColorSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -410,7 +412,7 @@ fun LureSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -561,7 +563,10 @@ fun LureSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Lure",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -571,7 +576,10 @@ fun LureSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
                                     title = "Add lures to tackle box...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -645,7 +653,10 @@ fun LureSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Lure",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -655,7 +666,10 @@ fun LureSelectionField(
                             item {
                                 ModalAddButton(
                                     title = "Add lures to tackle box...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }

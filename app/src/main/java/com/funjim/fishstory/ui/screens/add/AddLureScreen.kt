@@ -18,8 +18,9 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
-import com.funjim.fishstory.ui.crud.AddColorDialog
+import com.funjim.fishstory.ui.crud.NewColorDialog
 import com.funjim.fishstory.ui.selection.LureColorSelectionField
+import com.funjim.fishstory.ui.utils.AdvancedColorPickerDialog
 import com.funjim.fishstory.viewmodels.LureViewModel
 import kotlinx.coroutines.launch
 
@@ -94,7 +95,6 @@ fun AddLureScreen(
     // Dropdown/Dialog States
     var showAddColorDialog by remember { mutableStateOf<ColorTarget?>(null) }
     var newColorName by remember { mutableStateOf("") }
-    var newColorHex by remember { mutableStateOf<String?>(null) }
     var showColorPickerForNew by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -320,13 +320,12 @@ fun AddLureScreen(
 
     // Step 1: Name dialog — collect the color name, then advance to hex picker
     if (showAddColorDialog != null && !showColorPickerForNew) {
-        AddColorDialog(
+        NewColorDialog(
             onConfirm = {
                 newColorName = it
                 showColorPickerForNew = true
             },
             onDismiss = {
-                newColorName = ""
                 showAddColorDialog = null
             }
         )
@@ -334,14 +333,11 @@ fun AddLureScreen(
 
     // Step 2: Hex picker — reuse AdvancedColorPickerDialog from ManageColorsScreen
     if (showColorPickerForNew) {
-        _root_ide_package_.com.funjim.fishstory.ui.screens.AdvancedColorPickerDialog(
+        AdvancedColorPickerDialog(
             initialColor = null,
             onDismiss = {
-                showColorPickerForNew = false
+                showColorPickerForNew = !showColorPickerForNew
                 showAddColorDialog = null
-
-                newColorName = ""
-                newColorHex = null
             },
             onAdd = { hexCode ->
                 val newColor = LureColor(name = newColorName, hexCode = hexCode)
@@ -356,11 +352,8 @@ fun AddLureScreen(
                     }
                 }
 
-                showColorPickerForNew = false
+                showColorPickerForNew = !showColorPickerForNew
                 showAddColorDialog = null
-
-                newColorName = ""
-                newColorHex = null
             }
         )
     }

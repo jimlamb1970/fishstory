@@ -467,8 +467,14 @@ class AddFishViewModel(
         }
     }
 
-    fun addAndUpdateSpecies(species: Species) {
-        addSpecies(species) { addedSpecies -> updateSpecies(addedSpecies) }
+    fun addAndSelectSpecies(
+        item: Species,
+        onSuccess: (Species) -> Unit
+    ) {
+        addSpecies(item) { added ->
+            updateSpecies(added)
+            onSuccess(added)
+        }
     }
 
     fun updateSpecies(species: Species) {

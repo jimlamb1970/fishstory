@@ -106,9 +106,13 @@ class AddEventViewModel(
 
     private val _eventTargetSpecies = MutableStateFlow<List<Species>>(emptyList())
     val eventTargetSpecies = _eventTargetSpecies.asStateFlow()
-    fun updateEventTargetSpecies(species: Species) {
-        addSpecies(species) { addedSpecies ->
-            _eventTargetSpecies.update { it -> it + addedSpecies }
+    fun updateEventTargetSpecies(
+        item: Species,
+        onSuccess: (Species) -> Unit
+    ) {
+        addSpecies(item) { added ->
+            _eventTargetSpecies.update { it -> it + added }
+            onSuccess(added)
         }
     }
     fun updateEventTargetSpecies(ids: List<Species>) {

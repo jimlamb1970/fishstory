@@ -293,8 +293,10 @@ fun LimitSelection(
                     if (onAdd != null) {
                         item {
                             ModalAddButton(
-                                title = "Add limit ...",
-                                onAdd = { onAdd() }
+                                title = "New limit ...",
+                                onAdd = {
+                                    onAdd()
+                                }
                             )
                         }
                     }

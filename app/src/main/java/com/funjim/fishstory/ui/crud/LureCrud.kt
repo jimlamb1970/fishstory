@@ -13,13 +13,13 @@ import androidx.compose.runtime.setValue
 import com.funjim.fishstory.model.LureColor
 
 @Composable
-fun AddColorDialog(
+fun NewColorDialog(
     onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditColorDialog(
         item = LureColor(name = "", hexCode = ""),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
     )

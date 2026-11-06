@@ -14,13 +14,13 @@ import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.Species
 
 @Composable
-fun AddSpeciesDialog(
+fun NewSpeciesDialog(
     onDismiss: () -> Unit,
     onConfirm: (name: String) -> Unit
 ) {
     EditSpeciesDialog(
         item = Species(name = ""),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
     )
