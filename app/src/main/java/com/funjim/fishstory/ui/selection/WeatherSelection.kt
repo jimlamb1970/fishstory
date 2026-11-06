@@ -89,7 +89,7 @@ fun SkyConditionSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -121,7 +121,7 @@ fun SkyConditionSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -176,7 +176,7 @@ fun SkyConditionSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -232,7 +232,10 @@ fun SkyConditionSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Sky Condition",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -243,8 +246,11 @@ fun SkyConditionSelectionField(
                             }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add sky condition ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New sky condition ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -267,7 +273,7 @@ fun SkyConditionSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -307,7 +313,10 @@ fun SkyConditionSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Sky Condition",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -316,8 +325,11 @@ fun SkyConditionSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add sky condition ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New sky condition ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }

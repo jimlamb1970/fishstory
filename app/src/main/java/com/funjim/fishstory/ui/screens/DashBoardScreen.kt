@@ -109,8 +109,8 @@ import com.funjim.fishstory.model.LimitSummary
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.StatusGumball
-import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
-import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
+import com.funjim.fishstory.ui.crud.NewSkyConditionDialog
+import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
 import com.funjim.fishstory.ui.crud.WaterDialog
 import com.funjim.fishstory.ui.crud.WeatherDialog
 import com.funjim.fishstory.ui.utils.GumballStatus
@@ -998,27 +998,29 @@ fun ActiveTripCard(
     }
 
     if (showAddWaterClarityDialog) {
-        AddWaterClarityDialog(
-            onDismiss = { showAddWaterClarityDialog = false },
+        NewWaterClarityDialog(
+            onDismiss = {
+                showAddWaterClarityDialog = !showAddWaterClarityDialog
+            },
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
                     pendingWaterClarityId = newWaterClarity.id
+                    showAddWaterClarityDialog = !showAddWaterClarityDialog
                 }
-                showAddWaterClarityDialog = false
             }
         )
     }
 
     if (showAddSkyConditionDialog) {
-        AddSkyConditionDialog(
-            onDismiss = { showAddSkyConditionDialog = false },
+        NewSkyConditionDialog(
+            onDismiss = { showAddSkyConditionDialog = !showAddSkyConditionDialog },
             onConfirm = { name ->
                 val newSkyCondition = SkyCondition(name = name)
                 viewModel.addSkyCondition(newSkyCondition) {
                     pendingSkyConditionId = newSkyCondition.id
+                    showAddSkyConditionDialog = !showAddSkyConditionDialog
                 }
-                showAddSkyConditionDialog = false
             }
         )
     }
@@ -1070,10 +1072,10 @@ fun ActiveTripCard(
                         airVisibility = airVisibility,
                         airHumidity = airHumidity)
                 )
-                showAddWeatherDialog = false
+                showAddWeatherDialog = !showAddWeatherDialog
                 pendingSkyConditionId = null
             },
-            onDismiss = { showAddWeatherDialog = false }
+            onDismiss = { showAddWeatherDialog = !showAddWeatherDialog }
         )
     }
 

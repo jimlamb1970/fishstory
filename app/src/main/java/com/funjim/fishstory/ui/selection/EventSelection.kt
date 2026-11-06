@@ -87,7 +87,7 @@ fun EventSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -119,7 +119,7 @@ fun EventSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -174,7 +174,7 @@ fun EventSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -230,7 +230,10 @@ fun EventSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Event",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -253,7 +256,7 @@ fun EventSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -293,7 +296,10 @@ fun EventSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Event",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }

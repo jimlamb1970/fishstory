@@ -51,13 +51,13 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Composable
-fun AddSkyConditionDialog(
+fun NewSkyConditionDialog(
     onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditSkyConditionDialog(
         item = SkyCondition(name = ""),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
     )

@@ -91,7 +91,7 @@ fun BaitSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -123,7 +123,7 @@ fun BaitSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -178,7 +178,7 @@ fun BaitSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -234,7 +234,10 @@ fun BaitSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Bait",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -270,7 +273,7 @@ fun BaitSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -310,7 +313,10 @@ fun BaitSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Bait",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -343,7 +349,6 @@ fun BaitSelection(
     onUnselected: (Bait) -> Unit,
     onAdd: () -> Unit,
     onDone: () -> Unit,
-    modifier: Modifier = Modifier,
     usageMap: Map<String, Int>? = null,
     maxUsage: Int? = null,
     thumbnailProvider: @Composable (Bait) -> Unit
@@ -356,7 +361,7 @@ fun BaitSelection(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                showSheet = false
+                showSheet = !showSheet
                 onDone()
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -390,7 +395,7 @@ fun BaitSelection(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                         onDone()
                     }

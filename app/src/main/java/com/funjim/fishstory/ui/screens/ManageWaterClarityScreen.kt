@@ -67,7 +67,7 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
+import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
 import com.funjim.fishstory.ui.crud.EditWaterClarityDialog
 import com.funjim.fishstory.viewmodels.WaterClarityViewModel
 
@@ -86,10 +86,11 @@ fun ManageWaterClarityScreen(
     }
 
     val allItems by viewModel.allWaterClarity.collectAsStateWithLifecycle(initialValue = emptyList())
-    var addItem by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<WaterClarity?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<WaterClarity?>(null) }
 
     var currentItemForPhoto by remember { mutableStateOf<WaterClarity?>(null) }
@@ -141,7 +142,7 @@ fun ManageWaterClarityScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { addItem = true }) {
+                    IconButton(onClick = { showAddDialog = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 AppIcons.Default.WaterSet,
@@ -321,6 +322,7 @@ fun ManageWaterClarityScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item
+                                            showEditDialog = true
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -418,27 +420,29 @@ This cannot be undone."""
         )
     }
 
-    if (addItem) {
-        AddWaterClarityDialog(
-            onDismiss = { addItem = false },
+    if (showAddDialog) {
+        NewWaterClarityDialog(
+            onDismiss = { showAddDialog = !showAddDialog },
             onConfirm = { name ->
-                viewModel.addWaterClarity(WaterClarity(name = name)) {}
-                addItem = false
+                viewModel.addWaterClarity(WaterClarity(name = name)) {
+                    showAddDialog = !showAddDialog
+                }
             }
         )
     }
 
     // EDIT DIALOG
-    itemToEdit?.let { item ->
-        EditWaterClarityDialog(
-            item = item,
-            onDismiss = { itemToEdit = null },
-            onConfirm = { confirmedItem ->
-                viewModel.updateWaterClarity(confirmedItem) {
-                    // Do nothing on success
+    if (showEditDialog) {
+        itemToEdit?.let { item ->
+            EditWaterClarityDialog(
+                item = item,
+                onDismiss = { showEditDialog = !showEditDialog },
+                onConfirm = { confirmedItem ->
+                    viewModel.updateWaterClarity(confirmedItem) {
+                        showEditDialog = !showEditDialog
+                    }
                 }
-                itemToEdit  = null
-            }
-        )
+            )
+        }
     }
 }

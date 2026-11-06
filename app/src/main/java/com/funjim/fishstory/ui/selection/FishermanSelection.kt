@@ -91,7 +91,7 @@ fun FishermanSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -123,7 +123,7 @@ fun FishermanSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -178,7 +178,7 @@ fun FishermanSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -234,7 +234,10 @@ fun FishermanSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Fisherman",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -257,7 +260,7 @@ fun FishermanSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -297,7 +300,10 @@ fun FishermanSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Fisherman",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -317,7 +323,6 @@ fun FishermanSelection(
     onUnselected: (Fisherman) -> Unit,
     onAdd: () -> Unit,
     onDone: () -> Unit,
-    modifier: Modifier = Modifier,
     usageMap: Map<String, Int>? = null,
     maxUsage: Int? = null,
     thumbnailProvider: @Composable (Fisherman) -> Unit
@@ -330,7 +335,7 @@ fun FishermanSelection(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                showSheet = false
+                showSheet = !showSheet
                 onDone()
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -364,7 +369,7 @@ fun FishermanSelection(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                         onDone()
                     }

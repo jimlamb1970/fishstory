@@ -70,9 +70,9 @@ import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
 import com.funjim.fishstory.ui.crud.NewFishermanDialog
 import com.funjim.fishstory.ui.crud.NewNoteDialog
-import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
+import com.funjim.fishstory.ui.crud.NewSkyConditionDialog
 import com.funjim.fishstory.ui.crud.NewSpeciesDialog
-import com.funjim.fishstory.ui.crud.AddWaterClarityDialog
+import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
 import com.funjim.fishstory.ui.crud.EditEventDialog
 import com.funjim.fishstory.ui.crud.EditNoteDialog
 import com.funjim.fishstory.ui.crud.LimitDialog
@@ -1610,7 +1610,6 @@ Selecting them places those species at the top of the list when logging catches 
                         showAddBodyOfWaterDialog = true
                     },
                     onDone = { showBodiesOfWaterSelection = !showBodiesOfWaterSelection },
-                    modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = { bodyOfWater ->
                         val thumbnailFlow = remember(bodyOfWater.id) {
                             viewModel.bodyOfWaterThumbnail(bodyOfWater.id)
@@ -1641,7 +1640,6 @@ Selecting them places those species at the top of the list when logging catches 
                         showAddFishermanDialog = true
                     },
                     onDone = { showFishermanSelection = false },
-                    modifier = Modifier.fillMaxWidth(),
                     thumbnailProvider = { fisherman ->
                         val thumbnailFlow = remember(fisherman.id) {
                             viewModel.fishermanThumbnail(fisherman.id)
@@ -1812,14 +1810,14 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (showAddSkyConditionDialog) {
-        AddSkyConditionDialog(
-            onDismiss = { showAddSkyConditionDialog = false },
+        NewSkyConditionDialog(
+            onDismiss = { showAddSkyConditionDialog = !showAddSkyConditionDialog },
             onConfirm = { name ->
                 val newSkyCondition = SkyCondition(name = name)
                 viewModel.addSkyCondition(newSkyCondition) {
                     pendingSkyConditionId = newSkyCondition.id
+                    showAddSkyConditionDialog = !showAddSkyConditionDialog
                 }
-                showAddSkyConditionDialog = false
             }
         )
     }
@@ -1878,14 +1876,14 @@ Selecting them places those species at the top of the list when logging catches 
         )
     }
     if (showAddWaterClarityDialog) {
-        AddWaterClarityDialog(
-            onDismiss = { showAddWaterClarityDialog = false },
+        NewWaterClarityDialog(
+            onDismiss = { showAddWaterClarityDialog = !showAddWaterClarityDialog },
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
                     pendingWaterClarityId = newWaterClarity.id
+                    showAddWaterClarityDialog = !showAddWaterClarityDialog
                 }
-                showAddWaterClarityDialog = false
             }
         )
     }

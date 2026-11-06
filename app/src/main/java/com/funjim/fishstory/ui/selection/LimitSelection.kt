@@ -79,7 +79,7 @@ fun LimitSelection(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                showSheet = false
+                showSheet = !showSheet
                 onDone()
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -105,7 +105,7 @@ fun LimitSelection(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                         onDone()
                     }

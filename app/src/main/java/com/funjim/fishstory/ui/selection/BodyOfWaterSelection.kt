@@ -91,7 +91,7 @@ fun BodyOfWaterSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -123,7 +123,7 @@ fun BodyOfWaterSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -178,7 +178,7 @@ fun BodyOfWaterSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -234,7 +234,10 @@ fun BodyOfWaterSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Body of Water",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -270,7 +273,7 @@ fun BodyOfWaterSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -310,7 +313,10 @@ fun BodyOfWaterSelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Body of Water",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -343,7 +349,6 @@ fun BodyOfWaterSelection(
     onUnselected: (BodyOfWater) -> Unit,
     onAdd: () -> Unit,
     onDone: () -> Unit,
-    modifier: Modifier = Modifier,
     usageMap: Map<String, Int>? = null,
     maxUsage: Int? = null,
     thumbnailProvider: @Composable (BodyOfWater) -> Unit
@@ -356,7 +361,7 @@ fun BodyOfWaterSelection(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                showSheet = false
+                showSheet = !showSheet
                 onDone()
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -390,7 +395,7 @@ fun BodyOfWaterSelection(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                         onDone()
                     }

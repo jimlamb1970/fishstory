@@ -67,7 +67,7 @@ import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.AddSkyConditionDialog
+import com.funjim.fishstory.ui.crud.NewSkyConditionDialog
 import com.funjim.fishstory.ui.crud.EditSkyConditionDialog
 import com.funjim.fishstory.viewmodels.SkyConditionViewModel
 
@@ -86,10 +86,11 @@ fun ManageSkyConditionsScreen(
     }
 
     val allItems by viewModel.allSkyConditions.collectAsStateWithLifecycle(initialValue = emptyList())
-    var addItem by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<SkyCondition?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<SkyCondition?>(null) }
 
     var currentItemForPhoto by remember { mutableStateOf<SkyCondition?>(null) }
@@ -141,7 +142,7 @@ fun ManageSkyConditionsScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { addItem = true }) {
+                    IconButton(onClick = { showAddDialog = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 AppIcons.Default.WeatherSet,
@@ -321,6 +322,7 @@ fun ManageSkyConditionsScreen(
                                         onClick = {
                                             menuExpanded = false
                                             itemToEdit = item
+                                            showEditDialog = true
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                                     )
@@ -418,27 +420,29 @@ This cannot be undone."""
         )
     }
 
-    if (addItem) {
-        AddSkyConditionDialog(
-            onDismiss = { addItem = false },
+    if (showAddDialog) {
+        NewSkyConditionDialog(
+            onDismiss = { showAddDialog = !showAddDialog },
             onConfirm = { name ->
-                viewModel.addSkyCondition(SkyCondition(name = name)) {}
-                addItem = false
+                viewModel.addSkyCondition(SkyCondition(name = name)) {
+                    showAddDialog = !showAddDialog
+                }
             }
         )
     }
 
     // EDIT DIALOG
-    itemToEdit?.let { item ->
-        EditSkyConditionDialog(
-            item = item,
-            onDismiss = { itemToEdit = null },
-            onConfirm = { confirmedItem ->
-                viewModel.updateSkyCondition(confirmedItem) {
-                    // Do nothing on success
+    if (showEditDialog) {
+        itemToEdit?.let { item ->
+            EditSkyConditionDialog(
+                item = item,
+                onDismiss = { showEditDialog = !showEditDialog },
+                onConfirm = { confirmedItem ->
+                    viewModel.updateSkyCondition(confirmedItem) {
+                        showEditDialog = !showEditDialog
+                    }
                 }
-                itemToEdit = null
-            }
-        )
+            )
+        }
     }
 }

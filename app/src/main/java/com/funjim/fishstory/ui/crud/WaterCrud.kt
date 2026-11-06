@@ -38,13 +38,13 @@ import java.math.RoundingMode
 import java.util.Locale
 
 @Composable
-fun AddWaterClarityDialog(
+fun NewWaterClarityDialog(
     onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     EditWaterClarityDialog(
         item = WaterClarity(name = ""),
-        title = "Add",
+        title = "New",
         onConfirm = { onConfirm(it.name) },
         onDismiss = onDismiss
     )

@@ -73,7 +73,7 @@ fun ThemeSelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -90,7 +90,7 @@ fun ThemeSelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -135,7 +135,7 @@ fun ThemeSelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item.key)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -174,7 +174,7 @@ fun ThemeSelectionField(
                                 )
                             },
                             modifier = Modifier.clickable {
-                                showSheet = false
+                                showSheet = !showSheet
                                 onClear()
                             }
                         )

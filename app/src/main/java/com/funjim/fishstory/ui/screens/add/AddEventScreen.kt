@@ -809,7 +809,6 @@ Selecting them places those species at the top of the list when logging catches 
                 addNewBodyOfWater = true
             },
             onDone = { showBodyOfWaterSelection = !showBodyOfWaterSelection },
-            modifier = Modifier.fillMaxWidth(),
             thumbnailProvider = { item ->
                 val thumbnailFlow = remember(item.id) {
                     viewModel.getBodyOfWaterThumbnail(item.id)
@@ -840,7 +839,6 @@ Selecting them places those species at the top of the list when logging catches 
                 addNewFisherman = true
             },
             onDone = { showFishermanSelection = !showFishermanSelection },
-            modifier = Modifier.fillMaxWidth(),
             thumbnailProvider = { item ->
                 val thumbnailFlow = remember(item.id) {
                     viewModel.getFishermanThumbnail(item.id)

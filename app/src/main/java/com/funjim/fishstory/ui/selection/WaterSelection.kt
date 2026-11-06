@@ -89,7 +89,7 @@ fun WaterClaritySelectionField(
 
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showSheet = !showSheet },
             containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
         ) {
@@ -121,7 +121,7 @@ fun WaterClaritySelectionField(
 
                 TextButton(
                     onClick = {
-                        showSheet = false
+                        showSheet = !showSheet
                         searchQuery = ""
                     }
                 ) {
@@ -176,7 +176,7 @@ fun WaterClaritySelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 headlineContent = {
@@ -232,7 +232,10 @@ fun WaterClaritySelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
                                     title = "Reset Water Clarity",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -243,8 +246,11 @@ fun WaterClaritySelectionField(
                             }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add water clarity ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New water clarity ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
@@ -267,7 +273,7 @@ fun WaterClaritySelectionField(
                                     .clip(MaterialTheme.shapes.medium)
                                     .clickable {
                                         onSelected(item)
-                                        showSheet = false
+                                        showSheet = !showSheet
                                         searchQuery = ""
                                     },
                                 leadingContent = { thumbnailProvider(item) },
@@ -307,7 +313,10 @@ fun WaterClaritySelectionField(
                             item {
                                 ModalResetButton(
                                     title = "Reset Water Clarity",
-                                    onClear = { showSheet = false; onClear() }
+                                    onClear = {
+                                        showSheet = !showSheet
+                                        onClear()
+                                    }
                                 )
                             }
                         }
@@ -316,8 +325,11 @@ fun WaterClaritySelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add water clarity ...",
-                                    onAdd = { showSheet = false; onAdd() }
+                                    title = "New water clarity ...",
+                                    onAdd = {
+                                        showSheet = !showSheet
+                                        onAdd()
+                                    }
                                 )
                             }
                         }
