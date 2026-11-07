@@ -169,7 +169,7 @@ fun ThemeSelectionField(
                         ListItem(
                             headlineContent = {
                                 Text(
-                                    "Reset Theme",
+                                    "Clear selection",
                                     color = getOnCardColor()
                                 )
                             },

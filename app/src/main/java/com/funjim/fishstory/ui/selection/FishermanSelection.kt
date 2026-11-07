@@ -233,7 +233,7 @@ fun FishermanSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
-                                    title = "Reset Fisherman",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
@@ -299,7 +299,7 @@ fun FishermanSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalResetButton(
-                                    title = "Reset Fisherman",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()

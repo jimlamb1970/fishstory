@@ -260,7 +260,7 @@ fun TackleBoxBottomSheet(
                         item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalResetButton(
-                                title = "Reset Tackle Box",
+                                title = "Clear selection",
                                 onClear = { onDismissRequest(); onClear() }
                             )
                         }
@@ -341,7 +341,7 @@ fun TackleBoxBottomSheet(
                     if (selectedItem != null) {
                         item { HorizontalDivider() }
                         item { ModalResetButton(
-                            title = "Reset Tackle Box",
+                            title = "Clear selection",
                             onClear = { onDismissRequest(); onClear() }
                         ) }
                     }

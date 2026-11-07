@@ -231,7 +231,7 @@ fun SkyConditionSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
-                                    title = "Reset Sky Condition",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
@@ -312,7 +312,7 @@ fun SkyConditionSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalResetButton(
-                                    title = "Reset Sky Condition",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()

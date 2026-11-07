@@ -233,7 +233,7 @@ fun BaitSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
-                                    title = "Reset Bait",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
@@ -312,7 +312,7 @@ fun BaitSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalResetButton(
-                                    title = "Reset Bait",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()

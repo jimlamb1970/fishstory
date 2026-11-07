@@ -229,7 +229,7 @@ fun TripSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
-                                    title = "Reset Trip",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
@@ -295,7 +295,7 @@ fun TripSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalResetButton(
-                                    title = "Reset Trip",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()

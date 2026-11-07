@@ -234,7 +234,7 @@ fun SpeciesSelection(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalResetButton(
-                                    title = "Reset Species",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
@@ -313,7 +313,7 @@ fun SpeciesSelection(
                             item { HorizontalDivider() }
                             item {
                                 ModalResetButton(
-                                    title = "Reset Species",
+                                    title = "Clear selection",
                                     onClear = {
                                         showSheet = !showSheet
                                         onClear()
