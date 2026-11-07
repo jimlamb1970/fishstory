@@ -51,7 +51,7 @@ fun FishermanSummarySection(
     getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
     onAdd: () -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
-    onAddTackleBox: (TackleBox) -> Unit,
+    onAddTackleBox: (Fisherman) -> Unit,
     onClick: (Fisherman) -> Unit = { _ -> },
     onDelete: ((Fisherman) -> Unit)? = null,
     onFishClick: (Fisherman, Boolean) -> Unit = { _, _ -> },

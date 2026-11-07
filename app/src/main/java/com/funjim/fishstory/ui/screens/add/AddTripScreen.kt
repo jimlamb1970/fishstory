@@ -49,9 +49,11 @@ import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
 import com.funjim.fishstory.ui.sections.FishermanSummarySection
 import com.funjim.fishstory.ui.sections.SpeciesSummarySection
+import com.funjim.fishstory.ui.selection.TackleBoxBottomSheet
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType
@@ -95,6 +97,9 @@ fun AddTripScreen(
     val tripFishermen by viewModel.tripFishermen.collectAsStateWithLifecycle()
     val allFishermen by viewModel.allFishermen.collectAsStateWithLifecycle()
     var addNewFisherman by remember { mutableStateOf(false) }
+
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -617,12 +622,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                     onAddLuresToTackleBox = { tackleBox ->
                                         navigateToAddLures(tackleBox)
                                     },
-                                    onAddTackleBox = { tackleBox ->
-                                        viewModel.createTackleBox(tackleBox) { tackleBox ->
-                                            viewModel.updateTripTackleBoxMap(
-                                                tripTackleBoxMap + (tackleBox.fishermanId to tackleBox.id)
-                                            )
-                                        }
+                                    onAddTackleBox = { fisherman ->
+                                        selectedFisherman = fisherman
+                                        showAddTackleBoxDialog = true
                                     },
                                     onDelete = { fisherman ->
                                         viewModel.updateTripFishermen(tripFishermen - fisherman)
@@ -909,5 +911,21 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
         )
+    }
+    selectedFisherman?.let { selectedFisherman ->
+        if (showAddTackleBoxDialog) {
+            NewTackleBox(
+                fishermanId = selectedFisherman.id,
+                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+                onConfirm = { item ->
+                    viewModel.createTackleBox(item) { created ->
+                        viewModel.updateTripTackleBoxMap(
+                            tripTackleBoxMap + (selectedFisherman.id to created.id)
+                        )
+                        showAddTackleBoxDialog = !showAddTackleBoxDialog
+                    }
+                }
+            )
+        }
     }
 }

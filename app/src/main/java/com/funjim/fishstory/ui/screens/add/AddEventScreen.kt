@@ -100,8 +100,7 @@ fun AddEventScreen(
     val allFishermen by viewModel.allFishermen.collectAsStateWithLifecycle()
     var addNewFisherman by remember { mutableStateOf(false) }
 
-    var showTackleBoxSelection by remember { mutableStateOf(false) }
-    var addNewTackleBox by remember { mutableStateOf(false) }
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
     var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
 
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -705,12 +704,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             onAddLuresToTackleBox = { tackleBox ->
                                                 navigateToAddLures(tackleBox)
                                             },
-                                            onAddTackleBox = { tackleBox ->
-                                                viewModel.createTackleBox(tackleBox) { tackleBox ->
-                                                    viewModel.updateEventTackleBoxMap(
-                                                        eventTackleBoxMap + (tackleBox.fishermanId to tackleBox.id)
-                                                    )
-                                                }
+                                            onAddTackleBox = { fisherman ->
+                                                selectedFisherman = fisherman
+                                                showAddTackleBoxDialog = true
                                             },
                                             onDelete = { fisherman ->
                                                 viewModel.updateEventFishermen(eventFishermen - fisherman)
@@ -979,40 +975,18 @@ Selecting them places those species at the top of the list when logging catches 
     }
 
     selectedFisherman?.let { selectedFisherman ->
-        val availableBoxes = viewModel.getTackleBoxesForFisherman(selectedFisherman.id)
-            .collectAsState(initial = emptyList()).value
-
-        if (addNewTackleBox) {
+        if (showAddTackleBoxDialog) {
             NewTackleBox(
                 fishermanId = selectedFisherman.id,
-                onDismiss = { addNewTackleBox = !addNewTackleBox },
-                onConfirm = { tackleBox ->
-                    viewModel.createTackleBox(tackleBox) { createdBox ->
+                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+                onConfirm = { item ->
+                    viewModel.createTackleBox(item) { created ->
                         viewModel.updateEventTackleBoxMap(
-                            eventTackleBoxMap + (selectedFisherman.id to createdBox.id)
+                            eventTackleBoxMap + (selectedFisherman.id to created.id)
                         )
-                        addNewTackleBox = !addNewTackleBox
+                        showAddTackleBoxDialog = !showAddTackleBoxDialog
                     }
                 }
-            )
-        }
-
-        if (showTackleBoxSelection) {
-            TackleBoxBottomSheet(
-                items = availableBoxes,
-                selectedItem = availableBoxes.find {
-                    it.id == eventTackleBoxMap[selectedFisherman.id]
-                },
-                onSelected = { tackleBox ->
-                    viewModel.updateEventTackleBoxMap(
-                        eventTackleBoxMap + (selectedFisherman.id to tackleBox.id)
-                    )
-                },
-                onAdd = { addNewTackleBox = true },
-                onClear = {
-                    viewModel.updateEventTackleBoxMap(eventTackleBoxMap - selectedFisherman.id)
-                },
-                onDismissRequest = { showTackleBoxSelection = !showTackleBoxSelection }
             )
         }
     }

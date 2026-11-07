@@ -98,6 +98,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
 import com.funjim.fishstory.ui.selection.LimitSelection
 import com.funjim.fishstory.ui.utils.BadgeHelp
@@ -187,6 +188,9 @@ fun TripDetailsScreen(
     var showSpeciesSelection by remember { mutableStateOf(false) }
 
     var showNotesDialog by remember { mutableStateOf(false) }
+
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
@@ -1189,10 +1193,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
                                                 },
-                                                onAddTackleBox = { tackleBox ->
-                                                    viewModel.createAndAssignTackleBox(tackleBox) {
-                                                        // Do nothing on success
-                                                    }
+                                                onAddTackleBox = { fisherman ->
+                                                    selectedFisherman = fisherman
+                                                    showAddTackleBoxDialog = true
                                                 },
                                                 onClick = {},
                                                 onDelete = { fisherman ->
@@ -2056,6 +2059,19 @@ Selecting them places those species at the top of the list when logging catches 
                 },
                 confirmButtonText = "Yes",
                 dismissButtonText = "No"
+            )
+        }
+    }
+    selectedFisherman?.let { selectedFisherman ->
+        if (showAddTackleBoxDialog) {
+            NewTackleBox(
+                fishermanId = selectedFisherman.id,
+                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+                onConfirm = { item ->
+                    viewModel.createAndAssignTackleBox(item) {
+                        showAddTackleBoxDialog = !showAddTackleBoxDialog
+                    }
+                }
             )
         }
     }

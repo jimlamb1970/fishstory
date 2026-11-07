@@ -76,6 +76,7 @@ import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
 import com.funjim.fishstory.ui.crud.EditEventDialog
 import com.funjim.fishstory.ui.crud.EditNoteDialog
 import com.funjim.fishstory.ui.crud.LimitDialog
+import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.crud.NotesDialog
 import com.funjim.fishstory.ui.crud.WaterDialog
 import com.funjim.fishstory.ui.crud.WeatherDialog
@@ -180,6 +181,9 @@ fun EventDetailsScreen(
     var showFishermanSelection by remember { mutableStateOf(false) }
     var showLimitSelection by remember { mutableStateOf(false) }
     var showSpeciesSelection by remember { mutableStateOf(false) }
+
+    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
 
@@ -1037,10 +1041,9 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 onAdd = {
                                                     showFishermanSelection = true
                                                 },
-                                                onAddTackleBox = { tackleBox ->
-                                                    viewModel.createAndAssignTackleBox(tackleBox) {
-                                                        // Do nothing on success
-                                                    }
+                                                onAddTackleBox = { fisherman ->
+                                                    selectedFisherman = fisherman
+                                                    showAddTackleBoxDialog = true
                                                 },
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
@@ -1957,5 +1960,19 @@ Selecting them places those species at the top of the list when logging catches 
             confirmButtonText = "Yes",
             dismissButtonText = "No"
         )
+    }
+
+    selectedFisherman?.let { selectedFisherman ->
+        if (showAddTackleBoxDialog) {
+            NewTackleBox(
+                fishermanId = selectedFisherman.id,
+                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+                onConfirm = { item ->
+                    viewModel.createAndAssignTackleBox(item) {
+                        showAddTackleBoxDialog = !showAddTackleBoxDialog
+                    }
+                }
+            )
+        }
     }
 }

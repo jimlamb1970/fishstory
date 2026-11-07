@@ -297,7 +297,8 @@ fun FishermanSummaryCard(
     availableBoxes: List<TackleBox>,
     lureCount: Int,
     lures: List<LureWithColors>,
-    onAddTackleBox: (TackleBox) -> Unit,
+//    onAddTackleBox: (TackleBox) -> Unit,
+    onAddTackleBox: (Fisherman) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onClick: (Fisherman) -> Unit,
@@ -628,7 +629,8 @@ fun FishermanSummaryCard(
             items = availableBoxes,
             selectedItem = selectedTackleBox,
             onSelected = { tackleBox -> onTackleBoxSelected(item.fisherman, tackleBox.id) },
-            onAdd = { showAddTackleBoxDialog = true },
+//            onAdd = { showAddTackleBoxDialog = true },
+            onAdd = { onAddTackleBox(item.fisherman) },
             onClear = {
                 tackleBoxOpen = false
                 onTackleBoxSelected(item.fisherman, null)
@@ -642,7 +644,7 @@ fun FishermanSummaryCard(
             fishermanId = item.fisherman.id,
             onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
             onConfirm = { tackleBox ->
-                onAddTackleBox(tackleBox)
+//                onAddTackleBox(tackleBox)
                 showAddTackleBoxDialog = !showAddTackleBoxDialog
             }
         )

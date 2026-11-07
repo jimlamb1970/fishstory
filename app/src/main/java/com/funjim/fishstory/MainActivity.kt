@@ -334,11 +334,10 @@ fun AppNavigation(
                 tripId = tripId,
                 navigateToAddLures = { tackleBox ->
                     navController.navigate("select_lures/$${tackleBox.fishermanId}/${tackleBox.id}")
-                },
-                navigateBack = {
-                    navController.popBackStack()
-                },
-            )
+                }
+            ) {
+                navController.popBackStack()
+            }
         }
 
         composable("add_trip") {
