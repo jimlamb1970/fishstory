@@ -295,7 +295,7 @@ class LureViewModel(
             )
 
             if (lureRepo.lureExists(newLure, primaryColors, secondaryColors, glowColors)) {
-                _toastMessage.emit("Lure '${name}' already exists.")
+                _toastMessage.emit("Lure '${name}' with selected colors already exists.")
                 return@launch
             }
 
