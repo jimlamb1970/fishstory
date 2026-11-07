@@ -651,7 +651,7 @@ class TripViewModel(
                 fishermanRepo.addFisherman(fisherman)
                 onSuccess() // ONLY runs if addFisherman completes without throwing
             } catch (_: SQLiteConstraintException) {
-                _toastMessage.emit("Fisherman already exists.")
+                _toastMessage.emit("Fisherman '${fisherman.fullName}' already exists.")
             } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding fisherman.")
             }
