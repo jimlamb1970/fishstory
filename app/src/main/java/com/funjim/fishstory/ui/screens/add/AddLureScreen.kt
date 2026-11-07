@@ -350,10 +350,9 @@ fun AddLureScreen(
                         ColorTarget.GLOW -> selectedGlowColors = selectedGlowColors + color
                         null -> {}
                     }
+                    showColorPickerForNew = !showColorPickerForNew
+                    showAddColorDialog = null
                 }
-
-                showColorPickerForNew = !showColorPickerForNew
-                showAddColorDialog = null
             }
         )
     }

@@ -99,12 +99,6 @@ class LureViewModel(
         }
     }
 
-    fun upsertLure(lure: Lure) {
-        viewModelScope.launch {
-            lureRepo.upsertLure(lure)
-        }
-    }
-
     fun deleteLure(lure: Lure) {
         viewModelScope.launch {
             lureRepo.deleteLure(lure)
@@ -153,24 +147,11 @@ class LureViewModel(
         return lureRepo.getLureWithDetails(id)
     }
 
-    suspend fun upsertLurePrimaryColor(crossRef: LurePrimaryColor) {
-        lureRepo.upsertLurePrimaryColor(crossRef)
-    }
-    suspend fun upsertLureSecondaryColor(crossRef: LureSecondaryColor) {
-        lureRepo.upsertLureSecondaryColor(crossRef)
-    }
-    suspend fun upsertLureGlowColor(crossRef: LureGlowColor) {
-        lureRepo.upsertLureGlowColor(crossRef)
-    }
-
     fun lureThumbnail(lureId: String): Flow<ByteArray?> {
         return photoRepo.fetchLureThumbnail(lureId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-    suspend fun doesPhotoExist(uri: Uri): Boolean {
-        return photoRepo.doesPhotoExist(uri)
-    }
     suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
         return photoRepo.getPhotoMetadata(uri)
     }
@@ -188,12 +169,6 @@ class LureViewModel(
         }
     }
 
-    fun addLurePhotos(lureId: String, photos: List<Photo>) {
-        viewModelScope.launch {
-            photoRepo.addLurePhotos(lureId, photos)
-        }
-    }
-
     fun setLureThumbnail(lureId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setLureThumbnail(lureId, photoId) }
     }
@@ -201,11 +176,6 @@ class LureViewModel(
     fun deleteLurePhoto(lureId: String, photo: Photo) {
         viewModelScope.launch {
             photoRepo.deleteLurePhoto(lureId, photo)
-        }
-    }
-    fun deleteLurePhotos(lureId: String, photos: List<Photo>) {
-        viewModelScope.launch {
-            photoRepo.deleteLurePhotos(lureId, photos)
         }
     }
 
