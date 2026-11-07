@@ -575,7 +575,7 @@ fun LureSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "Add lures to tackle box...",
+                                    title = "Add lures to tackle box ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()
@@ -665,7 +665,7 @@ fun LureSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "Add lures to tackle box...",
+                                    title = "Add lures to tackle box ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()

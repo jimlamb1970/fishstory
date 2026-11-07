@@ -246,7 +246,7 @@ fun WaterClaritySelectionField(
                             }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "New water clarity ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()
@@ -325,7 +325,7 @@ fun WaterClaritySelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "New water clarity ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()

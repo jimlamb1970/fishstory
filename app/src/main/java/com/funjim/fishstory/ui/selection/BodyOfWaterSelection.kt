@@ -246,7 +246,7 @@ fun BodyOfWaterSelectionField(
                             item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "New body of water ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()
@@ -325,7 +325,7 @@ fun BodyOfWaterSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "New body of water ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()
@@ -533,7 +533,7 @@ fun BodyOfWaterSelection(
 
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Add body of water ...",
+                                title = "New ...",
                                 onAdd = { onAdd() }
                             )
                         }
@@ -620,7 +620,7 @@ fun BodyOfWaterSelection(
 
                         item {
                             ModalAddButton(
-                                title = "Add body of water ...",
+                                title = "New ...",
                                 onAdd = { onAdd() }
                             )
                         }

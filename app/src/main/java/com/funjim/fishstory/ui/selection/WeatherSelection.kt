@@ -246,7 +246,7 @@ fun SkyConditionSelectionField(
                             }
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 ModalAddButton(
-                                    title = "New sky condition ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()
@@ -325,7 +325,7 @@ fun SkyConditionSelectionField(
                             item { HorizontalDivider() }
                             item {
                                 ModalAddButton(
-                                    title = "New sky condition ...",
+                                    title = "New ...",
                                     onAdd = {
                                         showSheet = !showSheet
                                         onAdd()

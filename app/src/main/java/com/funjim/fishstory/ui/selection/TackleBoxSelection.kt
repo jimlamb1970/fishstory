@@ -270,8 +270,11 @@ fun TackleBoxBottomSheet(
                         item(span = { GridItemSpan(maxLineSpan) }) { HorizontalDivider() }
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ModalAddButton(
-                                title = "Create new tackle box...",
-                                onAdd = { onDismissRequest(); onAdd() }
+                                title = "New ...",
+                                onAdd = {
+                                    onDismissRequest()
+                                    onAdd()
+                                }
                             )
                         }
                     }
@@ -345,10 +348,15 @@ fun TackleBoxBottomSheet(
 
                     if (onAdd != null) {
                         item { HorizontalDivider() }
-                        item { ModalAddButton(
-                            title = "Create new tackle box...",
-                            onAdd = { onDismissRequest(); onAdd() }
-                        ) }
+                        item {
+                            ModalAddButton(
+                                title = "New ...",
+                                onAdd = {
+                                    onDismissRequest()
+                                    onAdd()
+                                }
+                            )
+                        }
                     }
                 }
             }
