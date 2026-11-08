@@ -471,27 +471,6 @@ fun FishermanSummaryCard(
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = {
-                                if (showPhotos) Text("Hide Photos")
-                                else Text("Show Photos") },
-                            onClick = {
-                                expanded = false
-                                if (!showPhotos) {
-                                    tackleBoxOpen = false
-                                    luresExpanded = false
-                                }
-                                showPhotos = !showPhotos
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    if (showPhotos) Icons.Default.VisibilityOff
-                                    else Icons.Default.Visibility,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-
-                        DropdownMenuItem(
                             text = { Text("Select Tackle Box") },
                             onClick = {
                                 expanded = false
@@ -505,7 +484,6 @@ fun FishermanSummaryCard(
                                 )
                             }
                         )
-
                         if (selectedTackleBox != null) {
                             DropdownMenuItem(
                                 text = { Text("Add Lures") },
@@ -549,6 +527,26 @@ fun FishermanSummaryCard(
                                 )
                             }
                         }
+                        DropdownMenuItem(
+                            text = {
+                                if (showPhotos) Text("Hide Photos")
+                                else Text("Show Photos") },
+                            onClick = {
+                                expanded = false
+                                if (!showPhotos) {
+                                    tackleBoxOpen = false
+                                    luresExpanded = false
+                                }
+                                showPhotos = !showPhotos
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    if (showPhotos) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        )
 
                         onDelete?.let {
                             DropdownMenuItem(

@@ -288,7 +288,6 @@ fun FishCard(
                                 }
                             )
                         }
-
                         DropdownMenuItem(
                             text = { Text("Select on Map") },
                             onClick = {
@@ -305,9 +304,6 @@ fun FishCard(
                                 )
                             }
                         )
-
-                        // If there has been a location specified for the fish, give the option
-                        // to reset it (revert to event or trip location) or clear it (remove entirely)
                         if (fishLat != null) {
                             DropdownMenuItem(
                                 text = {

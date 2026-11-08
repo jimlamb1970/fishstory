@@ -318,7 +318,6 @@ fun EventItem(
                                     }
                                 )
                             }
-
                             if (onSelectLocation != null) {
                                 DropdownMenuItem(
                                     text = { Text("Select on Map") },
@@ -337,7 +336,6 @@ fun EventItem(
                                     }
                                 )
                             }
-
                             if (eventLat != null && onClearLocation != null) {
                                 DropdownMenuItem(
                                     text = {
@@ -357,6 +355,7 @@ fun EventItem(
                                     }
                                 )
                             }
+
                             if (onDelete != null) {
                                 DropdownMenuItem(
                                     text = { Text("Delete") },

@@ -630,21 +630,6 @@ fun TripDetailsScreen(
                                     )
 
                                     DropdownMenuItem(
-                                        text = { Text("Delete") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            showDeleteTripDialog = true
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete Trip",
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                    )
-
-                                    DropdownMenuItem(
                                         text = {
                                             if (showPhotos) Text("Hide Photos")
                                             else Text("Show Photos") },
@@ -700,7 +685,6 @@ fun TripDetailsScreen(
                                             }
                                         )
                                     }
-
                                     DropdownMenuItem(
                                         text = { Text("Select on Map") },
                                         onClick = {
@@ -717,7 +701,6 @@ fun TripDetailsScreen(
                                             )
                                         }
                                     )
-
                                     if (trip.latitude != null) {
                                         DropdownMenuItem(
                                             text = { Text("Clear Location") },
@@ -746,6 +729,21 @@ fun TripDetailsScreen(
                                             }
                                         )
                                     }
+
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            showDeleteTripDialog = true
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Delete Trip",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
                                 }
                             }
                         }

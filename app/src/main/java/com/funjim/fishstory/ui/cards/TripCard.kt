@@ -130,8 +130,6 @@ fun TripCardWithMenu(
                             )
                         }
                     )
-
-                    // Centralized Menu Actions
                     val lat = tripSummary.trip.latitude
                     if (hasLocationPermission) {
                         DropdownMenuItem(

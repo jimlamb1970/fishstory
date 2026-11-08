@@ -650,21 +650,6 @@ fun EventDetailsScreen(
                                     )
 
                                     DropdownMenuItem(
-                                        text = { Text("Delete") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            showDeleteEventDialog = true
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "Delete Event",
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                    )
-
-                                    DropdownMenuItem(
                                         text = { Text("Export") },
                                         onClick = {
                                             menuExpanded = false
@@ -735,7 +720,6 @@ fun EventDetailsScreen(
                                             }
                                         )
                                     }
-
                                     DropdownMenuItem(
                                         text = { Text("Select on Map") },
                                         onClick = {
@@ -751,7 +735,6 @@ fun EventDetailsScreen(
                                                     LocalContentColor.current)
                                         }
                                     )
-
                                     if (activeLat != null && eventLat != null) {
                                         DropdownMenuItem(
                                             text = {
@@ -785,6 +768,21 @@ fun EventDetailsScreen(
                                             }
                                         )
                                     }
+
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            showDeleteEventDialog = true
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Delete Event",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
                                 }
                             }
                         }
