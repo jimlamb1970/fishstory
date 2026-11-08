@@ -325,7 +325,7 @@ This cannot be undone.
 
 If you delete this lure, it will be removed from all fish that were caught with it.
 
-It will also be removed from all tackle boxes that contained it.
+It will also be removed from all tackle boxes that contain it.
 """
                 )
             },
