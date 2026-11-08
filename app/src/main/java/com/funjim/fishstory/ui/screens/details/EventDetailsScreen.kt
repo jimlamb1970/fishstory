@@ -1797,7 +1797,6 @@ Selecting them places those species at the top of the list when logging catches 
                         showAddLimitDialog = !showAddLimitDialog
                     }
                 }
-                showAddLimitDialog = !showAddLimitDialog
             }
         )
     }
