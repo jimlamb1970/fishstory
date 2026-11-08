@@ -168,7 +168,7 @@ fun AddLureScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = name.isNotBlank() && hasChanges
                     ) {
-                        Text(if (lureId == null) "Add Lure" else "Update Lure")
+                        Text("Save")
                     }
                 }
             }

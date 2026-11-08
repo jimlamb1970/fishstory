@@ -237,7 +237,7 @@ fun AddTripScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Add,
-                                            contentDescription = null,
+                                            contentDescription = "Add Body of Water",
                                             tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(12.dp)
                                         )
@@ -262,7 +262,7 @@ fun AddTripScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Add,
-                                            contentDescription = null,
+                                            contentDescription = "Add Fisherman",
                                             tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(12.dp)
                                         )
@@ -287,7 +287,7 @@ fun AddTripScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Add,
-                                            contentDescription = null,
+                                            contentDescription = "Add Species",
                                             tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(12.dp)
                                         )
@@ -397,7 +397,7 @@ fun AddTripScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = tripDraft.name.isNotBlank() && tripFishermen.isNotEmpty()
                     ) {
-                        Text("Add Trip")
+                        Text("Save")
                     }
                 }
             }

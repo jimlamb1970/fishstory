@@ -280,7 +280,7 @@ fun AddEventScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Body of Water",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -305,7 +305,7 @@ fun AddEventScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Fisherman",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -330,7 +330,7 @@ fun AddEventScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Species",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -442,7 +442,7 @@ fun AddEventScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 enabled = eventDraft.name.isNotBlank() && eventFishermen.isNotEmpty()
                             ) {
-                                Text("Add Event")
+                                Text("Save")
                             }
                         }
                     }
