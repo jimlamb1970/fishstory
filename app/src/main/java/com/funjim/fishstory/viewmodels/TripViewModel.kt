@@ -804,6 +804,7 @@ class TripViewModel(
     ) {
         addBodyOfWater(item) { added ->
             addTripBodyOfWater(tripId, added.id)
+            onSuccess(added)
         }
     }
 
