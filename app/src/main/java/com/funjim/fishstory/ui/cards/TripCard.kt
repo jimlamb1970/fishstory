@@ -190,7 +190,7 @@ fun TripCardWithMenu(
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Delete,
-                                null,
+                                "Delete Trip",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }

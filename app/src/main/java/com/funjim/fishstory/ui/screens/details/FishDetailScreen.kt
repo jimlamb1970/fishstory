@@ -172,7 +172,7 @@ fun FishDetailScreen(
                                     leadingIcon = {
                                         Icon(
                                             Icons.Default.Edit,
-                                            contentDescription = "Edit Trip"
+                                            contentDescription = "Edit Fish"
                                         )
                                     }
                                 )

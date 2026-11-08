@@ -192,7 +192,7 @@ fun WaterCard(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = null,
+                                        contentDescription = "Delete Water Conditions",
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 },
@@ -378,7 +378,7 @@ fun WaterSummaryCard(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Delete Water Conditions",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         },

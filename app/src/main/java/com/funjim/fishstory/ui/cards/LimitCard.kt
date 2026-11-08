@@ -243,7 +243,7 @@ fun LimitCard(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Delete Limit",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             },

@@ -427,7 +427,7 @@ fun ManageSpeciesScreen(
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.Delete,
-                                                    contentDescription = "Delete",
+                                                    contentDescription = "Delete Species",
                                                     tint =
                                                         if (!preventDelete) MaterialTheme.colorScheme.error
                                                         else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)

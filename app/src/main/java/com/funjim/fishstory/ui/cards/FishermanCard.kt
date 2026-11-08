@@ -256,7 +256,7 @@ fun FishermanItem(
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Delete Fisherman",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }

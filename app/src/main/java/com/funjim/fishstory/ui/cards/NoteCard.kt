@@ -134,7 +134,7 @@ fun NoteCard(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Delete Note",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         },

@@ -376,7 +376,7 @@ fun ManageWaterClarityScreen(
                                             if (preventDelete) {
                                                 Toast.makeText(
                                                     context,
-                                                    "Can't delete this body of water. There are fish logged for it.",
+                                                    "Can't delete this water clarity. There are fish logged for it.",
                                                     Toast.LENGTH_SHORT).show()
                                             } else {
                                                 itemToDelete = item
@@ -385,7 +385,7 @@ fun ManageWaterClarityScreen(
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Delete",
+                                                contentDescription = "Delete Water Clarity",
                                                 tint =
                                                     if (!preventDelete) MaterialTheme.colorScheme.error
                                                     else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)

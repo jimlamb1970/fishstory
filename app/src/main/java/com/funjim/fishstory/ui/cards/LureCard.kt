@@ -225,7 +225,7 @@ fun LureItem(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Delete Lure",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }

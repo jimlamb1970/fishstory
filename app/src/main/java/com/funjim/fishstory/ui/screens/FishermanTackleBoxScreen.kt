@@ -206,7 +206,7 @@ fun FishermanTackleBoxScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Edit") },
+                                text = { Text("Rename") },
                                 onClick = {
                                     menuExpanded = false
                                     showRenameDialog = true

@@ -385,7 +385,7 @@ fun ManageSkyConditionsScreen(
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Delete",
+                                                contentDescription = "Delete Sky Condition",
                                                 tint =
                                                     if (!preventDelete) MaterialTheme.colorScheme.error
                                                     else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)

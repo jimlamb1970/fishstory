@@ -335,7 +335,7 @@ fun FishCard(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Delete Fish",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }

@@ -366,7 +366,7 @@ fun EventItem(
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = null,
+                                            contentDescription = "Delete Event",
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                     }

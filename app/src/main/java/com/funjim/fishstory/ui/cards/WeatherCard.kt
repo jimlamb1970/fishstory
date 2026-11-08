@@ -276,7 +276,7 @@ fun WeatherCard(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = null,
+                                        contentDescription = "Delete Weather Conditions",
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 },
@@ -542,7 +542,7 @@ fun WeatherSummaryCard(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Delete Weather Conditions",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         },

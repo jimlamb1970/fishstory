@@ -352,7 +352,7 @@ fun ManageColorsScreen(
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.Delete,
-                                                    contentDescription = "Delete",
+                                                    contentDescription = "Delete Color",
                                                     tint = MaterialTheme.colorScheme.error
                                                 )
                                             }

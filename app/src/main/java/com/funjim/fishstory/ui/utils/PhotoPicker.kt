@@ -230,7 +230,7 @@ fun PhotoPickerRow(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Remove Photo",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }

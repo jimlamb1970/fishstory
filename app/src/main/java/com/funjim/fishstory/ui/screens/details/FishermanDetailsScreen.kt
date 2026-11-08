@@ -854,7 +854,7 @@ fun TackleBoxCard(
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = null,
+                                    contentDescription = "Delete Tackle Box",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             },
