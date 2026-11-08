@@ -67,12 +67,6 @@ fun ManageLimitsScreen(
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
     val useImperial = appSettings.display.useImperialUnits
 
-    LaunchedEffect(Unit) {
-        viewModel.toastMessage.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     val allSpecies by viewModel.allSpecies.collectAsStateWithLifecycle()
     val allItems by viewModel.allLimits.collectAsStateWithLifecycle(initialValue = emptyList())
 
