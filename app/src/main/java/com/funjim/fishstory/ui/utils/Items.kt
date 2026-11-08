@@ -206,7 +206,12 @@ fun ModalAddButton(
                 fontWeight = FontWeight.SemiBold
             )
         },
-        leadingContent = { Icon(Icons.Default.Add, null) },
+        leadingContent = {
+            Icon(
+                Icons.Default.Add,
+                title
+            )
+        },
         modifier = Modifier.clickable { onAdd() }
     )
 }

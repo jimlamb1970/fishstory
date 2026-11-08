@@ -439,7 +439,7 @@ fun EventDetailsScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Add,
-                                            contentDescription = null,
+                                            contentDescription = "Add Fish",
                                             tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(12.dp)
                                         )
@@ -464,7 +464,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Body of Water",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -491,7 +491,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Fisherman",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -518,7 +518,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Limit",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -543,7 +543,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Note",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -568,7 +568,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Species",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -593,7 +593,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Water Conditions",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )
@@ -618,7 +618,7 @@ fun EventDetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Add,
-                                                    contentDescription = null,
+                                                    contentDescription = "Add Weather Conditions",
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(12.dp)
                                                 )

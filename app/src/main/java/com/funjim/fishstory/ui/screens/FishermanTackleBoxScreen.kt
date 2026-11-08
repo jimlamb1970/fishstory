@@ -190,7 +190,7 @@ fun FishermanTackleBoxScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Lure",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )

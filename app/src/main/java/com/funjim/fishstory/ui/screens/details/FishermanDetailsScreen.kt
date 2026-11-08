@@ -133,7 +133,7 @@ fun FishermanDetailsScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
-                                        contentDescription = null,
+                                        contentDescription = "Add Tackle Box",
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.size(12.dp)
                                     )
@@ -150,7 +150,7 @@ fun FishermanDetailsScreen(
                                 onDismissRequest = { menuExpanded = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Edit") },
+                                    text = { Text("Rename") },
                                     onClick = {
                                         menuExpanded = false
                                         showEditFishermanDialog = true
@@ -162,22 +162,6 @@ fun FishermanDetailsScreen(
                                         )
                                     }
                                 )
-
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        showDeleteFishermanDialog = true
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Delete Fisherman",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                )
-
                                 DropdownMenuItem(
                                     text = {
                                         if (showPhotos) Text("Hide Photos")
@@ -192,6 +176,20 @@ fun FishermanDetailsScreen(
                                             if (showPhotos) Icons.Default.VisibilityOff
                                             else Icons.Default.Visibility,
                                             contentDescription = null
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showDeleteFishermanDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete Fisherman",
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     }
                                 )
@@ -343,7 +341,10 @@ fun FishermanDetailsScreen(
                                     ),
                                     modifier = Modifier.size(24.dp)
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add Tackle Box")
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Add Tackle Box"
+                                    )
                                 }
                             }
                         }

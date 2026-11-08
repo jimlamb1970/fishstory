@@ -98,7 +98,7 @@ fun FishermanListScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Fisherman",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )

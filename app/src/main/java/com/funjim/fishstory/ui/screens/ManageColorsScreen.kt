@@ -156,7 +156,7 @@ fun ManageColorsScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Color",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -182,7 +182,7 @@ fun ManageColorsScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add New",
+                                contentDescription = "Add Color",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }

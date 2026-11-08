@@ -157,7 +157,7 @@ fun ManageSkyConditionsScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Sky Condition",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -185,7 +185,7 @@ fun ManageSkyConditionsScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add New",
+                                contentDescription = "Add Sky Condition",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -255,7 +255,12 @@ fun ManageSkyConditionsScreen(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.AddAPhoto,
+                                                contentDescription = "Set Thumbnail"
+                                            )
+                                        }
                                     )
                                     if (thumbnail != null) {
                                         DropdownMenuItem(
@@ -338,7 +343,12 @@ fun ManageSkyConditionsScreen(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.AddAPhoto,
+                                                contentDescription = "Set Thumbnail"
+                                            )
+                                        }
                                     )
                                     if (thumbnail != null) {
                                         DropdownMenuItem(

@@ -102,7 +102,7 @@ fun WaterSection(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Water Condition"
+                    contentDescription = "Add Water Conditions"
                 )
             }
         }
@@ -242,7 +242,7 @@ fun WaterSummarySection(
                 ) {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = "Add Water Condition"
+                        contentDescription = "Add Water Conditions"
                     )
                 }
             }

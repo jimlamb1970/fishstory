@@ -124,8 +124,7 @@ fun BodyOfWaterSummaryCard(
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.AddAPhoto,
-                                    contentDescription =
-                                        null
+                                    contentDescription = "Set Thumbnail"
                                 )
                             }
                         )

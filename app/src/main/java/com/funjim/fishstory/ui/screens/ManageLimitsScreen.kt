@@ -139,7 +139,7 @@ fun ManageLimitsScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Limit",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -164,7 +164,7 @@ fun ManageLimitsScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add New",
+                                contentDescription = "Add Limit",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }

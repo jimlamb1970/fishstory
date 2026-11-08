@@ -173,7 +173,7 @@ fun ManageSpeciesScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Species",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -201,7 +201,7 @@ fun ManageSpeciesScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add New",
+                                contentDescription = "Add Species",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -284,7 +284,7 @@ fun ManageSpeciesScreen(
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.AddAPhoto,
-                                                    contentDescription = null
+                                                    contentDescription = "Set Thumbnail"
                                                 )
                                             }
                                         )
@@ -387,7 +387,7 @@ fun ManageSpeciesScreen(
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.AddAPhoto,
-                                                    contentDescription = null
+                                                    contentDescription = "Set Thumbnail"
                                                 )
                                             }
                                         )

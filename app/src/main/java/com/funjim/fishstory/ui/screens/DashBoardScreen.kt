@@ -1266,7 +1266,7 @@ fun NewTripHeroCard(onCreateClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
-                    contentDescription = null,
+                    contentDescription = "Add Trip",
                     tint = MaterialTheme.colorScheme.onPrimary, // Maize accent
                     modifier = Modifier.size(48.dp)
                 )

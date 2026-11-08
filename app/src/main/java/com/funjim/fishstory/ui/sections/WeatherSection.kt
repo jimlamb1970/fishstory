@@ -102,7 +102,7 @@ fun WeatherSection(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Sky Condition"
+                    contentDescription = "Add Weather Conditions"
                 )
             }
         }
@@ -242,7 +242,7 @@ fun WeatherSummarySection(
                 ) {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = "Add Weather"
+                        contentDescription = "Add Weather Conditions"
                     )
                 }
             }

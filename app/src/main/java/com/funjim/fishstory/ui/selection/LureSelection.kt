@@ -79,7 +79,12 @@ private fun AddColorButton(
                 fontWeight = FontWeight.SemiBold
             )
         },
-        leadingContent = { Icon(Icons.Default.Add, null) },
+        leadingContent = {
+            Icon(
+                Icons.Default.Add,
+                "Add Color"
+            )
+        },
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)

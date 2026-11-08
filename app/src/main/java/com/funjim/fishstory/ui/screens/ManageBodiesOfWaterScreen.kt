@@ -163,7 +163,7 @@ fun ManageBodiesOfWaterScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = null,
+                                    contentDescription = "Add Body of Water",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -192,7 +192,7 @@ fun ManageBodiesOfWaterScreen(
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add New",
+                                contentDescription = "Add Body of Water",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -259,7 +259,12 @@ fun ManageBodiesOfWaterScreen(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.AddAPhoto,
+                                                contentDescription = "Set Thumbnail"
+                                            )
+                                        }
                                     )
                                     if (thumbnail != null) {
                                         DropdownMenuItem(
@@ -342,7 +347,12 @@ fun ManageBodiesOfWaterScreen(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
                                         },
-                                        leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.AddAPhoto,
+                                                contentDescription = "Set Thumbnail"
+                                            )
+                                        }
                                     )
                                     if (thumbnail != null) {
                                         DropdownMenuItem(

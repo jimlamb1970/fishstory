@@ -127,8 +127,7 @@ fun SpeciesItem(
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.AddAPhoto,
-                                    contentDescription =
-                                        null
+                                    contentDescription = "Set Thumbnail"
                                 )
                             }
                         )
@@ -197,7 +196,12 @@ fun SpeciesItem(
                                 menuExpanded = false
                                 onSetThumbnail(species)
                             },
-                            leadingIcon = { Icon(Icons.Default.AddAPhoto, contentDescription = null) }
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.AddAPhoto,
+                                    contentDescription = "Set Thumbnail"
+                                )
+                            }
                         )
                         if (thumbnail != null) {
                             DropdownMenuItem(
