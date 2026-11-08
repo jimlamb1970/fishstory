@@ -1354,19 +1354,6 @@ Selecting them places those species at the top of the list when logging catches 
                     }
                 }
             }
-            if (showDeleteLimitDialog) {
-                limitToDelete?.let { limit ->
-                    DeleteDialog(
-                        title = "Remove Limit",
-                        message = "Are you sure you want to remove this limit?",
-                        onConfirm = {
-                            viewModel.removeLimitFromEvent(limit)
-                            showDeleteLimitDialog = !showDeleteLimitDialog
-                        },
-                        onDismiss = { showDeleteLimitDialog = !showDeleteLimitDialog }
-                    )
-                }
-            }
             if (showDeleteNoteDialog) {
             noteToDelete?.let { note ->
                 DeleteDialog(
@@ -1683,9 +1670,10 @@ Selecting them places those species at the top of the list when logging catches 
                         val limit = limitSummaries.find { it.limit.id == unselected.id }
                         if (limit != null) {
                             if (!limit.isTripLimit) {
-                                viewModel.removeLimitFromEvent(unselected)
-                            } else {
-                                showLimitSelection = false
+                                limitToDelete = unselected
+                                showDeleteLimitDialog = true
+                           } else {
+                                showLimitSelection = !showLimitSelection
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "Unable to remove (unselect) trip assigned limit.",
@@ -1699,7 +1687,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddLimitDialog = true
                     },
-                    onDone = { showLimitSelection = false }
+                    onDone = { showLimitSelection = !showLimitSelection }
                 )
             }
             if (showSpeciesSelection) {
@@ -1937,6 +1925,21 @@ Selecting them places those species at the top of the list when logging catches 
             },
             onAddSkyCondition = { showAddSkyConditionDialog = true }
         )
+    }
+
+    if (showDeleteLimitDialog) {
+        limitToDelete?.let { limit ->
+            DeleteDialog(
+                title = "Remove Limit",
+                message = "Are you sure you want to remove this limit?",
+                confirmButtonText = "Remove",
+                onConfirm = {
+                    viewModel.removeLimitFromEvent(limit)
+                    showDeleteLimitDialog = !showDeleteLimitDialog
+                },
+                onDismiss = { showDeleteLimitDialog = !showDeleteLimitDialog }
+            )
+        }
     }
 
     bodyOfWaterToUpdateAll?.let { bodyOfWater ->

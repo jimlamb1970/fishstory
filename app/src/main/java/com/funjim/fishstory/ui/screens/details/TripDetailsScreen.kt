@@ -1509,6 +1509,7 @@ Selecting them places those species at the top of the list when logging catches 
                     DeleteDialog(
                         title = "Remove Limit",
                         message = "Are you sure you want to remove this limit?",
+                        confirmButtonText = "Remove",
                         onConfirm = {
                             viewModel.removeLimitFromTrip(limit)
                             showDeleteLimitDialog = !showDeleteLimitDialog
@@ -1834,7 +1835,8 @@ Selecting them places those species at the top of the list when logging catches 
                         viewModel.addLimitToTrip(selected)
                     },
                     onUnselected = { unselected ->
-                        viewModel.removeLimitFromTrip(unselected)
+                        limitToDelete = unselected
+                        showDeleteLimitDialog = true
                     },
                     onAdd = {
                         showAddLimitDialog = true
@@ -2022,6 +2024,19 @@ Selecting them places those species at the top of the list when logging catches 
             }
         )
     }
+    if (showAddTackleBoxDialog) {
+        selectedFisherman?.let { selectedFisherman ->
+            NewTackleBox(
+                fishermanId = selectedFisherman.id,
+                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
+                onConfirm = { item ->
+                    viewModel.createAndAssignTackleBox(item) {
+                        showAddTackleBoxDialog = !showAddTackleBoxDialog
+                    }
+                }
+            )
+        }
+    }
     if (showAddWaterClarityDialog) {
         NewWaterClarityDialog(
             onDismiss = {
@@ -2059,19 +2074,6 @@ Selecting them places those species at the top of the list when logging catches 
                 },
                 confirmButtonText = "Yes",
                 dismissButtonText = "No"
-            )
-        }
-    }
-    selectedFisherman?.let { selectedFisherman ->
-        if (showAddTackleBoxDialog) {
-            NewTackleBox(
-                fishermanId = selectedFisherman.id,
-                onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
-                onConfirm = { item ->
-                    viewModel.createAndAssignTackleBox(item) {
-                        showAddTackleBoxDialog = !showAddTackleBoxDialog
-                    }
-                }
             )
         }
     }
