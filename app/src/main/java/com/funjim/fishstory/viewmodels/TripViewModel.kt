@@ -598,8 +598,8 @@ class TripViewModel(
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
             if (fishRepo.limitExists(limit)) {
-                onSuccess(false)
                 _toastMessage.emit("Limit '${limit.name}' already exists.")
+                onSuccess(false)
             } else {
                 fishRepo.addLimitToTrip(
                     tripId = tripId,
@@ -738,10 +738,10 @@ class TripViewModel(
             try {
                 fishRepo.addSpecies(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Species '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding species.")
             }
         }
@@ -780,10 +780,10 @@ class TripViewModel(
             try {
                 envRepo.addBodyOfWater(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Body of water '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding body of water.")
             }
         }
@@ -830,9 +830,9 @@ class TripViewModel(
             try {
                 envRepo.addWaterClarity(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
@@ -858,9 +858,9 @@ class TripViewModel(
             try {
                 envRepo.addSkyCondition(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Sky Condition '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding sky condition.")
             }
         }

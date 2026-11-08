@@ -113,9 +113,9 @@ class FishermanDetailsViewModel(
             try {
                 repository.updateFisherman(fisherman)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman '${fisherman.fullName}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while updating fisherman.")
             }
         }

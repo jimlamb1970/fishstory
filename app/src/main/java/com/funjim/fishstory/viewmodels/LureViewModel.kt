@@ -113,9 +113,9 @@ class LureViewModel(
             try {
                 lureRepo.insertLureColor(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Color '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding color.")
             }
         }

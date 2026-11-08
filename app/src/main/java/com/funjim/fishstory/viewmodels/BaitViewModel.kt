@@ -58,9 +58,9 @@ class BaitViewModel(
             try {
                 lureRepo.addBait(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Bait '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding bait.")
             }
         }
@@ -74,9 +74,9 @@ class BaitViewModel(
             try {
                 lureRepo.updateBait(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Bait '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while updating bait.")
             }
         }

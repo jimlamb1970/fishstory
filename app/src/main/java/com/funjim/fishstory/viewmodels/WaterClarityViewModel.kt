@@ -40,9 +40,9 @@ class WaterClarityViewModel(
             try {
                 envRepo.addWaterClarity(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
@@ -56,9 +56,9 @@ class WaterClarityViewModel(
             try {
                 envRepo.updateWaterClarity(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while updating water clarity.")
             }
         }

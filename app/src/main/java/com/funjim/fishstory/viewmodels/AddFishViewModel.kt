@@ -284,10 +284,10 @@ class AddFishViewModel(
             try {
                 fishRepo.addSpecies(item)
                 onSuccess(item)
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 // Catches duplicate UNIQUE constraint failures
                 _toastMessage.emit("Species '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding species.")
             }
         }

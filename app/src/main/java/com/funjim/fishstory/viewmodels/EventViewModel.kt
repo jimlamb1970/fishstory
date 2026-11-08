@@ -554,8 +554,8 @@ class EventViewModel(
         val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             if (fishRepo.limitExists(limit)) {
-                onSuccess(false)
                 _toastMessage.emit("Limit '${limit.name}' already exists.")
+                onSuccess(false)
             } else {
                 fishRepo.addLimitToEvent(
                     eventId = eventId,

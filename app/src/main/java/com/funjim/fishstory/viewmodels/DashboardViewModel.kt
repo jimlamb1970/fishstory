@@ -289,9 +289,9 @@ class DashboardViewModel(
             try {
                 envRepo.addSkyCondition(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Sky Condition '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding sky condition.")
             }
         }
@@ -311,9 +311,9 @@ class DashboardViewModel(
             try {
                 envRepo.addWaterClarity(item)
                 onSuccess()
-            } catch (e: SQLiteConstraintException) {
+            } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Water Clarity '${item.name}' already exists.")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _toastMessage.emit("An error occurred while adding water clarity.")
             }
         }
