@@ -43,23 +43,17 @@ class EnvironmentRepository(
     val allWaterClarity: Flow<List<WaterClarity>> = waterDao.getAllWaterClarity()
         .map { list -> list.toDomainList() }
 
-    fun getAllSkyConditionsForEvent(eventId: String): Flow<List<SkyCondition>> {
-        return weatherDao.getAllSkyConditionsForEvent(eventId)
-            .map { list -> list.toDomainList() }
+    suspend fun getAllSkyConditionsForEvent(eventId: String): List<SkyCondition> {
+        return weatherDao.getAllSkyConditionsForEvent(eventId).toDomainList()
     }
-    fun getAllWaterClarityForEvent(eventId: String): Flow<List<WaterClarity>> {
-        return waterDao.getAllWaterClarityForEvent(eventId)
-            .map { list -> list.toDomainList() }
+    suspend fun getAllWaterClarityForEvent(eventId: String): List<WaterClarity> {
+        return waterDao.getAllWaterClarityForEvent(eventId).toDomainList()
     }
-
-    fun getAllWaterConditionsForEvent(eventId: String): Flow<List<Water>> {
-        return waterDao.getAllWaterConditionsForEvent(eventId)
-            .map { list -> list.toWaterDomainList() }
+    suspend fun getAllWaterConditionsForEvent(eventId: String): List<Water> {
+        return waterDao.getAllWaterConditionsForEvent(eventId).toWaterDomainList()
     }
-
-    fun getAllWeatherConditionsForEvent(eventId: String): Flow<List<Weather>> {
-        return weatherDao.getAllWeatherConditionsForEvent(eventId)
-            .map { list -> list.toWeatherDomainList() }
+    suspend fun getAllWeatherConditionsForEvent(eventId: String): List<Weather> {
+        return weatherDao.getAllWeatherConditionsForEvent(eventId).toWeatherDomainList()
     }
 
     suspend fun addBodyOfWater(bodyOfWater: BodyOfWater) {
@@ -112,11 +106,11 @@ class EnvironmentRepository(
     }
     suspend fun deleteBodyOfWaterForEvent(eventId: String, bodyOfWaterId: String) =
         bodyOfWaterDao.deleteBodyOfWaterForEvent(eventId, bodyOfWaterId)
-    fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWater>> {
-        return bodyOfWaterDao.getAllBodiesOfWaterForEvent(eventId).map { list -> list.toBodyOfWaterDomainList() }
+    suspend fun getAllBodiesOfWaterForEvent(eventId: String): List<BodyOfWater> {
+        return bodyOfWaterDao.getAllBodiesOfWaterForEvent(eventId).toBodyOfWaterDomainList()
     }
-    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWater>> {
-        return bodyOfWaterDao.getEventBodiesOfWaterForEvent(eventId).map { list -> list.toEventBodyOfWaterDomainList() }
+    suspend fun getEventBodiesOfWaterForEvent(eventId: String): List<EventBodyOfWater> {
+        return bodyOfWaterDao.getEventBodiesOfWaterForEvent(eventId).toEventBodyOfWaterDomainList()
     }
     suspend fun findOrCreateBodyOfWater(item: BodyOfWater): InsertResult<BodyOfWater> {
         // Check for existing ID and equality

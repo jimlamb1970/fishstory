@@ -39,21 +39,17 @@ class FishermanRepository(
     }
 
     // The following flows are used for export
-    fun getAllFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
-        return fishermanDao.getAllFishermenForEvent(eventId)
-            .map { list -> list.toFishermanDomainList() }
+    suspend fun getAllFishermenForEvent(eventId: String): List<Fisherman> {
+        return fishermanDao.getAllFishermenForEvent(eventId).toFishermanDomainList()
     }
-    fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBox>> {
-        return tackleBoxDao.getAllTackleBoxesForEvent(eventId)
-            .map { list -> list.toTackleBoxDomainList() }
+    suspend fun getAllTackleBoxesForEvent(eventId: String): List<TackleBox> {
+        return tackleBoxDao.getAllTackleBoxesForEvent(eventId).toTackleBoxDomainList()
     }
-    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFisherman>> {
-        return fishermanDao.getEventFishermenForEvent(eventId)
-            .map { list -> list.toEventFishermanDomainList() }
+    suspend fun getEventFishermenForEvent(eventId: String): List<EventFisherman> {
+        return fishermanDao.getEventFishermenForEvent(eventId).toEventFishermanDomainList()
     }
-    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLure>> {
-        return tackleBoxDao.getTackleBoxLuresForEvent(eventId)
-            .map { list -> list.toTackleBoxLureDomainList() }
+    suspend fun getTackleBoxLuresForEvent(eventId: String): List<TackleBoxLure> {
+        return tackleBoxDao.getTackleBoxLuresForEvent(eventId).toTackleBoxLureDomainList()
     }
     suspend fun findOrCreateFisherman(item: Fisherman): InsertResult<Fisherman> {
         // Check for existing ID and equality

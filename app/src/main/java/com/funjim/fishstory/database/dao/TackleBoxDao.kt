@@ -55,7 +55,7 @@ interface TackleBoxDao {
         INNER JOIN event_fisherman_cross_ref ON tackle_box_table.id = event_fisherman_cross_ref.tackleBoxId
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
-    fun getAllTackleBoxesForEvent(eventId: String): Flow<List<TackleBoxEntity>>
+    suspend fun getAllTackleBoxesForEvent(eventId: String): List<TackleBoxEntity>
 
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
     fun getAllTackleBoxLures(): Flow<List<TackleBoxLureEntity>>
@@ -64,7 +64,7 @@ interface TackleBoxDao {
         INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
-    fun getTackleBoxLuresForEvent(eventId: String): Flow<List<TackleBoxLureEntity>>
+    suspend fun getTackleBoxLuresForEvent(eventId: String): List<TackleBoxLureEntity>
 
     // Special Queries
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId LIMIT 1")

@@ -73,7 +73,7 @@ interface BodyOfWaterDao {
         WHERE fish_table.eventId = :eventId
         ORDER BY name ASC
     """)
-    fun getAllBodiesOfWaterForEvent(eventId: String): Flow<List<BodyOfWaterEntity>>
+    suspend fun getAllBodiesOfWaterForEvent(eventId: String): List<BodyOfWaterEntity>
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN event_body_of_water ON body_of_water_table.id = event_body_of_water.bodyOfWaterId
@@ -92,7 +92,7 @@ interface BodyOfWaterDao {
     @Query("""
         SELECT event_body_of_water.* FROM event_body_of_water WHERE eventId = :eventId
     """)
-    fun getEventBodiesOfWaterForEvent(eventId: String): Flow<List<EventBodyOfWaterEntity>>
+    suspend fun getEventBodiesOfWaterForEvent(eventId: String): List<EventBodyOfWaterEntity>
 
     // Specialized queries
     @Query("""

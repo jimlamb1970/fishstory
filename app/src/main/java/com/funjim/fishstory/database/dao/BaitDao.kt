@@ -72,7 +72,7 @@ interface BaitDao {
         WHERE fish_table.eventId = :eventId
         ORDER BY name ASC
     """)
-    fun getAllBaitsForEvent(eventId: String): Flow<List<BaitEntity>>
+    suspend fun getAllBaitsForEvent(eventId: String): List<BaitEntity>
     @Query("""
         SELECT bait_table.* FROM bait_table
         INNER JOIN event_bait ON bait_table.id = event_bait.baitId
@@ -91,7 +91,7 @@ interface BaitDao {
     @Query("""
         SELECT event_bait.* FROM event_bait WHERE eventId = :eventId
     """)
-    fun getEventsBaitsForEvent(eventId: String): Flow<List<EventBaitEntity>>
+    suspend fun getEventsBaitsForEvent(eventId: String): List<EventBaitEntity>
 
     // Specialized queries
     @Query("""

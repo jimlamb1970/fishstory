@@ -333,17 +333,14 @@ class TripRepository(
         noteText: String) {
         noteDao.updateNoteContent(noteId, noteText)
     }
-    fun getAllNotesForEvent(eventId: String): Flow<List<Note>> {
-        return noteDao.getAllNotesForEvent(eventId)
-            .map { list -> list.toNoteDomainList() }
+    suspend fun getAllNotesForEvent(eventId: String): List<Note> {
+        return noteDao.getAllNotesForEvent(eventId).toNoteDomainList()
     }
-    fun getEventNotesForEvent(eventId: String): Flow<List<NoteEvent>> {
-        return noteDao.getEventNotesForEvent(eventId)
-            .map { list -> list.toEventNoteDomainList() }
+    suspend fun getEventNotesForEvent(eventId: String): List<NoteEvent> {
+        return noteDao.getEventNotesForEvent(eventId).toEventNoteDomainList()
     }
-    fun getFishNotesForEvent(eventId: String): Flow<List<NoteFish>> {
-        return noteDao.getFishNotesForEvent(eventId)
-            .map { list -> list.toFishNoteDomainList() }
+    suspend fun getFishNotesForEvent(eventId: String): List<NoteFish> {
+        return noteDao.getFishNotesForEvent(eventId).toFishNoteDomainList()
     }
     suspend fun findOrCreateNote(item: Note): InsertResult<Note> {
         // Check for existing ID and equality

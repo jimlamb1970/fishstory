@@ -66,12 +66,12 @@ interface LimitDao {
         INNER JOIN event_limit_table ON limit_table.id = event_limit_table.limitId
         WHERE event_limit_table.eventId = :eventId
     """)
-    fun getAllLimitsForEvent(eventId: String): Flow<List<LimitEntity>>
+    suspend fun getAllLimitsForEvent(eventId: String): List<LimitEntity>
     @Query("""
         SELECT event_limit_table.* FROM event_limit_table
         WHERE event_limit_table.eventId = :eventId
     """)
-    fun getEventLimitsForEvent(eventId: String): Flow<List<EventLimitEntity>>
+    suspend fun getEventLimitsForEvent(eventId: String): List<EventLimitEntity>
 
     @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
     suspend fun deleteLimitSpeciesXRefsForLimit(limitId: String)

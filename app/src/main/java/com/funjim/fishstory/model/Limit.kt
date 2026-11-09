@@ -80,6 +80,12 @@ data class EventLimit(
     val limitId: String
 )
 
+@Serializable
+data class TripLimit(
+    val tripId: String,
+    val limitId: String
+)
+
 data class LimitWithSpecies(
     val id: String = UUID.randomUUID().toString(),
     val name: String,

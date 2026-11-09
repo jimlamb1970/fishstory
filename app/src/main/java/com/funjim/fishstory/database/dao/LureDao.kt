@@ -116,7 +116,7 @@ interface LureDao {
         INNER JOIN fish_table ON lure_table.id = fish_table.lureId  
         WHERE fish_table.eventId = :eventId
     """)
-    fun getAllLuresForEvent(eventId: String): Flow<List<LureEntity>>
+    suspend fun getAllLuresForEvent(eventId: String): List<LureEntity>
 
     @Query("SELECT * FROM lure_color_table")
     fun getAllLureColors(): Flow<List<LureColorEntity>>
@@ -147,7 +147,7 @@ interface LureDao {
         INNER JOIN LureColors ON lure_color_table.id = LureColors.colorId
     """
     )
-    fun getAllLureColorsForEvent(eventId: String): Flow<List<LureColorEntity>>
+    suspend fun getAllLureColorsForEvent(eventId: String): List<LureColorEntity>
 
     @Query("SELECT * FROM lure_primary_color_cross_ref")
     fun getAllLurePrimaryColors(): Flow<List<LurePrimaryColorEntity>>
@@ -166,7 +166,7 @@ interface LureDao {
         SELECT * FROM lure_primary_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
     """
     )
-    fun getLurePrimaryColorsForEvent(eventId: String): Flow<List<LurePrimaryColorEntity>>
+    suspend fun getLurePrimaryColorsForEvent(eventId: String): List<LurePrimaryColorEntity>
 
     @Query("SELECT * FROM lure_secondary_color_cross_ref")
     fun getAllLureSecondaryColors(): Flow<List<LureSecondaryColorEntity>>
@@ -185,7 +185,7 @@ interface LureDao {
         SELECT * FROM lure_secondary_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
     """
     )
-    fun getLureSecondaryColorsForEvent(eventId: String): Flow<List<LureSecondaryColorEntity>>
+    suspend fun getLureSecondaryColorsForEvent(eventId: String): List<LureSecondaryColorEntity>
 
     @Query("SELECT * FROM lure_glow_color_cross_ref")
     fun getAllLureGlowColors(): Flow<List<LureGlowColorEntity>>
@@ -204,8 +204,7 @@ interface LureDao {
         SELECT * FROM lure_glow_color_cross_ref WHERE lureId IN (SELECT lureId FROM EventLures)
     """
     )
-    fun getLureGlowColorsForEvent(eventId: String): Flow<List<LureGlowColorEntity>>
-
+    suspend fun getLureGlowColorsForEvent(eventId: String): List<LureGlowColorEntity>
 
     @Transaction
     @Query("SELECT * FROM lure_table WHERE id = :lureId")

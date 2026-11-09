@@ -92,21 +92,17 @@ class FishRepository(
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
         .map { list -> list.toSpeciesSummaryDomainList() }
 
-    fun getAllFishForEvent(eventId: String): Flow<List<Fish>> {
-        return fishDao.getAllFishForEvent(eventId)
-            .map { list -> list.toFishDomainList() }
+    suspend fun getAllFishForEvent(eventId: String): List<Fish> {
+        return fishDao.getAllFishForEvent(eventId).toFishDomainList()
     }
-    fun getAllSpeciesForEvent(eventId: String): Flow<List<Species>> {
-        return fishDao.getAllSpeciesForEvent(eventId)
-            .map { list -> list.toSpeciesDomainList() }
+    suspend fun getAllSpeciesForEvent(eventId: String): List<Species> {
+        return fishDao.getAllSpeciesForEvent(eventId).toSpeciesDomainList()
     }
-    fun getEventTargetSpeciesForEvent(eventId: String): Flow<List<EventTargetSpecies>> {
-        return fishDao.getEventTargetSpeciesForEvent(eventId)
-            .map { list -> list.toEventTargetSpeciesDomainList() }
+    suspend fun getEventTargetSpeciesForEvent(eventId: String): List<EventTargetSpecies> {
+        return fishDao.getEventTargetSpeciesForEvent(eventId).toEventTargetSpeciesDomainList()
     }
-    fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpecies>> {
-        return fishDao.getLimitSpeciesForEvent(eventId)
-            .map { list -> list.toLimitSpeciesDomainList() }
+    suspend fun getLimitSpeciesForEvent(eventId: String): List<LimitSpecies> {
+        return fishDao.getLimitSpeciesForEvent(eventId).toLimitSpeciesDomainList()
     }
     suspend fun limitExists(item: LimitWithSpecies): Boolean {
         val sortedSpecies = item.species
@@ -473,13 +469,11 @@ class FishRepository(
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
-    fun getAllLimitsForEvent(eventId: String): Flow<List<Limit>> {
-        return limitDao.getAllLimitsForEvent(eventId)
-            .map { list -> list.toLimitDomainList() }
+    suspend fun getAllLimitsForEvent(eventId: String): List<Limit> {
+        return limitDao.getAllLimitsForEvent(eventId).toLimitDomainList()
     }
-    fun getEventLimitsForEvent(eventId: String): Flow<List<EventLimit>> {
-        return limitDao.getEventLimitsForEvent(eventId)
-            .map { list -> list.toEventLimitDomainList() }
+    suspend fun getEventLimitsForEvent(eventId: String): List<EventLimit> {
+        return limitDao.getEventLimitsForEvent(eventId).toEventLimitDomainList()
     }
 
     fun getLimitsForEvent(eventId: String): Flow<List<LimitWithSpecies>> {

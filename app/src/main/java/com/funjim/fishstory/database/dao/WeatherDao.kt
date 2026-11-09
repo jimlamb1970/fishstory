@@ -32,7 +32,7 @@ interface WeatherDao {
         INNER JOIN weather_table ON sky_condition_table.id = weather_table.skyConditionId  
         WHERE weather_table.eventId = :eventId
     """)
-    fun getAllSkyConditionsForEvent(eventId: String): Flow<List<SkyConditionEntity>>
+    suspend fun getAllSkyConditionsForEvent(eventId: String): List<SkyConditionEntity>
 
     @Query("SELECT * FROM sky_condition_table WHERE id = :id")
     fun getSkyCondition(id: String): Flow<SkyConditionEntity?>
@@ -59,7 +59,7 @@ interface WeatherDao {
         SELECT weather_table.* FROM weather_table 
         WHERE weather_table.eventId = :eventId
     """)
-    fun getAllWeatherConditionsForEvent(eventId: String): Flow<List<WeatherEntity>>
+    suspend fun getAllWeatherConditionsForEvent(eventId: String): List<WeatherEntity>
 
     @Query("SELECT * FROM weather_table WHERE id = :id")
     fun getWeather(id: String): Flow<WeatherEntity?>

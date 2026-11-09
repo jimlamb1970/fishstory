@@ -31,7 +31,7 @@ interface WaterDao {
         INNER JOIN water_table ON water_clarity_table.id = water_table.clarityId  
         WHERE water_table.eventId = :eventId
     """)
-    fun getAllWaterClarityForEvent(eventId: String): Flow<List<WaterClarityEntity>>
+    suspend fun getAllWaterClarityForEvent(eventId: String): List<WaterClarityEntity>
 
     @Query("SELECT * FROM water_clarity_table WHERE id = :id")
     fun getWaterClarity(id: String): Flow<WaterClarityEntity?>
@@ -58,7 +58,7 @@ interface WaterDao {
         SELECT water_table.* FROM water_table 
         WHERE water_table.eventId = :eventId
     """)
-    fun getAllWaterConditionsForEvent(eventId: String): Flow<List<WaterEntity>>
+    suspend fun getAllWaterConditionsForEvent(eventId: String): List<WaterEntity>
 
     @Query("SELECT * FROM water_table WHERE id = :id")
     fun getWater(id: String): Flow<WaterEntity?>

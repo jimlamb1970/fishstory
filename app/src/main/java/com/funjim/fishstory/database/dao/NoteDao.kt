@@ -89,18 +89,18 @@ interface NoteDao {
         INNER JOIN fish_table ON note_fish_cross_ref.fishId = fish_table.id  
         WHERE fish_table.eventId = :eventId
     """)
-    fun getAllNotesForEvent(eventId: String): Flow<List<NoteEntity>>
+    suspend fun getAllNotesForEvent(eventId: String): List<NoteEntity>
     @Query("""
         SELECT note_event_cross_ref.* FROM note_event_cross_ref
         WHERE note_event_cross_ref.eventId = :eventId
     """)
-    fun getEventNotesForEvent(eventId: String): Flow<List<NoteEventEntity>>
+    suspend fun getEventNotesForEvent(eventId: String): List<NoteEventEntity>
     @Query("""
         SELECT note_fish_cross_ref.* FROM note_fish_cross_ref 
         INNER JOIN fish_table ON note_fish_cross_ref.fishId = fish_table.id  
         WHERE fish_table.eventId = :eventId
     """)
-    fun getFishNotesForEvent(eventId: String): Flow<List<NoteFishEntity>>
+    suspend fun getFishNotesForEvent(eventId: String): List<NoteFishEntity>
 
     @Transaction
     @Query("""

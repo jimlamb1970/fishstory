@@ -54,25 +54,20 @@ class LureRepository(
         return lureDao.getAllLuresWithColors()
             .map { list -> list.toLureWithColorsDomainList() }
     }
-    fun getAllLuresForEvent(eventId: String): Flow<List<Lure>> {
-        return lureDao.getAllLuresForEvent(eventId)
-            .map { list -> list.toLureDomainList() }
+    suspend fun getAllLuresForEvent(eventId: String): List<Lure> {
+        return lureDao.getAllLuresForEvent(eventId).toLureDomainList()
     }
-    fun getAllLureColorsForEvent(eventId: String): Flow<List<LureColor>> {
-        return lureDao.getAllLureColorsForEvent(eventId)
-            .map { list -> list.toLureColorDomainList() }
+    suspend fun getAllLureColorsForEvent(eventId: String): List<LureColor> {
+        return lureDao.getAllLureColorsForEvent(eventId).toLureColorDomainList()
     }
-    fun getLurePrimaryColorsForEvent(eventId: String): Flow<List<LurePrimaryColor>> {
-        return lureDao.getLurePrimaryColorsForEvent(eventId)
-            .map { list -> list.toLurePrimaryColorDomainList() }
+    suspend fun getLurePrimaryColorsForEvent(eventId: String): List<LurePrimaryColor> {
+        return lureDao.getLurePrimaryColorsForEvent(eventId).toLurePrimaryColorDomainList()
     }
-    fun getLureSecondaryColorsForEvent(eventId: String): Flow<List<LureSecondaryColor>> {
-        return lureDao.getLureSecondaryColorsForEvent(eventId)
-            .map { list -> list.toLureSecondaryColorDomainList() }
+    suspend fun getLureSecondaryColorsForEvent(eventId: String): List<LureSecondaryColor> {
+        return lureDao.getLureSecondaryColorsForEvent(eventId).toLureSecondaryColorDomainList()
     }
-    fun getLureGlowColorsForEvent(eventId: String): Flow<List<LureGlowColor>> {
-        return lureDao.getLureGlowColorsForEvent(eventId)
-            .map { list -> list.toLureGlowColorDomainList() }
+    suspend fun getLureGlowColorsForEvent(eventId: String): List<LureGlowColor> {
+        return lureDao.getLureGlowColorsForEvent(eventId).toLureGlowColorDomainList()
     }
     suspend fun findOrCreateLureColor(item: LureColor): InsertResult<LureColor> {
         // Check for existing ID and equality
@@ -293,11 +288,11 @@ class LureRepository(
         baitDao.deleteBaitForEvent(eventId, baitId)
     }
 
-    fun getAllBaitsForEvent(eventId: String): Flow<List<Bait>> {
-        return baitDao.getAllBaitsForEvent(eventId).map { list -> list.toBaitDomainList() }
+    suspend fun getAllBaitsForEvent(eventId: String): List<Bait> {
+        return baitDao.getAllBaitsForEvent(eventId).toBaitDomainList()
     }
-    fun getEventBaitsForEvent(eventId: String): Flow<List<EventBait>> {
-        return baitDao.getEventsBaitsForEvent(eventId).map { list -> list.toEventBaitDomainList() }
+    suspend fun getEventBaitsForEvent(eventId: String): List<EventBait> {
+        return baitDao.getEventsBaitsForEvent(eventId).toEventBaitDomainList()
     }
 
     suspend fun findOrCreateBait(item: Bait): InsertResult<Bait> {

@@ -68,7 +68,7 @@ interface FishDao {
         SELECT fish_table.* FROM fish_table 
         WHERE fish_table.eventId = :eventId
     """)
-    fun getAllFishForEvent(eventId: String): Flow<List<FishEntity>>
+    suspend fun getAllFishForEvent(eventId: String): List<FishEntity>
 
     @Query("SELECT * FROM species_table ORDER BY name ASC")
     fun getAllSpecies(): Flow<List<SpeciesEntity>>
@@ -92,19 +92,19 @@ interface FishDao {
         INNER JOIN fish_table ON species_table.id = fish_table.speciesId  
         WHERE fish_table.eventId = :eventId
     """)
-    fun getAllSpeciesForEvent(eventId: String): Flow<List<SpeciesEntity>>
+    suspend fun getAllSpeciesForEvent(eventId: String): List<SpeciesEntity>
 
     @Query("""
         SELECT event_target_species.* FROM event_target_species
         WHERE event_target_species.eventId = :eventId
     """)
-    fun getEventTargetSpeciesForEvent(eventId: String): Flow<List<EventTargetSpeciesEntity>>
+    suspend fun getEventTargetSpeciesForEvent(eventId: String): List<EventTargetSpeciesEntity>
     @Query("""
         SELECT limit_species_table.* FROM limit_species_table
         INNER JOIN event_limit_table ON limit_species_table.limitId = event_limit_table.limitId
         WHERE event_limit_table.eventId = :eventId
     """)
-    fun getLimitSpeciesForEvent(eventId: String): Flow<List<LimitSpeciesEntity>>
+    suspend fun getLimitSpeciesForEvent(eventId: String): List<LimitSpeciesEntity>
 
     @Transaction
     @Query(

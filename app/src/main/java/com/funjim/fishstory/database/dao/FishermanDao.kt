@@ -183,7 +183,7 @@ interface FishermanDao {
         WHERE fish_table.eventId = :eventId
         ORDER BY f.firstName, f.nickname, f.lastName ASC
     """)
-    fun getAllFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
+    suspend fun getAllFishermenForEvent(eventId: String): List<FishermanEntity>
 
     @Query("SELECT * FROM trip_fisherman_cross_ref")
     fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
@@ -199,8 +199,7 @@ interface FishermanDao {
         SELECT * FROM event_fisherman_cross_ref
         WHERE event_fisherman_cross_ref.eventId = :eventId
     """)
-    fun getEventFishermenForEvent(eventId: String): Flow<List<EventFishermanEntity>>
-
+    suspend fun getEventFishermenForEvent(eventId: String): List<EventFishermanEntity>
 
     @Transaction
     suspend fun getOrCreate(firstName: String, lastName: String, nickname: String? = null): String {
