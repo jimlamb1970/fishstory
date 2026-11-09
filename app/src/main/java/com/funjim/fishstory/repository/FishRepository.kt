@@ -92,6 +92,12 @@ class FishRepository(
     val speciesSummaries: Flow<List<SpeciesSummary>> = fishDao.getSpeciesSummaries()
         .map { list -> list.toSpeciesSummaryDomainList() }
 
+    suspend fun getAllSpeciesList(): List<Species> {
+        return fishDao.getAllSpeciesList().toSpeciesDomainList()
+    }
+    suspend fun getAllFishList(): List<Fish> {
+        return fishDao.getAllFishList().toFishDomainList()
+    }
     suspend fun getAllFishForEvent(eventId: String): List<Fish> {
         return fishDao.getAllFishForEvent(eventId).toFishDomainList()
     }
@@ -469,6 +475,9 @@ class FishRepository(
             .map { list -> list.toLimitWithSpeciesDomainList() }
     }
 
+    suspend fun getAllLimitsList(): List<Limit> {
+        return limitDao.getAllLimitsList().toLimitDomainList()
+    }
     suspend fun getAllLimitsForEvent(eventId: String): List<Limit> {
         return limitDao.getAllLimitsForEvent(eventId).toLimitDomainList()
     }

@@ -39,6 +39,15 @@ class FishermanRepository(
     }
 
     // The following flows are used for export
+    suspend fun getAllFishermenList(): List<Fisherman> {
+        return fishermanDao.getAllFishermenList().toFishermanDomainList()
+    }
+    suspend fun getAllTackleBoxesList(): List<TackleBox> {
+        return tackleBoxDao.getAllTackleBoxesList().toTackleBoxDomainList()
+    }
+    suspend fun getAllTackleBoxLuresList(): List<TackleBoxLure> {
+        return tackleBoxDao.getAllTackleBoxLuresList().toTackleBoxLureDomainList()
+    }
     suspend fun getAllFishermenForEvent(eventId: String): List<Fisherman> {
         return fishermanDao.getAllFishermenForEvent(eventId).toFishermanDomainList()
     }

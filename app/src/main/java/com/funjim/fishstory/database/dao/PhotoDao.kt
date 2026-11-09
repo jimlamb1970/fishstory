@@ -24,23 +24,48 @@ import kotlinx.coroutines.flow.Flow
 interface PhotoDao {
     @Query("SELECT * FROM photo_table")
     fun getAllPhotos(): Flow<List<PhotoEntity>>
+    @Query("SELECT * FROM photo_table")
+    suspend fun getAllPhotosList(): List<PhotoEntity>
 
     @Query("SELECT * FROM photo_bait_cross_ref")
     fun getAllPhotosForBait(): Flow<List<PhotoBaitEntity>>
+    @Query("SELECT * FROM photo_bait_cross_ref")
+    suspend fun getAllPhotosForBaitList(): List<PhotoBaitEntity>
+
     @Query("SELECT * FROM photo_body_of_water_cross_ref")
     fun getAllPhotosForBodiesOfWater(): Flow<List<PhotoBodyOfWaterEntity>>
+    @Query("SELECT * FROM photo_body_of_water_cross_ref")
+    suspend fun getAllPhotosForBodiesOfWaterList(): List<PhotoBodyOfWaterEntity>
+
     @Query("SELECT * FROM photo_event_cross_ref")
     fun getAllPhotosForEvents(): Flow<List<PhotoEventEntity>>
+    @Query("SELECT * FROM photo_event_cross_ref")
+    suspend fun getAllPhotosForEventsList(): List<PhotoEventEntity>
+
     @Query("SELECT * FROM photo_fish_cross_ref")
     fun getAllPhotosForFish(): Flow<List<PhotoFishEntity>>
+    @Query("SELECT * FROM photo_fish_cross_ref")
+    suspend fun getAllPhotosForFishList(): List<PhotoFishEntity>
+
     @Query("SELECT * FROM photo_fisherman_cross_ref")
     fun getAllPhotosForFishermen(): Flow<List<PhotoFishermanEntity>>
+    @Query("SELECT * FROM photo_fisherman_cross_ref")
+    suspend fun getAllPhotosForFishermenList(): List<PhotoFishermanEntity>
+
     @Query("SELECT * FROM photo_lure_cross_ref")
     fun getAllPhotosForLures(): Flow<List<PhotoLureEntity>>
+    @Query("SELECT * FROM photo_lure_cross_ref")
+    suspend fun getAllPhotosForLuresList(): List<PhotoLureEntity>
+
     @Query("SELECT * FROM photo_species_cross_ref")
     fun getAllPhotosForSpecies(): Flow<List<PhotoSpeciesEntity>>
+    @Query("SELECT * FROM photo_species_cross_ref")
+    suspend fun getAllPhotosForSpeciesList(): List<PhotoSpeciesEntity>
+
     @Query("SELECT * FROM photo_trip_cross_ref")
     fun getAllPhotosForTrips(): Flow<List<PhotoTripEntity>>
+    @Query("SELECT * FROM photo_trip_cross_ref")
+    suspend fun getAllPhotosForTripsList(): List<PhotoTripEntity>
 
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()

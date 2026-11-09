@@ -54,6 +54,8 @@ interface BaitDao {
     // Multiple object queries
     @Query("SELECT * FROM bait_table ORDER BY name ASC")
     fun getAllBaits(): Flow<List<BaitEntity>>
+    @Query("SELECT * FROM bait_table ORDER BY name ASC")
+    suspend fun getAllBaitsList(): List<BaitEntity>
     @Query("""
         SELECT bait_table.* FROM bait_table
         INNER JOIN trip_bait ON bait_table.id = trip_bait.baitId

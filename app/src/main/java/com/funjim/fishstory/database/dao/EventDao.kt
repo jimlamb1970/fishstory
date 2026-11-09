@@ -24,6 +24,8 @@ interface EventDao {
     suspend fun deleteAllEvents()
     @Query("SELECT * FROM event_table ORDER BY startTime DESC")
     fun getAllEvents(): Flow<List<EventEntity>>
+    @Query("SELECT * FROM event_table ORDER BY startTime DESC")
+    suspend fun getAllEventsList(): List<EventEntity>
     @Transaction
     @Query("SELECT * FROM event_table")
     fun getAllEventsWithInfo(): Flow<List<EventEntityWithInfo>>

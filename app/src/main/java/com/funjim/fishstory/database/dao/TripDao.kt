@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.Flow
 interface TripDao {
     @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
     fun getAllTrips(): Flow<List<TripEntity>>
+    @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
+    suspend fun getAllTripsList(): List<TripEntity>
     @Query("DELETE FROM trip_table")
     suspend fun deleteAllTrips()
 

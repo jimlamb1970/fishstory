@@ -25,6 +25,8 @@ interface WaterDao {
     suspend fun deleteAllWaterClarity()
     @Query("SELECT * FROM water_clarity_table ORDER BY name ASC")
     fun getAllWaterClarity(): Flow<List<WaterClarityEntity>>
+    @Query("SELECT * FROM water_clarity_table ORDER BY name ASC")
+    suspend fun getAllWaterClarityList(): List<WaterClarityEntity>
 
     @Query("""
         SELECT water_clarity_table.* FROM water_clarity_table 
@@ -53,6 +55,8 @@ interface WaterDao {
     suspend fun deleteAllWater()
     @Query("SELECT * FROM water_table ORDER BY timestamp DESC")
     fun getAllWater(): Flow<List<WaterEntity>>
+    @Query("SELECT * FROM water_table ORDER BY timestamp DESC")
+    suspend fun getAllWaterConditionsList(): List<WaterEntity>
 
     @Query("""
         SELECT water_table.* FROM water_table 

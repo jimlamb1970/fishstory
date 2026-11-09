@@ -9,6 +9,7 @@ import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
+import com.funjim.fishstory.database.mapper.toEventDomainList
 import com.funjim.fishstory.database.mapper.toEventNoteDomainList
 import com.funjim.fishstory.database.mapper.toEventSummaryDomainList
 import com.funjim.fishstory.database.mapper.toFishNoteDomainList
@@ -154,6 +155,13 @@ class TripRepository(
     fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> {
         return eventDao.getEventWithInfo(eventId)
             .map { it?.toDomain() }
+    }
+
+    suspend fun getAllTripsList(): List<Trip> {
+        return tripDao.getAllTripsList().toTripDomainList()
+    }
+    suspend fun getAllEventsList(): List<Event> {
+        return eventDao.getAllEventsList().toEventDomainList()
     }
 
     // Trip Operations
@@ -332,6 +340,10 @@ class TripRepository(
         noteId: String,
         noteText: String) {
         noteDao.updateNoteContent(noteId, noteText)
+    }
+
+    suspend fun getAllNotesList(): List<Note> {
+        return noteDao.getAllNotesList().toNoteDomainList()
     }
     suspend fun getAllNotesForEvent(eventId: String): List<Note> {
         return noteDao.getAllNotesForEvent(eventId).toNoteDomainList()

@@ -20,6 +20,8 @@ interface LimitDao {
     // Lure queries
     @Query("SELECT * FROM limit_table")
     fun getAllLimits(): Flow<List<LimitEntity>>
+    @Query("SELECT * FROM limit_table")
+    suspend fun getAllLimitsList(): List<LimitEntity>
     @Query("DELETE FROM limit_table")
     suspend fun deleteAllLimits()
 

@@ -61,7 +61,6 @@ import com.funjim.fishstory.repository.TripRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -121,30 +120,46 @@ data class FishStoryEventData(
 )
 
 @Serializable
-data class AllDatabaseData(
+data class FishStoryData(
+    val fileType: String = "FishStoryData",
+    val schemaVersion: Int = 1,
+
     val trips: List<Trip> = emptyList(),
     val events: List<Event> = emptyList(),
-    val baits: List<Bait> = emptyList(),
-    val eventBait: List<EventBait> = emptyList(),
-    val tripBait: List<TripBait> = emptyList(),
-    val bodiesOfWater: List<BodyOfWater> = emptyList(),
-    val eventBodyOfWater: List<EventBodyOfWater> = emptyList(),
-    val tripBodyOfWater: List<TripBodyOfWater> = emptyList(),
     val fishermen: List<Fisherman> = emptyList(),
-    val tripFishermen: List<TripFisherman> = emptyList(),
-    val eventFishermen: List<EventFisherman> = emptyList(),
+    val species: List<Species> = emptyList(),
+
+    val baits: List<Bait> = emptyList(),
+    val bodiesOfWater: List<BodyOfWater> = emptyList(),
+    val limits: List<Limit> = emptyList(),
+    val notes: List<Note> = emptyList(),
+
     val colors: List<LureColor> = emptyList(),
     val lures: List<Lure> = emptyList(),
+    val tackleboxes: List<TackleBox> = emptyList(),
+
+    val skyConditions: List<SkyCondition> = emptyList(),
+    val waterClarities: List<WaterClarity> = emptyList(),
+    val waterConditions: List<Water> = emptyList(),
+    val weatherConditions: List<Weather> = emptyList(),
+
+    val fish: List<Fish> = emptyList(),
+
+    val photos: List<Photo> = emptyList(),
+
+
+    val eventBait: List<EventBait> = emptyList(),
+    val tripBait: List<TripBait> = emptyList(),
+    val eventBodyOfWater: List<EventBodyOfWater> = emptyList(),
+    val tripBodyOfWater: List<TripBodyOfWater> = emptyList(),
+    val tripFishermen: List<TripFisherman> = emptyList(),
+    val eventFishermen: List<EventFisherman> = emptyList(),
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
     val lureGlowColors: List<LureGlowColor> = emptyList(),
-    val tackleboxes: List<TackleBox> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
-    val species: List<Species> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
     val tripTargetSpecies: List<TripTargetSpecies> = emptyList(),
-    val fish: List<Fish> = emptyList(),
-    val photos: List<Photo> = emptyList(),
     val photosBait: List<PhotoBait> = emptyList(),
     val photosBodyOfWater: List<PhotoBodyOfWater> = emptyList(),
     val photosEvent: List<PhotoEvent> = emptyList(),
@@ -169,6 +184,8 @@ class ImportViewModel(
 
     private val _toastMessage = MutableSharedFlow<String>(replay = 1)
     val toastMessage = _toastMessage.asSharedFlow()
+
+    private val json = Json { prettyPrint = true }
     private val jsonImport = Json { ignoreUnknownKeys = true }
 
     fun startImport(inputStream: InputStream) {
@@ -411,42 +428,56 @@ class ImportViewModel(
             }
         }
     }
-    /*
+
     suspend fun exportDatabase(context: Context, uri: Uri): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val allData = DatabaseExportData(
-                    trips = tripRepo.getAllTrips().firstOrNull() ?: emptyList(),
-                    events = tripRepo.getAllEvents().firstOrNull() ?: emptyList(),
-                    baits = lureRepo.getAllBaits().firstOrNull() ?: emptyList(),
-                    tripBait = lureRepo.getAllTripBaits().firstOrNull() ?: emptyList(),
-                    eventBait = lureRepo.getAllEventBaits().firstOrNull() ?: emptyList(),
-                    bodiesOfWater = envRepo.getAllBodiesOfWater().firstOrNull() ?: emptyList(),
-                    tripBodyOfWater = envRepo.getAllTripBodiesOfWater().firstOrNull() ?: emptyList(),
-                    eventBodyOfWater = envRepo.getAllEventBodiesOfWater().firstOrNull() ?: emptyList(),
-                    fishermen = fishermanRepo.getAllFishermen().firstOrNull() ?: emptyList(),
-                    tripFishermen = fishermanRepo.getAllTripFishermen().firstOrNull() ?: emptyList(),
-                    eventFishermen = fishermanRepo.getAllEventFishermen().firstOrNull() ?: emptyList(),
-                    colors = lureRepo.getAllLureColors().firstOrNull() ?: emptyList(),
-                    lures = lureRepo.getAllLures().firstOrNull() ?: emptyList(),
-                    lurePrimaryColors = lureRepo.getAllLurePrimaryColors().firstOrNull() ?: emptyList(),
-                    lureSecondaryColors = lureRepo.getAllLureSecondaryColors().firstOrNull() ?: emptyList(),
-                    lureGlowColors = lureRepo.getAllLureGlowColors().firstOrNull() ?: emptyList(),
-                    tackleboxes = fishermanRepo.getAllTackleBoxes().firstOrNull() ?: emptyList(),
-                    tackleBoxLures = fishermanRepo.getAllTackleBoxLures().firstOrNull() ?: emptyList(),
-                    species = fishermanRepo.getAllSpecies().firstOrNull() ?: emptyList(),
-                    eventTargetSpecies = fishRepo.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
-                    tripTargetSpecies = fishRepo.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
-                    fish = fishRepo.getAllFish().firstOrNull() ?: emptyList(),
-                    photos = photoRepo.getAllPhotos().firstOrNull() ?: emptyList(),
-                    photosBait = photoRepo.getAllPhotosForBait().firstOrNull() ?: emptyList(),
-                    photosBodyOfWater = photoRepo.getAllPhotosForBodiesOfWater().firstOrNull() ?: emptyList(),
-                    photosEvent = photoRepo.getAllPhotosForEvents().firstOrNull() ?: emptyList(),
-                    photosFish = photoRepo.getAllPhotosForFish().firstOrNull() ?: emptyList(),
-                    photosFisherman = photoRepo.getAllPhotosForFishermen().firstOrNull() ?: emptyList(),
-                    photosLure = photoRepo.getAllPhotosForLures().firstOrNull() ?: emptyList(),
-                    photosSpecies = photoRepo.getAllPhotosForSpecies().firstOrNull() ?: emptyList(),
-                    photosTrip = photoRepo.getAllPhotosForTrips().firstOrNull() ?: emptyList()
+                val allData = FishStoryData(
+                    trips = tripRepo.getAllTripsList(),                             /* main DB */
+                    events = tripRepo.getAllEventsList(),                           /* main DB */
+                    fishermen = fishermanRepo.getAllFishermenList(),                /* main DB */
+
+                    bodiesOfWater = envRepo.getAllBodiesOfWaterList(),              /* main DB */
+                    baits = lureRepo.getAllBaitsList(),                             /* main DB */
+                    limits = fishRepo.getAllLimitsList(),                           /* main DB */
+                    species = fishRepo.getAllSpeciesList(),                         /* main DB */
+
+                    colors = lureRepo.getAllLureColorsList(),                       /* main DB */
+                    lures = lureRepo.getAllLuresList(),                             /* main DB */
+                    tackleboxes = fishermanRepo.getAllTackleBoxesList(),            /* main DB */
+
+                    skyConditions = envRepo.getAllSkyConditionsList(),              /* main DB */
+                    waterClarities = envRepo.getAllWaterClarityList(),              /* main DB */
+
+                    notes = tripRepo.getAllNotesList(),                             /* main DB */
+                    waterConditions = envRepo.getAllWaterConditionsList(),          /* main DB */
+                    weatherConditions = envRepo.getAllWeatherConditionsList(),      /* main DB */
+                    fish = fishRepo.getAllFishList(),                               /* main DB */
+
+                    photos = photoRepo.getAllPhotosList(),                          /* main DB */
+
+                    lurePrimaryColors = lureRepo.getAllLurePrimaryColorsList(),
+                    lureSecondaryColors = lureRepo.getAllLureSecondaryColorsList(),
+                    lureGlowColors = lureRepo.getAllLureGlowColorsList(),
+                    tackleBoxLures = fishermanRepo.getAllTackleBoxLuresList(),
+
+
+//                    tripBait = lureRepo.getAllTripBaits(),
+//                    eventBait = lureRepo.getAllEventBaits(),
+//                    tripBodyOfWater = envRepo.getAllTripBodiesOfWater(),
+//                    eventBodyOfWater = envRepo.getAllEventBodiesOfWater(),
+//                    tripFishermen = fishermanRepo.getAllTripFishermen(),
+//                    eventFishermen = fishermanRepo.getAllEventFishermen(),
+//                    eventTargetSpecies = fishRepo.getAllEventTargetSpecies(),
+//                    tripTargetSpecies = fishRepo.getAllTripTargetSpecies(),
+                    photosBait = photoRepo.getAllPhotosForBaitList(),
+                    photosBodyOfWater = photoRepo.getAllPhotosForBodiesOfWaterList(),
+                    photosEvent = photoRepo.getAllPhotosForEventsList(),
+                    photosFish = photoRepo.getAllPhotosForFishList(),
+                    photosFisherman = photoRepo.getAllPhotosForFishermenList(),
+                    photosLure = photoRepo.getAllPhotosForLuresList(),
+                    photosSpecies = photoRepo.getAllPhotosForSpeciesList(),
+                    photosTrip = photoRepo.getAllPhotosForTripsList()
                 )
 
                 val jsonString = json.encodeToString(allData)
@@ -458,7 +489,6 @@ class ImportViewModel(
             }
         }
     }
-     */
 }
 
 class ImportViewModelFactory(

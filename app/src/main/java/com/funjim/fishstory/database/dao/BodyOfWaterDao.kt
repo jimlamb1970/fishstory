@@ -55,6 +55,8 @@ interface BodyOfWaterDao {
     // Multiple object queries
     @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
     fun getAllBodiesOfWater(): Flow<List<BodyOfWaterEntity>>
+    @Query("SELECT * FROM body_of_water_table ORDER BY name ASC")
+    suspend fun getAllBodiesOfWaterList(): List<BodyOfWaterEntity>
     @Query("""
         SELECT body_of_water_table.* FROM body_of_water_table
         INNER JOIN trip_body_of_water ON body_of_water_table.id = trip_body_of_water.bodyOfWaterId

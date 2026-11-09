@@ -159,6 +159,8 @@ interface FishermanDao {
     // Multiple object queries
     @Query("SELECT * FROM fisherman_table")
     fun getAllFishermen(): Flow<List<FishermanEntity>>
+    @Query("SELECT * FROM fisherman_table")
+    suspend fun getAllFishermenList(): List<FishermanEntity>
     @Query("""
         SELECT f.* FROM fisherman_table AS f
         JOIN trip_fisherman_cross_ref AS tref ON f.id = tref.fishermanId

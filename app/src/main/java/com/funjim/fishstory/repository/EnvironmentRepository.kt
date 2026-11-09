@@ -43,6 +43,22 @@ class EnvironmentRepository(
     val allWaterClarity: Flow<List<WaterClarity>> = waterDao.getAllWaterClarity()
         .map { list -> list.toDomainList() }
 
+    suspend fun getAllBodiesOfWaterList(): List<BodyOfWater> {
+        return bodyOfWaterDao.getAllBodiesOfWaterList().toBodyOfWaterDomainList()
+    }
+    suspend fun getAllSkyConditionsList(): List<SkyCondition> {
+        return weatherDao.getAllSkyConditionsList().toDomainList()
+    }
+    suspend fun getAllWaterClarityList(): List<WaterClarity> {
+        return waterDao.getAllWaterClarityList().toDomainList()
+    }
+    suspend fun getAllWaterConditionsList(): List<Water> {
+        return waterDao.getAllWaterConditionsList().toWaterDomainList()
+    }
+    suspend fun getAllWeatherConditionsList(): List<Weather> {
+        return weatherDao.getAllWeatherConditionsList().toWeatherDomainList()
+    }
+
     suspend fun getAllSkyConditionsForEvent(eventId: String): List<SkyCondition> {
         return weatherDao.getAllSkyConditionsForEvent(eventId).toDomainList()
     }

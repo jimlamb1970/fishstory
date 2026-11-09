@@ -64,6 +64,8 @@ interface FishDao {
 
     @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
     fun getAllFish(): Flow<List<FishEntity>>
+    @Query("SELECT * FROM fish_table ORDER BY timestamp DESC")
+    suspend fun getAllFishList(): List<FishEntity>
     @Query("""
         SELECT fish_table.* FROM fish_table 
         WHERE fish_table.eventId = :eventId

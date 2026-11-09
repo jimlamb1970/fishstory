@@ -50,6 +50,25 @@ class LureRepository(
     val allBaits: Flow<List<Bait>> = baitDao.getAllBaits()
         .map { list -> list.toBaitDomainList() }
 
+    suspend fun getAllBaitsList(): List<Bait> {
+        return baitDao.getAllBaitsList().toBaitDomainList()
+    }
+    suspend fun getAllLureColorsList(): List<LureColor> {
+        return lureDao.getAllLureColorsList().toLureColorDomainList()
+    }
+    suspend fun getAllLuresList(): List<Lure> {
+        return lureDao.getAllLuresList().toLureDomainList()
+    }
+    suspend fun getAllLurePrimaryColorsList(): List<LurePrimaryColor> {
+        return lureDao.getAllLurePrimaryColorsList().toLurePrimaryColorDomainList()
+    }
+    suspend fun getAllLureSecondaryColorsList(): List<LureSecondaryColor> {
+        return lureDao.getAllLureSecondaryColorsList().toLureSecondaryColorDomainList()
+    }
+    suspend fun getAllLureGlowColorsList(): List<LureGlowColor> {
+        return lureDao.getAllLureGlowColorsList().toLureGlowColorDomainList()
+    }
+
     fun getAllLures(): Flow<List<LureWithColors>> {
         return lureDao.getAllLuresWithColors()
             .map { list -> list.toLureWithColorsDomainList() }

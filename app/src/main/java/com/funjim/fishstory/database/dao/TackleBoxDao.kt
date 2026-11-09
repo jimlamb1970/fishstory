@@ -50,6 +50,8 @@ interface TackleBoxDao {
     // Multiple object queries
     @Query("SELECT * FROM tackle_box_table")
     fun getAllTackleBoxes(): Flow<List<TackleBoxEntity>>
+    @Query("SELECT * FROM tackle_box_table")
+    suspend fun getAllTackleBoxesList(): List<TackleBoxEntity>
     @Query("""
         SELECT tackle_box_table.* FROM tackle_box_table
         INNER JOIN event_fisherman_cross_ref ON tackle_box_table.id = event_fisherman_cross_ref.tackleBoxId
@@ -59,6 +61,8 @@ interface TackleBoxDao {
 
     @Query("SELECT * FROM tackle_box_lure_cross_ref")
     fun getAllTackleBoxLures(): Flow<List<TackleBoxLureEntity>>
+    @Query("SELECT * FROM tackle_box_lure_cross_ref")
+    suspend fun getAllTackleBoxLuresList(): List<TackleBoxLureEntity>
     @Query("""
         SELECT tackle_box_lure_cross_ref.* FROM tackle_box_lure_cross_ref
         INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId

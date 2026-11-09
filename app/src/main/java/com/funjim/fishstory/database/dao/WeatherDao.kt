@@ -27,6 +27,8 @@ interface WeatherDao {
     suspend fun deleteAllSkyConditions()
     @Query("SELECT * FROM sky_condition_table ORDER BY name ASC")
     fun getAllSkyConditions(): Flow<List<SkyConditionEntity>>
+    @Query("SELECT * FROM sky_condition_table ORDER BY name ASC")
+    suspend fun getAllSkyConditionsList(): List<SkyConditionEntity>
     @Query("""
         SELECT sky_condition_table.* FROM sky_condition_table 
         INNER JOIN weather_table ON sky_condition_table.id = weather_table.skyConditionId  
@@ -54,6 +56,8 @@ interface WeatherDao {
     suspend fun deleteAllWeather()
     @Query("SELECT * FROM weather_table ORDER BY timestamp DESC")
     fun getAllWeather(): Flow<List<WeatherEntity>>
+    @Query("SELECT * FROM weather_table ORDER BY timestamp DESC")
+    suspend fun getAllWeatherConditionsList(): List<WeatherEntity>
 
     @Query("""
         SELECT weather_table.* FROM weather_table 

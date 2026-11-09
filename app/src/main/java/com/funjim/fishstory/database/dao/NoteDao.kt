@@ -70,6 +70,8 @@ interface NoteDao {
         timestamp: Long
     ): NoteEntity?
 
+    @Query("SELECT * FROM note_table ORDER BY timestamp DESC")
+    suspend fun getAllNotesList(): List<NoteEntity>
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n

@@ -106,6 +106,8 @@ interface LureDao {
 
     @Query("SELECT * FROM lure_table")
     fun getAllLures(): Flow<List<LureEntity>>
+    @Query("SELECT * FROM lure_table")
+    suspend fun getAllLuresList(): List<LureEntity>
     @Query("""
         SELECT lure_table.* FROM lure_table
         INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId
@@ -151,6 +153,8 @@ interface LureDao {
 
     @Query("SELECT * FROM lure_primary_color_cross_ref")
     fun getAllLurePrimaryColors(): Flow<List<LurePrimaryColorEntity>>
+    @Query("SELECT * FROM lure_primary_color_cross_ref")
+    suspend fun getAllLurePrimaryColorsList(): List<LurePrimaryColorEntity>
     @Query(
         """
         WITH EventLures AS (
@@ -170,6 +174,8 @@ interface LureDao {
 
     @Query("SELECT * FROM lure_secondary_color_cross_ref")
     fun getAllLureSecondaryColors(): Flow<List<LureSecondaryColorEntity>>
+    @Query("SELECT * FROM lure_secondary_color_cross_ref")
+    suspend fun getAllLureSecondaryColorsList(): List<LureSecondaryColorEntity>
     @Query(
         """
         WITH EventLures AS (
@@ -189,6 +195,8 @@ interface LureDao {
 
     @Query("SELECT * FROM lure_glow_color_cross_ref")
     fun getAllLureGlowColors(): Flow<List<LureGlowColorEntity>>
+    @Query("SELECT * FROM lure_glow_color_cross_ref")
+    suspend fun getAllLureGlowColorsList(): List<LureGlowColorEntity>
     @Query(
         """
         WITH EventLures AS (
