@@ -72,6 +72,13 @@ interface NoteDao {
 
     @Query("SELECT * FROM note_table ORDER BY timestamp DESC")
     suspend fun getAllNotesList(): List<NoteEntity>
+    @Query("SELECT * FROM note_trip_cross_ref")
+    suspend fun getAllNotesTripList(): List<NoteTripEntity>
+    @Query("SELECT * FROM note_event_cross_ref")
+    suspend fun getAllNotesEventList(): List<NoteEventEntity>
+    @Query("SELECT * FROM note_fish_cross_ref")
+    suspend fun getAllNotesFishList(): List<NoteFishEntity>
+
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n

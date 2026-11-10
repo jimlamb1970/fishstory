@@ -86,10 +86,14 @@ interface BaitDao {
     // Multiple object Trip Cross-References queries
     @Query("SELECT * FROM trip_bait")
     fun getAllTripBaits(): Flow<List<TripBaitEntity>>
+    @Query("SELECT * FROM trip_bait")
+    suspend fun getAllTripBaitsList(): List<TripBaitEntity>
 
     // Multiple object Event Cross-References queries
     @Query("SELECT * FROM event_bait")
     fun getAllEventBaits(): Flow<List<EventBaitEntity>>
+    @Query("SELECT * FROM event_bait")
+    suspend fun getAllEventBaitsList(): List<EventBaitEntity>
     @Query("""
         SELECT event_bait.* FROM event_bait WHERE eventId = :eventId
     """)

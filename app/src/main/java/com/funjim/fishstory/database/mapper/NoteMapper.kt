@@ -3,9 +3,11 @@ package com.funjim.fishstory.database.mapper
 import com.funjim.fishstory.database.entity.NoteEntity
 import com.funjim.fishstory.database.entity.NoteEventEntity
 import com.funjim.fishstory.database.entity.NoteFishEntity
+import com.funjim.fishstory.database.entity.NoteTripEntity
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.NoteEvent
 import com.funjim.fishstory.model.NoteFish
+import com.funjim.fishstory.model.NoteTrip
 
 fun NoteEntity.toDomain(): Note {
     return Note(
@@ -31,7 +33,7 @@ fun NoteEventEntity.toDomain(): NoteEvent {
         noteId = noteId
     )
 }
-fun List<NoteEventEntity>.toEventNoteDomainList(): List<NoteEvent> {
+fun List<NoteEventEntity>.toNoteEventDomainList(): List<NoteEvent> {
     return map { it.toDomain() }
 }
 fun NoteEvent.toEntity(): NoteEventEntity {
@@ -47,12 +49,28 @@ fun NoteFishEntity.toDomain(): NoteFish {
         noteId = noteId
     )
 }
-fun List<NoteFishEntity>.toFishNoteDomainList(): List<NoteFish> {
+fun List<NoteFishEntity>.toNoteFishDomainList(): List<NoteFish> {
     return map { it.toDomain() }
 }
 fun NoteFish.toEntity(): NoteFishEntity {
     return NoteFishEntity(
         fishId = fishId,
+        noteId = noteId
+    )
+}
+
+fun NoteTripEntity.toDomain(): NoteTrip {
+    return NoteTrip(
+        tripId = tripId,
+        noteId = noteId
+    )
+}
+fun List<NoteTripEntity>.toNoteTripDomainList(): List<NoteTrip> {
+    return map { it.toDomain() }
+}
+fun NoteTrip.toEntity(): NoteTripEntity {
+    return NoteTripEntity(
+        tripId = tripId,
         noteId = noteId
     )
 }

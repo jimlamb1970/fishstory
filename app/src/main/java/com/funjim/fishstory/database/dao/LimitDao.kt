@@ -17,25 +17,50 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LimitDao {
-    // Lure queries
-    @Query("SELECT * FROM limit_table")
-    fun getAllLimits(): Flow<List<LimitEntity>>
-    @Query("SELECT * FROM limit_table")
-    suspend fun getAllLimitsList(): List<LimitEntity>
-    @Query("DELETE FROM limit_table")
-    suspend fun deleteAllLimits()
-
     @Delete
     suspend fun deleteLimit(entity: LimitEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimit(entity: LimitEntity)
     @Upsert
     suspend fun upsertLimit(entity: LimitEntity)
+    @Query("DELETE FROM limit_table")
+    suspend fun deleteAllLimits()
+
+    @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
+    suspend fun deleteAllSpeciesForLimit(limitId: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLimitSpecies(xRefs: List<LimitSpeciesEntity>)
+
+    @Delete
+    suspend fun deleteEventLimit(entity: EventLimitEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEventLimit(entity: EventLimitEntity)
+
+    @Delete
+    suspend fun deleteTripLimit(entity: TripLimitEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTripLimit(entity: TripLimitEntity)
 
     @Query("SELECT * FROM limit_table WHERE id = :id")
     fun getLimit(id: String): Flow<LimitEntity?>
     @Query("SELECT * FROM limit_table WHERE id = :id")
     suspend fun geLimitById(id: String): LimitEntity?
+
+    // Lure queries
+    @Query("SELECT * FROM limit_table")
+    fun getAllLimits(): Flow<List<LimitEntity>>
+    @Query("SELECT * FROM limit_table")
+    suspend fun getAllLimitsList(): List<LimitEntity>
+
+    @Query("SELECT * FROM limit_species_table")
+    suspend fun getAllLimitSpeciesList(): List<LimitSpeciesEntity>
+
+    @Query("SELECT * FROM event_limit_table")
+    suspend fun getAllEventLimitsList(): List<EventLimitEntity>
+
+    @Query("SELECT * FROM trip_limit_table")
+    suspend fun getAllTripLimitsList(): List<TripLimitEntity>
+
 
     @Query("""
         SELECT * FROM limit_table AS l
@@ -75,29 +100,13 @@ interface LimitDao {
     """)
     suspend fun getEventLimitsForEvent(eventId: String): List<EventLimitEntity>
 
-    @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
-    suspend fun deleteLimitSpeciesXRefsForLimit(limitId: String)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLimitSpeciesXRefs(xRefs: List<LimitSpeciesEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEventLimit(entity: EventLimitEntity)
-    @Delete
-    suspend fun deleteEventLimit(entity: EventLimitEntity)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTripLimit(entity: TripLimitEntity)
-    @Delete
-    suspend fun deleteTripLimit(entity: TripLimitEntity)
-
     @Transaction
     suspend fun insertLimit(
         limit: LimitEntity,
         species: List<String>
     ) {
         upsertLimit(limit)
-        deleteLimitSpeciesXRefsForLimit(limit.id)
+        deleteAllSpeciesForLimit(limit.id)
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
@@ -105,7 +114,7 @@ interface LimitDao {
                     speciesId = species
                 )
             }
-            insertLimitSpeciesXRefs(speciesXRefs)
+            insertLimitSpecies(speciesXRefs)
         }
     }
 
@@ -116,7 +125,7 @@ interface LimitDao {
         eventId: String
     ) {
         upsertLimit(limit)
-        deleteLimitSpeciesXRefsForLimit(limit.id)
+        deleteAllSpeciesForLimit(limit.id)
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
@@ -124,7 +133,7 @@ interface LimitDao {
                     speciesId = species
                 )
             }
-            insertLimitSpeciesXRefs(speciesXRefs)
+            insertLimitSpecies(speciesXRefs)
         }
 
         val eventLimit = EventLimitEntity(
@@ -141,7 +150,7 @@ interface LimitDao {
         tripId: String
     ) {
         upsertLimit(limit)
-        deleteLimitSpeciesXRefsForLimit(limit.id)
+        deleteAllSpeciesForLimit(limit.id)
         if (species.isNotEmpty()) {
             val speciesXRefs = species.map { species ->
                 LimitSpeciesEntity(
@@ -149,7 +158,7 @@ interface LimitDao {
                     speciesId = species
                 )
             }
-            insertLimitSpeciesXRefs(speciesXRefs)
+            insertLimitSpecies(speciesXRefs)
         }
 
         val tripLimit = TripLimitEntity(

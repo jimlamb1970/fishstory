@@ -23,6 +23,7 @@ import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.SpeciesEntityWithCounts
 import com.funjim.fishstory.database.entity.SpeciesSummaryEntity
 import com.funjim.fishstory.database.entity.TripEntityWithCounts
+import com.funjim.fishstory.database.entity.TripTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.WaterSummaryEntity
 import com.funjim.fishstory.database.entity.WeatherSummaryEntity
 import kotlinx.coroutines.flow.Flow
@@ -95,6 +96,12 @@ interface FishDao {
         WHERE fish_table.eventId = :eventId
     """)
     suspend fun getAllSpeciesForEvent(eventId: String): List<SpeciesEntity>
+
+    @Query("SELECT * FROM event_target_species")
+    suspend fun getAllEventTargetSpeciesList(): List<EventTargetSpeciesEntity>
+    @Query("SELECT * FROM trip_target_species")
+    suspend fun getAllTripTargetSpeciesList(): List<TripTargetSpeciesEntity>
+
 
     @Query("""
         SELECT event_target_species.* FROM event_target_species

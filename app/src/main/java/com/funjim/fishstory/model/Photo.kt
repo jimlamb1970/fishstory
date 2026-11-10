@@ -82,6 +82,12 @@ data class PhotoLure(
     val isPrimary: Boolean = false
 )
 
+@Serializable
+data class PhotoSkyCondition(
+    val photoId: String,
+    val skyConditionId: String,
+    val isPrimary: Boolean = false
+)
 
 @Serializable
 data class PhotoSpecies(
@@ -94,5 +100,12 @@ data class PhotoSpecies(
 data class PhotoTrip(
     val photoId: String,
     val tripId: String,
+    val isPrimary: Boolean = false
+)
+
+@Serializable
+data class PhotoWaterClarity(
+    val photoId: String,
+    val waterClarityId: String,
     val isPrimary: Boolean = false
 )

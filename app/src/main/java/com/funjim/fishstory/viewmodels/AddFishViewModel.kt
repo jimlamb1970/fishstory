@@ -39,7 +39,7 @@ import kotlin.collections.plus
 
 class AddFishViewModel(
     private val locationProvider: LocationProvider,
-    private val configRepo: ConfigurationRepository,
+    configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
@@ -257,17 +257,6 @@ class AddFishViewModel(
 
     suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
         return photoRepo.getPhotoMetadata(uri)
-    }
-
-    fun addFishPhotos(fishId: String, photos: List<Photo>) {
-        viewModelScope.launch {
-            photoRepo.addFishPhotos(fishId, photos)
-        }
-    }
-    fun deleteFishPhotos(fishId: String, photos: List<Photo>) {
-        viewModelScope.launch {
-            photoRepo.deleteFishPhotos(fishId, photos)
-        }
     }
 
     fun upsertFish(fish: Fish) {

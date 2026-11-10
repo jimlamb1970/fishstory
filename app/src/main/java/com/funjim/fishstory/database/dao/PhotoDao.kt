@@ -57,6 +57,9 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_lure_cross_ref")
     suspend fun getAllPhotosForLuresList(): List<PhotoLureEntity>
 
+    @Query("SELECT * FROM photo_sky_condition_cross_ref")
+    suspend fun getAllPhotosForSkyConditionsList(): List<PhotoSkyConditionEntity>
+
     @Query("SELECT * FROM photo_species_cross_ref")
     fun getAllPhotosForSpecies(): Flow<List<PhotoSpeciesEntity>>
     @Query("SELECT * FROM photo_species_cross_ref")
@@ -66,6 +69,9 @@ interface PhotoDao {
     fun getAllPhotosForTrips(): Flow<List<PhotoTripEntity>>
     @Query("SELECT * FROM photo_trip_cross_ref")
     suspend fun getAllPhotosForTripsList(): List<PhotoTripEntity>
+
+    @Query("SELECT * FROM photo_water_clarity_cross_ref")
+    suspend fun getAllPhotosForWaterClarityList(): List<PhotoWaterClarityEntity>
 
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()

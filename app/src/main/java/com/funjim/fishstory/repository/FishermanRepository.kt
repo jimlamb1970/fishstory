@@ -10,8 +10,8 @@ import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxLureDomainList
+import com.funjim.fishstory.database.mapper.toTripFishermanDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
-import com.funjim.fishstory.model.BodyOfWater
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanFullStatistics
@@ -20,6 +20,7 @@ import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLure
+import com.funjim.fishstory.model.TripFisherman
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.viewmodels.FishermanSortOrder
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,13 @@ class FishermanRepository(
     suspend fun getAllFishermenList(): List<Fisherman> {
         return fishermanDao.getAllFishermenList().toFishermanDomainList()
     }
+    suspend fun getAllTripFishermenList(): List<TripFisherman> {
+        return fishermanDao.getAllTripFishermenList().toTripFishermanDomainList()
+    }
+    suspend fun getAllEventFishermenList(): List<EventFisherman> {
+        return fishermanDao.getAllEventFishermenList().toEventFishermanDomainList()
+    }
+
     suspend fun getAllTackleBoxesList(): List<TackleBox> {
         return tackleBoxDao.getAllTackleBoxesList().toTackleBoxDomainList()
     }

@@ -41,16 +41,20 @@ import com.funjim.fishstory.database.mapper.toPhotoEventDomainList
 import com.funjim.fishstory.database.mapper.toPhotoFishDomainList
 import com.funjim.fishstory.database.mapper.toPhotoFishermanDomainList
 import com.funjim.fishstory.database.mapper.toPhotoLureDomainList
+import com.funjim.fishstory.database.mapper.toPhotoSkyConditionDomainList
 import com.funjim.fishstory.database.mapper.toPhotoSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toPhotoTripDomainList
+import com.funjim.fishstory.database.mapper.toPhotoWaterClarityDomainList
 import com.funjim.fishstory.model.PhotoBait
 import com.funjim.fishstory.model.PhotoBodyOfWater
 import com.funjim.fishstory.model.PhotoEvent
 import com.funjim.fishstory.model.PhotoFish
 import com.funjim.fishstory.model.PhotoFisherman
 import com.funjim.fishstory.model.PhotoLure
+import com.funjim.fishstory.model.PhotoSkyCondition
 import com.funjim.fishstory.model.PhotoSpecies
 import com.funjim.fishstory.model.PhotoTrip
+import com.funjim.fishstory.model.PhotoWaterClarity
 import kotlinx.coroutines.flow.map
 
 data class PhotoMetadata(
@@ -104,12 +108,19 @@ class PhotoRepository(
     suspend fun getAllPhotosForLuresList(): List<PhotoLure> {
         return photoDao.getAllPhotosForLuresList().toPhotoLureDomainList()
     }
+    suspend fun getAllPhotosForSkyConditionsList(): List<PhotoSkyCondition> {
+        return photoDao.getAllPhotosForSkyConditionsList().toPhotoSkyConditionDomainList()
+    }
     suspend fun getAllPhotosForSpeciesList(): List<PhotoSpecies> {
         return photoDao.getAllPhotosForSpeciesList().toPhotoSpeciesDomainList()
     }
     suspend fun getAllPhotosForTripsList(): List<PhotoTrip> {
         return photoDao.getAllPhotosForTripsList().toPhotoTripDomainList()
     }
+    suspend fun getAllPhotosForWaterClarityList(): List<PhotoWaterClarity> {
+        return photoDao.getAllPhotosForWaterClarityList().toPhotoWaterClarityDomainList()
+    }
+
 
 
     private fun getRotationAngle(uri: Uri): Float {

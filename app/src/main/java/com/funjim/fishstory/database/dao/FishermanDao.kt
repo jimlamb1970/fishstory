@@ -189,6 +189,8 @@ interface FishermanDao {
 
     @Query("SELECT * FROM trip_fisherman_cross_ref")
     fun getAllTripFishermen(): Flow<List<TripFishermanEntity>>
+    @Query("SELECT * FROM trip_fisherman_cross_ref")
+    suspend fun getAllTripFishermenList(): List<TripFishermanEntity>
     @Query("""
         SELECT * FROM trip_fisherman_cross_ref 
         WHERE tripId = :tripId
@@ -197,6 +199,8 @@ interface FishermanDao {
 
     @Query("SELECT * FROM event_fisherman_cross_ref")
     fun getAllEventFishermen(): Flow<List<EventFishermanEntity>>
+    @Query("SELECT * FROM event_fisherman_cross_ref")
+    suspend fun getAllEventFishermenList(): List<EventFishermanEntity>
     @Query("""
         SELECT * FROM event_fisherman_cross_ref
         WHERE event_fisherman_cross_ref.eventId = :eventId

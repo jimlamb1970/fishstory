@@ -18,11 +18,11 @@ import com.funjim.fishstory.database.mapper.toLurePrimaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureSecondaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toLureWithColorsSummaryDomainList
+import com.funjim.fishstory.database.mapper.toTripBaitDomainList
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.InsertResult
-import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor
@@ -32,6 +32,7 @@ import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.TripBait
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -67,6 +68,12 @@ class LureRepository(
     }
     suspend fun getAllLureGlowColorsList(): List<LureGlowColor> {
         return lureDao.getAllLureGlowColorsList().toLureGlowColorDomainList()
+    }
+    suspend fun getAllTripBaitsList(): List<TripBait> {
+        return baitDao.getAllTripBaitsList().toTripBaitDomainList()
+    }
+    suspend fun getAllEventBaitsList(): List<EventBait> {
+        return baitDao.getAllEventBaitsList().toEventBaitDomainList()
     }
 
     fun getAllLures(): Flow<List<LureWithColors>> {

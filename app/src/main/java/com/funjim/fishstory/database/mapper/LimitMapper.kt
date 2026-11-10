@@ -4,10 +4,12 @@ import com.funjim.fishstory.database.entity.EventLimitEntity
 import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
+import com.funjim.fishstory.database.entity.TripLimitEntity
 import com.funjim.fishstory.model.EventLimit
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSpecies
 import com.funjim.fishstory.model.LimitWithSpecies
+import com.funjim.fishstory.model.TripLimit
 
 /**
  * Maps DB Entity -> Domain Model
@@ -87,6 +89,22 @@ fun List<EventLimitEntity>.toEventLimitDomainList(): List<EventLimit> {
 fun EventLimit.toEntity(): EventLimitEntity {
     return EventLimitEntity(
         eventId = eventId,
+        limitId = limitId
+    )
+}
+
+fun TripLimitEntity.toDomain(): TripLimit {
+    return TripLimit(
+        tripId = tripId,
+        limitId = limitId
+    )
+}
+fun List<TripLimitEntity>.toTripLimitDomainList(): List<TripLimit> {
+    return map { it.toDomain() }
+}
+fun TripLimit.toEntity(): TripLimitEntity {
+    return TripLimitEntity(
+        tripId = tripId,
         limitId = limitId
     )
 }

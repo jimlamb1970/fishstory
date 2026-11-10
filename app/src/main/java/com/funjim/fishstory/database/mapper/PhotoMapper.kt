@@ -7,8 +7,10 @@ import com.funjim.fishstory.database.entity.PhotoEventEntity
 import com.funjim.fishstory.database.entity.PhotoFishEntity
 import com.funjim.fishstory.database.entity.PhotoFishermanEntity
 import com.funjim.fishstory.database.entity.PhotoLureEntity
+import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
 import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
 import com.funjim.fishstory.database.entity.PhotoTripEntity
+import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.PhotoBait
 import com.funjim.fishstory.model.PhotoBodyOfWater
@@ -16,8 +18,10 @@ import com.funjim.fishstory.model.PhotoEvent
 import com.funjim.fishstory.model.PhotoFish
 import com.funjim.fishstory.model.PhotoFisherman
 import com.funjim.fishstory.model.PhotoLure
+import com.funjim.fishstory.model.PhotoSkyCondition
 import com.funjim.fishstory.model.PhotoSpecies
 import com.funjim.fishstory.model.PhotoTrip
+import com.funjim.fishstory.model.PhotoWaterClarity
 
 // Extension: Database Entity -> Domain Model
 fun PhotoEntity.toDomain(): Photo {
@@ -166,6 +170,26 @@ fun PhotoLure.toEntity(): PhotoLureEntity
     )
 }
 
+fun PhotoSkyConditionEntity.toDomain(): PhotoSkyCondition {
+    return PhotoSkyCondition(
+        photoId = photoId,
+        skyConditionId = skyConditionId,
+        isPrimary = isPrimary
+    )
+}
+fun List<PhotoSkyConditionEntity>.toPhotoSkyConditionDomainList(): List<PhotoSkyCondition>
+{
+    return map { it.toDomain() }
+}
+fun PhotoSkyCondition.toEntity(): PhotoSkyConditionEntity
+{
+    return PhotoSkyConditionEntity(
+        photoId = photoId,
+        skyConditionId = skyConditionId,
+        isPrimary = isPrimary
+    )
+}
+
 fun PhotoSpeciesEntity.toDomain(): PhotoSpecies {
     return PhotoSpecies(
         photoId = photoId,
@@ -202,6 +226,26 @@ fun PhotoTrip.toEntity(): PhotoTripEntity
     return PhotoTripEntity(
         photoId = photoId,
         tripId = tripId,
+        isPrimary = isPrimary
+    )
+}
+
+fun PhotoWaterClarityEntity.toDomain(): PhotoWaterClarity {
+    return PhotoWaterClarity(
+        photoId = photoId,
+        waterClarityId = waterClarityId,
+        isPrimary = isPrimary
+    )
+}
+fun List<PhotoWaterClarityEntity>.toPhotoWaterClarityDomainList(): List<PhotoWaterClarity>
+{
+    return map { it.toDomain() }
+}
+fun PhotoWaterClarity.toEntity(): PhotoWaterClarityEntity
+{
+    return PhotoWaterClarityEntity(
+        photoId = photoId,
+        waterClarityId = waterClarityId,
         isPrimary = isPrimary
     )
 }

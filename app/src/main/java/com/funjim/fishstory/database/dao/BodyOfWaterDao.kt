@@ -87,10 +87,14 @@ interface BodyOfWaterDao {
     // Multiple object Trip Cross-References queries
     @Query("SELECT * FROM trip_body_of_water")
     fun getAllTripBodiesOfWater(): Flow<List<TripBodyOfWaterEntity>>
+    @Query("SELECT * FROM trip_body_of_water")
+    suspend fun getAllTripBodiesOfWaterList(): List<TripBodyOfWaterEntity>
 
     // Multiple object Event Cross-References queries
     @Query("SELECT * FROM event_body_of_water")
     fun getAllEventBodiesOfWater(): Flow<List<EventBodyOfWaterEntity>>
+    @Query("SELECT * FROM event_body_of_water")
+    suspend fun getAllEventBodiesOfWaterList(): List<EventBodyOfWaterEntity>
     @Query("""
         SELECT event_body_of_water.* FROM event_body_of_water WHERE eventId = :eventId
     """)

@@ -10,11 +10,12 @@ import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toEventDomainList
-import com.funjim.fishstory.database.mapper.toEventNoteDomainList
+import com.funjim.fishstory.database.mapper.toNoteEventDomainList
 import com.funjim.fishstory.database.mapper.toEventSummaryDomainList
-import com.funjim.fishstory.database.mapper.toFishNoteDomainList
+import com.funjim.fishstory.database.mapper.toNoteFishDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toNoteDomainList
+import com.funjim.fishstory.database.mapper.toNoteTripDomainList
 import com.funjim.fishstory.database.mapper.toSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toTripDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
@@ -31,6 +32,7 @@ import com.funjim.fishstory.model.InsertResult
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.NoteEvent
 import com.funjim.fishstory.model.NoteFish
+import com.funjim.fishstory.model.NoteTrip
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
 import com.funjim.fishstory.model.TripFisherman
@@ -42,7 +44,6 @@ import com.funjim.fishstory.model.TripWithInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
-import kotlin.concurrent.timer
 
 data class AddFishermanResult(
     val addedToTrip: Boolean,
@@ -345,14 +346,23 @@ class TripRepository(
     suspend fun getAllNotesList(): List<Note> {
         return noteDao.getAllNotesList().toNoteDomainList()
     }
+    suspend fun getAllNotesTripList(): List<NoteTrip> {
+        return noteDao.getAllNotesTripList().toNoteTripDomainList()
+    }
+    suspend fun getAllNotesEventList(): List<NoteEvent> {
+        return noteDao.getAllNotesEventList().toNoteEventDomainList()
+    }
+    suspend fun getAllNotesFishList(): List<NoteFish> {
+        return noteDao.getAllNotesFishList().toNoteFishDomainList()
+    }
     suspend fun getAllNotesForEvent(eventId: String): List<Note> {
         return noteDao.getAllNotesForEvent(eventId).toNoteDomainList()
     }
     suspend fun getEventNotesForEvent(eventId: String): List<NoteEvent> {
-        return noteDao.getEventNotesForEvent(eventId).toEventNoteDomainList()
+        return noteDao.getEventNotesForEvent(eventId).toNoteEventDomainList()
     }
     suspend fun getFishNotesForEvent(eventId: String): List<NoteFish> {
-        return noteDao.getFishNotesForEvent(eventId).toFishNoteDomainList()
+        return noteDao.getFishNotesForEvent(eventId).toNoteFishDomainList()
     }
     suspend fun findOrCreateNote(item: Note): InsertResult<Note> {
         // Check for existing ID and equality

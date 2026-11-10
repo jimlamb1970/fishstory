@@ -68,6 +68,7 @@ import com.funjim.fishstory.database.entity.WeatherEntity
 
 @Database(
     entities = [
+        // Main Databases (17)
         BaitEntity::class,
         BodyOfWaterEntity::class,
         EventEntity::class,
@@ -85,23 +86,23 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         WaterEntity::class,
         WaterClarityEntity::class,
         WeatherEntity::class,
-        // Evert Cross References
+        // Event Cross References (5) (22)
         EventBaitEntity::class,
         EventBodyOfWaterEntity::class,
         EventFishermanEntity::class,
         EventLimitEntity::class,
         EventTargetSpeciesEntity::class,
-        // Limit Cross References
+        // Limit Cross References (1) (23)
         LimitSpeciesEntity::class,
-        // Lure Cross References
+        // Lure Cross References (3) (26)
         LureGlowColorEntity::class,
         LurePrimaryColorEntity::class,
         LureSecondaryColorEntity::class,
-        // Note Cross References
+        // Note Cross References (3) (29)
         NoteFishEntity::class,
         NoteEventEntity::class,
         NoteTripEntity::class,
-        // Proto Cross References
+        // Proto Cross References (10) (39)
         PhotoBaitEntity::class,
         PhotoBodyOfWaterEntity::class,
         PhotoEventEntity::class,
@@ -112,9 +113,9 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         PhotoSpeciesEntity::class,
         PhotoTripEntity::class,
         PhotoWaterClarityEntity::class,
-        // TackleBox Cross References
+        // TackleBox Cross References (1) (40)
         TackleBoxLureEntity::class,
-        // Trip Cross References
+        // Trip Cross References (5) (45)
         TripBaitEntity::class,
         TripBodyOfWaterEntity::class,
         TripFishermanEntity::class,

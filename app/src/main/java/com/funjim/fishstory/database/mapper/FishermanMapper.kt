@@ -100,6 +100,16 @@ fun EventFisherman.toEntity(): EventFishermanEntity {
     )
 }
 
+fun TripFishermanEntity.toDomain(): TripFisherman {
+    return TripFisherman(
+        tripId = tripId,
+        fishermanId = fishermanId,
+        tackleBoxId = tackleBoxId
+    )
+}
+fun List<TripFishermanEntity>.toTripFishermanDomainList(): List<TripFisherman> {
+    return map { it.toDomain() }
+}
 fun TripFisherman.toEntity(): TripFishermanEntity {
     return TripFishermanEntity(
         tripId = tripId,

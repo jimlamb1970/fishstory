@@ -9,8 +9,6 @@ import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.NoteDao
-import com.funjim.fishstory.database.dao.PhotoDao
-import com.funjim.fishstory.database.entity.PhotoFishEntity
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.EventLimitEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
@@ -34,6 +32,8 @@ import com.funjim.fishstory.database.mapper.toLureWithColorsDomainList
 import com.funjim.fishstory.database.mapper.toNoteDomainList
 import com.funjim.fishstory.database.mapper.toSpeciesSummaryDomainList
 import com.funjim.fishstory.database.mapper.toTripDomainList
+import com.funjim.fishstory.database.mapper.toTripLimitDomainList
+import com.funjim.fishstory.database.mapper.toTripTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toWaterSummaryDomainList
 import com.funjim.fishstory.database.mapper.toWeatherSummaryDomainList
 import com.funjim.fishstory.model.BaitSummary
@@ -57,11 +57,12 @@ import com.funjim.fishstory.model.LimitType
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithCounts
 import com.funjim.fishstory.model.Note
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.SpeciesSummary
 import com.funjim.fishstory.model.SpeciesWithCounts
 import com.funjim.fishstory.model.Trip
+import com.funjim.fishstory.model.TripLimit
+import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithCounts
 import com.funjim.fishstory.model.WaterSummary
 import com.funjim.fishstory.model.WeatherSummary
@@ -78,7 +79,6 @@ class FishRepository(
     private val limitDao: LimitDao,
     private val lureDao: LureDao,
     private val noteDao: NoteDao,
-    private val photoDao: PhotoDao,
     private val eventDao: EventDao,
     private val tripDao: TripDao
 ) {
@@ -95,6 +95,13 @@ class FishRepository(
     suspend fun getAllSpeciesList(): List<Species> {
         return fishDao.getAllSpeciesList().toSpeciesDomainList()
     }
+    suspend fun getAllTripTargetSpeciesList(): List<TripTargetSpecies> {
+        return fishDao.getAllTripTargetSpeciesList().toTripTargetSpeciesDomainList()
+    }
+    suspend fun getAllEventTargetSpeciesList(): List<EventTargetSpecies> {
+        return fishDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList()
+    }
+
     suspend fun getAllFishList(): List<Fish> {
         return fishDao.getAllFishList().toFishDomainList()
     }
@@ -298,17 +305,6 @@ class FishRepository(
             .map { list -> list.toFishermanSummaryDomainList() }
     }
 
-    fun getSpeciesSummary(
-        tripId: String? = null,
-        eventId: String? = null,
-        speciesId: String): Flow<SpeciesSummary?> {
-        return fishDao.getSpeciesSummary(
-            tripId = tripId,
-            eventId = eventId,
-            speciesId = speciesId)
-            .map { entity -> entity?.toDomain() }
-    }
-
     fun getEventTargetSpeciesSummaries(
         eventId: String
     ): Flow<List<SpeciesSummary>> {
@@ -425,22 +421,6 @@ class FishRepository(
     suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish.toEntity())
     suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish.toEntity())
 
-    suspend fun addFishPhoto(fishId: String, photo: Photo) {
-        val result = photoDao.insertPhoto(photo.toEntity())
-
-        val photoId = if (result != -1L) {
-            photo.id
-        } else {
-            photoDao.getPhotoIdByUri(photo.uri)
-        }
-
-        if (photoId != null) {
-            photoDao.addFishPhoto(PhotoFishEntity(photoId, fishId))
-        }
-    }
-    suspend fun deleteFishPhoto(fishId: String, photoId: String) =
-        photoDao.deleteFishPhoto(PhotoFishEntity(photoId, fishId))
-
     fun getNotesForFish(id: String): Flow<List<Note>> {
         return noteDao.getNotesForFish(id).map { list -> list.toNoteDomainList() }
     }
@@ -478,6 +458,16 @@ class FishRepository(
     suspend fun getAllLimitsList(): List<Limit> {
         return limitDao.getAllLimitsList().toLimitDomainList()
     }
+    suspend fun getAllLimitSpeciesList(): List<LimitSpecies> {
+        return limitDao.getAllLimitSpeciesList().toLimitSpeciesDomainList()
+    }
+    suspend fun getAllTripLimitsList(): List<TripLimit> {
+        return limitDao.getAllTripLimitsList().toTripLimitDomainList()
+    }
+    suspend fun getAllEventLimitsList(): List<EventLimit> {
+        return limitDao.getAllEventLimitsList().toEventLimitDomainList()
+    }
+
     suspend fun getAllLimitsForEvent(eventId: String): List<Limit> {
         return limitDao.getAllLimitsForEvent(eventId).toLimitDomainList()
     }

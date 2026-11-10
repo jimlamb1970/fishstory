@@ -13,6 +13,7 @@ import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toDomainList
 import com.funjim.fishstory.database.mapper.toEventBodyOfWaterDomainList
 import com.funjim.fishstory.database.mapper.toEventBodyOfWaterEntityList
+import com.funjim.fishstory.database.mapper.toTripBodyOfWaterDomainList
 import com.funjim.fishstory.database.mapper.toWaterDomainList
 import com.funjim.fishstory.database.mapper.toWeatherDomainList
 import com.funjim.fishstory.model.BodyOfWater
@@ -46,6 +47,13 @@ class EnvironmentRepository(
     suspend fun getAllBodiesOfWaterList(): List<BodyOfWater> {
         return bodyOfWaterDao.getAllBodiesOfWaterList().toBodyOfWaterDomainList()
     }
+    suspend fun getAllTripBodiesOfWaterList(): List<TripBodyOfWater> {
+        return bodyOfWaterDao.getAllTripBodiesOfWaterList().toTripBodyOfWaterDomainList()
+    }
+    suspend fun getAllEventBodiesOfWaterList(): List<EventBodyOfWater> {
+        return bodyOfWaterDao.getAllEventBodiesOfWaterList().toEventBodyOfWaterDomainList()
+    }
+
     suspend fun getAllSkyConditionsList(): List<SkyCondition> {
         return weatherDao.getAllSkyConditionsList().toDomainList()
     }
