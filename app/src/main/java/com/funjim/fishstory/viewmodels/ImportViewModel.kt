@@ -183,7 +183,6 @@ data class FishStoryData(
 
 class ImportViewModel(
     private val repository: FishStoryRepository,
-    private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
@@ -217,18 +216,6 @@ class ImportViewModel(
             } catch (e: Exception) {
                 Log.e("PhotoViewModel", "Error occurred while purging orphaned photos", e)
                 _snackBarMessage.emit("An error occurred while cleaning up photos.")
-            }
-        }
-    }
-
-    fun startImport(inputStream: InputStream) {
-        viewModelScope.launch(Dispatchers.IO) {
-            isImporting = true
-            try {
-                repository.importFromCsv(inputStream)
-            } catch (e: Exception) {
-            } finally {
-                isImporting = false
             }
         }
     }
@@ -462,9 +449,11 @@ class ImportViewModel(
         }
     }
 
-    suspend fun exportDatabase(context: Context, uri: Uri): Boolean {
+    suspend fun exportFullDatabase(context: Context, uri: Uri): Boolean {
         return withContext(Dispatchers.IO) {
             try {
+                val allData = repository.exportAllData()
+/*
                 val allData = FishStoryData(
                     // Main Databases (17)
                     baits = lureRepo.getAllBaitsList(),                             /* main DB */
@@ -519,21 +508,48 @@ class ImportViewModel(
                     photosTrip = photoRepo.getAllPhotosForTripsList(),
                     photosWaterClarity = photoRepo.getAllPhotosForWaterClarityList()
                 )
-
+*/
                 val jsonString = json.encodeToString(allData)
-                context.contentResolver.openOutputStream(uri)?.use { it.write(jsonString.toByteArray()) }
+                context.contentResolver.openOutputStream(uri)?.use {
+                    it.write(jsonString.toByteArray())
+                }
+                _snackBarMessage.emit("Database backed up successfully!")
                 true
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("ImportViewModel", "Failed to export database", e)
                 false
+            }
+        }
+    }
+    fun importFullDatabase(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isImporting = true
+            try {
+                val jsonString = context.contentResolver.openInputStream(uri)?.use {
+                    it.bufferedReader().readText()
+                } ?: throw IllegalStateException("Could not read file from URI")
+
+                val exportData = jsonImport.decodeFromString<FishStoryData>(jsonString)
+
+                if (exportData.fileType == "FishStoryData") {
+                    repository.importAllData(exportData)
+                    _snackBarMessage.emit("Database restored successfully!")
+                } else {
+                    _snackBarMessage.emit("Invalid backup file type.")
+                }
+            } catch (e: Exception) {
+                Log.e("ImportViewModel", "Failed to wipe and import database", e)
+                _snackBarMessage.emit("An error occurred during import.")
+            } finally {
+                isImporting = false
             }
         }
     }
 }
 
+
 class ImportViewModelFactory(
     private val repository: FishStoryRepository,
-    private val configurationRepository: ConfigurationRepository,
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
@@ -546,7 +562,6 @@ class ImportViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return ImportViewModel(
                 repository,
-                configurationRepository,
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,

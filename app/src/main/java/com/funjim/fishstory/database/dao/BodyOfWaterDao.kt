@@ -28,7 +28,7 @@ interface BodyOfWaterDao {
     @Query("DELETE FROM trip_body_of_water WHERE tripId = :tripId AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteBodyOfWaterForTrip(tripId: String, bodyOfWaterId: String)
     @Upsert
-    suspend fun upsertBodyOfWaterForTrip(crossRef: TripBodyOfWaterEntity)
+    suspend fun upsertTripBodyOfWater(crossRef: TripBodyOfWaterEntity)
     @Query("DELETE FROM trip_body_of_water")
     suspend fun deleteAllTripBodiesOfWater()
 
@@ -38,7 +38,7 @@ interface BodyOfWaterDao {
     @Query("DELETE FROM event_body_of_water WHERE eventId IN (:eventIds) AND bodyOfWaterId = :bodyOfWaterId")
     suspend fun deleteBodyOfWaterForEvents(eventIds: List<String>, bodyOfWaterId: String)
     @Upsert
-    suspend fun upsertBodyOfWaterForEvent(crossRef: EventBodyOfWaterEntity)
+    suspend fun upsertEventBodyOfWater(crossRef: EventBodyOfWaterEntity)
     @Upsert
     suspend fun upsertBodyOfWaterForEvents(crossRefs: List<EventBodyOfWaterEntity>)
     @Query("DELETE FROM event_body_of_water")

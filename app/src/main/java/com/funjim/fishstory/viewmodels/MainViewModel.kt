@@ -249,11 +249,11 @@ class MainViewModel(
                     data.trips.forEach { tripDao.insertTrip(it) }
                     data.events.forEach { eventDao.insertEvent(it) }
                     data.baits.forEach { baitDao.insertBait(it) }
-                    data.tripBait.forEach { baitDao.upsertBaitForTrip(it) }
-                    data.eventBait.forEach { baitDao.upsertBaitForEvent(it) }
+                    data.tripBait.forEach { baitDao.upsertTripBait(it) }
+                    data.eventBait.forEach { baitDao.upsertEventBait(it) }
                     data.bodiesOfWater.forEach { bodyOfWaterDao.insertBodyOfWater(it) }
-                    data.tripBodyOfWater.forEach { bodyOfWaterDao.upsertBodyOfWaterForTrip(it) }
-                    data.eventBodyOfWater.forEach { bodyOfWaterDao.upsertBodyOfWaterForEvent(it) }
+                    data.tripBodyOfWater.forEach { bodyOfWaterDao.upsertTripBodyOfWater(it) }
+                    data.eventBodyOfWater.forEach { bodyOfWaterDao.upsertEventBodyOfWater(it) }
                     data.fishermen.forEach { fishermanDao.insertFisherman(it) }
                     data.tackleboxes.forEach { tackleBoxDao.insertTackleBox(it) }
                     data.tripFishermen.forEach { fishermanDao.insertTripFisherman(it) }

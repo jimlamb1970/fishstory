@@ -93,7 +93,7 @@ class EnvironmentRepository(
         crossRef: TripBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.upsertBodyOfWaterForTrip(crossRef.toEntity())
+            bodyOfWaterDao.upsertTripBodyOfWater(crossRef.toEntity())
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
                 if (eventIds.isNotEmpty()) {
@@ -116,10 +116,10 @@ class EnvironmentRepository(
         crossRef: EventBodyOfWater,
         cascade: Boolean = true) {
         database.withTransaction {
-            bodyOfWaterDao.upsertBodyOfWaterForEvent(crossRef.toEntity())
+            bodyOfWaterDao.upsertEventBodyOfWater(crossRef.toEntity())
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
-                bodyOfWaterDao.upsertBodyOfWaterForTrip(
+                bodyOfWaterDao.upsertTripBodyOfWater(
                     TripBodyOfWaterEntity(
                         tripId = tripId,
                         bodyOfWaterId = crossRef.bodyOfWaterId

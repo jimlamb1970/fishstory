@@ -27,7 +27,7 @@ interface BaitDao {
     @Query("DELETE FROM trip_bait WHERE tripId = :tripId AND baitId = :baitId")
     suspend fun deleteBaitForTrip(tripId: String, baitId: String)
     @Upsert
-    suspend fun upsertBaitForTrip(crossRef: TripBaitEntity)
+    suspend fun upsertTripBait(crossRef: TripBaitEntity)
     @Query("DELETE FROM trip_bait")
     suspend fun deleteAllTripBaits()
 
@@ -35,7 +35,7 @@ interface BaitDao {
     @Query("DELETE FROM event_bait WHERE eventId = :eventId AND baitId = :baitId")
     suspend fun deleteBaitForEvent(eventId: String, baitId: String)
     @Upsert
-    suspend fun upsertBaitForEvent(crossRef: EventBaitEntity)
+    suspend fun upsertEventBait(crossRef: EventBaitEntity)
     @Query("DELETE FROM event_bait WHERE eventId IN (:eventIds) AND baitId = :baitId")
     suspend fun deleteBaitForEvents(eventIds: List<String>, baitId: String)
     @Upsert

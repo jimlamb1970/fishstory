@@ -80,12 +80,19 @@ class FishstoryApplication : Application() {
     val fishStoryRepository by lazy {
         FishStoryRepository(
             db = database,
+            baitDao = database.baitDao(),
+            bodyOfWaterDao = database.bodyOfWaterDao(),
             eventDao = database.eventDao(),
             fishDao = database.fishDao(),
             fishermanDao = database.fishermanDao(),
+            limitDao = database.limitDao(),
             lureDao = database.lureDao(),
+            noteDao = database.noteDao(),
+            photoDao = database.photoDao(),
             tackleBoxDao = database.tackleBoxDao(),
-            tripDao = database.tripDao()
+            tripDao = database.tripDao(),
+            waterDao = database.waterDao(),
+            weatherDao = database.weatherDao()
         )
     }
 
@@ -201,7 +208,6 @@ class FishstoryApplication : Application() {
 
     fun getImportViewModelFactory() = ImportViewModelFactory(
         fishStoryRepository,
-        configurationRepository,
         environmentRepository,
         fishermanRepository,
         fishRepository,

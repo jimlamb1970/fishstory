@@ -308,7 +308,7 @@ class LureRepository(
     }
 
     suspend fun addBaitToEvent(baitId: String, eventId: String) {
-        baitDao.upsertBaitForEvent(EventBaitEntity(eventId, baitId))
+        baitDao.upsertEventBait(EventBaitEntity(eventId, baitId))
     }
     suspend fun removeBaitFromEvent(baitId: String, eventId: String) {
         baitDao.deleteBaitForEvent(eventId, baitId)

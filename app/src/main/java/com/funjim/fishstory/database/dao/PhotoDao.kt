@@ -124,61 +124,51 @@ interface PhotoDao {
 
     @Upsert
     suspend fun addBaitPhoto(crossRef: PhotoBaitEntity)
-
     @Delete
     suspend fun deleteBaitPhoto(crossRef: PhotoBaitEntity)
 
     @Upsert
     suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
-
     @Delete
     suspend fun deleteBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
 
     @Upsert
     suspend fun addTripPhoto(crossRef: PhotoTripEntity)
-
     @Delete
     suspend fun deleteTripPhoto(crossRef: PhotoTripEntity)
 
     @Upsert
     suspend fun addEventPhoto(crossRef: PhotoEventEntity)
-
     @Delete
     suspend fun deleteEventPhoto(crossRef: PhotoEventEntity)
 
     @Upsert
     suspend fun addFishermanPhoto(crossRef: PhotoFishermanEntity)
-
     @Delete
     suspend fun deleteFishermanPhoto(crossRef: PhotoFishermanEntity)
 
     @Upsert
     suspend fun addLurePhoto(crossRef: PhotoLureEntity)
-
     @Delete
     suspend fun deleteLurePhoto(crossRef: PhotoLureEntity)
 
     @Upsert
     suspend fun addFishPhoto(crossRef: PhotoFishEntity)
-
     @Delete
     suspend fun deleteFishPhoto(crossRef: PhotoFishEntity)
 
     @Upsert
     suspend fun addSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
-
     @Delete
     suspend fun deleteSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
 
     @Upsert
     suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesEntity)
-
     @Delete
     suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesEntity)
 
     @Upsert
     suspend fun addWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
-
     @Delete
     suspend fun deleteWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
 

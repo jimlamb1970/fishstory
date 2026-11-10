@@ -51,7 +51,25 @@ fun SettingsScreen(
         }
     }
 
-    // Launcher for saving a file (Export to JSON)
+    val backupFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            coroutineScope.launch {
+                importViewModel.exportFullDatabase(context, uri).let { }
+            }
+        }
+    }
+    val restoreFileLauncher: ActivityResultLauncher<Array<String>> = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            coroutineScope.launch {
+                importViewModel.importFullDatabase(context, uri).let { }
+            }
+        }
+    }
+
     val saveFileLauncher: ActivityResultLauncher<String> = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
@@ -85,17 +103,6 @@ fun SettingsScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             importViewModel.importEvent(context, uri)
-        }
-    }
-
-    // 1. Define the launcher
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        // 2. Handle the result
-        uri?.let {
-            val inputStream = context.contentResolver.openInputStream(it)
-            inputStream?.let { stream -> importViewModel.startImport(stream) }
         }
     }
 
@@ -138,6 +145,26 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
+                    backupFileLauncher.launch("fishstory-export-v1.json")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Backup Database")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    restoreFileLauncher.launch(arrayOf("application/json"))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restore Database")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
                     // Launch the file saver dialog, suggesting a JSON file name
                     saveFileLauncher.launch("fishstory_export.json")
                 },
@@ -166,17 +193,6 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Event")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    // Trigger the file picker to select a JSON database file for import
-                    launcher.launch(arrayOf("text/csv"))
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Import Fish from CSV")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

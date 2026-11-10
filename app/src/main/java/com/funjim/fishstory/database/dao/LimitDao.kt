@@ -29,6 +29,8 @@ interface LimitDao {
     @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
     suspend fun deleteAllSpeciesForLimit(limitId: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLimitSpecies(item: LimitSpeciesEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLimitSpecies(xRefs: List<LimitSpeciesEntity>)
 
     @Delete
