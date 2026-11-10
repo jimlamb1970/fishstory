@@ -40,6 +40,12 @@ fun SettingsScreen(
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
+        importViewModel.snackBarMessage.collect { message ->
+            hostState.showSnackbar(message)
+        }
+    }
+
+    LaunchedEffect(Unit) {
         importViewModel.toastMessage.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
@@ -120,6 +126,16 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Button(
+                onClick = {
+                    importViewModel.cleanupDatabase()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Clean-up Database")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     // Launch the file saver dialog, suggesting a JSON file name

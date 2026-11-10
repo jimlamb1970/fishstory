@@ -62,7 +62,6 @@ import com.funjim.fishstory.ui.screens.LureListScreen
 import com.funjim.fishstory.ui.screens.ManageBodiesOfWaterScreen
 import com.funjim.fishstory.ui.screens.ManageColorsScreen
 import com.funjim.fishstory.ui.screens.ManageSpeciesScreen
-import com.funjim.fishstory.ui.screens.OldReportsScreen
 import com.funjim.fishstory.ui.screens.details.EventDetailsScreen
 import com.funjim.fishstory.ui.screens.ManageBaitsScreen
 import com.funjim.fishstory.ui.screens.ManageLimitsScreen
@@ -692,18 +691,6 @@ fun AppNavigation(
                 navigateBack = {
                     navController.popBackStack()
                 }
-            )
-        }
-
-        composable("reports") {
-            val app = navController.context.applicationContext as FishstoryApplication
-            val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = app.getMainViewModelFactory()
-            )
-
-            OldReportsScreen(
-                viewModel = viewModel,
-                navigateBack = { navController.popBackStack() }
             )
         }
 

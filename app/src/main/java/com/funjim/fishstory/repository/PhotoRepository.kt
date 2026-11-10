@@ -121,8 +121,6 @@ class PhotoRepository(
         return photoDao.getAllPhotosForWaterClarityList().toPhotoWaterClarityDomainList()
     }
 
-
-
     private fun getRotationAngle(uri: Uri): Float {
         context.contentResolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
@@ -263,7 +261,7 @@ class PhotoRepository(
             }
 
             return@withContext photoFile.absolutePath
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             null
         }
     }
@@ -282,19 +280,6 @@ class PhotoRepository(
         }
 
         return source.scale(targetWidth, targetHeight)
-    }
-    private fun md5Hash(uri: Uri): String {
-        val digest = MessageDigest.getInstance("MD5")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val buffer = ByteArray(8192)
-            var bytes = input.read(buffer)
-            while (bytes != -1) {
-                digest.update(buffer, 0, bytes)
-                bytes = input.read(buffer)
-            }
-        } ?: throw IOException("Could not open input stream for URI: $uri")
-
-        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     fun getPhotosForTrip(id: String): Flow<List<Photo>> {
@@ -347,15 +332,7 @@ class PhotoRepository(
             Result.failure(e)
         }
     }
-    suspend fun doesPhotoExist(uri: Uri): Boolean {
-        return try {
-            val metadata = getPhotoMetadata(uri)
 
-            photoDao.getPhotoIdByHash(metadata.hashcode) != null
-        } catch (e: IOException) {
-            false
-        }
-    }
     suspend fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) =
         addPhoto(uri, selected) { photoId ->
             photoDao.addEventPhoto(PhotoEventEntity(photoId, eventId))
@@ -638,5 +615,23 @@ class PhotoRepository(
             // 4) Add the new photo species cross ref
             photoDao.addWaterClarityPhoto(PhotoWaterClarityEntity(photo.id, id, true))
         }
+    }
+    suspend fun purgeOrphanedPhotos(): Int {
+        val orphans = photoDao.getOrphanedPhotos()
+
+        for (photo in orphans) {
+            try {
+                val uri = photo.uri.toUri()
+                uri.path?.let { path ->
+                    val file = File(path)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("PhotoPurge", "Failed to delete file for orphaned photo ID: ${photo.id} at URI: ${photo.uri}", e)            }
+        }
+
+        return photoDao.deleteOrphanedPhotos()
     }
 }

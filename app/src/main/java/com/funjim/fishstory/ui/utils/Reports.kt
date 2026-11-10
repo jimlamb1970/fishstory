@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.ui.screens.ReportType
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
@@ -62,6 +61,15 @@ import kotlin.collections.component2
 import kotlin.collections.forEach
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+enum class ReportType(val label: String) {
+    SPECIES("Catches by Species"),
+    FISHERMAN("Catches by Fisherman"),
+    FISHERMAN_PIE("Catches by Fisherman (Pie)"),
+    FISHERMAN_SPECIES("Catches by Fisherman & Species"),
+    CATCHES_BY_HOUR("Catches by Hour"),
+    CATCHES_BY_SIZE("Catches by Size")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

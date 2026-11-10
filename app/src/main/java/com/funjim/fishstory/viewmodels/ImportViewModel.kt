@@ -2,6 +2,7 @@ package com.funjim.fishstory.viewmodels
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -195,8 +196,30 @@ class ImportViewModel(
     private val _toastMessage = MutableSharedFlow<String>(replay = 1)
     val toastMessage = _toastMessage.asSharedFlow()
 
+    private val _snackBarMessage = MutableSharedFlow<String>(replay = 1)
+    val snackBarMessage = _snackBarMessage.asSharedFlow()
+
     private val json = Json { prettyPrint = true }
     private val jsonImport = Json { ignoreUnknownKeys = true }
+
+    fun cleanupDatabase() {
+        viewModelScope.launch {
+            try {
+                // Call your repository or DAO method that wraps the purge logic
+                val deletedCount = photoRepo.purgeOrphanedPhotos()
+
+                if (deletedCount > 0) {
+                    _snackBarMessage.emit("Successfully purged $deletedCount orphaned photo(s).")
+                } else {
+                    // Optional: You can choose to stay silent if nothing needed purging
+                    _snackBarMessage.emit("No orphaned photos found.")
+                }
+            } catch (e: Exception) {
+                Log.e("PhotoViewModel", "Error occurred while purging orphaned photos", e)
+                _snackBarMessage.emit("An error occurred while cleaning up photos.")
+            }
+        }
+    }
 
     fun startImport(inputStream: InputStream) {
         viewModelScope.launch(Dispatchers.IO) {
