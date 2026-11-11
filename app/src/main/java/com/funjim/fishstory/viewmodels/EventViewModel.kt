@@ -98,10 +98,6 @@ class EventViewModel(
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
 
-    fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
-    }
-
     // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
@@ -262,8 +258,15 @@ class EventViewModel(
         fishermanId: String?,
         tackleBoxId: String?
     ): Flow<List<LureWithColorsSummary>> {
+        val tripId = _selectedTripId.value ?: return flowOf(emptyList())
+        val eventId = _selectedEventId.value ?: return flowOf(emptyList())
+
         return if (tackleBoxId == null) {
-            flowOf(emptyList())
+            lureRepo.getLureSummariesWithColors(
+                tripId = tripId,
+                eventId = eventId,
+                fishermanId = fishermanId
+            )
         } else {
             fishermanRepo.getLuresInTackleBox(tackleBoxId).map { list ->
                 list.map { lureWithColors ->
