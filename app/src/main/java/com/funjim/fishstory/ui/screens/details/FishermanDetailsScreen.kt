@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures
@@ -62,7 +63,7 @@ fun FishermanDetailsScreen(
     viewModel: FishermanDetailsViewModel,
     fishermanId: String,
     navigateToTripDetails: (String) -> Unit,
-    navigateToFishList: (String, String?, Boolean) -> Unit,
+    navigateToFishList: (String, String?, String?, Boolean) -> Unit,
     navigateToSelectLures: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -279,7 +280,7 @@ fun FishermanDetailsScreen(
                                 stats!!,
                                 useImperial = appSettings.display.useImperialUnits
                             ) {
-                                navigateToFishList(fishermanId, null, false)
+                                navigateToFishList(fishermanId, null, null, false)
                             }
 
                             HorizontalDivider(
@@ -531,8 +532,8 @@ fun FishermanDetailsScreen(
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
-                                    onFishClick = { tripId, targetOnly ->
-                                        navigateToFishList(fishermanId, tripId, targetOnly)
+                                    onFishClick = { tripId, lureId, targetOnly ->
+                                        navigateToFishList(fishermanId, tripId, lureId, targetOnly)
                                     },
                                     onAction = { action ->
                                         when (action) {
@@ -577,18 +578,26 @@ fun FishermanDetailsScreen(
                             }
                             val tripsSize = state.recentTrips.size
                             itemsIndexed(state.recentTrips) { index, trip ->
+                                val lures = viewModel.getLuresInTackleBox(
+                                    tripId = trip.trip.id,
+                                    fishermanId = fishermanId).collectAsState(initial = emptyList()).value
+                                val sortedLures = lures.sortedBy { it.lure.name }
+                                val lureCount = lures.size
+
                                 TripCard(
                                     trip = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = tripsSize,
+                                    lureCount = lureCount,
+                                    lures = sortedLures,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
                                     onLongClick = {},
-                                    onFishClick = { tripId, targetOnly ->
-                                        navigateToFishList(fishermanId, tripId, targetOnly)
+                                    onFishClick = { tripId, lureId, targetOnly ->
+                                        navigateToFishList(fishermanId, tripId, lureId, targetOnly)
                                     },
                                     onAction = { action ->
                                         when (action) {

@@ -5,9 +5,11 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.mapper.toSummary
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,12 +26,14 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FishermanDetailsViewModel(
     private val configRepo: ConfigurationRepository,
     private val repository: FishermanRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
@@ -167,7 +171,17 @@ class FishermanDetailsViewModel(
     fun deleteTackleBox(tackleBox: TackleBox) {
         viewModelScope.launch { repository.deleteTackleBox(tackleBox) }
     }
+    fun getLuresInTackleBox(
+        tripId: String,
+        fishermanId: String
+    ): Flow<List<LureWithColorsSummary>> {
+        return lureRepo.getLureSummariesWithColors(
+            tripId = tripId,
+            fishermanId = fishermanId
+        )
+    }
 }
+
 data class FishermanDetailsUiState(
     val activeTrips: List<TripSummary> = emptyList(),
     val upcomingTrips: List<TripSummary> = emptyList(),
@@ -178,6 +192,7 @@ data class FishermanDetailsUiState(
 class FishermanDetailsViewModelFactory(
     private val configRepo: ConfigurationRepository,
     private val repository: FishermanRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -186,6 +201,7 @@ class FishermanDetailsViewModelFactory(
             return FishermanDetailsViewModel(
                 configRepo,
                 repository,
+                lureRepo,
                 photoRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

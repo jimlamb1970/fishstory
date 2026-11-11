@@ -483,12 +483,14 @@ fun AppNavigation(
 
             val configRepo = (navController.context.applicationContext as FishstoryApplication).configurationRepository
             val fishermanRepo = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
+            val lureRepo = (navController.context.applicationContext as FishstoryApplication).lureRepository
             val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
 
             val viewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanDetailsViewModelFactory(
                     configRepo,
                     fishermanRepo,
+                    lureRepo,
                     photoRepo)
             )
 
@@ -498,11 +500,12 @@ fun AppNavigation(
                 navigateToTripDetails = { id ->
                     navController.navigate("trip_details/$id")
                 },
-                navigateToFishList = { id, tripId, targetOnly ->
+                navigateToFishList = { id, tripId, lureId, targetOnly ->
                     navController.navigate(
                         FishListRoute(
                             fishermanId = id,
                             tripId = tripId,
+                            lureId = lureId,
                             targetOnly = targetOnly
                         )
                     )

@@ -43,6 +43,7 @@ import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.viewmodels.TripListFilter
 import com.funjim.fishstory.viewmodels.TripListViewModel
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +60,7 @@ fun TripListScreen(
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
 
     val scope = rememberCoroutineScope()
@@ -92,7 +94,7 @@ fun TripListScreen(
                         it,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // This can happen if the provider doesn't support persistable permissions
                 }
                 selectedTrip?.let { trip ->
@@ -145,11 +147,11 @@ fun TripListScreen(
             }
             is TripAction.OpenMap -> {
                 val mapUri =
-                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}")
+                    "https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}".toUri()
                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                 try {
                     context.startActivity(intent)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Toast.makeText(
                         context,
                         "Could not open map",
@@ -212,6 +214,7 @@ fun TripListScreen(
             is TripAction.Delete -> {
                 showMenu = false
                 tripToDelete = action.tripSummary
+                showDeleteDialog = true
             }
         }
     }
@@ -339,7 +342,7 @@ fun TripListScreen(
                                     onEventClick = {
                                         navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
                                     },
-                                    onFishClick = { tripId, targetOnly ->
+                                    onFishClick = { tripId, _, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
                                     onFishermanClick = {
@@ -371,7 +374,7 @@ fun TripListScreen(
                                     onEventClick = {
                                         navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
                                     },
-                                    onFishClick = { tripId, targetOnly ->
+                                    onFishClick = { tripId, _, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
                                     onFishermanClick = {
@@ -403,7 +406,7 @@ fun TripListScreen(
                                     onEventClick = {
                                         navigateToTripDetails(trip.trip.id, CategoryType.EVENTS)
                                     },
-                                    onFishClick = { tripId, targetOnly ->
+                                    onFishClick = { tripId, _, targetOnly ->
                                         navigateToFishList(tripId, targetOnly)
                                     },
                                     onFishermanClick = {
@@ -438,12 +441,13 @@ fun TripListScreen(
     }
 
     // DELETE CONFIRMATION
-    tripToDelete?.let { item ->
-        DeleteDialog(
-            title = "Delete Trip",
-            message =
-                if ((item.fishCaught > 0) || (item.eventCount > 0))
-                    """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
+    if (showDeleteDialog) {
+        tripToDelete?.let { item ->
+            DeleteDialog(
+                title = "Delete Trip",
+                message =
+                    if ((item.fishCaught > 0) || (item.eventCount > 0))
+                        """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
                         |
                         |There ${if (item.eventCount == 1) "is" else "are"} currently ${item.eventCount} ${if (item.eventCount == 1) "event" else "events"} associated with this trip
                         |
@@ -451,16 +455,17 @@ fun TripListScreen(
                         |
                         |Are you sure you want to proceed?
                     """.trimMargin()
-                else
-                    """Are you sure you want to delete this trip? 
+                    else
+                        """Are you sure you want to delete this trip? 
                         |
                         |No fish or events are currently associated with this trip.
                         """.trimMargin(),
-            onConfirm = {
-                viewModel.deleteTrip(item.trip)
-                tripToDelete = null
-            },
-            onDismiss = { tripToDelete = null }
-        )
+                onConfirm = {
+                    viewModel.deleteTrip(item.trip)
+                    showDeleteDialog = !showDeleteDialog
+                },
+                onDismiss = { showDeleteDialog = !showDeleteDialog }
+            )
+        }
     }
 }

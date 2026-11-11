@@ -465,7 +465,7 @@ fun DashboardScreen(
                         val category = CategoryType.EVENTS
                         onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
                     },
-                    onFishClick = { tripId, targetOnly ->
+                    onFishClick = { tripId, _, targetOnly ->
                         onFishListNavigate(FishListRoute(
                             tripId = tripId,
                             targetOnly = targetOnly))
