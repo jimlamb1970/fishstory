@@ -1177,12 +1177,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     viewModel.getTackleBoxesForFisherman(fishermanId)
                                                         .collectAsState(initial = emptyList()).value
                                                 },
-                                                getLureCount = { tackleBoxId ->
-                                                    viewModel.getLureCountForTackleBox(tackleBoxId)
-                                                        .collectAsState(initial = 0).value
-                                                },
-                                                getLuresInTacklebox = { tackleBoxId ->
-                                                    viewModel.getLuresInTackleBox(tackleBoxId)
+                                                getLuresInTacklebox = { fishermanId, tackleBoxId ->
+                                                    viewModel.getLuresInTackleBox(fishermanId, tackleBoxId)
                                                         .collectAsState(initial = emptyList()).value
                                                 },
                                                 onAdd = {
@@ -1200,11 +1196,12 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     fishermanToDelete = fisherman
                                                     showDeleteFishermanDialog = true
                                                 },
-                                                onFishClick = { fisherman, target ->
+                                                onFishClick = { fisherman, lure, target ->
                                                     navigateToFishList(
                                                         FishFilter(
                                                             tripId = trip.id,
                                                             fishermanId = fisherman.id,
+                                                            lureId = lure?.id,
                                                             targetOnly = target
                                                         )
                                                     )

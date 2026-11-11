@@ -96,6 +96,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -849,11 +850,11 @@ fun EventDetailsScreen(
                                             .size(24.dp)
                                             .clickable {
                                                 val mapUri =
-                                                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}")
+                                                    "https://www.google.com/maps/search/?api=1&query=${displayLat},${displayLng}".toUri()
                                                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                                 try {
                                                     context.startActivity(intent)
-                                                } catch (e: Exception) {
+                                                } catch (_: Exception) {
                                                     Toast.makeText(
                                                         context,
                                                         "Could not open map",
@@ -1028,12 +1029,10 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     viewModel.getTackleBoxesForFisherman(fishermanId)
                                                         .collectAsState(initial = emptyList()).value
                                                 },
-                                                getLureCount = { tackleBoxId ->
-                                                    viewModel.getLureCountForTackleBox(tackleBoxId)
-                                                        .collectAsState(initial = 0).value
-                                                },
-                                                getLuresInTacklebox = { tackleBoxId ->
-                                                    viewModel.getLuresInTackleBox(tackleBoxId)
+                                                getLuresInTacklebox = { fishermanId, tackleBoxId ->
+                                                    viewModel.getLuresInTackleBox(
+                                                        fishermanId = fishermanId,
+                                                        tackleBoxId = tackleBoxId)
                                                         .collectAsState(initial = emptyList()).value
                                                 },
                                                 onAdd = {
@@ -1052,11 +1051,12 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     fishermanToDelete = fisherman
                                                     showDeleteFishermanDialog = true
                                                 },
-                                                onFishClick = { fisherman, target ->
+                                                onFishClick = { fisherman, lure, target ->
                                                     navigateToFishList(FishFilter(
                                                         tripId = trip.id,
                                                         eventId = event.id,
                                                         fishermanId = fisherman.id,
+                                                        lureId = lure?.id,
                                                         targetOnly = target)
                                                     )
                                                 },
@@ -1258,39 +1258,6 @@ Selecting them places those species at the top of the list when logging catches 
                         }
                     }
 
-                    if (showDeleteEventDialog) {
-                        DeleteDialog(
-                            title = "Delete Event",
-                            message =
-                                if (eventSummary.fishCaught > 0)
-                                    """There ${if (eventSummary.fishCaught == 1) "is" else "are"} currently ${eventSummary.fishCaught} fish associated with this event.
-                                    |
-                                    |Deleting this event will delete all fish associated with it. 
-                                    |
-                                    |Are you sure you want to proceed?""".trimMargin()
-                                else
-                                    """Are you sure you want to delete this event? 
-                                    |
-                                    |No fish are currently associated with this event.""".trimMargin(),
-                            onConfirm = {
-                                viewModel.deleteEvent()
-                                showDeleteEventDialog = !showDeleteEventDialog
-                                navigateBack()
-                            },
-                            onDismiss = { showDeleteEventDialog = !showDeleteEventDialog }
-                        )
-                    }
-                    if (showEditEventDialog) {
-                        EditEventDialog(
-                            event = event,
-                            trip = trip,
-                            onDismiss = { showEditEventDialog = false },
-                            onConfirm = { confirmedItem ->
-                                viewModel.upsertEvent(confirmedItem)
-                                showEditEventDialog = false
-                            }
-                        )
-                    }
                 }
             }
 
@@ -1322,6 +1289,28 @@ Selecting them places those species at the top of the list when logging catches 
                         )
                     }
                 }
+            }
+            if (showDeleteEventDialog) {
+                DeleteDialog(
+                    title = "Delete Event",
+                    message =
+                        if (eventSummary.fishCaught > 0)
+                            """There ${if (eventSummary.fishCaught == 1) "is" else "are"} currently ${eventSummary.fishCaught} fish associated with this event.
+                                    |
+                                    |Deleting this event will delete all fish associated with it. 
+                                    |
+                                    |Are you sure you want to proceed?""".trimMargin()
+                        else
+                            """Are you sure you want to delete this event? 
+                                    |
+                                    |No fish are currently associated with this event.""".trimMargin(),
+                    onConfirm = {
+                        viewModel.deleteEvent()
+                        showDeleteEventDialog = !showDeleteEventDialog
+                        navigateBack()
+                    },
+                    onDismiss = { showDeleteEventDialog = !showDeleteEventDialog }
+                )
             }
             if (showDeleteFishermanDialog) {
                 fishermanToDelete?.let { fisherman ->
@@ -1450,6 +1439,17 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
 
+            if (showEditEventDialog) {
+                EditEventDialog(
+                    event = event,
+                    trip = trip,
+                    onDismiss = { showEditEventDialog = false },
+                    onConfirm = { confirmedItem ->
+                        viewModel.upsertEvent(confirmedItem)
+                        showEditEventDialog = false
+                    }
+                )
+            }
             if (showEditLimitDialog) {
                 limitToEdit?.let { limit ->
                     LimitDialog(

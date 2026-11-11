@@ -1,6 +1,7 @@
 package com.funjim.fishstory.ui.cards
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -41,11 +42,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -61,6 +65,7 @@ import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import com.funjim.fishstory.ui.selection.TackleBoxBottomSheet
 import com.funjim.fishstory.ui.utils.sortLures
+import com.funjim.fishstory.viewmodels.LureSortOrder
 import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -296,19 +301,20 @@ fun FishermanSummaryCard(
     selectedTackleBoxId: String?,
     availableBoxes: List<TackleBox>,
     lureCount: Int,
-    lures: List<LureWithColors>,
-//    onAddTackleBox: (TackleBox) -> Unit,
+    lures: List<LureWithColorsSummary>,
     onAddTackleBox: (Fisherman) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onClick: (Fisherman) -> Unit,
-    onFishClick: (Fisherman, Boolean) -> Unit,
+    onFishClick: (Fisherman, Lure?, Boolean) -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onSetThumbnail: (Photo) -> Unit,
     onPhotoDeleted: (Photo) -> Unit,
     onDelete: ((Fisherman) -> Unit)? = null
 ) {
+    val context = LocalContext.current
+
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
 
@@ -321,13 +327,22 @@ fun FishermanSummaryCard(
 
     val selectedTackleBox = availableBoxes.find { it.id == selectedTackleBoxId }
     var tackleBoxOpen by remember { mutableStateOf(false) }
-    var showAddTackleBoxDialog by remember { mutableStateOf(false) }
     var showTackleBoxSelection by remember { mutableStateOf(false) }
     var luresExpanded by remember { mutableStateOf(false) }
 
-    val sortedLures by remember(lures) { derivedStateOf { sortLures(lures) } }
+    val sortedLures by remember(lures) {
+        derivedStateOf {
+            sortLures(lureList = lures, order = LureSortOrder.NAME)
+        }
+    }
 
     var showPhotos by remember { mutableStateOf(false) }
+
+    val tackleBoxName = selectedTackleBox?.name ?: if (sortedLures.isEmpty()) {
+        "No Tackle Box selected"
+    } else {
+        "<Virtual Tackle Box>"
+    }
 
     OutlinedCard(
         modifier = modifier
@@ -390,7 +405,7 @@ fun FishermanSummaryCard(
                             modifier = Modifier
                                 .size(24.dp)
                                 .clickable() {
-                                    if (selectedTackleBox != null) {
+                                    if ((selectedTackleBox != null) || (lureCount != 0)) {
                                         tackleBoxOpen = !tackleBoxOpen
                                         if (tackleBoxOpen) {
                                             showPhotos = false
@@ -403,29 +418,41 @@ fun FishermanSummaryCard(
                         )
 
                         Text(
-                            text = selectedTackleBox?.name ?: "No Tackle Box selected",
+                            text = tackleBoxName,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
 
-                    if (selectedTackleBox != null) {
-                        if (lureCount != 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                CardItemWithValue(
-                                    icon = AppIcons.Default.Lure,
-                                    value = lureCount.toString(),
-                                    description = if (verbose) {
-                                        if (lureCount == 1) "Lure" else "Lures"
-                                    } else null,
-                                    onClick = {
+                    if (lureCount != 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CardItemWithValue(
+                                icon = AppIcons.Default.Lure,
+                                value = lureCount.toString(),
+                                description = if (verbose) {
+                                    if (lureCount == 1) "Lure" else "Lures"
+                                } else null,
+                                onClick = {
+                                    if (selectedTackleBox != null) {
                                         onAddLuresToTackleBox(selectedTackleBox)
-                                    },
-                                    contentColor = secondaryContentColor
-                                )
-                            }
+                                    } else {
+                                        if (lureCount > 0) {
+                                            Toast.makeText(
+                                                context,
+                                                "Lures cannot be added to a 'Virtual Tackle Box'",
+                                                Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Please select a tackle box in order to add lures",
+                                                Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                },
+                                contentColor = secondaryContentColor
+                            )
                         }
                     }
 
@@ -437,7 +464,7 @@ fun FishermanSummaryCard(
                             keptCount = item.fishKept,
                             extraText = if (verbose) "fish" else "",
                             onClick = {
-                                onFishClick(item.fisherman, false)
+                                onFishClick(item.fisherman, null, false)
                             },
                             contentColor = secondaryContentColor
                         )
@@ -450,7 +477,7 @@ fun FishermanSummaryCard(
                             keptCount = item.targetFishKept,
                             extraText = if (verbose) "target fish" else "",
                             onClick = {
-                                onFishClick(item.fisherman, true)
+                                onFishClick(item.fisherman, null, true)
                             },
                             contentColor = secondaryContentColor
                         )
@@ -499,34 +526,34 @@ fun FishermanSummaryCard(
                                     )
                                 }
                             )
-
-                            if (lureCount > 0) {
-                                DropdownMenuItem(
-                                    text = {
-                                        if (luresExpanded) Text("Hide Lures")
-                                        else Text("Show Lures")
-                                    },
-                                    onClick = {
-                                        expanded = false
-                                        if (!luresExpanded) {
-                                            showPhotos = false
-                                            tackleBoxOpen = true
-                                            luresExpanded = true
-                                        } else {
-                                            tackleBoxOpen = false
-                                            luresExpanded = false
-                                        }
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            if (luresExpanded) Icons.Default.VisibilityOff
-                                            else Icons.Default.Visibility,
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
-                            }
                         }
+                        if (lureCount > 0) {
+                            DropdownMenuItem(
+                                text = {
+                                    if (luresExpanded) Text("Hide Lures")
+                                    else Text("Show Lures")
+                                },
+                                onClick = {
+                                    expanded = false
+                                    if (!luresExpanded) {
+                                        showPhotos = false
+                                        tackleBoxOpen = true
+                                        luresExpanded = true
+                                    } else {
+                                        tackleBoxOpen = false
+                                        luresExpanded = false
+                                    }
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        if (luresExpanded) Icons.Default.VisibilityOff
+                                        else Icons.Default.Visibility,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+
                         DropdownMenuItem(
                             text = {
                                 if (showPhotos) Text("Hide Photos")
@@ -586,17 +613,47 @@ fun FishermanSummaryCard(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                LureCompositionWithColors(
-                                    name = "• ${lure.lure.name}",
-                                    lure.primaryColors,
-                                    lure.secondaryColors,
-                                    lure.lure.glows,
-                                    lure.glowColors,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    contentColor = getOnCardSecondaryColor(),
-                                    modifier = Modifier.padding(start = 50.dp),
-                                    colorBadgeSize = 20.dp
-                                )
+                                Column(modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 50.dp)
+                                ) {
+                                    LureCompositionWithColors(
+                                        name = "• ${lure.lure.name}",
+                                        lure.primaryColors,
+                                        lure.secondaryColors,
+                                        lure.lure.glows,
+                                        lure.glowColors,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        contentColor = getOnCardSecondaryColor(),
+                                        colorBadgeSize = 20.dp
+                                    )
+                                    if (lure.fishCaught > 0) {
+                                        FishCaughtItem(
+                                            icon = AppIcons.Default.LeapingFishWithFins,
+                                            caughtCount = lure.fishCaught,
+                                            keptCount = lure.fishKept,
+                                            extraText = if (verbose) "fish" else "",
+                                            modifier = Modifier.padding(start = 8.dp),
+                                            onClick = {
+                                                onFishClick(item.fisherman, lure.lure, false)
+                                            },
+                                            contentColor = getOnCardSecondaryColor()
+                                        )
+                                    }
+                                    if (lure.targetFishKept > 0) {
+                                        FishCaughtItem(
+                                            icon = AppIcons.Default.TargetFish,
+                                            caughtCount = lure.targetFishCaught,
+                                            keptCount = lure.targetFishKept,
+                                            extraText = if (verbose) "target fish" else "",
+                                            modifier = Modifier.padding(start = 8.dp),
+                                            onClick = {
+                                                onFishClick(item.fisherman, lure.lure, true)
+                                            },
+                                            contentColor = getOnCardSecondaryColor()
+                                        )
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -627,24 +684,13 @@ fun FishermanSummaryCard(
             items = availableBoxes,
             selectedItem = selectedTackleBox,
             onSelected = { tackleBox -> onTackleBoxSelected(item.fisherman, tackleBox.id) },
-//            onAdd = { showAddTackleBoxDialog = true },
             onAdd = { onAddTackleBox(item.fisherman) },
             onClear = {
                 tackleBoxOpen = false
+                luresExpanded = false
                 onTackleBoxSelected(item.fisherman, null)
             },
             onDismissRequest = { showTackleBoxSelection = !showTackleBoxSelection }
-        )
-    }
-
-    if (showAddTackleBoxDialog) {
-        NewTackleBox(
-            fishermanId = item.fisherman.id,
-            onDismiss = { showAddTackleBoxDialog = !showAddTackleBoxDialog },
-            onConfirm = { tackleBox ->
-//                onAddTackleBox(tackleBox)
-                showAddTackleBoxDialog = !showAddTackleBoxDialog
-            }
         )
     }
 }

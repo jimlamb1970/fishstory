@@ -114,12 +114,14 @@ fun FishCaughtItem(
     icon: ImageVector,
     caughtCount: Int,
     keptCount: Int,
+    modifier: Modifier = Modifier,
     description: String = "Fish Caught",
     extraText: String = "",
     onClick: (() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds space between icon and text
     ) {

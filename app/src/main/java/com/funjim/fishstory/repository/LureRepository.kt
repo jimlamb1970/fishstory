@@ -228,9 +228,16 @@ class LureRepository(
         }
     }
 
-    fun getLureSummariesWithColors(): Flow<List<LureWithColorsSummary>> {
-        return lureDao.getLureSummariesWithColors()
-            .map { list -> list.toLureWithColorsSummaryDomainList() }
+    fun getLureSummariesWithColors(
+        tripId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null
+    ): Flow<List<LureWithColorsSummary>> {
+        return lureDao.getLureSummariesWithColors(
+            tripId = tripId,
+            eventId = eventId,
+            fishermanId = fishermanId
+        ).map { list -> list.toLureWithColorsSummaryDomainList() }
     }
     fun getLureWithColors(id: String): Flow<LureWithColors?> {
         return lureDao.getLureWithColors(id)
@@ -258,12 +265,6 @@ class LureRepository(
     }
 
     // Tackle Box Logic
-    fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {
-        return tackleBoxDao.getLuresInTackleBox(tackleBoxId)
-            .map { list -> list.toLureWithColorsDomainList()
-        }
-    }
-
     suspend fun addLureToTackleBox(tackleBoxId: String, lureId: String) {
         tackleBoxDao.upsertTackleBoxLure(
             TackleBoxLureEntity(

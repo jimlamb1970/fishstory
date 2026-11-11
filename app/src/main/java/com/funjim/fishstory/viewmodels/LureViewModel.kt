@@ -229,7 +229,7 @@ class LureViewModel(
             if (id == null) {
                 flowOf(LureUiState.Success(emptyList()))
             } else {
-                lureRepo.getLuresInTackleBox(id)
+                fishermanRepo.getLuresInTackleBox(id)
                     .map<List<LureWithColors>, LureUiState> { lures ->
                         LureUiState.Success(lures)
                     }

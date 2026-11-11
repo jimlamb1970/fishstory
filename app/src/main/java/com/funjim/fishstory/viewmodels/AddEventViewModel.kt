@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.mapper.toSummary
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
@@ -232,8 +233,18 @@ class AddEventViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
+    fun getLuresInTackleBox(
+        tackleBoxId: String?
+    ): Flow<List<LureWithColorsSummary>> {
+        return if (tackleBoxId == null) {
+            flowOf(emptyList())
+        } else {
+            fishermanRepo.getLuresInTackleBox(tackleBoxId).map { list ->
+                list.map { lureWithColors ->
+                    lureWithColors.toSummary()
+                }
+            }
+        }
     }
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater

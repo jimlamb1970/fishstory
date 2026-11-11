@@ -8,11 +8,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.funjim.fishstory.database.mapper.toSummary
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
+import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
@@ -40,6 +42,7 @@ class TripViewModel(
     private val envRepo: EnvironmentRepository,
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
+    private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
@@ -568,8 +571,24 @@ class TripViewModel(
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
     }
 
-    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
+    fun getLuresInTackleBox(
+        fishermanId: String?,
+        tackleBoxId: String?
+    ): Flow<List<LureWithColorsSummary>> {
+        val tripId = _selectedTripId.value ?: return flowOf(emptyList())
+
+        return if (tackleBoxId == null) {
+            lureRepo.getLureSummariesWithColors(
+                tripId = tripId,
+                fishermanId = fishermanId
+            )
+        } else {
+            fishermanRepo.getLuresInTackleBox(tackleBoxId).map { list ->
+                list.map { lureWithColors ->
+                    lureWithColors.toSummary()
+                }
+            }
+        }
     }
 
     // --- Actions ---
@@ -927,6 +946,7 @@ class TripViewModelFactory(
     private val environmentRepository: EnvironmentRepository,
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
+    private val lureRepository: LureRepository,
     private val photoRepository: PhotoRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
@@ -943,6 +963,7 @@ class TripViewModelFactory(
                 environmentRepository,
                 fishermanRepository,
                 fishRepository,
+                lureRepository,
                 photoRepository,
                 tripRepository,
                 savedStateHandle) as T

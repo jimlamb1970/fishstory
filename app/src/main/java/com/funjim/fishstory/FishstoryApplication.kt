@@ -138,6 +138,7 @@ class FishstoryApplication : Application() {
         configRepo = configurationRepository,
         envRepo = environmentRepository,
         fishRepo = fishRepository,
+        fishermanRepo = fishermanRepository,
         lureRepo = lureRepository,
         photoRepo = photoRepository,
         tripRepo = tripRepository
@@ -254,6 +255,7 @@ class FishstoryApplication : Application() {
         environmentRepository,
         fishermanRepository,
         fishRepository,
+        lureRepository,
         photoRepository,
         tripRepository
     )

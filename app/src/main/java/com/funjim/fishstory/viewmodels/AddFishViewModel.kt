@@ -10,6 +10,7 @@ import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
+import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoMetadata
 import com.funjim.fishstory.repository.PhotoRepository
@@ -42,6 +43,7 @@ class AddFishViewModel(
     configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
+    private val fishermanRepo: FishermanRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
@@ -173,7 +175,7 @@ class AddFishViewModel(
             if (id == null) {
                 lureRepo.getAllLures()
             } else {
-                lureRepo.getLuresInTackleBox(id)
+                fishermanRepo.getLuresInTackleBox(id)
             }
         }
         .stateIn(
@@ -550,6 +552,7 @@ class AddFishViewModelFactory(
     private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
+    private val fishermanRepo: FishermanRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
@@ -562,6 +565,7 @@ class AddFishViewModelFactory(
                 configRepo,
                 envRepo,
                 fishRepo,
+                fishermanRepo,
                 lureRepo,
                 photoRepo,
                 tripRepo) as T

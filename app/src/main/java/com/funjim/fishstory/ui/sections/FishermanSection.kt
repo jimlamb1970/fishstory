@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanSummary
+import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureWithColors
+import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.ui.cards.FishermanSummaryCard
@@ -47,14 +49,13 @@ fun FishermanSummarySection(
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
-    getLureCount: @Composable (tackleBoxId: String?) -> Int,
-    getLuresInTacklebox: @Composable (tackleBoxId: String?) -> List<LureWithColors>,
+    getLuresInTacklebox: @Composable (fishermanId: String, tackleBoxId: String?) -> List<LureWithColorsSummary>,
     onAdd: () -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onAddTackleBox: (Fisherman) -> Unit,
     onClick: (Fisherman) -> Unit = { _ -> },
     onDelete: ((Fisherman) -> Unit)? = null,
-    onFishClick: (Fisherman, Boolean) -> Unit = { _, _ -> },
+    onFishClick: (Fisherman, Lure?, Boolean) -> Unit = { _, _, _ -> },
     onPhotoAdded: (Fisherman, Uri) -> Unit = { _, _ -> },
     onPhotoDeleted: (Fisherman, Photo) -> Unit = { _, _ -> },
     onPhotoTaken: (Fisherman, Uri) -> Unit = { _, _ -> },
@@ -135,8 +136,9 @@ fun FishermanSummarySection(
                 list.forEachIndexed { index, item ->
                     val selectedTackleBoxId = tackleBoxSelections[item.fisherman.id]
                     val availableBoxes = getTackleBoxesForFisherman(item.fisherman.id)
-                    val lureCount = getLureCount(selectedTackleBoxId)
-                    val lures = getLuresInTacklebox(selectedTackleBoxId).sortedBy { it.lure.name }
+                    val lures = getLuresInTacklebox(item.fisherman.id, selectedTackleBoxId)
+                        .sortedBy { it.lure.name }
+                    val lureCount = lures.size
 
                     FishermanSummaryCard(
                         item = item,

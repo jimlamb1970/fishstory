@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.funjim.fishstory.database.mapper.toSummary
 import java.util.UUID
 import kotlin.collections.forEach
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,7 @@ import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
+import kotlinx.coroutines.flow.flowOf
 
 class AddTripViewModel(
     private val locationProvider: LocationProvider,
@@ -185,8 +187,18 @@ class AddTripViewModel(
     fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
         return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
-    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
+    fun getLuresInTackleBox(
+        tackleBoxId: String?
+    ): Flow<List<LureWithColorsSummary>> {
+        return if (tackleBoxId == null) {
+            flowOf(emptyList())
+        } else {
+            fishermanRepo.getLuresInTackleBox(tackleBoxId).map { list ->
+                list.map { lureWithColors ->
+                    lureWithColors.toSummary()
+                }
+            }
+        }
     }
 
     // Thumbnail and Photo Functions

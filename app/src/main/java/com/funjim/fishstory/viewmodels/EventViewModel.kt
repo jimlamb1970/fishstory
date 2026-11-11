@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.funjim.fishstory.database.mapper.toSummary
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
@@ -257,8 +258,19 @@ class EventViewModel(
         return fishermanRepo.getFishermenForEvent(eventId)
     }
 
-    fun getLuresInTackleBox(tackleBoxId: String?): Flow<List<LureWithColors>> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "")
+    fun getLuresInTackleBox(
+        fishermanId: String?,
+        tackleBoxId: String?
+    ): Flow<List<LureWithColorsSummary>> {
+        return if (tackleBoxId == null) {
+            flowOf(emptyList())
+        } else {
+            fishermanRepo.getLuresInTackleBox(tackleBoxId).map { list ->
+                list.map { lureWithColors ->
+                    lureWithColors.toSummary()
+                }
+            }
+        }
     }
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater

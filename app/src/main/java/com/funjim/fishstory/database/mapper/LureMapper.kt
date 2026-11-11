@@ -180,3 +180,18 @@ fun LureWithColorsSummary.toEntity(): LureEntityWithColorsSummary {
         smallestFish = smallestFish
     )
 }
+
+fun LureWithColors.toSummary(): LureWithColorsSummary {
+    return LureWithColorsSummary(
+        lure = lure,
+        primaryColors = primaryColors,
+        secondaryColors = secondaryColors,
+        glowColors = glowColors,
+        fishCaught = 0,
+        fishKept = 0,
+        targetFishCaught = 0,
+        targetFishKept = 0,
+        largestFish = 0,
+        smallestFish = 0
+    )
+}

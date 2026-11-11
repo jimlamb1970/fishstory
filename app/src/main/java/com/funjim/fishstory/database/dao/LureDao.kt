@@ -247,11 +247,13 @@ interface LureDao {
                 END
             ), 0)
             FROM fish_table AS ft_sub
-            -- Join inside the subquery to calculate 'isTarget' dynamic flag
             LEFT JOIN event_target_species AS target 
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
             WHERE ft_sub.lureId = l.id
+              AND (:fishermanId IS NULL OR ft_sub.fishermanId = :fishermanId)
+              AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+              AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishCaught,
 
         (
@@ -266,15 +268,28 @@ interface LureDao {
                 ON ft_sub.eventId = target.eventId 
                 AND ft_sub.speciesId = target.speciesId
             WHERE ft_sub.lureId = l.id
+              AND (:fishermanId IS NULL OR ft_sub.fishermanId = :fishermanId)
+              AND (:eventId IS NULL OR ft_sub.eventId = :eventId)
+              AND (:tripId IS NULL OR ft_sub.tripId = :tripId)
         ) as targetFishKept,
 
         MAX(f.length) AS largestFish,
         MIN(f.length) AS smallestFish
     FROM lure_table AS l
-    LEFT JOIN fish_table AS f ON l.id = f.lureId
+    INNER JOIN (
+        SELECT f_sub.* 
+        FROM fish_table AS f_sub
+        WHERE (:fishermanId IS NULL OR f_sub.fishermanId = :fishermanId)
+          AND (:eventId IS NULL OR f_sub.eventId = :eventId)
+          AND (:tripId IS NULL OR f_sub.tripId = :tripId)
+    ) AS f ON l.id = f.lureId
     GROUP BY l.id
 """)
-    fun getLureSummariesWithColors(): Flow<List<LureEntityWithColorsSummary>>
+    fun getLureSummariesWithColors(
+        tripId: String? = null,
+        eventId: String? = null,
+        fishermanId: String? = null
+    ): Flow<List<LureEntityWithColorsSummary>>
 
     @Transaction
     @Query("""

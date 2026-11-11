@@ -1,61 +1,26 @@
 package com.funjim.fishstory.ui.utils
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
-import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.funjim.fishstory.ui.theme.AppIcons
-import kotlinx.coroutines.flow.Flow
 import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
 import com.funjim.fishstory.viewmodels.LureSortOrder
 
@@ -137,7 +102,7 @@ fun ProcessColor(
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     colorBadgeSize: Dp = 28.dp
 ) {
-    if (color.hexCode.isNullOrBlank()) {
+    if (color.hexCode.isBlank()) {
         Text(
             text = color.name,
             style = MaterialTheme.typography.bodySmall,
@@ -320,7 +285,7 @@ fun ColorCircleBadge(
             val color = remember(hexCode) {
                 try {
                     Color(hexCode.toColorInt())
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Color.Gray
                 }
             }
