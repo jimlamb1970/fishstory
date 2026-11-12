@@ -506,10 +506,10 @@ fun TripCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     HorizontalDivider(color = borderColor)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     if (lures.isNotEmpty()) {
-                        lures.forEach { lure ->
+                        lures.forEachIndexed { index, lure ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -517,6 +517,13 @@ fun TripCard(
                                     .weight(1f)
                                     .padding(start = 50.dp)
                                 ) {
+                                    if (index != 0) {
+                                        HorizontalDivider(
+                                            color = borderColor,
+                                            modifier = Modifier.padding(end = 16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
                                     LureCompositionWithColors(
                                         name = "• ${lure.lure.name}",
                                         lure.primaryColors,
