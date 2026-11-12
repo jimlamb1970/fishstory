@@ -231,12 +231,14 @@ fun EventItem(
                                     contentColor = secondaryContentColor
                                 )
 
-                                CardItemWithValue(
-                                    icon = AppIcons.Default.TackleBox,
-                                    value = item.tackleBoxCount.toString(),
-                                    onClick = onFishermanClick,
-                                    contentColor = secondaryContentColor
-                                )
+                                if (item.tackleBoxCount > 0) {
+                                    CardItemWithValue(
+                                        icon = AppIcons.Default.TackleBox,
+                                        value = item.tackleBoxCount.toString(),
+                                        onClick = onFishermanClick,
+                                        contentColor = secondaryContentColor
+                                    )
+                                }
                             }
                         }
                     }

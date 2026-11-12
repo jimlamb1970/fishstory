@@ -407,12 +407,14 @@ fun TripCard(
                                         contentColor = secondaryContentColor
                                     )
 
-                                    CardItemWithValue(
-                                        icon = AppIcons.Default.TackleBox,
-                                        value = tackleBoxCount.toString(),
-                                        onClick = onFishermanClick,
-                                        contentColor = secondaryContentColor
-                                    )
+                                    if (tackleBoxCount > 0) {
+                                        CardItemWithValue(
+                                            icon = AppIcons.Default.TackleBox,
+                                            value = tackleBoxCount.toString(),
+                                            onClick = onFishermanClick,
+                                            contentColor = secondaryContentColor
+                                        )
+                                    }
                                 }
                             }
                         }
