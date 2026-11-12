@@ -341,7 +341,7 @@ fun FishermanSummaryCard(
     val tackleBoxName = selectedTackleBox?.name ?: if (sortedLures.isEmpty()) {
         "No Tackle Box selected"
     } else {
-        "<Virtual Tackle Box>"
+        "<Smart Tackle Box>"
     }
 
     OutlinedCard(
@@ -441,7 +441,7 @@ fun FishermanSummaryCard(
                                         if (lureCount > 0) {
                                             Toast.makeText(
                                                 context,
-                                                "Lures cannot be added to a 'Virtual Tackle Box'",
+                                                "Lures cannot be added to a 'Smart Tackle Box'",
                                                 Toast.LENGTH_SHORT).show()
                                         } else {
                                             Toast.makeText(

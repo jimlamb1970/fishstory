@@ -438,7 +438,7 @@ fun TripCard(
                             )
 
                             Text(
-                                text = "<Virtual Tackle Box>",
+                                text = "<Smart Tackle Box>",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -456,7 +456,7 @@ fun TripCard(
                                     if (lureCount > 0) {
                                         Toast.makeText(
                                             context,
-                                            "Lures cannot be added to a 'Virtual Tackle Box'",
+                                            "Lures cannot be added to a 'Smart Tackle Box'",
                                             Toast.LENGTH_SHORT).show()
                                     }
                                 },
