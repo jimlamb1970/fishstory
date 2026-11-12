@@ -89,8 +89,8 @@ class TripRepository(
 
     fun getActiveTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { now in it.trip.startDate..it.trip.endDate }
-            .sortedByDescending { it.trip.startDate }
+        trips.filter { now in it.trip.startTime..it.trip.endTime }
+            .sortedByDescending { it.trip.startTime }
             .toTripSummaryDomainList()
     }
 
@@ -99,15 +99,15 @@ class TripRepository(
      */
     fun getUpcomingTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.startDate > now }
-            .sortedBy { it.startDate }
+        trips.filter { it.startTime > now }
+            .sortedBy { it.startTime }
             .toTripDomainList()
     }
 
     fun getUpcomingTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.trip.startDate > now }
-            .sortedBy { it.trip.startDate }
+        trips.filter { it.trip.startTime > now }
+            .sortedBy { it.trip.startTime }
             .toTripSummaryDomainList()
     }
 
@@ -116,15 +116,15 @@ class TripRepository(
      */
     fun getPreviousTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.endDate < now }
-            .sortedByDescending { it.endDate }
+        trips.filter { it.endTime < now }
+            .sortedByDescending { it.endTime }
             .toTripDomainList()
     }
 
     fun getPreviousTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
-        trips.filter { it.trip.endDate < now}
-            .sortedByDescending { it.trip.endDate }
+        trips.filter { it.trip.endTime < now}
+            .sortedByDescending { it.trip.endTime }
             .toTripSummaryDomainList()
     }
 

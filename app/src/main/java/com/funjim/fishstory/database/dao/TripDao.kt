@@ -23,9 +23,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TripDao {
-    @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
+    @Query("SELECT * FROM trip_table ORDER BY startTime DESC")
     fun getAllTrips(): Flow<List<TripEntity>>
-    @Query("SELECT * FROM trip_table ORDER BY startDate DESC")
+    @Query("SELECT * FROM trip_table ORDER BY startTime DESC")
     suspend fun getAllTripsList(): List<TripEntity>
     @Query("DELETE FROM trip_table")
     suspend fun deleteAllTrips()
@@ -75,7 +75,8 @@ interface TripDao {
     fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripEntityWithInfo?>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
 SELECT 
     t.*,
     -- Counts
@@ -84,8 +85,8 @@ SELECT
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishKept,
 
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id) as fishermanCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
      INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
@@ -96,12 +97,14 @@ SELECT
      WHERE f.tripId = t.id) as targetFishKept
 
 FROM trip_table t
-ORDER BY t.startDate DESC
-""")
+ORDER BY t.startTime DESC
+"""
+    )
     fun getTripSummaries(): Flow<List<TripEntitySummary>>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
 SELECT 
     t.*,
     -- Counts
@@ -110,8 +113,8 @@ SELECT
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishKept,
 
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id) as fishermanCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f
      INNER JOIN event_target_species ts ON f.eventId = ts.eventId AND f.speciesId = ts.speciesId
@@ -123,10 +126,11 @@ SELECT
 
 FROM trip_table t
 WHERE t.id = :tripId
-ORDER BY t.startDate DESC
-""")
+ORDER BY t.startTime DESC
+"""
+    )
     fun getTripSummary(tripId: String): Flow<TripEntitySummary?>
-    @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startDate DESC")
+    @Query("SELECT * FROM v_trip_detailed_summary WHERE id = :tripId ORDER BY startTime DESC")
     fun getTripDetailedSummary(tripId: String): Flow<TripEntityDetailedSummary?>
 
 

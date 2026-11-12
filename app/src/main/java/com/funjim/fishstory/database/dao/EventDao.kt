@@ -65,8 +65,8 @@ SELECT
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
 
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
@@ -78,7 +78,7 @@ SELECT
      WHERE f.eventId = s.id) as targetFishKept
 FROM event_table s
 JOIN trip_table AS t ON s.tripId = t.id
-WHERE :currentTime BETWEEN t.startDate AND t.endDate
+WHERE :currentTime BETWEEN t.startTime AND t.endTime
 ORDER BY s.startTime ASC
 """
     )
@@ -98,7 +98,7 @@ ORDER BY s.startTime ASC
 
     @Query("""
     SELECT DISTINCT f.* FROM fisherman_table AS f
-    JOIN event_fisherman_cross_ref AS xr ON f.id = xr.fishermanId
+    JOIN event_fisherman AS xr ON f.id = xr.fishermanId
     WHERE xr.eventId = :eventId
 """)
     fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
@@ -133,8 +133,8 @@ SELECT
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
 
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
@@ -159,8 +159,8 @@ SELECT
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
 
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
@@ -184,7 +184,7 @@ ORDER BY s.startTime DESC"""
     @Query(
         """
     SELECT fishermanId, tackleBoxId 
-    FROM event_fisherman_cross_ref 
+    FROM event_fisherman 
     WHERE eventId = :eventId
 """
     )

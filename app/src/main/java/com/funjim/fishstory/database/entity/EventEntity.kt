@@ -239,14 +239,14 @@ MostTargetCaughtPerEvent AS (
 SELECT 
     s.*,
     t.name as tripName,
-    t.startDate as tripStartTime,
-    t.endDate as tripEndTime,
+    t.startTime as tripStartTime,
+    t.endTime as tripEndTime,
         
     -- Basic Counts (Overall)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.eventId = s.id) as fishKept,
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id) as fishermanCount,
-    (SELECT COUNT(*) FROM event_fisherman_cross_ref xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id) as fishermanCount,
+    (SELECT COUNT(*) FROM event_fisherman xr WHERE xr.eventId = s.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 

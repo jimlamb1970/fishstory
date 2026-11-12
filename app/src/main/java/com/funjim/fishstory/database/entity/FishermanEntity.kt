@@ -128,7 +128,7 @@ data class FishermanEntityFullStatistics(
 
 @Serializable
 @Entity(
-    tableName = "event_fisherman_cross_ref",
+    tableName = "event_fisherman",
     primaryKeys = ["eventId", "fishermanId"],
     indices = [
         Index(value = ["fishermanId"]),
@@ -164,7 +164,7 @@ data class EventFishermanEntity(
 @Serializable
 @Entity(
     primaryKeys = ["tripId", "fishermanId"],
-    tableName = "trip_fisherman_cross_ref",
+    tableName = "trip_fisherman",
     indices = [
         Index(value = ["fishermanId"]),
         Index(value = ["tackleBoxId"])

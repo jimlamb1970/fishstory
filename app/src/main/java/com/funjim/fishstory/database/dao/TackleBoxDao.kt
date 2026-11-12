@@ -33,7 +33,7 @@ interface TackleBoxDao {
     suspend fun deleteTackleBoxLure(crossRef: TackleBoxLureEntity)
     @Upsert
     suspend fun upsertTackleBoxLure(crossRef: TackleBoxLureEntity)
-    @Query("DELETE FROM tackle_box_lure_cross_ref")
+    @Query("DELETE FROM tackle_box_lure")
     suspend fun deleteAllTackleBoxLures()
 
     // Single object queries
@@ -54,19 +54,19 @@ interface TackleBoxDao {
     suspend fun getAllTackleBoxesList(): List<TackleBoxEntity>
     @Query("""
         SELECT tackle_box_table.* FROM tackle_box_table
-        INNER JOIN event_fisherman_cross_ref ON tackle_box_table.id = event_fisherman_cross_ref.tackleBoxId
-        WHERE event_fisherman_cross_ref.eventId = :eventId
+        INNER JOIN event_fisherman ON tackle_box_table.id = event_fisherman.tackleBoxId
+        WHERE event_fisherman.eventId = :eventId
     """)
     suspend fun getAllTackleBoxesForEvent(eventId: String): List<TackleBoxEntity>
 
-    @Query("SELECT * FROM tackle_box_lure_cross_ref")
+    @Query("SELECT * FROM tackle_box_lure")
     fun getAllTackleBoxLures(): Flow<List<TackleBoxLureEntity>>
-    @Query("SELECT * FROM tackle_box_lure_cross_ref")
+    @Query("SELECT * FROM tackle_box_lure")
     suspend fun getAllTackleBoxLuresList(): List<TackleBoxLureEntity>
     @Query("""
-        SELECT tackle_box_lure_cross_ref.* FROM tackle_box_lure_cross_ref
-        INNER JOIN event_fisherman_cross_ref ON tackle_box_lure_cross_ref.tackleBoxId = event_fisherman_cross_ref.tackleBoxId
-        WHERE event_fisherman_cross_ref.eventId = :eventId
+        SELECT tackle_box_lure.* FROM tackle_box_lure
+        INNER JOIN event_fisherman ON tackle_box_lure.tackleBoxId = event_fisherman.tackleBoxId
+        WHERE event_fisherman.eventId = :eventId
     """)
     suspend fun getTackleBoxLuresForEvent(eventId: String): List<TackleBoxLureEntity>
 
@@ -95,15 +95,15 @@ interface TackleBoxDao {
     @Transaction
     @Query("""
         SELECT lure_table.* FROM lure_table
-        INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId
-        WHERE tackle_box_lure_cross_ref.tackleBoxId = :tackleBoxId
+        INNER JOIN tackle_box_lure ON lure_table.id = tackle_box_lure.lureId
+        WHERE tackle_box_lure.tackleBoxId = :tackleBoxId
     """)
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureEntityWithColors>>
 
     @Query("""
         SELECT lure_table.* FROM lure_table
-        INNER JOIN tackle_box_lure_cross_ref ON lure_table.id = tackle_box_lure_cross_ref.lureId
-        INNER JOIN tackle_box_table ON tackle_box_lure_cross_ref.tackleBoxId = tackle_box_table.id
+        INNER JOIN tackle_box_lure ON lure_table.id = tackle_box_lure.lureId
+        INNER JOIN tackle_box_table ON tackle_box_lure.tackleBoxId = tackle_box_table.id
         WHERE tackle_box_table.fishermanId = :fishermanId
     """)
     fun getLuresForFisherman(fishermanId: String): Flow<List<LureEntity>>

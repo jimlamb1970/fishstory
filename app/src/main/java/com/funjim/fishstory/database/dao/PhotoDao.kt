@@ -28,85 +28,85 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_table")
     suspend fun getAllPhotosList(): List<PhotoEntity>
 
-    @Query("SELECT * FROM photo_bait_cross_ref")
+    @Query("SELECT * FROM photo_bait")
     fun getAllPhotosForBait(): Flow<List<PhotoBaitEntity>>
 
-    @Query("SELECT * FROM photo_bait_cross_ref")
+    @Query("SELECT * FROM photo_bait")
     suspend fun getAllPhotosForBaitList(): List<PhotoBaitEntity>
 
-    @Query("SELECT * FROM photo_body_of_water_cross_ref")
+    @Query("SELECT * FROM photo_body_of_water")
     fun getAllPhotosForBodiesOfWater(): Flow<List<PhotoBodyOfWaterEntity>>
 
-    @Query("SELECT * FROM photo_body_of_water_cross_ref")
+    @Query("SELECT * FROM photo_body_of_water")
     suspend fun getAllPhotosForBodiesOfWaterList(): List<PhotoBodyOfWaterEntity>
 
-    @Query("SELECT * FROM photo_event_cross_ref")
+    @Query("SELECT * FROM photo_event")
     fun getAllPhotosForEvents(): Flow<List<PhotoEventEntity>>
 
-    @Query("SELECT * FROM photo_event_cross_ref")
+    @Query("SELECT * FROM photo_event")
     suspend fun getAllPhotosForEventsList(): List<PhotoEventEntity>
 
-    @Query("SELECT * FROM photo_fish_cross_ref")
+    @Query("SELECT * FROM photo_fish")
     fun getAllPhotosForFish(): Flow<List<PhotoFishEntity>>
 
-    @Query("SELECT * FROM photo_fish_cross_ref")
+    @Query("SELECT * FROM photo_fish")
     suspend fun getAllPhotosForFishList(): List<PhotoFishEntity>
 
-    @Query("SELECT * FROM photo_fisherman_cross_ref")
+    @Query("SELECT * FROM photo_fisherman")
     fun getAllPhotosForFishermen(): Flow<List<PhotoFishermanEntity>>
 
-    @Query("SELECT * FROM photo_fisherman_cross_ref")
+    @Query("SELECT * FROM photo_fisherman")
     suspend fun getAllPhotosForFishermenList(): List<PhotoFishermanEntity>
 
-    @Query("SELECT * FROM photo_lure_cross_ref")
+    @Query("SELECT * FROM photo_lure")
     fun getAllPhotosForLures(): Flow<List<PhotoLureEntity>>
 
-    @Query("SELECT * FROM photo_lure_cross_ref")
+    @Query("SELECT * FROM photo_lure")
     suspend fun getAllPhotosForLuresList(): List<PhotoLureEntity>
 
-    @Query("SELECT * FROM photo_sky_condition_cross_ref")
+    @Query("SELECT * FROM photo_sky_condition")
     suspend fun getAllPhotosForSkyConditionsList(): List<PhotoSkyConditionEntity>
 
-    @Query("SELECT * FROM photo_species_cross_ref")
+    @Query("SELECT * FROM photo_species")
     fun getAllPhotosForSpecies(): Flow<List<PhotoSpeciesEntity>>
 
-    @Query("SELECT * FROM photo_species_cross_ref")
+    @Query("SELECT * FROM photo_species")
     suspend fun getAllPhotosForSpeciesList(): List<PhotoSpeciesEntity>
 
-    @Query("SELECT * FROM photo_trip_cross_ref")
+    @Query("SELECT * FROM photo_trip")
     fun getAllPhotosForTrips(): Flow<List<PhotoTripEntity>>
 
-    @Query("SELECT * FROM photo_trip_cross_ref")
+    @Query("SELECT * FROM photo_trip")
     suspend fun getAllPhotosForTripsList(): List<PhotoTripEntity>
 
-    @Query("SELECT * FROM photo_water_clarity_cross_ref")
+    @Query("SELECT * FROM photo_water_clarity")
     suspend fun getAllPhotosForWaterClarityList(): List<PhotoWaterClarityEntity>
 
     @Query("DELETE FROM photo_table")
     suspend fun deleteAllPhotos()
 
-    @Query("DELETE FROM photo_bait_cross_ref")
+    @Query("DELETE FROM photo_bait")
     suspend fun deleteAllPhotosForBait()
 
-    @Query("DELETE FROM photo_body_of_water_cross_ref")
+    @Query("DELETE FROM photo_body_of_water")
     suspend fun deleteAllPhotosForBodiesOfWater()
 
-    @Query("DELETE FROM photo_event_cross_ref")
+    @Query("DELETE FROM photo_event")
     suspend fun deleteAllPhotosForEvents()
 
-    @Query("DELETE FROM photo_fish_cross_ref")
+    @Query("DELETE FROM photo_fish")
     suspend fun deleteAllPhotosForFish()
 
-    @Query("DELETE FROM photo_fisherman_cross_ref")
+    @Query("DELETE FROM photo_fisherman")
     suspend fun deleteAllPhotosForFishermen()
 
-    @Query("DELETE FROM photo_lure_cross_ref")
+    @Query("DELETE FROM photo_lure")
     suspend fun deleteAllPhotosForLures()
 
-    @Query("DELETE FROM photo_species_cross_ref")
+    @Query("DELETE FROM photo_species")
     suspend fun deleteAllPhotosForSpecies()
 
-    @Query("DELETE FROM photo_trip_cross_ref")
+    @Query("DELETE FROM photo_trip")
     suspend fun deleteAllPhotosForTrips()
 
 
@@ -175,8 +175,8 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_trip_cross_ref ON photo_table.id = photo_trip_cross_ref.photoId
-    WHERE photo_trip_cross_ref.tripId = :tripId
+    INNER JOIN photo_trip ON photo_table.id = photo_trip.photoId
+    WHERE photo_trip.tripId = :tripId
 """
     )
     fun getPhotosForTrip(tripId: String): Flow<List<PhotoEntity>>
@@ -184,8 +184,8 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_event_cross_ref ON photo_table.id = photo_event_cross_ref.photoId
-    WHERE photo_event_cross_ref.eventId = :eventId
+    INNER JOIN photo_event ON photo_table.id = photo_event.photoId
+    WHERE photo_event.eventId = :eventId
 """
     )
     fun getPhotosForEvent(eventId: String): Flow<List<PhotoEntity>>
@@ -193,8 +193,8 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
-    WHERE photo_lure_cross_ref.lureId = :lureId
+    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
+    WHERE photo_lure.lureId = :lureId
 """
     )
     fun getPhotosForLure(lureId: String): Flow<List<PhotoEntity>>
@@ -202,7 +202,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table 
-    INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
+    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
 """
     )
     fun getAllLurePhotos(): Flow<List<PhotoEntity>>
@@ -210,8 +210,8 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fish_cross_ref ON photo_table.id = photo_fish_cross_ref.photoId
-    WHERE photo_fish_cross_ref.fishId = :fishId
+    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
+    WHERE photo_fish.fishId = :fishId
 """
     )
     fun getPhotosForFish(fishId: String): Flow<List<PhotoEntity>>
@@ -219,7 +219,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fish_cross_ref ON photo_table.id = photo_fish_cross_ref.photoId
+    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
 """
     )
     fun getAllFishPhotos(): Flow<List<PhotoEntity>>
@@ -227,8 +227,8 @@ interface PhotoDao {
     @Query(
         """
     SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fisherman_cross_ref ON photo_table.id = photo_fisherman_cross_ref.photoId
-    WHERE photo_fisherman_cross_ref.fishermanId = :fishermanId
+    INNER JOIN photo_fisherman ON photo_table.id = photo_fisherman.photoId
+    WHERE photo_fisherman.fishermanId = :fishermanId
 """
     )
     fun getPhotosForFisherman(fishermanId: String): Flow<List<PhotoEntity>>
@@ -236,8 +236,8 @@ interface PhotoDao {
     @Query(
         """
         SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_bait_cross_ref ON photo_table.id = photo_bait_cross_ref.photoId
-        WHERE photo_bait_cross_ref.baitId = :id
+        INNER JOIN photo_bait ON photo_table.id = photo_bait.photoId
+        WHERE photo_bait.baitId = :id
         LIMIT 1
     """
     )
@@ -246,8 +246,8 @@ interface PhotoDao {
     @Query(
         """
         SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_body_of_water_cross_ref ON photo_table.id = photo_body_of_water_cross_ref.photoId
-        WHERE photo_body_of_water_cross_ref.bodyOfWaterId = :id
+        INNER JOIN photo_body_of_water ON photo_table.id = photo_body_of_water.photoId
+        WHERE photo_body_of_water.bodyOfWaterId = :id
         LIMIT 1
     """
     )
@@ -256,8 +256,8 @@ interface PhotoDao {
     @Query(
         """
         SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_sky_condition_cross_ref ON photo_table.id = photo_sky_condition_cross_ref.photoId
-        WHERE photo_sky_condition_cross_ref.skyConditionId = :id
+        INNER JOIN photo_sky_condition ON photo_table.id = photo_sky_condition.photoId
+        WHERE photo_sky_condition.skyConditionId = :id
         LIMIT 1
     """
     )
@@ -266,8 +266,8 @@ interface PhotoDao {
     @Query(
         """
         SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
-        WHERE photo_species_cross_ref.speciesId = :speciesId
+        INNER JOIN photo_species ON photo_table.id = photo_species.photoId
+        WHERE photo_species.speciesId = :speciesId
         LIMIT 1
     """
     )
@@ -276,7 +276,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_trip_cross_ref ON photo_table.id = photo_trip_cross_ref.photoId
+    INNER JOIN photo_trip ON photo_table.id = photo_trip.photoId
     WHERE tripId = :tripId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -287,8 +287,8 @@ interface PhotoDao {
     @Query(
         """
         SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_water_clarity_cross_ref ON photo_table.id = photo_water_clarity_cross_ref.photoId
-        WHERE photo_water_clarity_cross_ref.waterClarityId = :id
+        INNER JOIN photo_water_clarity ON photo_table.id = photo_water_clarity.photoId
+        WHERE photo_water_clarity.waterClarityId = :id
         LIMIT 1
     """
     )
@@ -298,7 +298,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_bait_cross_ref ON photo_table.id = photo_bait_cross_ref.photoId
+    INNER JOIN photo_bait ON photo_table.id = photo_bait.photoId
     WHERE baitId = :id 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -309,7 +309,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_body_of_water_cross_ref ON photo_table.id = photo_body_of_water_cross_ref.photoId
+    INNER JOIN photo_body_of_water ON photo_table.id = photo_body_of_water.photoId
     WHERE bodyOfWaterId = :bodyOfWaterId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -320,7 +320,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_event_cross_ref ON photo_table.id = photo_event_cross_ref.photoId
+    INNER JOIN photo_event ON photo_table.id = photo_event.photoId
     WHERE eventId = :eventId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -331,7 +331,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_fish_cross_ref ON photo_table.id = photo_fish_cross_ref.photoId
+    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
     WHERE fishId = :fishId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -342,7 +342,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_fisherman_cross_ref ON photo_table.id = photo_fisherman_cross_ref.photoId
+    INNER JOIN photo_fisherman ON photo_table.id = photo_fisherman.photoId
     WHERE fishermanId = :fishermanId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -353,7 +353,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_lure_cross_ref ON photo_table.id = photo_lure_cross_ref.photoId
+    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
     WHERE lureId = :lureId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -364,7 +364,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_sky_condition_cross_ref ON photo_table.id = photo_sky_condition_cross_ref.photoId
+    INNER JOIN photo_sky_condition ON photo_table.id = photo_sky_condition.photoId
     WHERE skyConditionId = :id 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -375,7 +375,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_species_cross_ref ON photo_table.id = photo_species_cross_ref.photoId
+    INNER JOIN photo_species ON photo_table.id = photo_species.photoId
     WHERE speciesId = :speciesId 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -386,7 +386,7 @@ interface PhotoDao {
     @Query(
         """
     SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_water_clarity_cross_ref ON photo_table.id = photo_water_clarity_cross_ref.photoId
+    INNER JOIN photo_water_clarity ON photo_table.id = photo_water_clarity.photoId
     WHERE waterClarityId = :id 
     ORDER BY isPrimary DESC, timestamp ASC 
     LIMIT 1
@@ -401,10 +401,10 @@ interface PhotoDao {
         setPhotoAsPrimaryForEvent(eventId, photoId)
     }
 
-    @Query("UPDATE photo_event_cross_ref SET isPrimary = 0 WHERE eventId = :eventId")
+    @Query("UPDATE photo_event SET isPrimary = 0 WHERE eventId = :eventId")
     suspend fun clearPrimaryPhotoForEvent(eventId: String)
 
-    @Query("UPDATE photo_event_cross_ref SET isPrimary = 1 WHERE eventId = :eventId AND photoId = :photoId")
+    @Query("UPDATE photo_event SET isPrimary = 1 WHERE eventId = :eventId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForEvent(eventId: String, photoId: String)
 
     @Transaction
@@ -413,10 +413,10 @@ interface PhotoDao {
         setPhotoAsPrimaryForFish(fishId, photoId)
     }
 
-    @Query("UPDATE photo_fish_cross_ref SET isPrimary = 0 WHERE fishId = :fishId")
+    @Query("UPDATE photo_fish SET isPrimary = 0 WHERE fishId = :fishId")
     suspend fun clearPrimaryPhotoForFish(fishId: String)
 
-    @Query("UPDATE photo_fish_cross_ref SET isPrimary = 1 WHERE fishId = :fishId AND photoId = :photoId")
+    @Query("UPDATE photo_fish SET isPrimary = 1 WHERE fishId = :fishId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForFish(fishId: String, photoId: String)
 
     @Transaction
@@ -425,10 +425,10 @@ interface PhotoDao {
         setPhotoAsPrimaryForFisherman(fishermanId, photoId)
     }
 
-    @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 0 WHERE fishermanId = :fishermanId")
+    @Query("UPDATE photo_fisherman SET isPrimary = 0 WHERE fishermanId = :fishermanId")
     suspend fun clearPrimaryPhotoForFisherman(fishermanId: String)
 
-    @Query("UPDATE photo_fisherman_cross_ref SET isPrimary = 1 WHERE fishermanId = :fishermanId AND photoId = :photoId")
+    @Query("UPDATE photo_fisherman SET isPrimary = 1 WHERE fishermanId = :fishermanId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForFisherman(fishermanId: String, photoId: String)
 
     @Transaction
@@ -437,10 +437,10 @@ interface PhotoDao {
         setPhotoAsPrimaryForLure(lureId, photoId)
     }
 
-    @Query("UPDATE photo_lure_cross_ref SET isPrimary = 0 WHERE lureId = :lureId")
+    @Query("UPDATE photo_lure SET isPrimary = 0 WHERE lureId = :lureId")
     suspend fun clearPrimaryPhotoForLure(lureId: String)
 
-    @Query("UPDATE photo_lure_cross_ref SET isPrimary = 1 WHERE lureId = :lureId AND photoId = :photoId")
+    @Query("UPDATE photo_lure SET isPrimary = 1 WHERE lureId = :lureId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForLure(lureId: String, photoId: String)
 
     @Transaction
@@ -449,25 +449,25 @@ interface PhotoDao {
         setPhotoAsPrimaryForTrip(tripId, photoId)
     }
 
-    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 0 WHERE tripId = :tripId")
+    @Query("UPDATE photo_trip SET isPrimary = 0 WHERE tripId = :tripId")
     suspend fun clearPrimaryPhotoForTrip(tripId: String)
 
-    @Query("UPDATE photo_trip_cross_ref SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
+    @Query("UPDATE photo_trip SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
     suspend fun setPhotoAsPrimaryForTrip(tripId: String, photoId: String)
 
     @Query(
         """
         SELECT * FROM photo_table 
-        WHERE NOT EXISTS (SELECT 1 FROM photo_bait_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_body_of_water_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_event_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_fish_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_fisherman_cross_ref WHERE photoId = photo_table.id)
-          And NOT EXISTS (SELECT 1 FROM photo_lure_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_sky_condition_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_species_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_trip_cross_ref WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_water_clarity_cross_ref WHERE photoId = photo_table.id)
+        WHERE NOT EXISTS (SELECT 1 FROM photo_bait WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_body_of_water WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_event WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_fish WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_fisherman WHERE photoId = photo_table.id)
+          And NOT EXISTS (SELECT 1 FROM photo_lure WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_sky_condition WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_species WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_trip WHERE photoId = photo_table.id)
+          AND NOT EXISTS (SELECT 1 FROM photo_water_clarity WHERE photoId = photo_table.id)
     """
     )
     suspend fun getOrphanedPhotos(): List<PhotoEntity>
@@ -475,16 +475,16 @@ interface PhotoDao {
     @Query(
         """
     DELETE FROM photo_table 
-    WHERE NOT EXISTS (SELECT 1 FROM photo_bait_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_body_of_water_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_event_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_fish_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_fisherman_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_lure_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_sky_condition_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_species_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_trip_cross_ref WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_water_clarity_cross_ref WHERE photoId = photo_table.id)
+    WHERE NOT EXISTS (SELECT 1 FROM photo_bait WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_body_of_water WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_event WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_fish WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_fisherman WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_lure WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_sky_condition WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_species WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_trip WHERE photoId = photo_table.id)
+      AND NOT EXISTS (SELECT 1 FROM photo_water_clarity WHERE photoId = photo_table.id)
 """
     )
     suspend fun deleteOrphanedPhotos(): Int

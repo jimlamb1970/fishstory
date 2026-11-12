@@ -18,8 +18,8 @@ fun TripEntity.toDomain(): Trip {
     return Trip(
         id = id,
         name = name,
-        startDate = startDate,
-        endDate = endDate,
+        startDate = startTime,
+        endDate = endTime,
         isLocked = isLocked,
         isFavorite = isFavorite,
         latitude = latitude,
@@ -35,8 +35,8 @@ fun Trip.toEntity(): TripEntity {
     return TripEntity(
         id = id,
         name = name,
-        startDate = startDate,
-        endDate = endDate,
+        startTime = startDate,
+        endTime = endDate,
         isLocked = isLocked,
         isFavorite = isFavorite,
         latitude = latitude,
@@ -92,8 +92,8 @@ fun TripEntityDetailedSummary.toDomain(): TripDetailedSummary {
     return TripDetailedSummary(
         id = id,
         name = name,
-        startDate = startDate,
-        endDate = endDate,
+        startDate = startTime,
+        endDate = endTime,
         eventCount = eventCount,
         fishCaught = fishCaught,
         fishKept = fishKept,

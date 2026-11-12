@@ -55,7 +55,7 @@ data class PhotoEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "baitId"],
-    tableName = "photo_bait_cross_ref",
+    tableName = "photo_bait",
     indices = [Index(value = ["baitId"])],
     foreignKeys = [
         ForeignKey(
@@ -81,7 +81,7 @@ data class PhotoBaitEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "bodyOfWaterId"],
-    tableName = "photo_body_of_water_cross_ref",
+    tableName = "photo_body_of_water",
     indices = [Index(value = ["bodyOfWaterId"])],
     foreignKeys = [
         ForeignKey(
@@ -107,7 +107,7 @@ data class PhotoBodyOfWaterEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "eventId"],
-    tableName = "photo_event_cross_ref",
+    tableName = "photo_event",
     indices = [Index(value = ["eventId"])],
     foreignKeys = [
         ForeignKey(
@@ -133,7 +133,7 @@ data class PhotoEventEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "fishId"],
-    tableName = "photo_fish_cross_ref",
+    tableName = "photo_fish",
     indices = [Index(value = ["fishId"])],
     foreignKeys = [
         ForeignKey(
@@ -159,7 +159,7 @@ data class PhotoFishEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "fishermanId"],
-    tableName = "photo_fisherman_cross_ref",
+    tableName = "photo_fisherman",
     indices = [Index(value = ["fishermanId"])],
     foreignKeys = [
         ForeignKey(
@@ -185,7 +185,7 @@ data class PhotoFishermanEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "lureId"],
-    tableName = "photo_lure_cross_ref",
+    tableName = "photo_lure",
     indices = [Index(value = ["lureId"])],
     foreignKeys = [
         ForeignKey(
@@ -211,7 +211,7 @@ data class PhotoLureEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "skyConditionId"],
-    tableName = "photo_sky_condition_cross_ref",
+    tableName = "photo_sky_condition",
     indices = [Index(value = ["skyConditionId"])],
     foreignKeys = [
         ForeignKey(
@@ -237,7 +237,7 @@ data class PhotoSkyConditionEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "speciesId"],
-    tableName = "photo_species_cross_ref",
+    tableName = "photo_species",
     indices = [Index(value = ["speciesId"])],
     foreignKeys = [
         ForeignKey(
@@ -263,7 +263,7 @@ data class PhotoSpeciesEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "tripId"],
-    tableName = "photo_trip_cross_ref",
+    tableName = "photo_trip",
     indices = [Index(value = ["tripId"])],
     foreignKeys = [
         ForeignKey(
@@ -289,7 +289,7 @@ data class PhotoTripEntity(
 @Serializable
 @Entity(
     primaryKeys = ["photoId", "waterClarityId"],
-    tableName = "photo_water_clarity_cross_ref",
+    tableName = "photo_water_clarity",
     indices = [Index(value = ["waterClarityId"])],
     foreignKeys = [
         ForeignKey(

@@ -15,8 +15,8 @@ data class TripEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val startDate: Long = System.currentTimeMillis(),
-    val endDate: Long = System.currentTimeMillis(),
+    val startTime: Long = System.currentTimeMillis(),
+    val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
     val isLocked: Boolean = false,
@@ -197,8 +197,8 @@ SELECT
     -- Basic Counts (Overall)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishCaught,
     (SELECT COALESCE(SUM(f.keptCount), 0) FROM fish_table f WHERE f.tripId = t.id) as fishKept,
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id) as fishermanCount,
-    (SELECT COUNT(*) FROM trip_fisherman_cross_ref xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id) as fishermanCount,
+    (SELECT COUNT(*) FROM trip_fisherman xr WHERE xr.tripId = t.id AND xr.tackleBoxId IS NOT NULL) as tackleBoxCount,
 
     -- Basic Counts (Target Only)
     (SELECT COALESCE(SUM(f.caughtCount), 0) FROM fish_table f 
@@ -264,8 +264,8 @@ LEFT JOIN fisherman_table tmcm ON tmc.fishermanId = tmcm.id
 data class TripEntityDetailedSummary(
     val id: String,
     val name: String,
-    val startDate: Long,
-    val endDate: Long,
+    val startTime: Long,
+    val endTime: Long,
 
     val eventCount: Int = 0,
 

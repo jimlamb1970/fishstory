@@ -34,7 +34,7 @@ data class TackleBoxEntity(
 
 @Serializable
 @Entity(
-    tableName = "tackle_box_lure_cross_ref",
+    tableName = "tackle_box_lure",
     primaryKeys = ["tackleBoxId", "lureId"],
     foreignKeys = [
         ForeignKey(

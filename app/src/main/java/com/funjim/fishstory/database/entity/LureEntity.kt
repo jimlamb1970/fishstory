@@ -39,7 +39,7 @@ data class LureEntity(
 
 @Serializable
 @Entity(
-    tableName = "lure_primary_color_cross_ref",
+    tableName = "lure_primary_color",
     primaryKeys = ["lureId", "colorId"],
     indices = [
         Index(value = ["lureId"]),
@@ -67,7 +67,7 @@ data class LurePrimaryColorEntity(
 
 @Serializable
 @Entity(
-    tableName = "lure_secondary_color_cross_ref",
+    tableName = "lure_secondary_color",
     primaryKeys = ["lureId", "colorId"],
     indices = [
         Index(value = ["lureId"]),
@@ -95,7 +95,7 @@ data class LureSecondaryColorEntity(
 
 @Serializable
 @Entity(
-    tableName = "lure_glow_color_cross_ref",
+    tableName = "lure_glow_color",
     primaryKeys = ["lureId", "colorId"],
     indices = [
         Index(value = ["lureId"]),

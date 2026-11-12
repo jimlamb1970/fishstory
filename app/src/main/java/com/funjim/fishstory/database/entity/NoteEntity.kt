@@ -32,7 +32,7 @@ data class NoteEntity(
 
 @Serializable
 @Entity(
-    tableName = "note_trip_cross_ref",
+    tableName = "trip_note",
     primaryKeys = ["tripId", "noteId"],
     indices = [
         Index(value = ["tripId"]),
@@ -60,7 +60,7 @@ data class NoteTripEntity(
 
 @Serializable
 @Entity(
-    tableName = "note_event_cross_ref",
+    tableName = "event_note",
     primaryKeys = ["eventId", "noteId"],
     indices = [
         Index(value = ["eventId"]),
@@ -88,7 +88,7 @@ data class NoteEventEntity(
 
 @Serializable
 @Entity(
-    tableName = "note_fish_cross_ref",
+    tableName = "fish_note",
     primaryKeys = ["fishId", "noteId"],
     indices = [
         Index(value = ["fishId"]),

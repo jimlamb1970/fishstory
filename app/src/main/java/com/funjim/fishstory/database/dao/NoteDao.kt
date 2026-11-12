@@ -72,17 +72,17 @@ interface NoteDao {
 
     @Query("SELECT * FROM note_table ORDER BY timestamp DESC")
     suspend fun getAllNotesList(): List<NoteEntity>
-    @Query("SELECT * FROM note_trip_cross_ref")
+    @Query("SELECT * FROM trip_note")
     suspend fun getAllNotesTripList(): List<NoteTripEntity>
-    @Query("SELECT * FROM note_event_cross_ref")
+    @Query("SELECT * FROM event_note")
     suspend fun getAllNotesEventList(): List<NoteEventEntity>
-    @Query("SELECT * FROM note_fish_cross_ref")
+    @Query("SELECT * FROM fish_note")
     suspend fun getAllNotesFishList(): List<NoteFishEntity>
 
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n
-        INNER JOIN note_trip_cross_ref xr ON n.id = xr.noteId
+        INNER JOIN trip_note xr ON n.id = xr.noteId
         WHERE xr.tripId = :tripId
         ORDER BY n.timestamp DESC
     """)
@@ -90,23 +90,23 @@ interface NoteDao {
 
     @Query("""
         SELECT note_table.* FROM note_table
-        INNER JOIN note_event_cross_ref ON note_table.id = note_event_cross_ref.noteId
-        WHERE note_event_cross_ref.eventId = :eventId
+        INNER JOIN event_note ON note_table.id = event_note.noteId
+        WHERE event_note.eventId = :eventId
         UNION
         SELECT note_table.* FROM note_table 
-        INNER JOIN note_fish_cross_ref ON note_table.id = note_fish_cross_ref.noteId
-        INNER JOIN fish_table ON note_fish_cross_ref.fishId = fish_table.id  
+        INNER JOIN fish_note ON note_table.id = fish_note.noteId
+        INNER JOIN fish_table ON fish_note.fishId = fish_table.id  
         WHERE fish_table.eventId = :eventId
     """)
     suspend fun getAllNotesForEvent(eventId: String): List<NoteEntity>
     @Query("""
-        SELECT note_event_cross_ref.* FROM note_event_cross_ref
-        WHERE note_event_cross_ref.eventId = :eventId
+        SELECT event_note.* FROM event_note
+        WHERE event_note.eventId = :eventId
     """)
     suspend fun getEventNotesForEvent(eventId: String): List<NoteEventEntity>
     @Query("""
-        SELECT note_fish_cross_ref.* FROM note_fish_cross_ref 
-        INNER JOIN fish_table ON note_fish_cross_ref.fishId = fish_table.id  
+        SELECT fish_note.* FROM fish_note 
+        INNER JOIN fish_table ON fish_note.fishId = fish_table.id  
         WHERE fish_table.eventId = :eventId
     """)
     suspend fun getFishNotesForEvent(eventId: String): List<NoteFishEntity>
@@ -114,7 +114,7 @@ interface NoteDao {
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n
-        INNER JOIN note_event_cross_ref xr ON n.id = xr.noteId
+        INNER JOIN event_note xr ON n.id = xr.noteId
         WHERE xr.eventId = :eventId
         ORDER BY n.timestamp DESC
     """)
@@ -122,7 +122,7 @@ interface NoteDao {
     @Transaction
     @Query("""
         SELECT n.* FROM note_table n
-        INNER JOIN note_fish_cross_ref xr ON n.id = xr.noteId
+        INNER JOIN fish_note xr ON n.id = xr.noteId
         WHERE xr.fishId = :fishId
         ORDER BY n.timestamp DESC
     """)
