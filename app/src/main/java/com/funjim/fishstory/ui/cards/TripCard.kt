@@ -27,8 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
+import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
@@ -42,6 +42,7 @@ import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -212,8 +213,7 @@ fun TripCard(
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
-    lureCount: Int = 0,
-    lures: List<LureWithColorsSummary> = emptyList(),
+    tackleBoxSummary: Flow<TackleBoxSummary?> = flowOf(null),
     thumbnailFlow: Flow<ByteArray?>,
     photosFlow: Flow<List<Photo>>,
     allowPhotos: Boolean = false,
@@ -236,6 +236,7 @@ fun TripCard(
 
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
+    val tackleBox by tackleBoxSummary.collectAsState(initial = null)
 
     val dateTimeFormatter = remember {
         SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -420,50 +421,64 @@ fun TripCard(
                         }
                     }
 
-                    if (lureCount != 0) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (tackleBoxOpen) AppIcons.Default.TackleBox
-                                    else AppIcons.Default.TackleBoxClosed,
-                                contentDescription = "Tackle Box",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable() {
-                                        tackleBoxOpen = !tackleBoxOpen
-                                    }
-                            )
+                    tackleBox?.let { tackleBox ->
+                        val count = tackleBox.lures.size
+                        if (count > 0 || tackleBox.tackleBox != null) {
+                            val name = tackleBox.tackleBox?.name ?: "<Smart Tackle Box>"
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (tackleBoxOpen) AppIcons.Default.TackleBox
+                                        else AppIcons.Default.TackleBoxClosed,
+                                    contentDescription = "Tackle Box",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clickable {
+                                            tackleBoxOpen = !tackleBoxOpen
+                                        }
+                                )
 
-                            Text(
-                                text = "<Smart Tackle Box>",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
+                                Text(
+                                    text = name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                         }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CardItemWithValue(
-                                icon = AppIcons.Default.Lure,
-                                value = lureCount.toString(),
-                                description = if (verbose) {
-                                    if (lureCount == 1) "Lure" else "Lures"
-                                } else null,
-                                onClick = {
-                                    if (lureCount > 0) {
-                                        Toast.makeText(
-                                            context,
-                                            "Lures cannot be added to a 'Smart Tackle Box'",
-                                            Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                contentColor = secondaryContentColor
-                            )
+
+                        if (count != 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CardItemWithValue(
+                                    icon = AppIcons.Default.Lure,
+                                    value = count.toString(),
+                                    description = if (verbose) {
+                                        if (count == 1) "Lure" else "Lures"
+                                    } else null,
+                                    onClick = {
+                                        if (tackleBox.tackleBox != null) {
+                                            Toast.makeText(
+                                                context,
+                                                "Adding lures is currently not supported from here.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Lures cannot be added to a '<Smart Tackle Box>'",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    },
+                                    contentColor = secondaryContentColor
+                                )
+                            }
                         }
                     }
 
@@ -508,68 +523,72 @@ fun TripCard(
                     HorizontalDivider(color = borderColor)
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    if (lures.isNotEmpty()) {
-                        lures.forEachIndexed { index, lure ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier
-                                    .weight(1f)
-                                    .padding(start = 50.dp)
+                    tackleBox?.let { tackleBox ->
+                        val lures = tackleBox.lures
+                        if (lures.isNotEmpty()) {
+                            lures.forEachIndexed { index, lure ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    if (index != 0) {
-                                        HorizontalDivider(
-                                            color = borderColor,
-                                            modifier = Modifier.padding(end = 16.dp)
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 50.dp)
+                                    ) {
+                                        if (index != 0) {
+                                            HorizontalDivider(
+                                                color = borderColor,
+                                                modifier = Modifier.padding(end = 50.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                        }
+                                        LureCompositionWithColors(
+                                            name = "• ${lure.lure.name}",
+                                            lure.primaryColors,
+                                            lure.secondaryColors,
+                                            lure.lure.glows,
+                                            lure.glowColors,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            contentColor = getOnCardSecondaryColor(),
+                                            colorBadgeSize = 20.dp
                                         )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                    }
-                                    LureCompositionWithColors(
-                                        name = "• ${lure.lure.name}",
-                                        lure.primaryColors,
-                                        lure.secondaryColors,
-                                        lure.lure.glows,
-                                        lure.glowColors,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        contentColor = getOnCardSecondaryColor(),
-                                        colorBadgeSize = 20.dp
-                                    )
-                                    if (lure.fishCaught > 0) {
-                                        FishCaughtItem(
-                                            icon = AppIcons.Default.LeapingFishWithFins,
-                                            caughtCount = lure.fishCaught,
-                                            keptCount = lure.fishKept,
-                                            extraText = if (verbose) "fish" else "",
-                                            modifier = Modifier.padding(start = 8.dp),
-                                            onClick = onFishClick?.let { onClick ->
-                                                { onClick(trip.trip.id, lure.lure.id, false) }
-                                            },
-                                            contentColor = getOnCardSecondaryColor()
-                                        )
-                                    }
-                                    if (lure.targetFishKept > 0) {
-                                        FishCaughtItem(
-                                            icon = AppIcons.Default.TargetFish,
-                                            caughtCount = lure.targetFishCaught,
-                                            keptCount = lure.targetFishKept,
-                                            extraText = if (verbose) "target fish" else "",
-                                            modifier = Modifier.padding(start = 8.dp),
-                                            onClick = onFishClick?.let { onClick ->
-                                                { onClick(trip.trip.id, lure.lure.id, true) }
-                                            },
-                                            contentColor = getOnCardSecondaryColor()
-                                        )
+                                        if (lure.fishCaught > 0) {
+                                            FishCaughtItem(
+                                                icon = AppIcons.Default.LeapingFishWithFins,
+                                                caughtCount = lure.fishCaught,
+                                                keptCount = lure.fishKept,
+                                                extraText = if (verbose) "fish" else "",
+                                                modifier = Modifier.padding(start = 8.dp),
+                                                onClick = onFishClick?.let { onClick ->
+                                                    { onClick(trip.trip.id, lure.lure.id, false) }
+                                                },
+                                                contentColor = getOnCardSecondaryColor()
+                                            )
+                                        }
+                                        if (lure.targetFishKept > 0) {
+                                            FishCaughtItem(
+                                                icon = AppIcons.Default.TargetFish,
+                                                caughtCount = lure.targetFishCaught,
+                                                keptCount = lure.targetFishKept,
+                                                extraText = if (verbose) "target fish" else "",
+                                                modifier = Modifier.padding(start = 8.dp),
+                                                onClick = onFishClick?.let { onClick ->
+                                                    { onClick(trip.trip.id, lure.lure.id, true) }
+                                                },
+                                                contentColor = getOnCardSecondaryColor()
+                                            )
+                                        }
                                     }
                                 }
                             }
+                        } else {
+                            Text(
+                                text = "Tackle Box is empty",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = getOnCardSecondaryColor(),
+                                modifier = Modifier.padding(start = 50.dp)
+                            )
                         }
-                    } else {
-                        Text(
-                            text = "Tackle Box is empty",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = getOnCardSecondaryColor(),
-                            modifier = Modifier.padding(start = 50.dp)
-                        )
                     }
                 }
             }

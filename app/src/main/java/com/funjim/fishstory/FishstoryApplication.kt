@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LocationRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.LocationProviderImpl
 import com.funjim.fishstory.viewmodels.AddEventViewModelFactory
@@ -110,6 +111,13 @@ class FishstoryApplication : Application() {
             database = database,
             context = applicationContext,
             photoDao = database.photoDao()
+        )
+    }
+
+    val tackleBoxRepository by lazy {
+        TackleBoxRepository(
+            lureDao = database.lureDao(),
+            tackleBoxDao = database.tackleBoxDao()
         )
     }
 

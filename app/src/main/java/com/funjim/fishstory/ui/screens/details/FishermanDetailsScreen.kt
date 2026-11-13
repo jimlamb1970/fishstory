@@ -578,19 +578,17 @@ fun FishermanDetailsScreen(
                             }
                             val tripsSize = state.recentTrips.size
                             itemsIndexed(state.recentTrips) { index, trip ->
-                                val lures = viewModel.getLuresInTackleBox(
+                                val tackleBoxSummary = viewModel.getTackleBoxSummary(
                                     tripId = trip.trip.id,
-                                    fishermanId = fishermanId).collectAsState(initial = emptyList()).value
-                                val sortedLures = lures.sortedBy { it.lure.name }
-                                val lureCount = lures.size
+                                    fishermanId = fishermanId
+                                )
 
                                 TripCard(
                                     trip = trip,
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = tripsSize,
-                                    lureCount = lureCount,
-                                    lures = sortedLures,
+                                    tackleBoxSummary = tackleBoxSummary,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),

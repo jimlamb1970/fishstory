@@ -80,6 +80,19 @@ interface TackleBoxDao {
     @Query("SELECT * FROM tackle_box_table WHERE fishermanId = :fishermanId")
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBoxEntity>>
 
+    @Query("""
+    SELECT * FROM tackle_box_table 
+    WHERE id IN (
+        SELECT tackleBoxId FROM trip_fisherman 
+        WHERE tripId = :tripId AND fishermanId = :fishermanId
+    )
+    LIMIT 1
+""")
+    fun getTackleBoxForFishermanOnTrip(
+        fishermanId: String,
+        tripId: String
+    ): Flow<TackleBoxEntity?>
+
     @Transaction
     suspend fun getOrCreate(fishermanId: String, name: String): String {
         val existingTackleBox = getExistingTackleBoxForFishermanByName(name, fishermanId)

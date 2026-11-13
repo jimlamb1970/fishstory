@@ -227,6 +227,18 @@ class FishermanRepository(
             list.toTackleBoxDomainList()
         }
     }
+    fun getTripTackleBoxForFisherman(
+        fishermanId: String,
+        tripId: String
+    ): Flow<TackleBox?> {
+        return tackleBoxDao.getTackleBoxForFishermanOnTrip(
+            fishermanId = fishermanId,
+            tripId = tripId
+        ).map { entity ->
+            entity?.toDomain()
+        }
+    }
+
     fun getLuresInTackleBox(tackleBoxId: String): Flow<List<LureWithColors>> {
         return tackleBoxDao.getLuresInTackleBox(tackleBoxId)
             .map { list -> list.toLureWithColorsDomainList() }

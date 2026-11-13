@@ -36,3 +36,8 @@ data class TackleBoxWithLures(
     val tackleBox: TackleBox,
     val lures: List<LureWithColors>
 )
+
+data class TackleBoxSummary(
+    val tackleBox: TackleBox?,
+    val lures: List<LureWithColorsSummary>
+)

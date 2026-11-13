@@ -485,13 +485,15 @@ fun AppNavigation(
             val fishermanRepo = (navController.context.applicationContext as FishstoryApplication).fishermanRepository
             val lureRepo = (navController.context.applicationContext as FishstoryApplication).lureRepository
             val photoRepo = (navController.context.applicationContext as FishstoryApplication).photoRepository
+            val tackleBoxRepo = (navController.context.applicationContext as FishstoryApplication).tackleBoxRepository
 
             val viewModel: FishermanDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                 factory = FishermanDetailsViewModelFactory(
                     configRepo,
                     fishermanRepo,
                     lureRepo,
-                    photoRepo)
+                    photoRepo,
+                    tackleBoxRepo)
             )
 
             FishermanDetailsScreen(

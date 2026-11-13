@@ -641,8 +641,6 @@ interface FishermanDao {
         tripId: String? = null
     ): Flow<List<FishermanEntity>>
 
-
-
     @Query("""
     SELECT fishermanId, tackleBoxId 
     FROM trip_fisherman 

@@ -11,6 +11,7 @@ import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TackleBoxRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -32,9 +33,10 @@ import kotlinx.coroutines.launch
 
 class FishermanDetailsViewModel(
     private val configRepo: ConfigurationRepository,
-    private val repository: FishermanRepository,
+    private val fishermanRepo: FishermanRepository,
     private val lureRepo: LureRepository,
-    private val photoRepo: PhotoRepository
+    private val photoRepo: PhotoRepository,
+    private val tackleBoxRepo: TackleBoxRepository
 ) : ViewModel() {
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
@@ -59,7 +61,7 @@ class FishermanDetailsViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val statistics: StateFlow<FishermanFullStatistics?> = _selectedFishermanId
         .filterNotNull()
-        .flatMapLatest { repository.getFishermanFullStatistics(it) }
+        .flatMapLatest { fishermanRepo.getFishermanFullStatistics(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,9 +69,9 @@ class FishermanDetailsViewModel(
         .filter { !it.isNullOrBlank() } // Only proceed when we have a valid ID
         .flatMapLatest { id ->
             combine(
-                repository.getActiveTripSummariesForFisherman(id!!),
-                repository.getUpcomingTripSummariesForFisherman(id),
-                repository.getPastTripSummariesForFisherman(id)
+                fishermanRepo.getActiveTripSummariesForFisherman(id!!),
+                fishermanRepo.getUpcomingTripSummariesForFisherman(id),
+                fishermanRepo.getPastTripSummariesForFisherman(id)
             ) { active, upcoming, previous ->
                 FishermanDetailsUiState(
                     activeTrips = active,
@@ -91,7 +93,7 @@ class FishermanDetailsViewModel(
     val tripSummaries: StateFlow<List<TripSummary>> = _selectedFishermanId
         .flatMapLatest { id ->
             if (id == null) flowOf(emptyList())
-            else repository.getTripSummariesForFisherman(id)
+            else fishermanRepo.getTripSummariesForFisherman(id)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -106,7 +108,7 @@ class FishermanDetailsViewModel(
         val id = _selectedFishermanId.value ?: return
         _selectedFishermanId.value = null
         viewModelScope.launch {
-            repository.deleteFishermanById(id)
+            fishermanRepo.deleteFishermanById(id)
         }
     }
     fun updateFisherman(
@@ -115,7 +117,7 @@ class FishermanDetailsViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repository.updateFisherman(fisherman)
+                fishermanRepo.updateFisherman(fisherman)
                 onSuccess()
             } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Fisherman '${fisherman.fullName}' already exists.")
@@ -158,7 +160,7 @@ class FishermanDetailsViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repository.insertTackleBox(tackleBox)
+                fishermanRepo.insertTackleBox(tackleBox)
                 onSuccess(tackleBox)
             } catch (_: SQLiteConstraintException) {
                 _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
@@ -169,15 +171,44 @@ class FishermanDetailsViewModel(
     }
 
     fun deleteTackleBox(tackleBox: TackleBox) {
-        viewModelScope.launch { repository.deleteTackleBox(tackleBox) }
+        viewModelScope.launch { fishermanRepo.deleteTackleBox(tackleBox) }
     }
+
+    fun getTackleBoxSummary(
+        fishermanId: String,
+        tripId: String
+    ): Flow<TackleBoxSummary> {
+        return tackleBoxRepo.getTripTackleBoxSummary(
+            fishermanId = fishermanId,
+            tripId = tripId)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getLuresInTackleBox(
         tripId: String,
         fishermanId: String
     ): Flow<List<LureWithColorsSummary>> {
-        return lureRepo.getLureSummariesWithColors(
-            tripId = tripId,
-            fishermanId = fishermanId
+        return fishermanRepo.getTripTackleBoxForFisherman(
+            fishermanId = fishermanId,
+            tripId = tripId
+        ).flatMapLatest { tackleBox ->
+            if (tackleBox != null) {
+                fishermanRepo.getLuresInTackleBox(tackleBox.id).map { lures ->
+                    lures.map { it.toSummary() }
+                }
+            } else {
+                lureRepo.getLureSummariesWithColors(
+                    tripId = tripId,
+                    fishermanId = fishermanId
+                )
+            }
+        }
+    }
+
+    fun getTripTackleBox(tripId: String, fishermanId: String): Flow<TackleBox?> {
+        return fishermanRepo.getTripTackleBoxForFisherman(
+            fishermanId = fishermanId,
+            tripId = tripId
         )
     }
 }
@@ -193,7 +224,8 @@ class FishermanDetailsViewModelFactory(
     private val configRepo: ConfigurationRepository,
     private val repository: FishermanRepository,
     private val lureRepo: LureRepository,
-    private val photoRepo: PhotoRepository
+    private val photoRepo: PhotoRepository,
+    private val tackleBoxRepo: TackleBoxRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FishermanDetailsViewModel::class.java)) {
@@ -202,7 +234,8 @@ class FishermanDetailsViewModelFactory(
                 configRepo,
                 repository,
                 lureRepo,
-                photoRepo) as T
+                photoRepo,
+                tackleBoxRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
