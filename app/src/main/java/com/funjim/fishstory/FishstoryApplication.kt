@@ -138,6 +138,7 @@ class FishstoryApplication : Application() {
         fishermanRepository = fishermanRepository,
         fishRepository = fishRepository,
         photoRepository = photoRepository,
+        tackleBoxRepository = tackleBoxRepository,
         tripRepository = tripRepository
     )
 
@@ -159,6 +160,7 @@ class FishstoryApplication : Application() {
         fishermanRepository = fishermanRepository,
         fishRepository = fishRepository,
         photoRepository = photoRepository,
+        tackleBoxRepository = tackleBoxRepository,
         tripRepository = tripRepository
     )
 
@@ -193,6 +195,7 @@ class FishstoryApplication : Application() {
             fishRepository,
             lureRepository,
             photoRepository,
+            tackleBoxRepository,
             tripRepository)
 
     fun getFishDetailsViewModelFactory() = FishDetailsViewModelFactory(
@@ -265,6 +268,7 @@ class FishstoryApplication : Application() {
         fishRepository,
         lureRepository,
         photoRepository,
+        tackleBoxRepository,
         tripRepository
     )
 

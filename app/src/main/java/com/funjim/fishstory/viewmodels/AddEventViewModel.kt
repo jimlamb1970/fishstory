@@ -12,6 +12,7 @@ import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -41,6 +42,7 @@ class AddEventViewModel(
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val photoRepo: PhotoRepository,
+    private val tackleBoxRepo: TackleBoxRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
     val appSettings: StateFlow<AppSettings> = configRepo.appSettings
@@ -203,10 +205,6 @@ class AddEventViewModel(
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
 
-    fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
         .flatMapLatest { id ->
@@ -232,6 +230,33 @@ class AddEventViewModel(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun getTackleBoxSummary(
+        fishermanId: String,
+        tackleBoxId: String?
+    ): Flow<TackleBoxSummary> {
+        val eventId = _selectedEventId.value ?: return flowOf(
+            TackleBoxSummary(
+                tackleBox = null,
+                lures = emptyList()
+            )
+        )
+
+        if (tackleBoxId == null) {
+            return flowOf(
+                TackleBoxSummary(
+                    tackleBox = null,
+                    lures = emptyList()
+                )
+            )
+        }
+
+        return tackleBoxRepo.getEventTackleBoxSummary(
+            fishermanId = fishermanId,
+            tackleBoxId = tackleBoxId,
+            eventId = eventId
+        )
+    }
 
     fun getLuresInTackleBox(
         tackleBoxId: String?
@@ -445,6 +470,7 @@ class AddEventViewModelFactory(
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val photoRepository: PhotoRepository,
+    private val tackleBoxRepository: TackleBoxRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -457,6 +483,7 @@ class AddEventViewModelFactory(
                 fishermanRepository,
                 fishRepository,
                 photoRepository,
+                tackleBoxRepository,
                 tripRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

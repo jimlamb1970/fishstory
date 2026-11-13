@@ -28,6 +28,7 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.ui.cards.FishermanSummaryCard
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.BadgeHelp
@@ -49,7 +50,7 @@ fun FishermanSummarySection(
     photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
-    getLuresInTacklebox: @Composable (fishermanId: String, tackleBoxId: String?) -> List<LureWithColorsSummary>,
+    getTackleBoxSummary: @Composable (fishermanId: String) -> Flow<TackleBoxSummary>,
     onAdd: () -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onAddTackleBox: (Fisherman) -> Unit,
@@ -136,9 +137,6 @@ fun FishermanSummarySection(
                 list.forEachIndexed { index, item ->
                     val selectedTackleBoxId = tackleBoxSelections[item.fisherman.id]
                     val availableBoxes = getTackleBoxesForFisherman(item.fisherman.id)
-                    val lures = getLuresInTacklebox(item.fisherman.id, selectedTackleBoxId)
-                        .sortedBy { it.lure.name }
-                    val lureCount = lures.size
 
                     FishermanSummaryCard(
                         item = item,
@@ -149,8 +147,7 @@ fun FishermanSummarySection(
                         photosFlow = photosFlow(item.fisherman),
                         selectedTackleBoxId = selectedTackleBoxId,
                         availableBoxes = availableBoxes,
-                        lureCount = lureCount,
-                        lures = lures,
+                        tackleBoxSummary = getTackleBoxSummary(item.fisherman.id),
                         onAddTackleBox = onAddTackleBox,
                         onAddLuresToTackleBox = onAddLuresToTackleBox,
                         onTackleBoxSelected = onTackleBoxSelected,

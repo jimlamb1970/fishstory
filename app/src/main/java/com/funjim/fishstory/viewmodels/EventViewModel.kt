@@ -17,6 +17,7 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -48,6 +48,7 @@ class EventViewModel(
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
+    private val tackleBoxRepo: TackleBoxRepository,
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
@@ -89,7 +90,6 @@ class EventViewModel(
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
     private val _selectedEventId = MutableStateFlow<String?>(null)
-    private val _eventCrewOverride = MutableStateFlow(false)
 
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
@@ -97,22 +97,6 @@ class EventViewModel(
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
-
-    // TODO -- check flows where filterNotNul is and see if they need to be changed
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tripTackleBoxMap: StateFlow<Map<String, String?>> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyMap()) // This clears the map when you set id to null
-            } else {
-                getTackleBoxMapForTrip(tripId = id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
 
     // TODO -- check flows where filterNotNul is and see if they need to be changed
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -156,17 +140,6 @@ class EventViewModel(
                 flowOf(null)
             } else {
                 tripRepo.getEventWithDetails(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventSummary = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventSummary(id)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -246,12 +219,19 @@ class EventViewModel(
         initialValue = emptyList()
     )
 
-    fun getFishermenForTrip(tripId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForTrip(tripId)
-    }
+    fun getTackleBoxSummary(
+        fishermanId: String
+    ): Flow<TackleBoxSummary> {
+        val eventId = _selectedEventId.value ?: return flowOf(
+            TackleBoxSummary(
+                tackleBox = null,
+                lures = emptyList()
+            )
+        )
 
-    fun getFishermenForEvent(eventId: String): Flow<List<Fisherman>> {
-        return fishermanRepo.getFishermenForEvent(eventId)
+        return tackleBoxRepo.getEventTackleBoxSummary(
+            fishermanId = fishermanId,
+            eventId = eventId)
     }
 
     fun getLuresInTackleBox(
@@ -790,23 +770,12 @@ class EventViewModel(
         )
     }
 
-    fun clearTrip() {
-        _selectedTripId.value = null
-    }
-    fun clearEvent() {
-        _selectedEventId.value = null
-    }
-
     fun selectTrip(id: String) {
         _selectedTripId.value = id
     }
 
     fun selectEvent(id: String) {
         _selectedEventId.value = id
-    }
-
-    fun updateEventCrewOverride(override: Boolean) {
-        _eventCrewOverride.value = override
     }
 
     fun insertTackleBox(
@@ -906,6 +875,7 @@ class EventViewModelFactory(
     private val fishRepository: FishRepository,
     private val lureRepository: LureRepository,
     private val photoRepository: PhotoRepository,
+    private val tacklerBoxRepository: TackleBoxRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(
@@ -923,6 +893,7 @@ class EventViewModelFactory(
                 fishRepository,
                 lureRepository,
                 photoRepository,
+                tacklerBoxRepository,
                 tripRepository,
                 savedStateHandle) as T
         }

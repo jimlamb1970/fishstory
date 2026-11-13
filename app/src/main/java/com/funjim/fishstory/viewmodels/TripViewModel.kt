@@ -16,6 +16,7 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
 import com.funjim.fishstory.repository.PhotoRepository
+import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.CategoryType
 import com.funjim.fishstory.ui.utils.LocationProvider
@@ -44,6 +45,7 @@ class TripViewModel(
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
     private val photoRepo: PhotoRepository,
+    private val tackleBoxRepo: TackleBoxRepository,
     private val tripRepo: TripRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
@@ -58,7 +60,7 @@ class TripViewModel(
     private val initialCategory: CategoryType = inputCategory?.let {
         try {
             CategoryType.valueOf(it)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     } ?: CategoryType.TARGET_SPECIES
@@ -71,8 +73,6 @@ class TripViewModel(
 
     // --- (UI State) ---
     private val _selectedTripId = MutableStateFlow<String?>(null)
-    val selectedTripId = _selectedTripId.asStateFlow()
-    private val _selectedEventId = MutableStateFlow<String?>(null)
 
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
@@ -141,7 +141,6 @@ class TripViewModel(
 
     // --- Data Streams ---
     private val allTripSummaries = tripRepo.allTripSummaries
-    val allTrips = tripRepo.allTrips
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedTripDetailedSummary = _selectedTripId
@@ -404,16 +403,8 @@ class TripViewModel(
 
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
-    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
-        return tripRepo.getTripWithFishermen(tripId)
-    }
-
     fun getTackleBoxesForFisherman(fishermanId: String): Flow<List<TackleBox>> {
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
-    }
-
-    fun getLureCountForTackleBox(tackleBoxId: String?): Flow<Int> {
-        return fishermanRepo.getLuresInTackleBox(tackleBoxId ?: "").map { it.size }
     }
 
     // TODO -- check flows where filterNotNul is and see if they need to be changed
@@ -435,36 +426,6 @@ class TripViewModel(
     fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> {
         return tripRepo.getTackleBoxMapForTrip(tripId)
     }
-
-    fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> {
-        return tripRepo.getTackleBoxMapForEvent(eventId)
-    }
-
-    // TODO -- add sorting on Trip summaries
-    val tripSummaries: StateFlow<List<TripSummary>> = allTripSummaries
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedTripSummary: StateFlow<TripSummary?> = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                // We watch the master list and filter for the matching ID
-                tripSummaries.map { list ->
-                    list.find { it.trip.id == id }
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
 
     // Body of Water Thumbnails and Photos
     fun deleteBodyOfWaterThumbnail(id: String) {
@@ -569,6 +530,21 @@ class TripViewModel(
     // Water Thumbnails
     fun getWaterClarityThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchWaterClarityThumbnail(id).flowOn(Dispatchers.IO)
+    }
+
+    fun getTackleBoxSummary(
+        fishermanId: String
+    ): Flow<TackleBoxSummary> {
+        val tripId = _selectedTripId.value ?: return flowOf(
+            TackleBoxSummary(
+                tackleBox = null,
+                lures = emptyList()
+            )
+        )
+
+        return tackleBoxRepo.getTripTackleBoxSummary(
+            fishermanId = fishermanId,
+            tripId = tripId)
     }
 
     fun getLuresInTackleBox(
@@ -898,9 +874,6 @@ class TripViewModel(
         }
     }
 
-    fun clearTrip() {
-        _selectedTripId.value = null
-    }
     fun deleteTrip() {
         val tripId = _selectedTripId.value ?: return
         viewModelScope.launch {
@@ -948,6 +921,7 @@ class TripViewModelFactory(
     private val fishRepository: FishRepository,
     private val lureRepository: LureRepository,
     private val photoRepository: PhotoRepository,
+    private val tackleBoxRepository: TackleBoxRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(
@@ -965,6 +939,7 @@ class TripViewModelFactory(
                 fishRepository,
                 lureRepository,
                 photoRepository,
+                tackleBoxRepository,
                 tripRepository,
                 savedStateHandle) as T
         }

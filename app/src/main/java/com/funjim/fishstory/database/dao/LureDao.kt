@@ -311,6 +311,64 @@ interface LureDao {
                     ON ft_sub.eventId = target.eventId 
                     AND ft_sub.speciesId = target.speciesId
                 WHERE ft_sub.lureId = l.id
+                  AND ft_sub.eventId = :eventId
+                  AND ft_sub.fishermanId = :fishermanId
+            ), 0
+        ) as targetFishCaught,
+
+        COALESCE(
+            (
+                SELECT SUM(
+                    CASE 
+                        WHEN target.eventId IS NOT NULL THEN ft_sub.keptCount 
+                        ELSE 0 
+                    END
+                )
+                FROM fish_table AS ft_sub
+                LEFT JOIN event_target_species AS target 
+                    ON ft_sub.eventId = target.eventId 
+                    AND ft_sub.speciesId = target.speciesId
+                WHERE ft_sub.lureId = l.id
+                  AND ft_sub.eventId = :eventId
+                  AND ft_sub.fishermanId = :fishermanId
+            ), 0
+        ) as targetFishKept,
+
+        MAX(f.length) AS largestFish,
+        MIN(f.length) AS smallestFish
+    FROM lure_table AS l
+    INNER JOIN tackle_box_lure AS tb_lure ON l.id = tb_lure.lureId
+    LEFT JOIN fish_table AS f ON l.id = f.lureId 
+        AND f.eventId = :eventId 
+        AND f.fishermanId = :fishermanId
+    WHERE tb_lure.tackleBoxId = :tackleBoxId
+    GROUP BY l.id
+""")
+    fun getLureSummariesForFishermanOnEvent(
+        fishermanId: String,
+        tackleBoxId: String,
+        eventId: String
+    ): Flow<List<LureEntityWithColorsSummary>>
+    @Transaction
+    @Query("""
+    SELECT 
+        l.*, 
+        COALESCE(SUM(f.caughtCount), 0) AS fishCaught,
+        COALESCE(SUM(f.keptCount), 0) AS fishKept,
+
+        COALESCE(
+            (
+                SELECT SUM(
+                    CASE 
+                        WHEN target.eventId IS NOT NULL THEN ft_sub.caughtCount 
+                        ELSE 0 
+                    END
+                )
+                FROM fish_table AS ft_sub
+                LEFT JOIN event_target_species AS target 
+                    ON ft_sub.eventId = target.eventId 
+                    AND ft_sub.speciesId = target.speciesId
+                WHERE ft_sub.lureId = l.id
                   AND ft_sub.tripId = :tripId
                   AND ft_sub.fishermanId = :fishermanId
             ), 0

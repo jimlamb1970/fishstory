@@ -690,9 +690,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 viewModel.getTackleBoxesForFisherman(fishermanId)
                                                     .collectAsState(initial = emptyList()).value
                                             },
-                                            getLuresInTacklebox = { _, tackleBoxId ->
-                                                viewModel.getLuresInTackleBox(tackleBoxId)
-                                                    .collectAsState(initial = emptyList()).value
+                                            getTackleBoxSummary = { fishermanId ->
+                                                viewModel.getTackleBoxSummary(fishermanId, eventTackleBoxMap[fishermanId])
                                             },
                                             onAdd = {
                                                 showFishermanSelection = true

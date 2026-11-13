@@ -52,6 +52,7 @@ import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
+import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.FishCaughtItem
@@ -300,8 +301,7 @@ fun FishermanSummaryCard(
     photosFlow: Flow<List<Photo>>,
     selectedTackleBoxId: String?,
     availableBoxes: List<TackleBox>,
-    lureCount: Int,
-    lures: List<LureWithColorsSummary>,
+    tackleBoxSummary: Flow<TackleBoxSummary>,
     onAddTackleBox: (Fisherman) -> Unit,
     onAddLuresToTackleBox: (TackleBox) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
@@ -317,6 +317,7 @@ fun FishermanSummaryCard(
 
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
     val photos by photosFlow.collectAsState(initial = emptyList())
+    val tackleBox by tackleBoxSummary.collectAsState(initial = null)
 
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
@@ -330,19 +331,22 @@ fun FishermanSummaryCard(
     var showTackleBoxSelection by remember { mutableStateOf(false) }
     var luresExpanded by remember { mutableStateOf(false) }
 
-    val sortedLures by remember(lures) {
+    var sortOrder by remember { mutableStateOf(LureSortOrder.NAME) }
+    val sortedLures by remember(tackleBox?.lures, sortOrder) {
         derivedStateOf {
-            sortLures(lureList = lures, order = LureSortOrder.NAME)
+            sortLures(lureList = tackleBox?.lures ?: emptyList(), order = sortOrder)
         }
     }
+    val lureCount = sortedLures.size
 
-    var showPhotos by remember { mutableStateOf(false) }
-
+    // Need to differentiate between a tackle box and a smart tackle box.
     val tackleBoxName = selectedTackleBox?.name ?: if (sortedLures.isEmpty()) {
         "No Tackle Box selected"
     } else {
         "<Smart Tackle Box>"
     }
+
+    var showPhotos by remember { mutableStateOf(false) }
 
     OutlinedCard(
         modifier = modifier
@@ -438,17 +442,10 @@ fun FishermanSummaryCard(
                                     if (selectedTackleBox != null) {
                                         onAddLuresToTackleBox(selectedTackleBox)
                                     } else {
-                                        if (lureCount > 0) {
-                                            Toast.makeText(
-                                                context,
-                                                "Lures cannot be added to a 'Smart Tackle Box'",
-                                                Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Please select a tackle box in order to add lures",
-                                                Toast.LENGTH_SHORT).show()
-                                        }
+                                        Toast.makeText(
+                                            context,
+                                            "Lures cannot be added to a '<Smart Tackle Box>'",
+                                            Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 contentColor = secondaryContentColor
@@ -609,7 +606,7 @@ fun FishermanSummaryCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (sortedLures.isNotEmpty()) {
-                        sortedLures.forEach { lure ->
+                        sortedLures.forEachIndexed { index, lure ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -617,6 +614,13 @@ fun FishermanSummaryCard(
                                     .weight(1f)
                                     .padding(start = 50.dp)
                                 ) {
+                                    if (index != 0) {
+                                        HorizontalDivider(
+                                            color = borderColor,
+                                            modifier = Modifier.padding(end = 50.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
                                     LureCompositionWithColors(
                                         name = "• ${lure.lure.name}",
                                         lure.primaryColors,

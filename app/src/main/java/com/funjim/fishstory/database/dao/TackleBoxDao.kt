@@ -83,6 +83,18 @@ interface TackleBoxDao {
     @Query("""
     SELECT * FROM tackle_box_table 
     WHERE id IN (
+        SELECT tackleBoxId FROM event_fisherman 
+        WHERE eventId = :eventId AND fishermanId = :fishermanId
+    )
+    LIMIT 1
+""")
+    fun getTackleBoxForFishermanOnEvent(
+        fishermanId: String,
+        eventId: String
+    ): Flow<TackleBoxEntity?>
+    @Query("""
+    SELECT * FROM tackle_box_table 
+    WHERE id IN (
         SELECT tackleBoxId FROM trip_fisherman 
         WHERE tripId = :tripId AND fishermanId = :fishermanId
     )
