@@ -20,7 +20,7 @@ import com.funjim.fishstory.viewmodels.AddTripViewModelFactory
 import com.funjim.fishstory.viewmodels.BaitViewModelFactory
 import com.funjim.fishstory.viewmodels.BodyOfWaterViewModelFactory
 import com.funjim.fishstory.viewmodels.DashboardViewModelFactory
-import com.funjim.fishstory.viewmodels.EventViewModelFactory
+import com.funjim.fishstory.viewmodels.EventDetailsViewModelFactory
 import com.funjim.fishstory.viewmodels.FishDetailsViewModelFactory
 import com.funjim.fishstory.viewmodels.FishViewModelFactory
 import com.funjim.fishstory.viewmodels.ImportViewModelFactory
@@ -187,7 +187,12 @@ class FishstoryApplication : Application() {
         tripRepo = tripRepository
     )
 
-    fun getEventViewModelFactory() = EventViewModelFactory(
+    fun getEventViewModelFactory(
+        tripId: String,
+        eventId: String
+    ) = EventDetailsViewModelFactory(
+            tripId = tripId,
+            eventId = eventId,
             locationProvider = locationProvider,
             configurationRepository,
             environmentRepository,

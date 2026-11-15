@@ -91,7 +91,7 @@ import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
 import com.funjim.fishstory.ui.selection.LimitSelection
 import com.funjim.fishstory.viewmodels.EventDetailsUiState
-import com.funjim.fishstory.viewmodels.EventViewModel
+import com.funjim.fishstory.viewmodels.EventDetailsViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -101,7 +101,7 @@ import androidx.core.net.toUri
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsScreen(
-    viewModel: EventViewModel,
+    viewModel: EventDetailsViewModel,
     tripId: String,
     eventId: String,
     navigateToAddFish: () -> Unit,
@@ -112,11 +112,6 @@ fun EventDetailsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
-
-    LaunchedEffect(eventId) {
-        viewModel.selectTrip(tripId)
-        viewModel.selectEvent(eventId)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->

@@ -40,7 +40,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-class EventViewModel(
+class EventDetailsViewModel(
+    private val tripId: String,
+    private val eventId: String,
     private val locationProvider: LocationProvider,
     private val configRepo: ConfigurationRepository,
     private val envRepo: EnvironmentRepository,
@@ -53,11 +55,7 @@ class EventViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), LocationProvider by locationProvider {
     val appSettings: StateFlow<AppSettings> = configRepo.appSettings
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppSettings()
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
 
     private val inputCategory: String? = savedStateHandle["category"]
     private val initialCategory: CategoryType = inputCategory?.let {
@@ -88,9 +86,6 @@ class EventViewModel(
     }
 
     // --- (UI State) ---
-    private val _selectedTripId = MutableStateFlow<String?>(null)
-    private val _selectedEventId = MutableStateFlow<String?>(null)
-
     val fishermen: Flow<List<Fisherman>> = fishermanRepo.allFishermen
 
     // --- Data Streams ---
@@ -98,137 +93,75 @@ class EventViewModel(
         return fishermanRepo.getTackleBoxesForFisherman(fishermanId)
     }
 
-    // TODO -- check flows where filterNotNul is and see if they need to be changed
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val eventTackleBoxMap: StateFlow<Map<String, String?>> = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(emptyMap()) // This clears the map when you set id to null
-            } else {
-                getTackleBoxMapForEvent(eventId = id)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
-
-    fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> {
-        return tripRepo.getTackleBoxMapForTrip(tripId)
-    }
+    val eventTackleBoxMap: StateFlow<Map<String, String?>> =
+        getTackleBoxMapForEvent(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> {
         return tripRepo.getTackleBoxMapForEvent(eventId)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedTrip = _selectedTripId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getTripWithFishermenAndSpecies(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val selectedTrip =
+        tripRepo.getTripWithFishermenAndSpecies(tripId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventWithDetails = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventWithDetails(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val selectedEventWithDetails =
+        tripRepo.getEventWithDetails(eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedEventDetailedSummary = _selectedEventId
-        .flatMapLatest { id ->
-            if (id == null) {
-                flowOf(null)
-            } else {
-                tripRepo.getEventDetailedSummary(id)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val selectedEventDetailedSummary =
+        tripRepo.getEventDetailedSummary(eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val fishermanSummaries: StateFlow<List<FishermanSummary>> =
+        fishRepo.getEventFishermanSummaries(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val limitSummaries: StateFlow<List<LimitSummary>> = combine(
-        _selectedEventId,
-        _selectedTripId
-    ) { eventId, tripId ->
-        eventId to tripId
-    }.flatMapLatest { (eventId, tripId) ->
-        if (eventId.isNullOrBlank()) {
+        fishRepo.getLimitsForEvent(eventId),
+        fishRepo.getLimitsForTrip(tripId),
+        fishermanSummaries
+    ) { eventLimits, tripLimits, fishermen ->
+        // Map limits to Scoped items
+        val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }
+        val scopedTripLimits = tripLimits.map { it to LimitScope.TRIP }
+
+        val combinedScopedLimits = (scopedEventLimits + scopedTripLimits)
+            .distinctBy { (limit, _) -> limit.id }
+
+        val numFishermen = fishermen.size.coerceAtLeast(1)
+
+        combinedScopedLimits to numFishermen
+    }.flatMapLatest { (scopedLimits, numFishermen) ->
+        if (scopedLimits.isEmpty()) {
             flowOf(emptyList())
         } else {
-            val eventLimitsFlow = fishRepo.getLimitsForEvent(eventId)
-            val tripLimitsFlow = if (tripId.isNullOrBlank()) {
-                flowOf(emptyList())
-            } else {
-                fishRepo.getLimitsForTrip(tripId)
-            }
+            val countFlows = scopedLimits.map { (limit, scope) ->
+                fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
+                    val singleEventSummary = LimitEventSummary(
+                        limit = limit,
+                        event = null,
+                        fishermanCount = numFishermen,
+                        caughtCount = caught
+                    )
 
-            combine(
-                eventLimitsFlow,
-                tripLimitsFlow,
-                fishermanSummaries
-            ) { eventLimits, tripLimits, fishermen ->
-                // Map limits to Scoped items
-                val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }
-                val scopedTripLimits = tripLimits.map { it to LimitScope.TRIP }
-
-                val combinedScopedLimits = (scopedEventLimits + scopedTripLimits)
-                    .distinctBy { (limit, _) -> limit.id }
-
-                val numFishermen = fishermen.size.coerceAtLeast(1)
-
-                combinedScopedLimits to numFishermen
-            }.flatMapLatest { (scopedLimits, numFishermen) ->
-                if (scopedLimits.isEmpty()) {
-                    flowOf(emptyList())
-                } else {
-                    val countFlows = scopedLimits.map { (limit, scope) ->
-                        fishRepo.getCaughtCountForLimit(eventId, limit).map { caught ->
-                            val singleEventSummary = LimitEventSummary(
-                                limit = limit,
-                                event = null, // Or pass active event if available in scope
-                                fishermanCount = numFishermen,
-                                caughtCount = caught
-                            )
-
-                            LimitSummary(
-                                limit = limit,
-                                summaryList = listOf(singleEventSummary),
-                                scope = scope
-                            )
-                        }
-                    }
-                    combine(countFlows) { summariesArray ->
-                        summariesArray.toList()
-                    }
+                    LimitSummary(
+                        limit = limit,
+                        summaryList = listOf(singleEventSummary),
+                        scope = scope
+                    )
                 }
             }
+            combine(countFlows) { summariesArray ->
+                summariesArray.toList()
+            }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptyList()
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun getTackleBoxSummary(
         fishermanId: String
     ): Flow<TackleBoxSummary> {
-        val eventId = _selectedEventId.value ?: return flowOf(
-            TackleBoxSummary(
-                tackleBox = null,
-                lures = emptyList()
-            )
-        )
-
         return tackleBoxRepo.getEventTackleBoxSummary(
             fishermanId = fishermanId,
             eventId = eventId)
@@ -238,9 +171,6 @@ class EventViewModel(
         fishermanId: String?,
         tackleBoxId: String?
     ): Flow<List<LureWithColorsSummary>> {
-        val tripId = _selectedTripId.value ?: return flowOf(emptyList())
-        val eventId = _selectedEventId.value ?: return flowOf(emptyList())
-
         return if (tackleBoxId == null) {
             lureRepo.getLureSummariesWithColors(
                 tripId = tripId,
@@ -256,106 +186,42 @@ class EventViewModel(
         }
     }
 
-    val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val allBodiesOfWater: StateFlow<List<BodyOfWater>> =
+        envRepo.allBodiesOfWater
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val allLimits: StateFlow<List<LimitWithSpecies>> = fishRepo.getAllLimits()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val allLimits: StateFlow<List<LimitWithSpecies>> =
+        fishRepo.getAllLimits()
+            .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
 
-    val allSkyConditions: StateFlow<List<SkyCondition>> = envRepo.allSkyConditions
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val allSkyConditions: StateFlow<List<SkyCondition>> =
+        envRepo.allSkyConditions
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val allSpecies: StateFlow<List<Species>> = fishRepo.allSpecies
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val allSpecies: StateFlow<List<Species>> =
+        fishRepo.allSpecies
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val allWaterClarity: StateFlow<List<WaterClarity>> = envRepo.allWaterClarity
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val allWaterClarity: StateFlow<List<WaterClarity>> =
+        envRepo.allWaterClarity
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val bodyOfWaterSummaries: StateFlow<List<BodyOfWaterSummary>> =
+        fishRepo.getEventBodyOfWaterSummaries(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> =
+        fishRepo.getEventTargetSpeciesSummaries(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val waterSummaries: StateFlow<List<WaterSummary>> =
+        fishRepo.getWaterSummaries(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val bodyOfWaterSummaries: StateFlow<List<BodyOfWaterSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            if (eventId == null) {
-                flowOf(emptyList()) // This clears the map when you set id to null
-            } else {
-                fishRepo.getEventBodyOfWaterSummaries(eventId = eventId)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val fishermanSummaries: StateFlow<List<FishermanSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            if (eventId == null) {
-                flowOf(emptyList()) // Clear if either ID is missing
-            } else {
-                fishRepo.getEventFishermanSummaries(eventId = eventId)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val targetSpeciesSummaries: StateFlow<List<SpeciesSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            if (eventId == null) {
-                flowOf(emptyList()) // Clear if either ID is missing
-            } else {
-                fishRepo.getEventTargetSpeciesSummaries(eventId = eventId)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val waterSummaries: StateFlow<List<WaterSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            fishRepo.getWaterSummaries(eventId = eventId)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val weatherSummaries: StateFlow<List<WeatherSummary>> = _selectedEventId
-        .flatMapLatest { eventId ->
-            fishRepo.getWeatherSummaries(eventId = eventId)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val weatherSummaries: StateFlow<List<WeatherSummary>> =
+        fishRepo.getWeatherSummaries(eventId = eventId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),emptyList())
 
     val uiState: StateFlow<EventDetailsUiState> = combine(
         selectedEventWithDetails,
@@ -370,11 +236,7 @@ class EventViewModel(
         } else {
             EventDetailsUiState.Loading
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = EventDetailsUiState.Loading
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EventDetailsUiState.Loading)
 
     fun addBodyOfWater(
         item: BodyOfWater,
@@ -461,8 +323,6 @@ class EventViewModel(
             .flowOn(Dispatchers.IO)
     }
     fun eventThumbnail(): Flow<ByteArray?> {
-        val eventId = _selectedEventId.value ?: return(flowOf(null))
-
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO)
     }
@@ -530,7 +390,6 @@ class EventViewModel(
     // --- Actions ---
     // Event functions
     fun deleteEvent() {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             tripRepo.deleteEventById(eventId)
         }
@@ -546,7 +405,6 @@ class EventViewModel(
         limit: LimitWithSpecies,
         onSuccess: (Boolean) -> Unit
     ) {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             if (fishRepo.limitExists(limit)) {
                 _toastMessage.emit("Limit '${limit.name}' already exists.")
@@ -562,7 +420,6 @@ class EventViewModel(
     }
 
     fun addLimitToEvent(limit: LimitWithSpecies) {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.addLimitToEvent(
                 limitId = limit.id,
@@ -572,7 +429,6 @@ class EventViewModel(
     }
 
     fun removeLimitFromEvent(limit: LimitWithSpecies) {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             fishRepo.removeLimitFromEvent(
                 limitId = limit.id,
@@ -583,7 +439,6 @@ class EventViewModel(
 
     // Note functions
     fun addNote(noteId: String?, content: String) {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             if (noteId == null) {
                 tripRepo.addNoteToEvent(eventId, content)
@@ -683,9 +538,6 @@ class EventViewModel(
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        val eventId = _selectedEventId.value ?: return
-        val tripId = _selectedTripId.value ?: return
-
         viewModelScope.launch {
             val result = tripRepo.addFishermanToEventAndTrip(
                 tripId = tripId,
@@ -704,7 +556,6 @@ class EventViewModel(
         tackleBox: TackleBox,
         onSuccess: (TackleBox) -> Unit
     ) {
-        val eventId = _selectedEventId.value ?: return
         viewModelScope.launch {
             try {
                 fishermanRepo.insertTackleBox(tackleBox)
@@ -728,8 +579,6 @@ class EventViewModel(
         fishermanId: String,
         tackleBoxId: String? = null
     ) {
-        val eventId = _selectedEventId.value ?: return
-
         viewModelScope.launch {
             tripRepo.updateEventFisherman(
                 EventFisherman(eventId, fishermanId, tackleBoxId)
@@ -740,8 +589,6 @@ class EventViewModel(
     fun deleteFishermanFromEvent(
         fishermanId: String
     ) {
-        val eventId = _selectedEventId.value ?: return
-
         viewModelScope.launch {
             tripRepo.deleteEventFisherman(EventFisherman(eventId, fishermanId))
         }
@@ -768,14 +615,6 @@ class EventViewModel(
             newBodyOfWaterId = newBodyOfWaterId,
             eventId = eventId
         )
-    }
-
-    fun selectTrip(id: String) {
-        _selectedTripId.value = id
-    }
-
-    fun selectEvent(id: String) {
-        _selectedEventId.value = id
     }
 
     fun insertTackleBox(
@@ -808,9 +647,6 @@ class EventViewModel(
     private val json = Json { prettyPrint = true }
 
     suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {
-        val eventId = _selectedEventId.value ?: return false
-        val tripId = _selectedTripId.value ?: return false
-
         return withContext(Dispatchers.IO) {
             try {
                 val trip = tripRepo.getTripById(tripId) ?: return@withContext false
@@ -867,7 +703,9 @@ sealed interface EventDetailsUiState {
     ) : EventDetailsUiState
 }
 
-class EventViewModelFactory(
+class EventDetailsViewModelFactory(
+    private val tripId: String,
+    private val eventId: String,
     private val locationProvider: LocationProvider,
     private val configurationRepository: ConfigurationRepository,
     private val environmentRepository: EnvironmentRepository,
@@ -882,10 +720,12 @@ class EventViewModelFactory(
         modelClass: Class<T>,
         extras: CreationExtras
     ): T {
-        if (modelClass.isAssignableFrom(EventViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(EventDetailsViewModel::class.java)) {
             val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
-            return EventViewModel(
+            return EventDetailsViewModel(
+                tripId,
+                eventId,
                 locationProvider,
                 configurationRepository,
                 environmentRepository,

@@ -745,9 +745,11 @@ fun AppNavigation(
             val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
 
             val app = navController.context.applicationContext as FishstoryApplication
-            val viewModel: EventViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = app.getEventViewModelFactory()
-            )
+            val viewModel: EventDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = app.getEventViewModelFactory(
+                    tripId = tripId,
+                    eventId = eventId)
+                )
 
             EventDetailsScreen(
                 viewModel = viewModel,
