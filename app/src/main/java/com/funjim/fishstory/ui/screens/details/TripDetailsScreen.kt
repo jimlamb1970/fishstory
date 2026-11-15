@@ -92,7 +92,7 @@ import com.funjim.fishstory.ui.selection.BodyOfWaterSelection
 import com.funjim.fishstory.ui.selection.FishermanSelection
 import com.funjim.fishstory.ui.selection.SpeciesSelection
 import com.funjim.fishstory.viewmodels.TripDetailsUiState
-import com.funjim.fishstory.viewmodels.TripViewModel
+import com.funjim.fishstory.viewmodels.TripDetailsViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,7 +106,7 @@ import com.funjim.fishstory.ui.utils.BadgeHelp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripDetailsScreen(
-    viewModel: TripViewModel,
+    viewModel: TripDetailsViewModel,
     tripId: String,
     navigateToFishList: (FishFilter) -> Unit,
     navigateToAddEvent: (String) -> Unit,
@@ -116,10 +116,6 @@ fun TripDetailsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    LaunchedEffect(tripId) {
-        viewModel.selectTrip(tripId)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->

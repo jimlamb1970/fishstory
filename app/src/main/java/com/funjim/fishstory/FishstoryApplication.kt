@@ -28,8 +28,8 @@ import com.funjim.fishstory.viewmodels.LimitViewModelFactory
 import com.funjim.fishstory.viewmodels.LureViewModelFactory
 import com.funjim.fishstory.viewmodels.MainViewModelFactory
 import com.funjim.fishstory.viewmodels.SkyConditionViewModelFactory
+import com.funjim.fishstory.viewmodels.TripDetailsViewModelFactory
 import com.funjim.fishstory.viewmodels.TripListViewModelFactory
-import com.funjim.fishstory.viewmodels.TripViewModelFactory
 import com.funjim.fishstory.viewmodels.WaterClarityViewModelFactory
 import kotlin.getValue
 
@@ -260,17 +260,19 @@ class FishstoryApplication : Application() {
         photoRepository
     )
 
-    fun getTripViewModelFactory() = TripViewModelFactory(
-        locationProvider = locationProvider,
-        configurationRepository,
-        environmentRepository,
-        fishermanRepository,
-        fishRepository,
-        lureRepository,
-        photoRepository,
-        tackleBoxRepository,
-        tripRepository
-    )
+    fun getTripDetailsViewModelFactory(tripId: String) =
+        TripDetailsViewModelFactory(
+            tripId = tripId,
+            locationProvider = locationProvider,
+            configurationRepository,
+            environmentRepository,
+            fishermanRepository,
+            fishRepository,
+            lureRepository,
+            photoRepository,
+            tackleBoxRepository,
+            tripRepository
+        )
 
     fun getTripListViewModelFactory() = TripListViewModelFactory(
         locationProvider = locationProvider,
