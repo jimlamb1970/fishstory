@@ -110,14 +110,14 @@ class TripDetailsViewModel(
         }
     }
 
-    fun onConfirmConversion(includeEvents: Boolean) {
+    fun onConfirmTackleBoxConversion(includeEvents: Boolean) {
         viewModelScope.launch {
             fishermanRepo.convertTripToSmartTackleBoxes(tripId, includeEvents)
             showSmartTackleBoxPrompt = false
         }
     }
 
-    fun onDismissPrompt() {
+    fun onDismissSmartTackleBoxPrompt() {
         showSmartTackleBoxPrompt = false
     }
 

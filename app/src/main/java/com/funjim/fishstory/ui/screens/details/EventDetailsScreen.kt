@@ -127,6 +127,8 @@ fun EventDetailsScreen(
     }
     val now = System.currentTimeMillis()
 
+    val showSmartTackleBoxPrompt = viewModel.showSmartTackleBoxPrompt
+
     var menuExpanded by remember { mutableStateOf(false) }
 
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
@@ -153,6 +155,7 @@ fun EventDetailsScreen(
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
 
+    var showBodyOfWaterToUpdateDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
 
     var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
@@ -977,6 +980,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             },
                                             onClick = { bodyOfWater ->
                                                 bodyOfWaterToUpdateAll = bodyOfWater
+                                                showBodyOfWaterToUpdateDialog = true
                                             },
                                             onDelete = { bodyOfWater ->
                                                 bodyOfWaterToDelete = bodyOfWater
@@ -1932,26 +1936,32 @@ Selecting them places those species at the top of the list when logging catches 
         }
     }
 
-    bodyOfWaterToUpdateAll?.let { bodyOfWater ->
-        GeneralDialog(
-            title = "Update Catches",
-            message = "Do you want to update all the fish caught for this event to use the body of water '${bodyOfWater.name}'?",
-            onDismiss = {
-                bodyOfWaterToUpdateAll = null
-            },
-            onConfirm = {
-                scope.launch {
-                    viewModel.updateBodyOfWaterForEvent(
-                        newBodyOfWaterId = bodyOfWater.id,
-                        eventId = eventId
-                    )
-                    Toast.makeText(context, "Catches updated to '${bodyOfWater.name}'", Toast.LENGTH_SHORT).show()
-                    bodyOfWaterToUpdateAll = null
-                }
-            },
-            confirmButtonText = "Yes",
-            dismissButtonText = "No"
-        )
+    if (showBodyOfWaterToUpdateDialog) {
+        bodyOfWaterToUpdateAll?.let { bodyOfWater ->
+            GeneralDialog(
+                title = "Update Catches",
+                message = "Do you want to update all the fish caught for this event to use the body of water '${bodyOfWater.name}'?",
+                onDismiss = {
+                    showBodyOfWaterToUpdateDialog = !showBodyOfWaterToUpdateDialog
+                },
+                onConfirm = {
+                    scope.launch {
+                        viewModel.updateBodyOfWaterForEvent(
+                            newBodyOfWaterId = bodyOfWater.id,
+                            eventId = eventId
+                        )
+                        Toast.makeText(
+                            context,
+                            "Catches updated to '${bodyOfWater.name}'",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        showBodyOfWaterToUpdateDialog = !showBodyOfWaterToUpdateDialog
+                    }
+                },
+                confirmButtonText = "Yes",
+                dismissButtonText = "No"
+            )
+        }
     }
 
     selectedFisherman?.let { selectedFisherman ->
@@ -1966,5 +1976,43 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             )
         }
+    }
+
+    if (showSmartTackleBoxPrompt) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.onDismissSmartTackleBoxPrompt()
+            },
+            title = {
+                Text("Convert to Smart Tackle Boxes?")
+            },
+            text = {
+                Column {
+                    Text("""This event has ended.  
+                        |
+                        |Would you like to convert your assigned tackle boxes to <Smart Tackle Boxes> for cleaner catch analytics?
+                        |
+                        |This will also help streamline your tackle box management.""".trimMargin())
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.onConfirmTackleBoxConversion()
+                    }
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        viewModel.onDismissSmartTackleBoxPrompt()
+                    }
+                ) {
+                    Text("No")
+                }
+            }
+        )
     }
 }

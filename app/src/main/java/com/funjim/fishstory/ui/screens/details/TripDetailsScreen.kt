@@ -2048,7 +2048,7 @@ Selecting them places those species at the top of the list when logging catches 
     if (showSmartTackleBoxPrompt) {
         AlertDialog(
             onDismissRequest = {
-                viewModel.onDismissPrompt()
+                viewModel.onDismissSmartTackleBoxPrompt()
             },
             title = {
                 Text("Convert to Smart Tackle Boxes?")
@@ -2082,7 +2082,7 @@ Selecting them places those species at the top of the list when logging catches 
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.onConfirmConversion(includeEventsCheckbox)
+                        viewModel.onConfirmTackleBoxConversion(includeEventsCheckbox)
                     }
                 ) {
                     Text(text = "Yes")
@@ -2091,7 +2091,7 @@ Selecting them places those species at the top of the list when logging catches 
             dismissButton = {
                 Button(
                     onClick = {
-                        viewModel.onDismissPrompt()
+                        viewModel.onDismissSmartTackleBoxPrompt()
                     }
                 ) {
                     Text("No")

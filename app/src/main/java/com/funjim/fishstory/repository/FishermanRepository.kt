@@ -262,4 +262,7 @@ class FishermanRepository(
             fishermanDao.clearTackleBoxesForEventsInTrip(tripId)
         }
     }
+    suspend fun convertEventToSmartTackleBoxes(eventId: String) {
+        fishermanDao.clearTackleBoxesForEvent(eventId)
+    }
 }

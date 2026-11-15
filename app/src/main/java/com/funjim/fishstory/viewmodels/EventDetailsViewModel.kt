@@ -3,6 +3,9 @@ package com.funjim.fishstory.viewmodels
 import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -83,6 +86,39 @@ class EventDetailsViewModel(
     val showPhotos: StateFlow<Boolean> = _showPhotos.asStateFlow()
     fun toggleShowPhotos() {
         _showPhotos.value = !_showPhotos.value
+    }
+
+
+    var showSmartTackleBoxPrompt by mutableStateOf(false)
+        private set
+
+    init {
+        checkAndPromptForSmartTackleBox()
+    }
+
+    private fun checkAndPromptForSmartTackleBox() {
+        viewModelScope.launch {
+            val event = tripRepo.getEventById(eventId) // Assuming you have a trip fetcher
+            val currentTime = System.currentTimeMillis()
+
+            if (event != null && event.endTime < currentTime) {
+                val hasPhysicalBoxes = fishermanRepo.hasAssignedTackleBoxes(eventId = eventId)
+                if (hasPhysicalBoxes) {
+                    showSmartTackleBoxPrompt = true
+                }
+            }
+        }
+    }
+
+    fun onConfirmTackleBoxConversion() {
+        viewModelScope.launch {
+            fishermanRepo.convertEventToSmartTackleBoxes(eventId)
+            showSmartTackleBoxPrompt = false
+        }
+    }
+
+    fun onDismissSmartTackleBoxPrompt() {
+        showSmartTackleBoxPrompt = false
     }
 
     // --- (UI State) ---
