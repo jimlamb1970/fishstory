@@ -246,4 +246,20 @@ class FishermanRepository(
     suspend fun deleteTackleBox(tackleBox: TackleBox) {
         tackleBoxDao.deleteTackleBox(tackleBox.toEntity())
     }
+
+    suspend fun hasAssignedTackleBoxes(
+        tripId: String? = null,
+        eventId: String? = null
+    ): Boolean {
+        return if (tripId != null) fishermanDao.getTackleBoxCountForTrip(tripId) > 0
+            else if (eventId != null) fishermanDao.getTackleBoxCountForEvent(eventId) > 0
+            else false
+    }
+
+    suspend fun convertTripToSmartTackleBoxes(tripId: String, includeEvents: Boolean) {
+        fishermanDao.clearTackleBoxesForTrip(tripId)
+        if (includeEvents) {
+            fishermanDao.clearTackleBoxesForEventsInTrip(tripId)
+        }
+    }
 }

@@ -2,6 +2,9 @@ package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -73,8 +76,6 @@ class TripDetailsViewModel(
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
     // --- (UI State) ---
-    private val tripIdFlow: Flow<String?> = savedStateHandle.getStateFlow("tripId", null)
-
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
@@ -86,6 +87,38 @@ class TripDetailsViewModel(
     val showPhotos: StateFlow<Boolean> = _showPhotos.asStateFlow()
     fun toggleShowPhotos() {
         _showPhotos.value = !_showPhotos.value
+    }
+
+    var showSmartTackleBoxPrompt by mutableStateOf(false)
+        private set
+
+    init {
+        checkAndPromptForSmartTackleBox()
+    }
+
+    private fun checkAndPromptForSmartTackleBox() {
+        viewModelScope.launch {
+            val trip = tripRepo.getTripById(tripId) // Assuming you have a trip fetcher
+            val currentTime = System.currentTimeMillis()
+
+            if (trip != null && trip.endDate < currentTime) {
+                val hasPhysicalBoxes = fishermanRepo.hasAssignedTackleBoxes(tripId)
+                if (hasPhysicalBoxes) {
+                    showSmartTackleBoxPrompt = true
+                }
+            }
+        }
+    }
+
+    fun onConfirmConversion(includeEvents: Boolean) {
+        viewModelScope.launch {
+            fishermanRepo.convertTripToSmartTackleBoxes(tripId, includeEvents)
+            showSmartTackleBoxPrompt = false
+        }
+    }
+
+    fun onDismissPrompt() {
+        showSmartTackleBoxPrompt = false
     }
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater

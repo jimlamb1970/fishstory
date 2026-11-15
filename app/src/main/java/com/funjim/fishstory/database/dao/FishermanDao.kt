@@ -29,16 +29,18 @@ interface FishermanDao {
     suspend fun insertFisherman(fisherman: FishermanEntity)
     @Upsert
     suspend fun upsertFisherman(fisherman: FishermanEntity)
+
     @Query("DELETE FROM fisherman_table")
     suspend fun deleteAllFishermen()
 
     // CRUD operations for Trip Cross-References
     @Query("DELETE FROM trip_fisherman WHERE tripId = :tripId AND fishermanId = :fishermanId")
-    suspend fun deleteFishermanFromTrip(tripId: String, fishermanId: String)
+    suspend fun deleteTripFisherman(tripId: String, fishermanId: String)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
     @Upsert
     suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
+
     @Query("DELETE FROM trip_fisherman")
     suspend fun deleteAllTripFishermen()
 
@@ -138,7 +140,7 @@ interface FishermanDao {
     }
     @Transaction
     suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
-        deleteFishermanFromTrip(tripId, fishermanId)
+        deleteTripFisherman(tripId, fishermanId)
         deleteFishermanFromEvents(tripId, fishermanId)
     }
 
@@ -207,27 +209,23 @@ interface FishermanDao {
     """)
     suspend fun getEventFishermenForEvent(eventId: String): List<EventFishermanEntity>
 
-    @Transaction
-    suspend fun getOrCreate(firstName: String, lastName: String, nickname: String? = null): String {
-        val existingFisherman = getFishermanByName(firstName, lastName, nickname ?: "")
-        return if (existingFisherman != null) {
-            existingFisherman.id
-        } else {
-            val newFisherman =
-                FishermanEntity(
-                    firstName = firstName,
-                    lastName = lastName,
-                    nickname = nickname ?: ""
-                )
-            upsertFisherman(newFisherman)
-            newFisherman.id
-        }
-    }
+    @Query("SELECT COUNT(*) FROM trip_fisherman WHERE tripId = :tripId AND tackleBoxId IS NOT NULL")
+    suspend fun getTackleBoxCountForTrip(tripId: String): Int
+    @Query("SELECT COUNT(*) FROM event_fisherman WHERE eventId = :eventId AND tackleBoxId IS NOT NULL")
+    suspend fun getTackleBoxCountForEvent(eventId: String): Int
+
+    @Query("UPDATE trip_fisherman SET tackleBoxId = NULL WHERE tripId = :tripId")
+    suspend fun clearTackleBoxesForTrip(tripId: String)
+    @Query("UPDATE event_fisherman SET tackleBoxId = NULL WHERE eventId = :eventId")
+    suspend fun clearTackleBoxesForEvent(eventId: String)
+
+    // If events also have tackle box assignments that need clearing:
+    @Query("UPDATE event_fisherman SET tackleBoxId = NULL WHERE eventId IN (SELECT id FROM event_table WHERE tripId = :tripId)")
+    suspend fun clearTackleBoxesForEventsInTrip(tripId: String)
 
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
     fun getFishermanWithTrips(fishermanId: String): Flow<FishermanEntityWithTrips?>
-
     @Transaction
     @Query("SELECT * FROM fisherman_table WHERE id = :fishermanId")
     fun getFishermanWithDetails(fishermanId: String): Flow<FishermanEntityWithDetails?>

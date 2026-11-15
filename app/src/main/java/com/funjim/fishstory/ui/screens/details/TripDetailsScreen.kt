@@ -131,6 +131,9 @@ fun TripDetailsScreen(
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
+    val showSmartTackleBoxPrompt = viewModel.showSmartTackleBoxPrompt
+    var includeEventsCheckbox by remember { mutableStateOf(true) }
+
     var menuExpanded by remember { mutableStateOf(false) }
 
     var selectedTrip by remember { mutableStateOf<Trip?>(null) }
@@ -2037,6 +2040,61 @@ Selecting them places those species at the top of the list when logging catches 
                 viewModel.addWaterClarity(newWaterClarity) {
                     pendingWaterClarityId = newWaterClarity.id
                     showAddWaterClarityDialog = !showAddWaterClarityDialog
+                }
+            }
+        )
+    }
+
+    if (showSmartTackleBoxPrompt) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.onDismissPrompt()
+            },
+            title = {
+                Text("Convert to Smart Tackle Boxes?")
+            },
+            text = {
+                Column {
+                    Text("""This trip has ended.  
+                        |
+                        |Would you like to convert your assigned tackle boxes to <Smart Tackle Boxes> for cleaner catch analytics?
+                        |
+                        |This will also help streamline your tackle box management.""".trimMargin())
+                    Spacer(modifier = Modifier.height(12.5.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                includeEventsCheckbox = !includeEventsCheckbox
+                            }
+                    ) {
+                        Checkbox(
+                            checked = includeEventsCheckbox,
+                            onCheckedChange = { includeEventsCheckbox = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Include events in conversion")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.onConfirmConversion(includeEventsCheckbox)
+                    }
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        viewModel.onDismissPrompt()
+                    }
+                ) {
+                    Text("No")
                 }
             }
         )

@@ -25,6 +25,7 @@ interface TackleBoxDao {
     suspend fun updateTackleBox(tackleBox: TackleBoxEntity)
     @Upsert
     suspend fun upsertTackleBox(tackleBox: TackleBoxEntity)
+
     @Query("DELETE FROM tackle_box_table")
     suspend fun deleteAllTackleBoxes()
 
