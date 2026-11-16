@@ -74,6 +74,7 @@ class FishstoryApplication : Application() {
             fishermanDao = database.fishermanDao(),
             limitDao = database.limitDao(),
             lureDao = database.lureDao(),
+            speciesDao = database.speciesDao(),
             tripDao = database.tripDao()
         )
     }
@@ -90,6 +91,7 @@ class FishstoryApplication : Application() {
             lureDao = database.lureDao(),
             noteDao = database.noteDao(),
             photoDao = database.photoDao(),
+            speciesDao = database.speciesDao(),
             tackleBoxDao = database.tackleBoxDao(),
             tripDao = database.tripDao(),
             waterDao = database.waterDao(),
@@ -132,6 +134,7 @@ class FishstoryApplication : Application() {
             database = database,
             eventDao = database.eventDao(),
             fishermanDao = database.fishermanDao(),
+            speciesDao = database.speciesDao(),
             tripDao = database.tripDao()
         )
     }
@@ -264,6 +267,7 @@ class FishstoryApplication : Application() {
         fishermanDao = database.fishermanDao(),
         lureDao = database.lureDao(),
         photoDao = database.photoDao(),
+        speciesDao = database.speciesDao(),
         tackleBoxDao = database.tackleBoxDao(),
         tripDao = database.tripDao()
     )

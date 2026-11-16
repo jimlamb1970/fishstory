@@ -24,34 +24,6 @@ data class LimitEntity(
     val upperInclusive: Boolean = true
 )
 
-@Serializable
-@Entity(
-    tableName = "limit_species_table",
-    primaryKeys = ["limitId", "speciesId"],
-    indices = [
-        Index(value = ["limitId"]),
-        Index(value = ["speciesId"])
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = LimitEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["limitId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = SpeciesEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["speciesId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
-)
-data class LimitSpeciesEntity(
-    val limitId: String,
-    val speciesId: String
-)
-
 data class LimitWithSpeciesEntity(
     @Embedded val limit: LimitEntity,
 

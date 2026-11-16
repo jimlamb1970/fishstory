@@ -218,17 +218,6 @@ ORDER BY s.startTime DESC"""
         tripId: String? = null
     ): Flow<List<EventEntity>>
 
-    @Query("SELECT * FROM event_target_species")
-    fun getAllEventTargetSpecies(): Flow<List<EventTargetSpeciesEntity>>
-
-    @Query("""
-        SELECT species_table.* FROM species_table
-        INNER JOIN event_target_species ON species_table.id = event_target_species.speciesId
-        WHERE event_target_species.eventId = :eventId
-        GROUP BY species_table.id
-        """)
-    fun getEventTargetSpecies(eventId: String): Flow<List<SpeciesEntity>>
-
     @Upsert
     suspend fun upsertEventTargetSpecies(crossRef: EventTargetSpeciesEntity)
     @Upsert

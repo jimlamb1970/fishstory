@@ -56,6 +56,18 @@ fun LimitWithSpeciesEntity.toDomain(): LimitWithSpecies {
 /**
  * Maps Domain Model -> DB Entity
  */
+fun LimitWithSpecies.toLimit(): Limit {
+    return Limit(
+        id = id,
+        name = name,
+        type = type,
+        count = count,
+        lowerSize = lowerSize,
+        lowerInclusive = lowerInclusive,
+        upperSize = upperSize,
+        upperInclusive = upperInclusive
+    )
+}
 fun LimitWithSpecies.toEntity(): LimitEntity {
     return LimitEntity(
         id = id,

@@ -14,6 +14,7 @@ import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.PhotoDao
+import com.funjim.fishstory.database.dao.SpeciesDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.dao.WaterDao
@@ -140,6 +141,7 @@ abstract class FishstoryDatabase : RoomDatabase() {
     abstract fun lureDao(): LureDao
     abstract fun noteDao(): NoteDao
     abstract fun photoDao(): PhotoDao
+    abstract fun speciesDao(): SpeciesDao
     abstract fun tackleBoxDao(): TackleBoxDao
     abstract fun tripDao(): TripDao
     abstract fun waterDao(): WaterDao

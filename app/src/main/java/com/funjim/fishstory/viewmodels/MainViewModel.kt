@@ -12,6 +12,7 @@ import com.funjim.fishstory.database.dao.FishDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LureDao
 import com.funjim.fishstory.database.dao.PhotoDao
+import com.funjim.fishstory.database.dao.SpeciesDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.BaitEntity
@@ -114,6 +115,7 @@ class MainViewModel(
     private val lureDao: LureDao,
     private val fishDao: FishDao,
     private val photoDao: PhotoDao,
+    private val speciesDao: SpeciesDao,
     private val tackleBoxDao: TackleBoxDao
 ) : ViewModel() {
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
@@ -140,7 +142,7 @@ class MainViewModel(
     val trips: Flow<List<Trip>> = tripDao.getAllTrips()
         .map { list -> list.toTripDomainList() }
 
-    val species: Flow<List<Species>> = fishDao.getAllSpecies()
+    val species: Flow<List<Species>> = speciesDao.getAllSpecies()
         .map { list -> list.toSpeciesDomainList() }
     val allFish: Flow<List<FishWithDetails>> =
         fishDao.getFishWithDetails(null, null, null, null, null)
@@ -183,8 +185,8 @@ class MainViewModel(
                     lureGlowColors = lureDao.getAllLureGlowColors().firstOrNull() ?: emptyList(),
                     tackleboxes = tackleBoxDao.getAllTackleBoxes().firstOrNull() ?: emptyList(),
                     tackleBoxLures = tackleBoxDao.getAllTackleBoxLures().firstOrNull() ?: emptyList(),
-                    species = fishDao.getAllSpecies().firstOrNull() ?: emptyList(),
-                    eventTargetSpecies = eventDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
+                    species = speciesDao.getAllSpecies().firstOrNull() ?: emptyList(),
+                    eventTargetSpecies = speciesDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
                     tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
@@ -232,7 +234,7 @@ class MainViewModel(
                     lureDao.deleteAllLureGlowColors()
                     tackleBoxDao.deleteAllTackleBoxes()
                     tackleBoxDao.deleteAllTackleBoxLures()
-                    fishDao.deleteAllSpecies()
+                    speciesDao.deleteAllSpecies()
                     tripDao.deleteAllTripTargetSpecies()
                     eventDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
@@ -264,7 +266,7 @@ class MainViewModel(
                     data.lureSecondaryColors.forEach { lureDao.upsertLureSecondaryColor(it) }
                     data.lureGlowColors.forEach { lureDao.upsertLureGlowColor(it) }
                     data.tackleBoxLures.forEach { tackleBoxDao.upsertTackleBoxLure(it) }
-                    data.species.forEach { fishDao.insertSpecies(it) }
+                    data.species.forEach { speciesDao.insertSpecies(it) }
                     data.eventTargetSpecies.forEach { eventDao.upsertEventTargetSpecies(it) }
                     data.tripTargetSpecies.forEach { tripDao.upsertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
@@ -304,6 +306,7 @@ class MainViewModelFactory(
     private val fishermanDao: FishermanDao,
     private val lureDao: LureDao,
     private val photoDao: PhotoDao,
+    private val speciesDao: SpeciesDao,
     private val tackleBoxDao: TackleBoxDao,
     private val tripDao: TripDao
 ) : ViewModelProvider.Factory {
@@ -320,6 +323,7 @@ class MainViewModelFactory(
                 fishermanDao = fishermanDao,
                 lureDao = lureDao,
                 photoDao = photoDao,
+                speciesDao = speciesDao,
                 tackleBoxDao = tackleBoxDao,
                 tripDao = tripDao) as T
         }

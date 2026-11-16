@@ -9,7 +9,6 @@ import androidx.room.Transaction
 import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.EventLimitEntity
 import com.funjim.fishstory.database.entity.LimitEntity
-import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.LimitWithSpeciesEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
 import com.funjim.fishstory.model.LimitType
@@ -25,13 +24,6 @@ interface LimitDao {
     suspend fun upsertLimit(entity: LimitEntity)
     @Query("DELETE FROM limit_table")
     suspend fun deleteAllLimits()
-
-    @Query("DELETE FROM limit_species_table WHERE limitId = :limitId")
-    suspend fun deleteAllSpeciesForLimit(limitId: String)
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLimitSpecies(item: LimitSpeciesEntity)
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLimitSpecies(xRefs: List<LimitSpeciesEntity>)
 
     @Delete
     suspend fun deleteEventLimit(entity: EventLimitEntity)
@@ -53,9 +45,6 @@ interface LimitDao {
     fun getAllLimits(): Flow<List<LimitEntity>>
     @Query("SELECT * FROM limit_table")
     suspend fun getAllLimitsList(): List<LimitEntity>
-
-    @Query("SELECT * FROM limit_species_table")
-    suspend fun getAllLimitSpeciesList(): List<LimitSpeciesEntity>
 
     @Query("SELECT * FROM event_limit_table")
     suspend fun getAllEventLimitsList(): List<EventLimitEntity>
@@ -101,74 +90,6 @@ interface LimitDao {
         WHERE event_limit_table.eventId = :eventId
     """)
     suspend fun getEventLimitsForEvent(eventId: String): List<EventLimitEntity>
-
-    @Transaction
-    suspend fun insertLimit(
-        limit: LimitEntity,
-        species: List<String>
-    ) {
-        upsertLimit(limit)
-        deleteAllSpeciesForLimit(limit.id)
-        if (species.isNotEmpty()) {
-            val speciesXRefs = species.map { species ->
-                LimitSpeciesEntity(
-                    limitId = limit.id,
-                    speciesId = species
-                )
-            }
-            insertLimitSpecies(speciesXRefs)
-        }
-    }
-
-    @Transaction
-    suspend fun insertLimitForEvent(
-        limit: LimitEntity,
-        species: List<String>,
-        eventId: String
-    ) {
-        upsertLimit(limit)
-        deleteAllSpeciesForLimit(limit.id)
-        if (species.isNotEmpty()) {
-            val speciesXRefs = species.map { species ->
-                LimitSpeciesEntity(
-                    limitId = limit.id,
-                    speciesId = species
-                )
-            }
-            insertLimitSpecies(speciesXRefs)
-        }
-
-        val eventLimit = EventLimitEntity(
-            eventId = eventId,
-            limitId = limit.id
-        )
-        insertEventLimit(eventLimit)
-    }
-
-    @Transaction
-    suspend fun insertLimitForTrip(
-        limit: LimitEntity,
-        species: List<String>,
-        tripId: String
-    ) {
-        upsertLimit(limit)
-        deleteAllSpeciesForLimit(limit.id)
-        if (species.isNotEmpty()) {
-            val speciesXRefs = species.map { species ->
-                LimitSpeciesEntity(
-                    limitId = limit.id,
-                    speciesId = species
-                )
-            }
-            insertLimitSpecies(speciesXRefs)
-        }
-
-        val tripLimit = TripLimitEntity(
-            tripId = tripId,
-            limitId = limit.id
-        )
-        insertTripLimit(tripLimit)
-    }
 
     @Transaction
     suspend fun removeLimitFromTrip(limit: String, tripId: String) {

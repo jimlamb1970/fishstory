@@ -5,6 +5,7 @@ import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.dao.FishermanDao
+import com.funjim.fishstory.database.dao.SpeciesDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.mapper.toDomain
@@ -45,6 +46,7 @@ class TripRepository(
     private val database: FishstoryDatabase,
     private val eventDao: EventDao,
     private val fishermanDao: FishermanDao,
+    private val speciesDao: SpeciesDao,
     private val tripDao: TripDao
 ) {
     // Trip Streams
@@ -255,7 +257,7 @@ class TripRepository(
 
     // Target Species
     fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {
-        return eventDao.getEventTargetSpecies(eventId).map { speciesList ->
+        return speciesDao.getEventTargetSpecies(eventId).map { speciesList ->
             speciesList.toSpeciesDomainList()
         }
     }

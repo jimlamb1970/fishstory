@@ -11,6 +11,7 @@ import com.funjim.fishstory.database.dao.EventDao
 import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.PhotoDao
+import com.funjim.fishstory.database.dao.SpeciesDao
 import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.dao.WaterDao
@@ -73,16 +74,12 @@ class FishStoryRepository(
     private val lureDao: LureDao,
     private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
+    private val speciesDao: SpeciesDao,
     private val tackleBoxDao: TackleBoxDao,
     private val tripDao: TripDao,
     private val waterDao: WaterDao,
     private val weatherDao: WeatherDao
 ) {
-
-    // Inside your FishStoryRepository or Database helper
-    suspend fun clearEntireDatabase() {
-        db.clearAllTables()
-    }
     suspend fun exportAllData(): FishStoryData = db.withTransaction {
         FishStoryData(
             // Main Databases (17)
@@ -90,7 +87,7 @@ class FishStoryRepository(
             bodiesOfWater = bodyOfWaterDao.getAllBodiesOfWaterList().toBodyOfWaterDomainList(),
             colors = lureDao.getAllLureColorsList().toLureColorDomainList(),
             skyConditions = weatherDao.getAllSkyConditionsList().toDomainList(),
-            species = fishDao.getAllSpeciesList().toSpeciesDomainList(),
+            species = speciesDao.getAllSpeciesList().toSpeciesDomainList(),
             waterClarities = waterDao.getAllWaterClarityList().toDomainList(),
             fishermen = fishermanDao.getAllFishermenList().toFishermanDomainList(),
             lures = lureDao.getAllLuresList().toLureDomainList(),
@@ -108,17 +105,17 @@ class FishStoryRepository(
             lureSecondaryColors = lureDao.getAllLureSecondaryColorsList().toLureSecondaryColorDomainList(),
             lureGlowColors = lureDao.getAllLureGlowColorsList().toLureGlowColorDomainList(),
             tackleBoxLures = tackleBoxDao.getAllTackleBoxLuresList().toTackleBoxLureDomainList(),
-            limitSpecies = limitDao.getAllLimitSpeciesList().toLimitSpeciesDomainList(),
+            limitSpecies = speciesDao.getAllLimitSpeciesList().toLimitSpeciesDomainList(),
             tripBaits = baitDao.getAllTripBaitsList().toTripBaitDomainList(),
             tripBodiesOfWater = bodyOfWaterDao.getAllTripBodiesOfWaterList().toTripBodyOfWaterDomainList(),
             tripFishermen = fishermanDao.getAllTripFishermenList().toTripFishermanDomainList(),
             tripLimits = limitDao.getAllTripLimitsList().toTripLimitDomainList(),
-            tripTargetSpecies = fishDao.getAllTripTargetSpeciesList().toTripTargetSpeciesDomainList(),
+            tripTargetSpecies = speciesDao.getAllTripTargetSpeciesList().toTripTargetSpeciesDomainList(),
             eventBaits = baitDao.getAllEventBaitsList().toEventBaitDomainList(),
             eventBodiesOfWater = bodyOfWaterDao.getAllEventBodiesOfWaterList().toEventBodyOfWaterDomainList(),
             eventFishermen = fishermanDao.getAllEventFishermenList().toEventFishermanDomainList(),
             eventLimits = limitDao.getAllEventLimitsList().toEventLimitDomainList(),
-            eventTargetSpecies = fishDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList(),
+            eventTargetSpecies = speciesDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList(),
             notesEvent = noteDao.getAllNotesEventList().toNoteEventDomainList(),
             notesFish = noteDao.getAllNotesFishList().toNoteFishDomainList(),
             notesTrip = noteDao.getAllNotesTripList().toNoteTripDomainList(),
@@ -141,7 +138,7 @@ class FishStoryRepository(
 
             // 2. Insert Independent & Dependent Lookups
             for (color in exportData.colors) lureDao.insertLureColor(color.toEntity())
-            for (species in exportData.species) fishDao.insertSpecies(species.toEntity())
+            for (species in exportData.species) speciesDao.insertSpecies(species.toEntity())
             for (condition in exportData.skyConditions) weatherDao.insertSkyCondition(condition.toEntity())
             for (clarity in exportData.waterClarities) waterDao.insertWaterClarity(clarity.toEntity())
             for (bait in exportData.baits) baitDao.insertBait(bait.toEntity())
@@ -169,7 +166,7 @@ class FishStoryRepository(
             for (item in exportData.lureSecondaryColors) lureDao.upsertLureSecondaryColor(item.toEntity())
             for (item in exportData.lureGlowColors) lureDao.upsertLureGlowColor(item.toEntity())
             for (item in exportData.tackleBoxLures) tackleBoxDao.upsertTackleBoxLure(item.toEntity())
-            for (item in exportData.limitSpecies) limitDao.insertLimitSpecies(item.toEntity())
+            for (item in exportData.limitSpecies) speciesDao.insertLimitSpecies(item.toEntity())
 
             for (item in exportData.tripBaits) baitDao.upsertTripBait(item.toEntity())
             for (item in exportData.tripBodiesOfWater) bodyOfWaterDao.upsertTripBodyOfWater(item.toEntity())

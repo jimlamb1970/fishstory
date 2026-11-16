@@ -8,8 +8,10 @@ import com.funjim.fishstory.database.dao.FishDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.LureDao
+import com.funjim.fishstory.database.dao.SpeciesDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.EventLimitEntity
+import com.funjim.fishstory.database.entity.LimitSpeciesEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
 import com.funjim.fishstory.database.mapper.toBaitSummaryDomainList
 import com.funjim.fishstory.database.mapper.toBodyOfWaterDomainList
@@ -24,6 +26,7 @@ import com.funjim.fishstory.database.mapper.toFishDomainList
 import com.funjim.fishstory.database.mapper.toFishWithDetailsDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toFishermanSummaryDomainList
+import com.funjim.fishstory.database.mapper.toLimit
 import com.funjim.fishstory.database.mapper.toLimitDomainList
 import com.funjim.fishstory.database.mapper.toLimitSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toLimitWithSpeciesDomainList
@@ -78,10 +81,11 @@ class FishRepository(
     private val limitDao: LimitDao,
     private val lureDao: LureDao,
     private val eventDao: EventDao,
+    private val speciesDao: SpeciesDao,
     private val tripDao: TripDao
 ) {
     // Basic Data Streams
-    val allSpecies: Flow<List<Species>> = fishDao.getAllSpecies()
+    val allSpecies: Flow<List<Species>> = speciesDao.getAllSpecies()
         .map { list -> list.toSpeciesDomainList() }
     val baitSummaries: Flow<List<BaitSummary>> = fishDao.getBaitSummaries()
         .map { list -> list.toBaitSummaryDomainList() }
@@ -91,13 +95,13 @@ class FishRepository(
         .map { list -> list.toSpeciesSummaryDomainList() }
 
     suspend fun getAllSpeciesList(): List<Species> {
-        return fishDao.getAllSpeciesList().toSpeciesDomainList()
+        return speciesDao.getAllSpeciesList().toSpeciesDomainList()
     }
     suspend fun getAllTripTargetSpeciesList(): List<TripTargetSpecies> {
-        return fishDao.getAllTripTargetSpeciesList().toTripTargetSpeciesDomainList()
+        return speciesDao.getAllTripTargetSpeciesList().toTripTargetSpeciesDomainList()
     }
     suspend fun getAllEventTargetSpeciesList(): List<EventTargetSpecies> {
-        return fishDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList()
+        return speciesDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList()
     }
 
     suspend fun getAllFishList(): List<Fish> {
@@ -107,13 +111,13 @@ class FishRepository(
         return fishDao.getAllFishForEvent(eventId).toFishDomainList()
     }
     suspend fun getAllSpeciesForEvent(eventId: String): List<Species> {
-        return fishDao.getAllSpeciesForEvent(eventId).toSpeciesDomainList()
+        return speciesDao.getAllSpeciesForEvent(eventId).toSpeciesDomainList()
     }
     suspend fun getEventTargetSpeciesForEvent(eventId: String): List<EventTargetSpecies> {
-        return fishDao.getEventTargetSpeciesForEvent(eventId).toEventTargetSpeciesDomainList()
+        return speciesDao.getEventTargetSpeciesForEvent(eventId).toEventTargetSpeciesDomainList()
     }
     suspend fun getLimitSpeciesForEvent(eventId: String): List<LimitSpecies> {
-        return fishDao.getLimitSpeciesForEvent(eventId).toLimitSpeciesDomainList()
+        return speciesDao.getLimitSpeciesForEvent(eventId).toLimitSpeciesDomainList()
     }
     suspend fun limitExists(item: LimitWithSpecies): Boolean {
         val sortedSpecies = item.species
@@ -161,10 +165,10 @@ class FishRepository(
                 // Determine if existing ID be used or if a new one needed
                 if (existingId != null) {
                     val newItem = item.copy(id = UUID.randomUUID().toString())
-                    limitDao.insertLimit(newItem.toEntity(), species)
+                    insertLimit(newItem, species)
                     InsertResult(newItem, true)
                 } else {
-                    limitDao.insertLimit(item.toEntity(), species)
+                    insertLimit(item, species)
                     InsertResult(item, true)
                 }
             }
@@ -172,12 +176,12 @@ class FishRepository(
     }
     suspend fun findOrCreateSpecies(item: Species): InsertResult<Species> {
         // Check for existing ID and equality
-        val existingId = fishDao.getSpeciesById(item.id)
+        val existingId = speciesDao.getSpeciesById(item.id)
         return if ((existingId != null) && (existingId.toDomain() == item)) {
             InsertResult(item, false)
         } else {
             // Check for existing name and equality
-            val existingData = fishDao.getSpeciesByName(name = item.name)
+            val existingData = speciesDao.getSpeciesByName(name = item.name)
             if ((existingData != null) && (existingData.toDomain() == item)) {
                 InsertResult(existingData.toDomain(), false)
             } else {
@@ -244,7 +248,7 @@ class FishRepository(
     }
 
     fun getSpecies(filter: FishFilter): Flow<List<Species>> {
-        return fishDao.getSpeciesWithFish(
+        return speciesDao.getSpeciesWithFish(
             bodyOfWaterId = filter.bodyOfWaterId,
             eventId = filter.eventId,
             fishermanId = filter.fishermanId,
@@ -265,7 +269,7 @@ class FishRepository(
             .map { entity -> entity?.toDomain() }
     }
     fun getSpecies(id: String): Flow<Species?> {
-        return fishDao.getSpecies(id)
+        return speciesDao.getSpecies(id)
             .map { entity -> entity?.toDomain() }
     }
     fun getTrip(id: String): Flow<Trip?> {
@@ -435,13 +439,13 @@ class FishRepository(
     }
 
     suspend fun addSpecies(species: Species) {
-        fishDao.insertSpecies(species.toEntity())
+        speciesDao.insertSpecies(species.toEntity())
     }
     suspend fun updateSpecies(species: Species) {
-        fishDao.updateSpecies(species.toEntity())
+        speciesDao.updateSpecies(species.toEntity())
     }
     suspend fun deleteSpecies(species: Species) {
-        fishDao.deleteSpecies(species.toEntity())
+        speciesDao.deleteSpecies(species.toEntity())
     }
 
     fun getAllLimits(): Flow<List<LimitWithSpecies>> {
@@ -453,7 +457,7 @@ class FishRepository(
         return limitDao.getAllLimitsList().toLimitDomainList()
     }
     suspend fun getAllLimitSpeciesList(): List<LimitSpecies> {
-        return limitDao.getAllLimitSpeciesList().toLimitSpeciesDomainList()
+        return speciesDao.getAllLimitSpeciesList().toLimitSpeciesDomainList()
     }
     suspend fun getAllTripLimitsList(): List<TripLimit> {
         return limitDao.getAllTripLimitsList().toTripLimitDomainList()
@@ -481,15 +485,15 @@ class FishRepository(
 
     suspend fun addLimit(limit: LimitWithSpecies) {
         val speciesIds: List<String> = limit.species.map { it.id }
-        limitDao.insertLimit(
-            limit = limit.toEntity(),
+        insertLimit(
+            limit = limit.toLimit(),
             species = speciesIds
         )
     }
     suspend fun addLimitToEvent(eventId: String, limit: LimitWithSpecies) {
         val speciesIds: List<String> = limit.species.map { it.id }
-        limitDao.insertLimitForEvent(
-            limit = limit.toEntity(),
+        insertLimitForEvent(
+            limit = limit.toLimit(),
             species = speciesIds,
             eventId = eventId
         )
@@ -504,8 +508,8 @@ class FishRepository(
     }
     suspend fun addLimitToTrip(tripId: String, limit: LimitWithSpecies) {
         val speciesIds: List<String> = limit.species.map { it.id }
-        limitDao.insertLimitForTrip(
-            limit = limit.toEntity(),
+        insertLimitForTrip(
+            limit = limit.toLimit(),
             species = speciesIds,
             tripId = tripId
         )
@@ -556,6 +560,76 @@ class FishRepository(
             LimitType.TROPHY_LIMIT -> {
                 fishDao.getKeptCountTrophyLimit(eventId, speciesIds, limit.upperSize)
             }
+        }
+    }
+
+    suspend fun insertLimit(limit: Limit, species: List<String>) {
+        database.withTransaction {
+            limitDao.upsertLimit(limit.toEntity())
+            speciesDao.deleteAllSpeciesForLimit(limit.id)
+            if (species.isNotEmpty()) {
+                val limitSpecies = species.map { speciesId ->
+                    LimitSpeciesEntity(
+                        limitId = limit.id,
+                        speciesId = speciesId
+                    )
+                }
+                speciesDao.insertLimitSpecies(limitSpecies)
+            }
+        }
+    }
+
+    suspend fun insertLimitForEvent(
+        limit: Limit,
+        species: List<String>,
+        eventId: String
+    ) {
+        database.withTransaction {
+            limitDao.upsertLimit(limit.toEntity())
+            speciesDao.deleteAllSpeciesForLimit(limit.id)
+
+            if (species.isNotEmpty()) {
+                val speciesXRefs = species.map { speciesId ->
+                    LimitSpeciesEntity(
+                        limitId = limit.id,
+                        speciesId = speciesId
+                    )
+                }
+                speciesDao.insertLimitSpecies(speciesXRefs)
+            }
+
+            val eventLimit = EventLimitEntity(
+                eventId = eventId,
+                limitId = limit.id
+            )
+            limitDao.insertEventLimit(eventLimit)
+        }
+    }
+
+    suspend fun insertLimitForTrip(
+        limit: Limit,
+        species: List<String>,
+        tripId: String
+    ) {
+        database.withTransaction {
+            limitDao.upsertLimit(limit.toEntity())
+            speciesDao.deleteAllSpeciesForLimit(limit.id)
+
+            if (species.isNotEmpty()) {
+                val speciesXRefs = species.map { speciesId ->
+                    LimitSpeciesEntity(
+                        limitId = limit.id,
+                        speciesId = speciesId
+                    )
+                }
+                speciesDao.insertLimitSpecies(speciesXRefs)
+            }
+
+            val tripLimit = TripLimitEntity(
+                tripId = tripId,
+                limitId = limit.id
+            )
+            limitDao.insertTripLimit(tripLimit)
         }
     }
 }
