@@ -392,7 +392,7 @@ class TripRepository(
         }
     }
 
-    suspend fun updateTackleBoxStatus(
+    suspend fun updateTripTackleBoxStatus(
         tripId: String,
         includeEvents: Boolean,
         status: TackleBoxStatus
@@ -401,5 +401,12 @@ class TripRepository(
         if (includeEvents) {
             eventDao.updateTripTackleBoxStatus(tripId, status)
         }
+    }
+
+    suspend fun updateEventTackleBoxStatus(
+        eventId: String,
+        status: TackleBoxStatus
+    ) {
+        eventDao.updateEventTackleBoxStatus(eventId, status)
     }
 }

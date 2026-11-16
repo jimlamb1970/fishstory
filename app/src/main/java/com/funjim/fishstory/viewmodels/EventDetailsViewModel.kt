@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.mapper.toSummary
 import com.funjim.fishstory.model.*
 import com.funjim.fishstory.repository.ConfigurationRepository
@@ -75,6 +76,11 @@ class EventDetailsViewModel(
     private val _hasLocationPermission = MutableStateFlow(locationProvider.hasLocationPermission())
     val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
 
+    var pendingSkyConditionId: String? by mutableStateOf(null)
+        private set
+    var pendingWaterClarityId: String? by mutableStateOf(null)
+        private set
+
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage = _toastMessage.asSharedFlow()
 
@@ -87,7 +93,6 @@ class EventDetailsViewModel(
     fun toggleShowPhotos() {
         _showPhotos.value = !_showPhotos.value
     }
-
 
     var showSmartTackleBoxPrompt by mutableStateOf(false)
         private set
@@ -102,9 +107,11 @@ class EventDetailsViewModel(
             val currentTime = System.currentTimeMillis()
 
             if (event != null && event.endTime < currentTime) {
-                val hasPhysicalBoxes = fishermanRepo.hasAssignedTackleBoxes(eventId = eventId)
-                if (hasPhysicalBoxes) {
-                    showSmartTackleBoxPrompt = true
+                if (event.tackleBoxStatus == TackleBoxStatus.PENDING) {
+                    val hasPhysicalBoxes = fishermanRepo.hasAssignedTackleBoxes(eventId = eventId)
+                    if (hasPhysicalBoxes) {
+                        showSmartTackleBoxPrompt = true
+                    }
                 }
             }
         }
@@ -113,12 +120,25 @@ class EventDetailsViewModel(
     fun onConfirmTackleBoxConversion() {
         viewModelScope.launch {
             fishermanRepo.convertEventToSmartTackleBoxes(eventId)
+            tripRepo.updateEventTackleBoxStatus(eventId, TackleBoxStatus.SMART)
             showSmartTackleBoxPrompt = false
         }
     }
 
-    fun onDismissSmartTackleBoxPrompt() {
+    fun onDismissSmartTackleBoxPrompt(tackleBoxStatus: TackleBoxStatus) {
+        if (tackleBoxStatus == TackleBoxStatus.ASSIGNED) {
+            viewModelScope.launch {
+                tripRepo.updateEventTackleBoxStatus(eventId, TackleBoxStatus.ASSIGNED)
+            }
+        }
         showSmartTackleBoxPrompt = false
+    }
+
+    fun onPendingSkyConditionId(id: String?) {
+        pendingSkyConditionId = id
+    }
+    fun onPendingWaterClarityId(id: String?) {
+        pendingWaterClarityId = id
     }
 
     // --- (UI State) ---

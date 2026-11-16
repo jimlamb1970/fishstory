@@ -121,18 +121,18 @@ class TripDetailsViewModel(
     fun onConfirmTackleBoxConversion(includeEvents: Boolean) {
         viewModelScope.launch {
             fishermanRepo.convertTripToSmartTackleBoxes(tripId, includeEvents)
-            tripRepo.updateTackleBoxStatus(tripId, includeEvents, TackleBoxStatus.SMART)
+            tripRepo.updateTripTackleBoxStatus(tripId, includeEvents, TackleBoxStatus.SMART)
             showSmartTackleBoxPrompt = false
         }
     }
 
     fun onDismissSmartTackleBoxPrompt(
-        TackerBoxStatus: TackleBoxStatus,
+        tackleBoxStatus: TackleBoxStatus,
         includeEvents: Boolean
     ) {
-        if (TackerBoxStatus == TackleBoxStatus.ASSIGNED) {
+        if (tackleBoxStatus == TackleBoxStatus.ASSIGNED) {
             viewModelScope.launch {
-                tripRepo.updateTackleBoxStatus(tripId, includeEvents, TackleBoxStatus.ASSIGNED)
+                tripRepo.updateTripTackleBoxStatus(tripId, includeEvents, TackleBoxStatus.ASSIGNED)
             }
         }
         showSmartTackleBoxPrompt = false

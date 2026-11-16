@@ -97,6 +97,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,14 +153,13 @@ fun EventDetailsScreen(
     var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var showEditNoteDialog by remember { mutableStateOf(false) }
     var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var showEditWaterDialog by remember { mutableStateOf(false) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
+    var showEditWeatherDialog by remember { mutableStateOf(false) }
     var weatherToEdit by remember { mutableStateOf<Weather?>(null) }
 
     var showBodyOfWaterToUpdateDialog by remember { mutableStateOf(false) }
     var bodyOfWaterToUpdateAll by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
-    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
     var showAddFishermanDialog by remember { mutableStateOf(false) }
@@ -1041,7 +1041,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 onAddLuresToTackleBox = { tackleBox ->
                                                     navigateToAddLures(tackleBox)
                                                 },
-                                                onClick = { fisherman -> /* do nothing */
+                                                onClick = { _ -> /* do nothing */
                                                 },
                                                 onDelete = { fisherman ->
                                                     fishermanToDelete = fisherman
@@ -1203,7 +1203,10 @@ Selecting them places those species at the top of the list when logging catches 
                                                 waterToDelete = it
                                                 showDeleteWaterDialog = true
                                             },
-                                            onEdit = { waterToEdit = it },
+                                            onEdit = {
+                                                waterToEdit = it
+                                                showEditWaterDialog = true
+                                            },
                                             onFishClick = { water, target ->
                                                 navigateToFishList(FishFilter(
                                                     tripId = trip.id,
@@ -1231,7 +1234,10 @@ Selecting them places those species at the top of the list when logging catches 
                                                 weatherToDelete = it
                                                 showDeleteWeatherDialog = true
                                             },
-                                            onEdit = { weatherToEdit = it },
+                                            onEdit = {
+                                                weatherToEdit = it
+                                                showEditWeatherDialog = true
+                                            },
                                             onFishClick = { weather, target ->
                                                 navigateToFishList(FishFilter(
                                                     tripId = trip.id,
@@ -1257,35 +1263,6 @@ Selecting them places those species at the top of the list when logging catches 
                 }
             }
 
-            if (showDeleteBodyOfWaterDialog) {
-                bodyOfWaterToDelete?.let { bodyOfWater ->
-                    val summary = bodyOfWaterSummaries.find { it.bodyOfWater.id == bodyOfWater.id }
-                    summary?.fishCaught?.let { fishCaught ->
-                        DeleteDialog(
-                            title = "Remove Body of Water",
-                            message =
-                                if (fishCaught > 0)
-                                    """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this body of water for this event.
-                                    |
-                                    |Removing this body of water will not affect those fish.  It will only affect entry of future catches.
-                                    |
-                                    |Are you sure you want to proceed?
-                                """.trimMargin()
-                                else
-                                    """Are you sure you want to remove this body of water? 
-                                    |
-                                    |No fish are currently associated with this body of water for this event.
-                                """.trimMargin(),
-                            confirmButtonText = "Remove",
-                            onConfirm = {
-                                viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
-                                showDeleteBodyOfWaterDialog = !showDeleteBodyOfWaterDialog
-                            },
-                            onDismiss = { showDeleteBodyOfWaterDialog = !showDeleteBodyOfWaterDialog }
-                        )
-                    }
-                }
-            }
             if (showDeleteEventDialog) {
                 DeleteDialog(
                     title = "Delete Event",
@@ -1308,35 +1285,6 @@ Selecting them places those species at the top of the list when logging catches 
                     onDismiss = { showDeleteEventDialog = !showDeleteEventDialog }
                 )
             }
-            if (showDeleteFishermanDialog) {
-                fishermanToDelete?.let { fisherman ->
-                    val summary = fishermanSummaries.find { it.fisherman.id == fisherman.id }
-                    summary?.fishCaught?.let { fishCaught ->
-                        DeleteDialog(
-                            title = "Remove Fisherman",
-                            message =
-                                if (fishCaught > 0)
-                                    """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this fisherman for this event.
-                                    |
-                                    |Removing this fisherman will not affect those fish.  It will only affect entry of future catches.
-                                    |
-                                    |Are you sure you want to proceed?
-                                """.trimMargin()
-                                else
-                                    """Are you sure you want to remove this fisherman? 
-                                    |
-                                    |No fish are currently associated with this fisherman for this event.
-                                """.trimMargin(),
-                            confirmButtonText = "Remove",
-                            onConfirm = {
-                                viewModel.deleteFishermanFromEvent(fisherman.id)
-                                showDeleteFishermanDialog = !showDeleteFishermanDialog
-                            },
-                            onDismiss = { showDeleteFishermanDialog = !showDeleteFishermanDialog }
-                        )
-                    }
-                }
-            }
             if (showDeleteNoteDialog) {
             noteToDelete?.let { note ->
                 DeleteDialog(
@@ -1350,38 +1298,6 @@ Selecting them places those species at the top of the list when logging catches 
                 )
             }
                 }
-            if (showDeleteSpeciesDialog) {
-                speciesToDelete?.let { species ->
-                    val summary = targetSpeciesSummaries.find { it.species.id == species.id }
-                    summary?.fishCaught?.let { fishCaught ->
-                        DeleteDialog(
-                            title = "Remove Species",
-                            message =
-                                if (fishCaught > 0)
-                                    """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this species for this event.
-                                    |
-                                    |Removing this species will not affect those fish.  It will only affect entry of future catches.
-                                    |
-                                    |Are you sure you want to proceed?
-                                """.trimMargin()
-                                else
-                                    """Are you sure you want to remove this species? 
-                                    |
-                                    |No fish are currently associated with this species for this event.
-                                """.trimMargin(),
-                            confirmButtonText = "Remove",
-                            onConfirm = {
-                                viewModel.removeEventTargetSpecies(
-                                    eventId,
-                                    species.id
-                                )
-                                showDeleteSpeciesDialog = !showDeleteSpeciesDialog
-                            },
-                            onDismiss = { showDeleteSpeciesDialog = !showDeleteSpeciesDialog }
-                        )
-                    }
-                }
-            }
             if (showDeleteWaterDialog) {
                 waterToDelete?.let { water ->
                     val summary = waterSummaries.find { it.water.id == water.id }
@@ -1439,10 +1355,10 @@ Selecting them places those species at the top of the list when logging catches 
                 EditEventDialog(
                     event = event,
                     trip = trip,
-                    onDismiss = { showEditEventDialog = false },
+                    onDismiss = { showEditEventDialog = !showEditEventDialog },
                     onConfirm = { confirmedItem ->
                         viewModel.upsertEvent(confirmedItem)
-                        showEditEventDialog = false
+                        showEditEventDialog = !showEditEventDialog
                     }
                 )
             }
@@ -1490,93 +1406,97 @@ Selecting them places those species at the top of the list when logging catches 
                     )
                 }
             }
-            waterToEdit?.let { water ->
-                WaterDialog(
-                    initialTemp = water.temperature,
-                    initialDepth = water.depth,
-                    initialClarity = water.clarityId,
-                    pendingClarity = pendingWaterClarityId,
-                    allClarity = allWaterClarity,
-                    useImperial = appSettings.display.useImperialUnits,
-                    title = "Edit Water Conditions",
-                    thumbnailProvider = { clarity ->
-                        val thumbnailFlow = remember(clarity.id) {
-                            viewModel.waterClarityThumbnail(clarity.id)
-                        }
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+            if (showEditWaterDialog) {
+                waterToEdit?.let { water ->
+                    WaterDialog(
+                        initialTemp = water.temperature,
+                        initialDepth = water.depth,
+                        initialClarity = water.clarityId,
+                        pendingClarity = viewModel.pendingWaterClarityId,
+                        allClarity = allWaterClarity,
+                        useImperial = appSettings.display.useImperialUnits,
+                        title = "Edit Water Conditions",
+                        thumbnailProvider = { clarity ->
+                            val thumbnailFlow = remember(clarity.id) {
+                                viewModel.waterClarityThumbnail(clarity.id)
+                            }
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.WaterSet,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    },
-                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-                    onDismiss = {
-                        waterToEdit = null
-                        pendingWaterClarityId = null
-                    },
-                    onConfirm = { temp, depth, clarity ->
-                        viewModel.updateWater(
-                            water.copy(
-                                temperature = temp,
-                                depth = depth,
-                                clarityId = clarity?.id
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.WaterSet,
+                                modifier = Modifier.size(48.dp)
                             )
-                        )
-                        waterToEdit = null
-                        pendingWaterClarityId = null
-                    },
-                    onAddWaterClarity = { showAddWaterClarityDialog = true }
-                )
+                        },
+                        onToggleImperialUnits = { viewModel.toggleImperialUnits() },
+                        onDismiss = {
+                            viewModel.onPendingWaterClarityId(null)
+                            showEditWaterDialog = !showEditWaterDialog
+                        },
+                        onConfirm = { temp, depth, clarity ->
+                            viewModel.updateWater(
+                                water.copy(
+                                    temperature = temp,
+                                    depth = depth,
+                                    clarityId = clarity?.id
+                                )
+                            )
+                            viewModel.onPendingWaterClarityId(null)
+                            showEditWaterDialog = !showEditWaterDialog
+                        },
+                        onAddWaterClarity = { showAddWaterClarityDialog = true }
+                    )
+                }
             }
-            weatherToEdit?.let { item ->
-                WeatherDialog(
-                    initialTemp = item.temperature,
-                    initialSkyCondition = item.skyConditionId,
-                    initialWindDirection = item.windDirection,
-                    initialWindSpeed = item.windSpeed,
-                    initialAtmosphericPressure = item.atmosphericPressure,
-                    initialAirVisibility = item.airVisibility,
-                    initialAirHumidity = item.airHumidity,
-                    allSkyConditions = allSkyConditions,
-                    pendingSkyCondition = pendingSkyConditionId,
-                    useImperial = appSettings.display.useImperialUnits,
-                    title = "Edit Weather Conditions",
-                    thumbnailProvider = { skyCondition ->
-                        val thumbnailFlow = remember(skyCondition.id) {
-                            viewModel.skyConditionThumbnail(skyCondition.id)
-                        }
-                        val thumbnail by thumbnailFlow.collectAsState(initial = null)
+            if (showEditWeatherDialog) {
+                weatherToEdit?.let { item ->
+                    WeatherDialog(
+                        initialTemp = item.temperature,
+                        initialSkyCondition = item.skyConditionId,
+                        initialWindDirection = item.windDirection,
+                        initialWindSpeed = item.windSpeed,
+                        initialAtmosphericPressure = item.atmosphericPressure,
+                        initialAirVisibility = item.airVisibility,
+                        initialAirHumidity = item.airHumidity,
+                        allSkyConditions = allSkyConditions,
+                        pendingSkyCondition = viewModel.pendingSkyConditionId,
+                        useImperial = appSettings.display.useImperialUnits,
+                        title = "Edit Weather Conditions",
+                        thumbnailProvider = { skyCondition ->
+                            val thumbnailFlow = remember(skyCondition.id) {
+                                viewModel.skyConditionThumbnail(skyCondition.id)
+                            }
+                            val thumbnail by thumbnailFlow.collectAsState(initial = null)
 
-                        ThumbnailBox(
-                            thumbnail = thumbnail,
-                            imageVector = AppIcons.Default.WeatherSet,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    },
-                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
-                    onDismiss = {
-                        weatherToEdit = null
-                        pendingSkyConditionId = null
-                    },
-                    onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
-                        viewModel.updateWeather(
-                            item.copy(
-                                temperature = temp,
-                                skyConditionId = skyCondition,
-                                windDirection = windDirection,
-                                windSpeed = windSpeed,
-                                atmosphericPressure = atmosphericPressure,
-                                airVisibility = airVisibility,
-                                airHumidity = airHumidity
+                            ThumbnailBox(
+                                thumbnail = thumbnail,
+                                imageVector = AppIcons.Default.WeatherSet,
+                                modifier = Modifier.size(48.dp)
                             )
-                        )
-                        weatherToEdit = null
-                        pendingSkyConditionId = null
-                    },
-                    onAddSkyCondition = { showAddSkyConditionDialog = true }
-                )
+                        },
+                        onToggleImperialUnits = { viewModel.toggleImperialUnits() },
+                        onDismiss = {
+                            viewModel.onPendingSkyConditionId(null)
+                            showEditWeatherDialog = !showEditWeatherDialog
+                        },
+                        onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
+                            viewModel.updateWeather(
+                                item.copy(
+                                    temperature = temp,
+                                    skyConditionId = skyCondition,
+                                    windDirection = windDirection,
+                                    windSpeed = windSpeed,
+                                    atmosphericPressure = atmosphericPressure,
+                                    airVisibility = airVisibility,
+                                    airHumidity = airHumidity
+                                )
+                            )
+                            viewModel.onPendingSkyConditionId(null)
+                            showEditWeatherDialog = !showEditWeatherDialog
+                        },
+                        onAddSkyCondition = { showAddSkyConditionDialog = true }
+                    )
+                }
             }
 
             if (showBodiesOfWaterSelection) {
@@ -1623,7 +1543,7 @@ Selecting them places those species at the top of the list when logging catches 
                     onAdd = {
                         showAddFishermanDialog = true
                     },
-                    onDone = { showFishermanSelection = false },
+                    onDone = { showFishermanSelection = !showFishermanSelection },
                     thumbnailProvider = { fisherman ->
                         val thumbnailFlow = remember(fisherman.id) {
                             viewModel.fishermanThumbnail(fisherman.id)
@@ -1717,7 +1637,7 @@ Selecting them places those species at the top of the list when logging catches 
             if (showNotesDialog) {
                 NotesDialog(
                     notes = sortedNotes,
-                    onDismiss = { showNotesDialog = false },
+                    onDismiss = { showNotesDialog = !showNotesDialog },
                     onAddNote = { noteId, content ->
                         viewModel.addNote(noteId, content)
                     },
@@ -1799,7 +1719,7 @@ Selecting them places those species at the top of the list when logging catches 
             onConfirm = { name ->
                 val newSkyCondition = SkyCondition(name = name)
                 viewModel.addSkyCondition(newSkyCondition) {
-                    pendingSkyConditionId = newSkyCondition.id
+                    viewModel.onPendingSkyConditionId(newSkyCondition.id)
                     showAddSkyConditionDialog = !showAddSkyConditionDialog
                 }
             }
@@ -1823,7 +1743,7 @@ Selecting them places those species at the top of the list when logging catches 
             initialDepth = null,
             initialClarity = null,
             allClarity = allWaterClarity,
-            pendingClarity = pendingWaterClarityId,
+            pendingClarity = viewModel.pendingWaterClarityId,
             useImperial = appSettings.display.useImperialUnits,
             title = "New Water Conditions",
             thumbnailProvider = { clarity ->
@@ -1840,8 +1760,8 @@ Selecting them places those species at the top of the list when logging catches 
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },
             onDismiss = {
-                showAddWaterDialog = false
-                pendingWaterClarityId = null
+                viewModel.onPendingWaterClarityId(null)
+                showAddWaterDialog = !showAddWaterDialog
             },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(
@@ -1853,8 +1773,8 @@ Selecting them places those species at the top of the list when logging catches 
                 )
 
                 viewModel.addWater(newWater)
-                showAddWaterDialog = false
-                pendingWaterClarityId = null
+                viewModel.onPendingWaterClarityId(null)
+                showAddWaterDialog = !showAddWaterDialog
             },
             onAddWaterClarity = { showAddWaterClarityDialog = true}
         )
@@ -1865,7 +1785,7 @@ Selecting them places those species at the top of the list when logging catches 
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
-                    pendingWaterClarityId = newWaterClarity.id
+                    viewModel.onPendingWaterClarityId(newWaterClarity.id)
                     showAddWaterClarityDialog = !showAddWaterClarityDialog
                 }
             }
@@ -1881,7 +1801,7 @@ Selecting them places those species at the top of the list when logging catches 
             initialAirVisibility = null,
             initialAirHumidity = null,
             allSkyConditions = allSkyConditions,
-            pendingSkyCondition = pendingSkyConditionId,
+            pendingSkyCondition = viewModel.pendingSkyConditionId,
             useImperial = appSettings.display.useImperialUnits,
             title = "New Weather Conditions",
             thumbnailProvider = { skyCondition ->
@@ -1898,8 +1818,8 @@ Selecting them places those species at the top of the list when logging catches 
             },
             onToggleImperialUnits = { viewModel.toggleImperialUnits() },
             onDismiss = {
-                showAddWeatherDialog = false
-                pendingSkyConditionId = null
+                viewModel.onPendingSkyConditionId(null)
+                showAddWeatherDialog = !showAddWeatherDialog
             },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
@@ -1914,13 +1834,71 @@ Selecting them places those species at the top of the list when logging catches 
                         airVisibility = airVisibility,
                         airHumidity = airHumidity)
                 )
-                showAddWeatherDialog = false
-                pendingSkyConditionId = null
+                viewModel.onPendingSkyConditionId(null)
+                showAddWeatherDialog = !showAddWeatherDialog
             },
             onAddSkyCondition = { showAddSkyConditionDialog = true }
         )
     }
 
+    if (showDeleteBodyOfWaterDialog) {
+        bodyOfWaterToDelete?.let { bodyOfWater ->
+            val summary = bodyOfWaterSummaries.find { it.bodyOfWater.id == bodyOfWater.id }
+            summary?.fishCaught?.let { fishCaught ->
+                DeleteDialog(
+                    title = "Remove Body of Water",
+                    message =
+                        if (fishCaught > 0)
+                            """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this body of water for this event.
+                                    |
+                                    |Removing this body of water will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                        else
+                            """Are you sure you want to remove this body of water? 
+                                    |
+                                    |No fish are currently associated with this body of water for this event.
+                                """.trimMargin(),
+                    confirmButtonText = "Remove",
+                    onConfirm = {
+                        viewModel.removeEventBodyOfWater(eventId, bodyOfWater.id)
+                        showDeleteBodyOfWaterDialog = !showDeleteBodyOfWaterDialog
+                    },
+                    onDismiss = { showDeleteBodyOfWaterDialog = !showDeleteBodyOfWaterDialog }
+                )
+            }
+        }
+    }
+    if (showDeleteFishermanDialog) {
+        fishermanToDelete?.let { fisherman ->
+            val summary = fishermanSummaries.find { it.fisherman.id == fisherman.id }
+            summary?.fishCaught?.let { fishCaught ->
+                DeleteDialog(
+                    title = "Remove Fisherman",
+                    message =
+                        if (fishCaught > 0)
+                            """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this fisherman for this event.
+                                    |
+                                    |Removing this fisherman will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                        else
+                            """Are you sure you want to remove this fisherman? 
+                                    |
+                                    |No fish are currently associated with this fisherman for this event.
+                                """.trimMargin(),
+                    confirmButtonText = "Remove",
+                    onConfirm = {
+                        viewModel.deleteFishermanFromEvent(fisherman.id)
+                        showDeleteFishermanDialog = !showDeleteFishermanDialog
+                    },
+                    onDismiss = { showDeleteFishermanDialog = !showDeleteFishermanDialog }
+                )
+            }
+        }
+    }
     if (showDeleteLimitDialog) {
         limitToDelete?.let { limit ->
             DeleteDialog(
@@ -1933,6 +1911,38 @@ Selecting them places those species at the top of the list when logging catches 
                 },
                 onDismiss = { showDeleteLimitDialog = !showDeleteLimitDialog }
             )
+        }
+    }
+    if (showDeleteSpeciesDialog) {
+        speciesToDelete?.let { species ->
+            val summary = targetSpeciesSummaries.find { it.species.id == species.id }
+            summary?.fishCaught?.let { fishCaught ->
+                DeleteDialog(
+                    title = "Remove Species",
+                    message =
+                        if (fishCaught > 0)
+                            """There ${if (fishCaught == 1) "is" else "are"} currently $fishCaught fish associated with this species for this event.
+                                    |
+                                    |Removing this species will not affect those fish.  It will only affect entry of future catches.
+                                    |
+                                    |Are you sure you want to proceed?
+                                """.trimMargin()
+                        else
+                            """Are you sure you want to remove this species? 
+                                    |
+                                    |No fish are currently associated with this species for this event.
+                                """.trimMargin(),
+                    confirmButtonText = "Remove",
+                    onConfirm = {
+                        viewModel.removeEventTargetSpecies(
+                            eventId,
+                            species.id
+                        )
+                        showDeleteSpeciesDialog = !showDeleteSpeciesDialog
+                    },
+                    onDismiss = { showDeleteSpeciesDialog = !showDeleteSpeciesDialog }
+                )
+            }
         }
     }
 
@@ -1981,7 +1991,7 @@ Selecting them places those species at the top of the list when logging catches 
     if (showSmartTackleBoxPrompt) {
         AlertDialog(
             onDismissRequest = {
-                viewModel.onDismissSmartTackleBoxPrompt()
+                viewModel.onDismissSmartTackleBoxPrompt(TackleBoxStatus.PENDING)
             },
             title = {
                 Text("Convert to Smart Tackle Boxes?")
@@ -2007,7 +2017,7 @@ Selecting them places those species at the top of the list when logging catches 
             dismissButton = {
                 Button(
                     onClick = {
-                        viewModel.onDismissSmartTackleBoxPrompt()
+                        viewModel.onDismissSmartTackleBoxPrompt(TackleBoxStatus.ASSIGNED)
                     }
                 ) {
                     Text("No")
