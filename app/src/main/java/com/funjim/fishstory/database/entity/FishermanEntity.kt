@@ -126,6 +126,12 @@ data class FishermanEntityFullStatistics(
     val worstEventTime: Long?
 )
 
+enum class TackleBoxStatus {
+    PENDING,
+    ASSIGNED,
+    SMART
+}
+
 @Serializable
 @Entity(
     tableName = "event_fisherman",

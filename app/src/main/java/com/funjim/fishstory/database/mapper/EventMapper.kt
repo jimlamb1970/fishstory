@@ -21,6 +21,7 @@ fun EventEntity.toDomain(): Event {
         endTime = endTime,
         latitude = latitude,
         longitude = longitude,
+        tackleBoxStatus = tackleBoxStatus,
         isLocked = isLocked,
         isFavorite = isFavorite
     )
@@ -39,6 +40,7 @@ fun Event.toEntity(): EventEntity {
         endTime = endTime,
         latitude = latitude,
         longitude = longitude,
+        tackleBoxStatus = tackleBoxStatus,
         isLocked = isLocked,
         isFavorite = isFavorite
     )

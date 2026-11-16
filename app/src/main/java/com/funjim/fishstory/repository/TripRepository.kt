@@ -7,6 +7,7 @@ import com.funjim.fishstory.database.FishstoryDatabase
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.TripDao
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toEventDomainList
@@ -388,6 +389,17 @@ class TripRepository(
                     InsertResult(item, true)
                 }
             }
+        }
+    }
+
+    suspend fun updateTackleBoxStatus(
+        tripId: String,
+        includeEvents: Boolean,
+        status: TackleBoxStatus
+    ) {
+        tripDao.updateTripTackleBoxStatus(tripId, status)
+        if (includeEvents) {
+            eventDao.updateTripTackleBoxStatus(tripId, status)
         }
     }
 }

@@ -8,9 +8,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.EventFishermanEntity
-import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.entity.TripEntity
 import com.funjim.fishstory.database.entity.TripEntityDetailedSummary
 import com.funjim.fishstory.database.entity.TripEntitySummary
@@ -38,6 +37,9 @@ interface TripDao {
     suspend fun insertTrip(trip: TripEntity)
     @Upsert
     suspend fun upsertTrip(trip: TripEntity)
+
+    @Query("UPDATE trip_table SET tackleBoxStatus = :status WHERE id = :tripId")
+    suspend fun updateTripTackleBoxStatus(tripId: String, status: TackleBoxStatus)
 
     @Transaction
     @Query("SELECT * FROM trip_table WHERE id = :tripId")

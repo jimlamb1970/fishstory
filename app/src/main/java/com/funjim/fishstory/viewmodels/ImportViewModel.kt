@@ -54,7 +54,6 @@ import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.model.Weather
-import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
@@ -69,7 +68,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.min
 

@@ -155,9 +155,9 @@ class EventDetailsViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val limitSummaries: StateFlow<List<LimitSummary>> = combine(
-        fishRepo.getLimitsForEvent(eventId),
+        fishRepo.getLimitsForEvent(eventId = eventId),
         fishRepo.getLimitsForTrip(tripId),
-        fishermanSummaries
+        fishRepo.getEventFishermanSummaries(eventId = eventId)
     ) { eventLimits, tripLimits, fishermen ->
         // Map limits to Scoped items
         val scopedEventLimits = eventLimits.map { it to LimitScope.EVENT }

@@ -40,7 +40,6 @@ import com.funjim.fishstory.ui.utils.rememberLocationPickerState
 import com.funjim.fishstory.ui.selection.BodyOfWaterSelection
 import com.funjim.fishstory.ui.selection.FishermanSelection
 import com.funjim.fishstory.ui.selection.SpeciesSelection
-import com.funjim.fishstory.ui.selection.TackleBoxBottomSheet
 import com.funjim.fishstory.viewmodels.AddEventUiState
 import com.funjim.fishstory.viewmodels.AddEventViewModel
 import kotlinx.coroutines.launch

@@ -28,6 +28,7 @@ data class EventEntity(
     val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val tackleBoxStatus: TackleBoxStatus = TackleBoxStatus.PENDING,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 )

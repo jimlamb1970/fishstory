@@ -53,7 +53,6 @@ import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.sections.BodyOfWaterSummarySection
 import com.funjim.fishstory.ui.sections.FishermanSummarySection
 import com.funjim.fishstory.ui.sections.SpeciesSummarySection
-import com.funjim.fishstory.ui.selection.TackleBoxBottomSheet
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
 import com.funjim.fishstory.ui.utils.CategoryRow
 import com.funjim.fishstory.ui.utils.CategoryType

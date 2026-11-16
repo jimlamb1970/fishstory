@@ -1,5 +1,6 @@
 package com.funjim.fishstory.model
 
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -12,6 +13,7 @@ data class Event(
     val endTime: Long = System.currentTimeMillis(),
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val tackleBoxStatus: TackleBoxStatus = TackleBoxStatus.PENDING,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
 )

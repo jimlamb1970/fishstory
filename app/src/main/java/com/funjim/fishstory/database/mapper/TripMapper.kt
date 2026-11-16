@@ -20,10 +20,11 @@ fun TripEntity.toDomain(): Trip {
         name = name,
         startDate = startTime,
         endDate = endTime,
+        latitude = latitude,
+        longitude = longitude,
+        tackleBoxStatus = tackleBoxStatus,
         isLocked = isLocked,
         isFavorite = isFavorite,
-        latitude = latitude,
-        longitude = longitude
     )
 }
 
@@ -37,10 +38,11 @@ fun Trip.toEntity(): TripEntity {
         name = name,
         startTime = startDate,
         endTime = endDate,
+        latitude = latitude,
+        longitude = longitude,
+        tackleBoxStatus = tackleBoxStatus,
         isLocked = isLocked,
         isFavorite = isFavorite,
-        latitude = latitude,
-        longitude = longitude
     )
 }
 

@@ -16,6 +16,7 @@ import com.funjim.fishstory.database.entity.EventEntityWithInfo
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
+import com.funjim.fishstory.database.entity.TackleBoxStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -38,6 +39,11 @@ interface EventDao {
     suspend fun insertEvent(event: EventEntity)
     @Upsert
     suspend fun upsertEvent(event: EventEntity)
+
+    @Query("UPDATE event_table SET tackleBoxStatus = :status WHERE id = :eventId")
+    suspend fun updateEventTackleBoxStatus(eventId: String, status: TackleBoxStatus)
+    @Query("UPDATE event_table SET tackleBoxStatus = :status WHERE tripId = :tripId")
+    suspend fun updateTripTackleBoxStatus(tripId: String, status: TackleBoxStatus)
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :id")
