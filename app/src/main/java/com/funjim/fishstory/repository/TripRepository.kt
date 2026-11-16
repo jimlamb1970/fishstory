@@ -10,10 +10,8 @@ import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.mapper.toDomain
 import com.funjim.fishstory.database.mapper.toEntity
-import com.funjim.fishstory.database.mapper.toEventDomainList
 import com.funjim.fishstory.database.mapper.toEventSummaryDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
-import com.funjim.fishstory.database.mapper.toSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toTripDomainList
 import com.funjim.fishstory.database.mapper.toTripSummaryDomainList
 import com.funjim.fishstory.model.Event
@@ -22,7 +20,6 @@ import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.EventWithDetails
 import com.funjim.fishstory.model.Fisherman
-import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.InsertResult
@@ -32,11 +29,9 @@ import com.funjim.fishstory.model.TripFisherman
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.TripWithDetails
-import com.funjim.fishstory.model.TripWithFishermen
 import com.funjim.fishstory.model.TripWithInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 
 data class AddFishermanResult(
     val addedToTrip: Boolean,
@@ -50,8 +45,6 @@ class TripRepository(
     private val tripDao: TripDao
 ) {
     // Trip Streams
-    val allTrips: Flow<List<Trip>> = tripDao.getAllTrips()
-        .map { list -> list.toTripDomainList() }
     val allTripSummaries: Flow<List<TripSummary>> = tripDao.getTripSummaries()
         .map { list -> list.toTripSummaryDomainList() }
 
@@ -62,10 +55,6 @@ class TripRepository(
         return tripDao.getTripDetailedSummary(tripId)
             .map { it?.toDomain() }
     }
-    fun getTripSummary(tripId: String): Flow<TripSummary?> {
-        return tripDao.getTripSummary(tripId)
-            .map { it?.toDomain() }
-    }
 
     fun getTripWithDetails(tripId: String): Flow<TripWithDetails?> {
         return tripDao.getTripWithDetails(tripId)
@@ -73,10 +62,6 @@ class TripRepository(
     }
     fun getTripWithFishermenAndSpecies(tripId: String): Flow<TripWithInfo?> {
         return tripDao.getTripWithFishermenAndSpecies(tripId)
-            .map { it?.toDomain() }
-    }
-    fun getTripWithFishermen(tripId: String): Flow<TripWithFishermen?> {
-        return tripDao.getTripWithFishermen(tripId)
             .map { it?.toDomain() }
     }
 
@@ -107,13 +92,6 @@ class TripRepository(
     /**
      * Previous trips are in the past (end date < now).
      */
-    fun getPreviousTrips(): Flow<List<Trip>> = tripDao.getAllTrips().map { trips ->
-        val now = System.currentTimeMillis()
-        trips.filter { it.endTime < now }
-            .sortedByDescending { it.endTime }
-            .toTripDomainList()
-    }
-
     fun getPreviousTripSummaries(): Flow<List<TripSummary>> = tripDao.getTripSummaries().map { trips ->
         val now = System.currentTimeMillis()
         trips.filter { it.trip.endTime < now}
@@ -138,10 +116,6 @@ class TripRepository(
         return eventDao.getEventDetailedSummary(eventId)
             .map { it?.toDomain() }
     }
-    fun getEventSummary(eventId: String): Flow<EventSummary?> {
-        return eventDao.getEventSummary(eventId)
-            .map { it?.toDomain() }
-    }
     fun getEventWithDetails(eventId: String): Flow<EventWithDetails?> {
         return eventDao.getEventWithDetails(eventId)
             .map { it?.toDomain() }
@@ -149,13 +123,6 @@ class TripRepository(
     fun getEventWithInfo(eventId: String): Flow<EventWithInfo?> {
         return eventDao.getEventWithInfo(eventId)
             .map { it?.toDomain() }
-    }
-
-    suspend fun getAllTripsList(): List<Trip> {
-        return tripDao.getAllTripsList().toTripDomainList()
-    }
-    suspend fun getAllEventsList(): List<Event> {
-        return eventDao.getAllEventsList().toEventDomainList()
     }
 
     // Trip Operations
@@ -247,7 +214,7 @@ class TripRepository(
             .map { list -> list.toFishermanDomainList() }
     }
     fun getEventFishermen(eventId: String): Flow<List<Fisherman>> {
-        return eventDao.getFishermenForEvent(eventId)
+        return fishermanDao.getFishermenForEvent(eventId)
             .map { list -> list.toFishermanDomainList() }
     }
 
@@ -256,20 +223,15 @@ class TripRepository(
     }
 
     // Target Species
-    fun getEventTargetSpecies(eventId: String): Flow<List<Species>> {
-        return speciesDao.getEventTargetSpecies(eventId).map { speciesList ->
-            speciesList.toSpeciesDomainList()
-        }
-    }
     suspend fun addTargetSpeciesToEvent(
         crossRef: EventTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
-            eventDao.upsertEventTargetSpecies(crossRef.toEntity())
+            speciesDao.upsertEventTargetSpecies(crossRef.toEntity())
 
             if (cascade) {
                 val tripId = eventDao.getTripIdForEvent(crossRef.eventId)
-                tripDao.upsertTripTargetSpecies(
+                speciesDao.upsertTripTargetSpecies(
                     TripTargetSpecies(
                         tripId = tripId,
                         speciesId = crossRef.speciesId
@@ -279,35 +241,29 @@ class TripRepository(
         }
     }
     suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String) =
-        eventDao.deleteEventTargetSpecies(eventId, speciesId)
-
-    fun getTripTargetSpecies(tripId: String): Flow<List<Species>> {
-        return tripDao.getTargetSpeciesForTrip(tripId).map { speciesList ->
-            speciesList.toSpeciesDomainList()
-        }
-    }
+        speciesDao.deleteEventTargetSpecies(eventId, speciesId)
 
     suspend fun addTargetSpeciesToTrip(
         crossRef: TripTargetSpecies,
         cascade: Boolean = true) {
         database.withTransaction {
-            tripDao.upsertTripTargetSpecies(crossRef.toEntity())
+            speciesDao.upsertTripTargetSpecies(crossRef.toEntity())
             if (cascade) {
                 val eventIds = eventDao.getEventIdsForTrip(crossRef.tripId)
                 if (eventIds.isNotEmpty()) {
                     val eventTargets = eventIds.map { eventId ->
                         EventTargetSpeciesEntity(eventId = eventId, speciesId = crossRef.speciesId)
                     }
-                    eventDao.upsertTargetSpeciesForEvents(eventTargets)
+                    speciesDao.upsertTargetSpeciesForEvents(eventTargets)
                 }
             }
         }
     }
     suspend fun deleteTargetSpeciesFromTrip(tripId: String, speciesId: String) {
         database.withTransaction {
-            tripDao.deleteTripTargetSpecies(tripId, speciesId)
+            speciesDao.deleteTripTargetSpecies(tripId, speciesId)
             val eventIds = eventDao.getEventIdsForTrip(tripId)
-            eventDao.deleteTargetSpeciesForEvents(eventIds, speciesId)
+            speciesDao.deleteTargetSpeciesForEvents(eventIds, speciesId)
         }
     }
 

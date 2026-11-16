@@ -172,13 +172,13 @@ class FishStoryRepository(
             for (item in exportData.tripBodiesOfWater) bodyOfWaterDao.upsertTripBodyOfWater(item.toEntity())
             for (item in exportData.tripFishermen) fishermanDao.insertTripFisherman(item.toEntity())
             for (item in exportData.tripLimits) limitDao.insertTripLimit(item.toEntity())
-            for (item in exportData.tripTargetSpecies) tripDao.upsertTripTargetSpecies(item.toEntity())
+            for (item in exportData.tripTargetSpecies) speciesDao.upsertTripTargetSpecies(item.toEntity())
 
             for (item in exportData.eventBaits) baitDao.upsertEventBait(item.toEntity())
             for (item in exportData.eventBodiesOfWater) bodyOfWaterDao.upsertEventBodyOfWater(item.toEntity())
             for (item in exportData.eventFishermen) fishermanDao.insertEventFisherman(item.toEntity())
             for (item in exportData.eventLimits) limitDao.insertEventLimit(item.toEntity())
-            for (item in exportData.eventTargetSpecies) eventDao.upsertEventTargetSpecies(item.toEntity())
+            for (item in exportData.eventTargetSpecies) speciesDao.upsertEventTargetSpecies(item.toEntity())
 
             for (item in exportData.notesEvent) noteDao.upsertEventNote(item.toEntity())
             for (item in exportData.notesFish) noteDao.upsertFishNote(item.toEntity())

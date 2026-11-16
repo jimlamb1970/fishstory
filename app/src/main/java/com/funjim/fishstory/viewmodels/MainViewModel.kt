@@ -187,7 +187,7 @@ class MainViewModel(
                     tackleBoxLures = tackleBoxDao.getAllTackleBoxLures().firstOrNull() ?: emptyList(),
                     species = speciesDao.getAllSpecies().firstOrNull() ?: emptyList(),
                     eventTargetSpecies = speciesDao.getAllEventTargetSpecies().firstOrNull() ?: emptyList(),
-                    tripTargetSpecies = tripDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
+                    tripTargetSpecies = speciesDao.getAllTripTargetSpecies().firstOrNull() ?: emptyList(),
                     fish = fishDao.getAllFish().firstOrNull() ?: emptyList(),
                     photos = photoDao.getAllPhotos().firstOrNull() ?: emptyList(),
                     photosBait = photoDao.getAllPhotosForBait().firstOrNull() ?: emptyList(),
@@ -235,8 +235,8 @@ class MainViewModel(
                     tackleBoxDao.deleteAllTackleBoxes()
                     tackleBoxDao.deleteAllTackleBoxLures()
                     speciesDao.deleteAllSpecies()
-                    tripDao.deleteAllTripTargetSpecies()
-                    eventDao.deleteAllEventTargetSpecies()
+                    speciesDao.deleteAllTripTargetSpecies()
+                    speciesDao.deleteAllEventTargetSpecies()
                     fishDao.deleteAllFish()
                     photoDao.deleteAllPhotos()
                     photoDao.deleteAllPhotosForBait()
@@ -267,8 +267,8 @@ class MainViewModel(
                     data.lureGlowColors.forEach { lureDao.upsertLureGlowColor(it) }
                     data.tackleBoxLures.forEach { tackleBoxDao.upsertTackleBoxLure(it) }
                     data.species.forEach { speciesDao.insertSpecies(it) }
-                    data.eventTargetSpecies.forEach { eventDao.upsertEventTargetSpecies(it) }
-                    data.tripTargetSpecies.forEach { tripDao.upsertTripTargetSpecies(it) }
+                    data.eventTargetSpecies.forEach { speciesDao.upsertEventTargetSpecies(it) }
+                    data.tripTargetSpecies.forEach { speciesDao.upsertTripTargetSpecies(it) }
                     data.fish.forEach { fishDao.insertFish(it) }
                     data.photos.forEach { photoDao.insertPhoto(it) }
                     data.photosBait.forEach { photoDao.addBaitPhoto(it) }

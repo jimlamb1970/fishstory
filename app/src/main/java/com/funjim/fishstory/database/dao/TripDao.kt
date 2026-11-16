@@ -3,12 +3,10 @@ package com.funjim.fishstory.database.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.database.entity.TripEntity
 import com.funjim.fishstory.database.entity.TripEntityDetailedSummary
@@ -16,8 +14,6 @@ import com.funjim.fishstory.database.entity.TripEntitySummary
 import com.funjim.fishstory.database.entity.TripEntityWithDetails
 import com.funjim.fishstory.database.entity.TripEntityWithFishermen
 import com.funjim.fishstory.database.entity.TripEntityWithInfo
-import com.funjim.fishstory.database.entity.TripFishermanEntity
-import com.funjim.fishstory.database.entity.TripTargetSpeciesEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -151,23 +147,4 @@ ORDER BY t.startTime DESC
         lureId: String? = null,
         speciesId: String? = null
     ): Flow<List<TripEntity>>
-
-    // Trip-Target Species
-    @Query("DELETE FROM trip_target_species")
-    suspend fun deleteAllTripTargetSpecies()
-    @Query("SELECT * FROM trip_target_species")
-    fun getAllTripTargetSpecies(): Flow<List<TripTargetSpeciesEntity>>
-
-    @Query("DELETE FROM trip_target_species WHERE tripId = :tripId AND speciesId = :speciesId")
-    suspend fun deleteTripTargetSpecies(tripId: String, speciesId: String)
-    @Upsert
-    suspend fun upsertTripTargetSpecies(crossRef: TripTargetSpeciesEntity)
-
-    @Query("""
-        SELECT species_table.* FROM species_table
-        INNER JOIN trip_target_species ON species_table.id = trip_target_species.speciesId
-        WHERE trip_target_species.tripId = :tripId
-        GROUP BY species_table.id
-        """)
-    fun getTargetSpeciesForTrip(tripId: String): Flow<List<SpeciesEntity>>
 }

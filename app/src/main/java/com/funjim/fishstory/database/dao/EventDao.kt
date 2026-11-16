@@ -13,9 +13,6 @@ import com.funjim.fishstory.database.entity.EventEntityDetailedSummary
 import com.funjim.fishstory.database.entity.EventEntitySummary
 import com.funjim.fishstory.database.entity.EventEntityWithDetails
 import com.funjim.fishstory.database.entity.EventEntityWithInfo
-import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
-import com.funjim.fishstory.database.entity.FishermanEntity
-import com.funjim.fishstory.database.entity.SpeciesEntity
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -101,13 +98,6 @@ ORDER BY s.startTime ASC
     ORDER BY startTime DESC
 """)
     fun getActiveEvents(currentTime: Long = System.currentTimeMillis()): Flow<List<EventEntity>>
-
-    @Query("""
-    SELECT DISTINCT f.* FROM fisherman_table AS f
-    JOIN event_fisherman AS xr ON f.id = xr.fishermanId
-    WHERE xr.eventId = :eventId
-""")
-    fun getFishermenForEvent(eventId: String): Flow<List<FishermanEntity>>
 
     @Transaction
     @Query("SELECT * FROM event_table WHERE id = :eventId")
@@ -217,18 +207,4 @@ ORDER BY s.startTime DESC"""
         speciesId: String? = null,
         tripId: String? = null
     ): Flow<List<EventEntity>>
-
-    @Upsert
-    suspend fun upsertEventTargetSpecies(crossRef: EventTargetSpeciesEntity)
-    @Upsert
-    suspend fun upsertTargetSpeciesForEvents(targets: List<EventTargetSpeciesEntity>)
-
-    @Query("DELETE FROM event_target_species WHERE eventId = :eventId AND speciesId = :speciesId")
-    suspend fun deleteEventTargetSpecies(eventId: String, speciesId: String)
-
-    @Query("DELETE FROM event_target_species WHERE eventId IN (:eventIds) AND speciesId = :speciesId")
-    suspend fun deleteTargetSpeciesForEvents(eventIds: List<String>, speciesId: String)
-
-    @Query("DELETE FROM event_target_species")
-    suspend fun deleteAllEventTargetSpecies()
 }
