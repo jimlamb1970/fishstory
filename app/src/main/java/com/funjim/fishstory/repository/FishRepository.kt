@@ -8,7 +8,6 @@ import com.funjim.fishstory.database.dao.FishDao
 import com.funjim.fishstory.database.dao.FishermanDao
 import com.funjim.fishstory.database.dao.LimitDao
 import com.funjim.fishstory.database.dao.LureDao
-import com.funjim.fishstory.database.dao.NoteDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.entity.EventLimitEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
@@ -78,7 +77,6 @@ class FishRepository(
     private val fishermanDao: FishermanDao,
     private val limitDao: LimitDao,
     private val lureDao: LureDao,
-    private val noteDao: NoteDao,
     private val eventDao: EventDao,
     private val tripDao: TripDao
 ) {
@@ -420,10 +418,6 @@ class FishRepository(
 
     suspend fun upsertFish(fish: Fish) = fishDao.upsertFish(fish.toEntity())
     suspend fun deleteFish(fish: Fish) = fishDao.deleteFish(fish.toEntity())
-
-    fun getNotesForFish(id: String): Flow<List<Note>> {
-        return noteDao.getNotesForFish(id).map { list -> list.toNoteDomainList() }
-    }
 
     suspend fun updateFishBodyOfWater(
         newBodyOfWaterId: String?,

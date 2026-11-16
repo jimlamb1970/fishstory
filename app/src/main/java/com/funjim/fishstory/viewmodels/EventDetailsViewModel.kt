@@ -20,6 +20,7 @@ import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.NoteRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
@@ -53,6 +54,7 @@ class EventDetailsViewModel(
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val noteRepo: NoteRepository,
     private val photoRepo: PhotoRepository,
     private val tackleBoxRepo: TackleBoxRepository,
     private val tripRepo: TripRepository,
@@ -497,15 +499,15 @@ class EventDetailsViewModel(
     fun addNote(noteId: String?, content: String) {
         viewModelScope.launch {
             if (noteId == null) {
-                tripRepo.addNoteToEvent(eventId, content)
+                noteRepo.addNoteToEvent(eventId, content)
             } else {
-                tripRepo.updateNote(noteId, content)
+                noteRepo.updateNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            tripRepo.deleteNote(noteId)
+            noteRepo.deleteNote(noteId)
         }
     }
 
@@ -717,7 +719,7 @@ class EventDetailsViewModel(
                     limits = fishRepo.getAllLimitsForEvent(eventId),
                     lures = lureRepo.getAllLuresForEvent(eventId),
                     lureColors = lureRepo.getAllLureColorsForEvent(eventId),
-                    notes = tripRepo.getAllNotesForEvent(eventId),
+                    notes = noteRepo.getAllNotesForEvent(eventId),
                     species = fishRepo.getAllSpeciesForEvent(eventId),
                     skyConditions = envRepo.getAllSkyConditionsForEvent(eventId),
                     tackleBoxes = fishermanRepo.getAllTackleBoxesForEvent(eventId),
@@ -734,8 +736,8 @@ class EventDetailsViewModel(
                     lurePrimaryColors = lureRepo.getLurePrimaryColorsForEvent(eventId),
                     lureSecondaryColors = lureRepo.getLureSecondaryColorsForEvent(eventId),
                     lureGlowColors = lureRepo.getLureGlowColorsForEvent(eventId),
-                    notesEvent = tripRepo.getEventNotesForEvent(eventId),
-                    notesFish = tripRepo.getFishNotesForEvent(eventId),
+                    notesEvent = noteRepo.getEventNotesForEvent(eventId),
+                    notesFish = noteRepo.getFishNotesForEvent(eventId),
                     tackleBoxLures = fishermanRepo.getTackleBoxLuresForEvent(eventId)
                 )
 
@@ -768,6 +770,7 @@ class EventDetailsViewModelFactory(
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val lureRepository: LureRepository,
+    private val noteRepository: NoteRepository,
     private val photoRepository: PhotoRepository,
     private val tacklerBoxRepository: TackleBoxRepository,
     private val tripRepository: TripRepository
@@ -788,6 +791,7 @@ class EventDetailsViewModelFactory(
                 fishermanRepository,
                 fishRepository,
                 lureRepository,
+                noteRepository,
                 photoRepository,
                 tacklerBoxRepository,
                 tripRepository,

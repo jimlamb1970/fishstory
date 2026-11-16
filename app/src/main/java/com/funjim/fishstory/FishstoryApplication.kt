@@ -10,6 +10,7 @@ import com.funjim.fishstory.repository.FishStoryRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LocationRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.NoteRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
@@ -73,7 +74,6 @@ class FishstoryApplication : Application() {
             fishermanDao = database.fishermanDao(),
             limitDao = database.limitDao(),
             lureDao = database.lureDao(),
-            noteDao = database.noteDao(),
             tripDao = database.tripDao()
         )
     }
@@ -106,6 +106,12 @@ class FishstoryApplication : Application() {
         )
     }
 
+    val noteRepository by lazy {
+        NoteRepository(
+            noteDao = database.noteDao()
+        )
+    }
+
     val photoRepository by lazy {
         PhotoRepository(
             database = database,
@@ -126,7 +132,6 @@ class FishstoryApplication : Application() {
             database = database,
             eventDao = database.eventDao(),
             fishermanDao = database.fishermanDao(),
-            noteDao = database.noteDao(),
             tripDao = database.tripDao()
         )
     }
@@ -199,6 +204,7 @@ class FishstoryApplication : Application() {
             fishermanRepository,
             fishRepository,
             lureRepository,
+            noteRepository,
             photoRepository,
             tackleBoxRepository,
             tripRepository)
@@ -209,6 +215,7 @@ class FishstoryApplication : Application() {
         envRepo = environmentRepository,
         fishRepo = fishRepository,
         lureRepo = lureRepository,
+        noteRepo = noteRepository,
         photoRepo = photoRepository,
         tripRepo = tripRepository
     )
@@ -229,6 +236,7 @@ class FishstoryApplication : Application() {
         fishermanRepository,
         fishRepository,
         lureRepository,
+        noteRepository,
         photoRepository,
         tripRepository
     )
@@ -274,6 +282,7 @@ class FishstoryApplication : Application() {
             fishermanRepository,
             fishRepository,
             lureRepository,
+            noteRepository,
             photoRepository,
             tackleBoxRepository,
             tripRepository

@@ -19,6 +19,7 @@ import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.NoteRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TackleBoxRepository
 import com.funjim.fishstory.repository.TripRepository
@@ -49,6 +50,7 @@ class TripDetailsViewModel(
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val noteRepo: NoteRepository,
     private val photoRepo: PhotoRepository,
     private val tackleBoxRepo: TackleBoxRepository,
     private val tripRepo: TripRepository,
@@ -556,15 +558,15 @@ class TripDetailsViewModel(
     fun addNote(noteId: String?, content: String) {
         viewModelScope.launch {
             if (noteId == null) {
-                tripRepo.addNoteToTrip(tripId, content)
+                noteRepo.addNoteToTrip(tripId, content)
             } else {
-                tripRepo.updateNote(noteId, content)
+                noteRepo.updateNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            tripRepo.deleteNote(noteId)
+            noteRepo.deleteNote(noteId)
         }
     }
 
@@ -836,6 +838,7 @@ class TripDetailsViewModelFactory(
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val lureRepository: LureRepository,
+    private val noteRepository: NoteRepository,
     private val photoRepository: PhotoRepository,
     private val tackleBoxRepository: TackleBoxRepository,
     private val tripRepository: TripRepository
@@ -855,6 +858,7 @@ class TripDetailsViewModelFactory(
                 fishermanRepository,
                 fishRepository,
                 lureRepository,
+                noteRepository,
                 photoRepository,
                 tackleBoxRepository,
                 tripRepository,

@@ -59,6 +59,7 @@ import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.FishStoryRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.NoteRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import kotlinx.coroutines.Dispatchers
@@ -185,6 +186,7 @@ class ImportViewModel(
     private val fishermanRepo: FishermanRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val noteRepo: NoteRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository,
 ) : ViewModel() {
@@ -413,18 +415,18 @@ class ImportViewModel(
         }
 
         for (note in exportData.notes) {
-            val noteResult = tripRepo.findOrCreateNote(note)
+            val noteResult = noteRepo.findOrCreateNote(note)
             noteMap[note.id] = noteResult.item.id
         }
         for (eventNote in exportData.notesEvent) {
             val noteId = noteMap[eventNote.noteId] ?: continue
             val newEventNote = eventNote.copy(noteId = noteId)
-            tripRepo.insertEventNote(newEventNote)
+            noteRepo.insertEventNote(newEventNote)
         }
         for (fishNote in exportData.notesFish) {
             val noteId = noteMap[fishNote.noteId] ?: continue
             val newFishNote = fishNote.copy(noteId = noteId)
-            tripRepo.insertFishNote(newFishNote)
+            noteRepo.insertFishNote(newFishNote)
         }
     }
 
@@ -552,6 +554,7 @@ class ImportViewModelFactory(
     private val fishermanRepository: FishermanRepository,
     private val fishRepository: FishRepository,
     private val lureRepository: LureRepository,
+    private val noteRepository: NoteRepository,
     private val photoRepository: PhotoRepository,
     private val tripRepository: TripRepository
 ) : ViewModelProvider.Factory {
@@ -564,6 +567,7 @@ class ImportViewModelFactory(
                 fishermanRepository,
                 fishRepository,
                 lureRepository,
+                noteRepository,
                 photoRepository,
                 tripRepository,
             ) as T

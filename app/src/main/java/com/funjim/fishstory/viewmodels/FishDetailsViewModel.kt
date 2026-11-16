@@ -9,6 +9,7 @@ import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
 import com.funjim.fishstory.repository.LureRepository
+import com.funjim.fishstory.repository.NoteRepository
 import com.funjim.fishstory.repository.PhotoRepository
 import com.funjim.fishstory.repository.TripRepository
 import com.funjim.fishstory.ui.utils.FishFilter
@@ -39,6 +40,7 @@ class FishDetailsViewModel(
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val noteRepo: NoteRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModel(), LocationProvider by locationProvider {
@@ -163,21 +165,21 @@ class FishDetailsViewModel(
     }
 
     fun fishNotes(fishId: String): Flow<List<Note>> {
-        return fishRepo.getNotesForFish(fishId)
+        return noteRepo.getNotesForFish(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
     fun addNote(fishId: String, noteId: String?, content: String) {
         viewModelScope.launch {
             if (noteId == null) {
-                tripRepo.addNoteToFish(fishId, content)
+                noteRepo.addNoteToFish(fishId, content)
             } else {
-                tripRepo.updateNote(noteId, content)
+                noteRepo.updateNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            tripRepo.deleteNote(noteId)
+            noteRepo.deleteNote(noteId)
         }
     }
 
@@ -263,6 +265,7 @@ class FishDetailsViewModelFactory(
     private val envRepo: EnvironmentRepository,
     private val fishRepo: FishRepository,
     private val lureRepo: LureRepository,
+    private val noteRepo: NoteRepository,
     private val photoRepo: PhotoRepository,
     private val tripRepo: TripRepository
 ) : ViewModelProvider.Factory {
@@ -275,6 +278,7 @@ class FishDetailsViewModelFactory(
                 envRepo,
                 fishRepo,
                 lureRepo,
+                noteRepo,
                 photoRepo,
                 tripRepo) as T
         }

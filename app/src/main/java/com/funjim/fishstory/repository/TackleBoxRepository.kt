@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.map
 class TackleBoxRepository(
     private val lureDao: LureDao,
     private val tackleBoxDao: TackleBoxDao
-
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getEventTackleBoxSummary(
