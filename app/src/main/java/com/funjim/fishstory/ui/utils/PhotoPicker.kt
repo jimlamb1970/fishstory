@@ -65,6 +65,7 @@ import com.funjim.fishstory.model.Photo
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 fun createPublicImageUri(context: Context): Uri? {
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -81,6 +82,20 @@ fun createPublicImageUri(context: Context): Uri? {
     )
 }
 
+private fun doesUriExist(context: Context, uriString: String?): Boolean {
+    if (uriString.isNullOrBlank()) return false
+    return try {
+        val uri = uriString.toUri()
+        if (uri.scheme == "file") {
+            java.io.File(uri.path ?: return false).exists()
+        } else {
+            context.contentResolver.openInputStream(uri)?.use { true } ?: false
+        }
+    } catch (_: Exception) {
+        false
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoPickerRow(
@@ -93,7 +108,11 @@ fun PhotoPickerRow(
 ) {
     val context = LocalContext.current
     var tempUri by remember { mutableStateOf<Uri?>(null) }
-    var fullScreenPhotoUri by remember { mutableStateOf<String?>(null) }
+
+    var showFullScreenPhoto by remember { mutableStateOf(false) }
+    var selectedPhotoForFullscreen by remember { mutableStateOf<Photo?>(null) }
+
+    var showDeletePhotoDialog by remember { mutableStateOf(false) }
     var photoToDelete by remember { mutableStateOf<Photo?>(null) }
     var photoForMenu by remember { mutableStateOf<Photo?>(null) }
 
@@ -106,7 +125,7 @@ fun PhotoPickerRow(
                         it,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // This can happen if the provider doesn't support persistable permissions
                 }
                 onPhotoSelected(it)
@@ -173,12 +192,16 @@ fun PhotoPickerRow(
                         .size(100.dp)
                         .padding(4.dp)
                         .combinedClickable(
-                            onClick = { fullScreenPhotoUri = photo.uri },
+                            onClick = {
+                                selectedPhotoForFullscreen = photo
+                                showFullScreenPhoto = true
+                            },
                             onLongClick = {
                                 if (onSetThumbnail != null) {
                                     photoForMenu = photo
                                 } else {
                                     photoToDelete = photo
+                                    showDeletePhotoDialog = true
                                 }
                             }
                         )
@@ -226,6 +249,7 @@ fun PhotoPickerRow(
                             onClick = {
                                 photoForMenu = null
                                 photoToDelete = photo
+                                showDeletePhotoDialog = true
                             },
                             leadingIcon = {
                                 Icon(
@@ -242,29 +266,48 @@ fun PhotoPickerRow(
     }
 
     // Full Screen View Dialog
-    fullScreenPhotoUri?.let { uri ->
-        Dialog(
-            onDismissRequest = { fullScreenPhotoUri = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color.Black
+    if (showFullScreenPhoto) {
+        selectedPhotoForFullscreen?.let { photo ->
+            val fallbackImage = rememberVectorPainter(Icons.Filled.BrokenImage)
+
+            Dialog(
+                onDismissRequest = { showFullScreenPhoto = !showFullScreenPhoto },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = "Full Screen Photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                    IconButton(
-                        onClick = { fullScreenPhotoUri = null },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Black
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(photo.uri)
+                                .build(),
+                            contentDescription = "Full Screen Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            error = rememberAsyncImagePainter(
+                                model = ImageRequest.Builder(context)
+                                    .data(photo.thumbnail)
+                                    .memoryCachePolicy(CachePolicy.DISABLED)
+                                    .diskCachePolicy(CachePolicy.DISABLED)
+                                    .build(),
+                                error = fallbackImage
+                            ),
+                            fallback = fallbackImage
+                        )
+                        IconButton(
+                            onClick = { showFullScreenPhoto = !showFullScreenPhoto },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
             }
@@ -272,27 +315,29 @@ fun PhotoPickerRow(
     }
 
     // Delete Confirmation Dialog
-    photoToDelete?.let { photo ->
-        AlertDialog(
-            onDismissRequest = { photoToDelete = null },
-            title = { Text("Delete Photo") },
-            text = { Text("Are you sure you want to delete this photo from the app?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onPhotoDeleted(photo)
-                        photoToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+    if (showDeletePhotoDialog) {
+        photoToDelete?.let { photo ->
+            AlertDialog(
+                onDismissRequest = { showDeletePhotoDialog = !showDeletePhotoDialog },
+                title = { Text("Delete Photo") },
+                text = { Text("Are you sure you want to delete this photo from the app?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            onPhotoDeleted(photo)
+                            showDeletePhotoDialog = !showDeletePhotoDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeletePhotoDialog = !showDeletePhotoDialog }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { photoToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
