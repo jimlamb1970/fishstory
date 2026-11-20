@@ -33,7 +33,7 @@ data class TripWithDetails(
     val trip: Trip,
     val events: List<EventWithInfo>,
     val fishermen: List<Fisherman>,
-    val notes: List<Note>,
+    val notes: List<TripNote>,
     val photos: List<Photo>,
     val targetSpecies: List<Species>,
     val bodiesOfWater: List<BodyOfWater>

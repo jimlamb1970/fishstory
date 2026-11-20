@@ -99,6 +99,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.core.net.toUri
 import com.funjim.fishstory.database.entity.TackleBoxStatus
+import com.funjim.fishstory.model.TripNote
 import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
 import com.funjim.fishstory.ui.selection.LimitSelection
@@ -147,7 +148,7 @@ fun TripDetailsScreen(
     var showDeleteFishermanDialog by remember { mutableStateOf(false) }
     var limitToDelete by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var showDeleteLimitDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+    var noteToDelete by remember { mutableStateOf<TripNote?>(null) }
     var showDeleteNoteDialog by remember { mutableStateOf(false) }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
     var showDeleteSpeciesDialog by remember { mutableStateOf(false) }
@@ -159,7 +160,7 @@ fun TripDetailsScreen(
     var showEditLimitDialog by remember { mutableStateOf(false) }
     var limitToEdit by remember { mutableStateOf<LimitWithSpecies?>(null) }
     var showEditNoteDialog by remember { mutableStateOf(false) }
-    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var noteToEdit by remember { mutableStateOf<TripNote?>(null) }
 
     var showEditWaterDialog by remember { mutableStateOf(false) }
     var waterToEdit by remember { mutableStateOf<Water?>(null) }
@@ -1302,11 +1303,11 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             helpText = "Notes help you remember specific details and conditions during this trip.",
                                             onAdd = { showAddNoteDialog = true },
                                             onDelete = {
-                                                noteToDelete = it
+                                                noteToDelete = it as TripNote?
                                                 showDeleteNoteDialog = true
                                             },
                                             onEdit = {
-                                                noteToEdit = it
+                                                noteToEdit = it as TripNote?
                                                 showEditNoteDialog = true
                                             },
                                             onToggleHelp = { viewModel.toggleHelp() }
@@ -1573,12 +1574,12 @@ Selecting them places those species at the top of the list when logging catches 
             if (showEditNoteDialog) {
                 noteToEdit?.let { note ->
                     EditNoteDialog(
-                        item = note,
+                        content = note.content,
                         onDismiss = {
                             showEditNoteDialog = !showEditNoteDialog
                         },
-                        onConfirm = { note ->
-                            viewModel.addNote(note.id, note.content)
+                        onConfirm = { content ->
+                            viewModel.addNote(note.id, content)
                             showEditNoteDialog = !showEditNoteDialog
                         }
                     )

@@ -1,130 +1,111 @@
 package com.funjim.fishstory.database.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.FishermanEntity
-import com.funjim.fishstory.database.entity.LimitEntity
-import com.funjim.fishstory.database.entity.NoteEntity
-import com.funjim.fishstory.database.entity.NoteEventEntity
-import com.funjim.fishstory.database.entity.NoteFishEntity
-import com.funjim.fishstory.database.entity.NoteTripEntity
-import com.funjim.fishstory.model.LimitType
+import com.funjim.fishstory.database.entity.EventNoteEntity
+import com.funjim.fishstory.database.entity.FishNoteEntity
+import com.funjim.fishstory.database.entity.TripNoteEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-    @Query("DELETE FROM note_table WHERE id = :id")
-    suspend fun deleteNoteById(id: String)
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertNote(note: NoteEntity)
+    @Delete
+    suspend fun deleteEventNote(note: EventNoteEntity)
+    @Query("DELETE FROM event_note_table WHERE id = :id")
+    suspend fun deleteEventNoteById(id: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEventNote(note: EventNoteEntity)
     @Upsert
-    suspend fun upsertNote(note: NoteEntity)
-    @Query("UPDATE note_table SET content = :content WHERE id = :noteId")
-    suspend fun updateNoteContent(noteId: String, content: String)
+    suspend fun upsertEventNote(note: EventNoteEntity)
+    @Query("UPDATE event_note_table SET content = :content WHERE id = :noteId")
+    suspend fun updateEventNoteContent(noteId: String, content: String)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertTripNote(crossRef: NoteTripEntity)
+    @Delete
+    suspend fun deleteFishNote(note: FishNoteEntity)
+    @Query("DELETE FROM fish_note_table WHERE id = :id")
+    suspend fun deleteFishNoteById(id: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFishNote(note: FishNoteEntity)
     @Upsert
-    suspend fun upsertTripNote(crossRef: NoteTripEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertEventNote(crossRef: NoteEventEntity)
-    @Upsert
-    suspend fun upsertEventNote(crossRef: NoteEventEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertFishNote(crossRef: NoteFishEntity)
-    @Upsert
-    suspend fun upsertFishNote(crossRef: NoteFishEntity)
+    suspend fun upsertFishNote(note: FishNoteEntity)
+    @Query("UPDATE fish_note_table SET content = :content WHERE id = :noteId")
+    suspend fun updateFishNoteContent(noteId: String, content: String)
 
-    @Transaction
-    suspend fun addNoteToTrip(tripId: String, noteText: String) {
-        val note = NoteEntity(content = noteText)
-        insertNote(note)
-        insertTripNote(NoteTripEntity(tripId = tripId, noteId = note.id))
-    }
-    @Transaction
-    suspend fun addNoteToEvent(eventId: String, noteText: String) {
-        val note = NoteEntity(content = noteText)
-        insertNote(note)
-        insertEventNote(NoteEventEntity(eventId = eventId, noteId = note.id))
-    }
-    @Transaction
-    suspend fun addNoteToFish(fishId: String, noteText: String) {
-        val note = NoteEntity(content = noteText)
-        insertNote(note)
-        insertFishNote(NoteFishEntity(fishId = fishId, noteId = note.id))
-    }
+    @Delete
+    suspend fun deleteTripNote(note: TripNoteEntity)
+    @Query("DELETE FROM trip_note_table WHERE id = :id")
+    suspend fun deleteTripNoteById(id: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTripNote(note: TripNoteEntity)
+    @Upsert
+    suspend fun upsertTripNote(note: TripNoteEntity)
+    @Query("UPDATE trip_note_table SET content = :content WHERE id = :noteId")
+    suspend fun updateTripNoteContent(noteId: String, content: String)
 
-    @Query("SELECT * FROM note_table WHERE id = :id")
-    suspend fun getNoteById(id: String): NoteEntity?
+    @Query("SELECT * FROM event_note_table WHERE id = :id")
+    suspend fun getEventNoteById(id: String): EventNoteEntity?
+    @Query("SELECT * FROM fish_note_table WHERE id = :id")
+    suspend fun getFishNoteById(id: String): FishNoteEntity?
+    @Query("SELECT * FROM trip_note_table WHERE id = :id")
+    suspend fun getTripNoteById(id: String): TripNoteEntity?
+
     @Query("""
-        SELECT * FROM note_table AS n
+        SELECT * FROM event_note_table AS n
         WHERE n.content = :content AND n.timestamp = :timestamp
         LIMIT 1
     """)
-    suspend fun getNoteByData(
+    suspend fun getEventNoteByData(
         content: String,
         timestamp: Long
-    ): NoteEntity?
-
-    @Query("SELECT * FROM note_table ORDER BY timestamp DESC")
-    suspend fun getAllNotesList(): List<NoteEntity>
-    @Query("SELECT * FROM trip_note")
-    suspend fun getAllNotesTripList(): List<NoteTripEntity>
-    @Query("SELECT * FROM event_note")
-    suspend fun getAllNotesEventList(): List<NoteEventEntity>
-    @Query("SELECT * FROM fish_note")
-    suspend fun getAllNotesFishList(): List<NoteFishEntity>
-
-    @Transaction
+    ): EventNoteEntity?
     @Query("""
-        SELECT n.* FROM note_table n
-        INNER JOIN trip_note xr ON n.id = xr.noteId
-        WHERE xr.tripId = :tripId
-        ORDER BY n.timestamp DESC
+        SELECT * FROM fish_note_table AS n
+        WHERE n.content = :content AND n.timestamp = :timestamp
+        LIMIT 1
     """)
-    fun getNotesForTrip(tripId: String): Flow<List<NoteEntity>>
+    suspend fun getFishNoteByData(
+        content: String,
+        timestamp: Long
+    ): FishNoteEntity?
+    @Query("""
+        SELECT * FROM trip_note_table AS n
+        WHERE n.content = :content AND n.timestamp = :timestamp
+        LIMIT 1
+    """)
+    suspend fun getTripNoteByData(
+        content: String,
+        timestamp: Long
+    ): TripNoteEntity?
+
+    @Query("SELECT * FROM event_note_table")
+    suspend fun getAllEventNotesList(): List<EventNoteEntity>
+    @Query("SELECT * FROM fish_note_table")
+    suspend fun getAllFishNotesList(): List<FishNoteEntity>
+    @Query("SELECT * FROM trip_note_table")
+    suspend fun getAllTripNotesList(): List<TripNoteEntity>
 
     @Query("""
-        SELECT note_table.* FROM note_table
-        INNER JOIN event_note ON note_table.id = event_note.noteId
-        WHERE event_note.eventId = :eventId
-        UNION
-        SELECT note_table.* FROM note_table 
-        INNER JOIN fish_note ON note_table.id = fish_note.noteId
-        INNER JOIN fish_table ON fish_note.fishId = fish_table.id  
+        SELECT event_note_table.* FROM event_note_table
+        WHERE parentId = :eventId
+        ORDER BY event_note_table.timestamp DESC
+    """)
+    suspend fun getEventNotes(eventId: String): List<EventNoteEntity>
+    @Query("""
+        SELECT fish_note_table.* FROM fish_note_table 
+        INNER JOIN fish_table ON fish_note_table.parentId = fish_table.id  
         WHERE fish_table.eventId = :eventId
+        ORDER BY fish_note_table.timestamp DESC
     """)
-    suspend fun getAllNotesForEvent(eventId: String): List<NoteEntity>
-    @Query("""
-        SELECT event_note.* FROM event_note
-        WHERE event_note.eventId = :eventId
-    """)
-    suspend fun getEventNotesForEvent(eventId: String): List<NoteEventEntity>
-    @Query("""
-        SELECT fish_note.* FROM fish_note 
-        INNER JOIN fish_table ON fish_note.fishId = fish_table.id  
-        WHERE fish_table.eventId = :eventId
-    """)
-    suspend fun getFishNotesForEvent(eventId: String): List<NoteFishEntity>
+    suspend fun getFishNotesForEvent(eventId: String): List<FishNoteEntity>
 
-    @Transaction
     @Query("""
-        SELECT n.* FROM note_table n
-        INNER JOIN event_note xr ON n.id = xr.noteId
-        WHERE xr.eventId = :eventId
+        SELECT n.* FROM fish_note_table n
+        WHERE parentId = :fishId
         ORDER BY n.timestamp DESC
     """)
-    fun getNotesForEvent(eventId: String): Flow<List<NoteEntity>>
-    @Transaction
-    @Query("""
-        SELECT n.* FROM note_table n
-        INNER JOIN fish_note xr ON n.id = xr.noteId
-        WHERE xr.fishId = :fishId
-        ORDER BY n.timestamp DESC
-    """)
-    fun getNotesForFish(fishId: String): Flow<List<NoteEntity>>
+    fun getFishNotes(fishId: String): Flow<List<FishNoteEntity>>
 }

@@ -164,7 +164,7 @@ class FishDetailsViewModel(
         }
     }
 
-    fun fishNotes(fishId: String): Flow<List<Note>> {
+    fun fishNotes(fishId: String): Flow<List<FishNote>> {
         return noteRepo.getNotesForFish(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
@@ -173,13 +173,13 @@ class FishDetailsViewModel(
             if (noteId == null) {
                 noteRepo.addNoteToFish(fishId, content)
             } else {
-                noteRepo.updateNote(noteId, content)
+                noteRepo.updateFishNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            noteRepo.deleteNote(noteId)
+            noteRepo.deleteFishNote(noteId)
         }
     }
 

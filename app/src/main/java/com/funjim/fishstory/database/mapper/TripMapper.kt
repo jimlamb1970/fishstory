@@ -78,7 +78,7 @@ fun TripEntityWithDetails.toDomain(): TripWithDetails {
         trip = trip.toDomain(),
         events = events.toEventWithInfoDomainList(),
         fishermen = fishermen.toFishermanDomainList(),
-        notes = notes.toNoteDomainList(),
+        notes = notes.toTripNoteDomainList(),
         photos = photos.toPhotoDomainList(),
         targetSpecies = targetSpecies.toSpeciesDomainList(),
         bodiesOfWater = bodiesOfWater.toBodyOfWaterDomainList()

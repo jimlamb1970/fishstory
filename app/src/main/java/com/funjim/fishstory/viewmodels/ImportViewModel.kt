@@ -16,8 +16,10 @@ import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.EventBodyOfWater
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.EventLimit
+import com.funjim.fishstory.model.EventNote
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.model.FishNote
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSpecies
@@ -50,6 +52,7 @@ import com.funjim.fishstory.model.TripBait
 import com.funjim.fishstory.model.TripBodyOfWater
 import com.funjim.fishstory.model.TripFisherman
 import com.funjim.fishstory.model.TripLimit
+import com.funjim.fishstory.model.TripNote
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
@@ -99,7 +102,8 @@ data class FishStoryEventData(
     val limits: List<Limit> = emptyList(),
     val lures: List<Lure> = emptyList(),
     val lureColors: List<LureColor> = emptyList(),
-    val notes: List<Note> = emptyList(),
+    val eventNotes: List<EventNote> = emptyList(),
+    val fishNotes: List<FishNote> = emptyList(),
     val species: List<Species> = emptyList(),
     val skyConditions: List<SkyCondition> = emptyList(),
     val tackleBoxes: List<TackleBox> = emptyList(),
@@ -117,8 +121,6 @@ data class FishStoryEventData(
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
     val lureGlowColors: List<LureGlowColor> = emptyList(),
-    val notesEvent: List<NoteEvent> = emptyList(),
-    val notesFish: List<NoteFish> = emptyList(),
     val tackleBoxLures: List<TackleBoxLure> = emptyList(),
 )
 
@@ -143,6 +145,9 @@ data class FishStoryData(
     val limits: List<Limit> = emptyList(),
     val fish: List<Fish> = emptyList(),
     val notes: List<Note> = emptyList(),
+    val eventNotes: List<EventNote> = emptyList(),
+    val fishNotes: List<FishNote> = emptyList(),
+    val tripNotes: List<TripNote> = emptyList(),
     val photos: List<Photo> = emptyList(),
     // Lure and Tackle Box Cross References (4) (21)
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
@@ -227,7 +232,6 @@ class ImportViewModel(
         val limitMap = mutableMapOf<String, String>()
         val lureColorMap = mutableMapOf<String, String>()
         val lureMap = mutableMapOf<String, String>()
-        val noteMap = mutableMapOf<String, String>()
         val skyConditionMap = mutableMapOf<String, String>()
         val speciesMap = mutableMapOf<String, String>()
         val tackleBoxMap = mutableMapOf<String, String>()
@@ -414,19 +418,11 @@ class ImportViewModel(
             }
         }
 
-        for (note in exportData.notes) {
-            val noteResult = noteRepo.findOrCreateNote(note)
-            noteMap[note.id] = noteResult.item.id
+        for (note in exportData.eventNotes) {
+            noteRepo.findOrCreateEventNote(note)
         }
-        for (eventNote in exportData.notesEvent) {
-            val noteId = noteMap[eventNote.noteId] ?: continue
-            val newEventNote = eventNote.copy(noteId = noteId)
-            noteRepo.insertEventNote(newEventNote)
-        }
-        for (fishNote in exportData.notesFish) {
-            val noteId = noteMap[fishNote.noteId] ?: continue
-            val newFishNote = fishNote.copy(noteId = noteId)
-            noteRepo.insertFishNote(newFishNote)
+        for (note in exportData.fishNotes) {
+            noteRepo.findOrCreateFishNote(note)
         }
     }
 

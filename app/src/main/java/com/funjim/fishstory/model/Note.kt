@@ -27,3 +27,35 @@ data class NoteFish(
     val fishId: String,
     val noteId: String
 )
+
+interface BaseNote {
+    val id: String
+    val content: String
+    val timestamp: Long
+    val parentId: String
+}
+
+@Serializable
+data class EventNote(
+    override val id: String = UUID.randomUUID().toString(),
+    override val content: String,
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val parentId: String
+) : BaseNote
+
+@Serializable
+data class FishNote(
+    override val id: String = UUID.randomUUID().toString(),
+    override val content: String,
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val parentId: String
+) : BaseNote
+
+@Serializable
+data class TripNote(
+    override val id: String = UUID.randomUUID().toString(),
+    override val content: String,
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val parentId: String
+) : BaseNote
+

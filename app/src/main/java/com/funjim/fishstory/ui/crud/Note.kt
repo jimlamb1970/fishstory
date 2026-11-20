@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.BaseNote
 import com.funjim.fishstory.model.Note
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,21 +41,21 @@ fun NewNoteDialog(
     onDismiss: () -> Unit,
 ) {
     EditNoteDialog(
-        item = Note(content = ""),
+        content = "",
         title = "New",
-        onConfirm = { onConfirm(it.content) },
+        onConfirm = onConfirm,
         onDismiss = onDismiss
     )
 }
 
 @Composable
 fun EditNoteDialog(
-    item: Note,
+    content: String,
     title: String = "Edit",
-    onConfirm: (Note) -> Unit,
+    onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val origContent = remember(item) { item.content }
+    val origContent = remember(content) { content }
     var content by remember { mutableStateOf(origContent) }
 
     val isValid = content.isNotBlank() && (origContent != content)
@@ -75,7 +76,7 @@ fun EditNoteDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(item.copy(content = content.trim())) },
+                onClick = { onConfirm(content.trim()) },
                 enabled = isValid
             ) { Text("OK") }
         },
@@ -87,7 +88,7 @@ fun EditNoteDialog(
 
 @Composable
 fun NotesDialog(
-    notes: List<Note>,
+    notes: List<BaseNote>,
     onDismiss: () -> Unit,
     onAddNote: (noteId: String?, text: String) -> Unit,
     onDeleteNote: (noteId: String) -> Unit

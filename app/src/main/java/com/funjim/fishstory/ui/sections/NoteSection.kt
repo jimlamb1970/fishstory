@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.BaseNote
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.cards.NoteCard
 import com.funjim.fishstory.ui.utils.BadgeCount
@@ -37,13 +38,13 @@ import com.funjim.fishstory.ui.utils.getOnMainColor
 
 @Composable
 fun NoteSection(
-    noteList: List<Note>,
+    noteList: List<BaseNote>,
     showHelp: Boolean,
     emptyText: String = "No notes created.",
     helpText: String = "You need help.",
     onAdd: (() -> Unit)? = null,
-    onDelete: (Note) -> Unit,
-    onEdit: (Note) -> Unit,
+    onDelete: (BaseNote) -> Unit,
+    onEdit: (BaseNote) -> Unit,
     onToggleHelp: (() -> Unit)? = null
 ) {
     var isExpanded by remember { mutableStateOf(false) }

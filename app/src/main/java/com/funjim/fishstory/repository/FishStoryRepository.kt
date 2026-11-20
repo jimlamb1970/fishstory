@@ -16,6 +16,9 @@ import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
+import com.funjim.fishstory.database.entity.EventNoteEntity
+import com.funjim.fishstory.database.entity.FishNoteEntity
+import com.funjim.fishstory.database.entity.TripNoteEntity
 import com.funjim.fishstory.database.mapper.toBaitDomainList
 import com.funjim.fishstory.database.mapper.toBodyOfWaterDomainList
 import com.funjim.fishstory.database.mapper.toDomainList
@@ -25,8 +28,10 @@ import com.funjim.fishstory.database.mapper.toEventBodyOfWaterDomainList
 import com.funjim.fishstory.database.mapper.toEventDomainList
 import com.funjim.fishstory.database.mapper.toEventFishermanDomainList
 import com.funjim.fishstory.database.mapper.toEventLimitDomainList
+import com.funjim.fishstory.database.mapper.toEventNoteDomainList
 import com.funjim.fishstory.database.mapper.toEventTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toFishDomainList
+import com.funjim.fishstory.database.mapper.toFishNoteDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
 import com.funjim.fishstory.database.mapper.toLimitDomainList
 import com.funjim.fishstory.database.mapper.toLimitSpeciesDomainList
@@ -58,6 +63,7 @@ import com.funjim.fishstory.database.mapper.toTripBodyOfWaterDomainList
 import com.funjim.fishstory.database.mapper.toTripDomainList
 import com.funjim.fishstory.database.mapper.toTripFishermanDomainList
 import com.funjim.fishstory.database.mapper.toTripLimitDomainList
+import com.funjim.fishstory.database.mapper.toTripNoteDomainList
 import com.funjim.fishstory.database.mapper.toTripTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toWaterDomainList
 import com.funjim.fishstory.database.mapper.toWeatherDomainList
@@ -98,7 +104,9 @@ class FishStoryRepository(
             weatherConditions = weatherDao.getAllWeatherConditionsList().toWeatherDomainList(),
             limits = limitDao.getAllLimitsList().toLimitDomainList(),
             fish = fishDao.getAllFishList().toFishDomainList(),
-            notes = noteDao.getAllNotesList().toNoteDomainList(),
+            eventNotes = noteDao.getAllEventNotesList().toEventNoteDomainList(),
+            fishNotes = noteDao.getAllFishNotesList().toFishNoteDomainList(),
+            tripNotes = noteDao.getAllTripNotesList().toTripNoteDomainList(),
             photos = photoDao.getAllPhotosList().toPhotoDomainList(),
             // Cross Reference Tables (All of them)
             lurePrimaryColors = lureDao.getAllLurePrimaryColorsList().toLurePrimaryColorDomainList(),
@@ -116,9 +124,6 @@ class FishStoryRepository(
             eventFishermen = fishermanDao.getAllEventFishermenList().toEventFishermanDomainList(),
             eventLimits = limitDao.getAllEventLimitsList().toEventLimitDomainList(),
             eventTargetSpecies = speciesDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList(),
-            notesEvent = noteDao.getAllNotesEventList().toNoteEventDomainList(),
-            notesFish = noteDao.getAllNotesFishList().toNoteFishDomainList(),
-            notesTrip = noteDao.getAllNotesTripList().toNoteTripDomainList(),
             photosBait = photoDao.getAllPhotosForBaitList().toPhotoBaitDomainList(),
             photosBodyOfWater = photoDao.getAllPhotosForBodiesOfWaterList().toPhotoBodyOfWaterDomainList(),
             photosEvent = photoDao.getAllPhotosForEventsList().toPhotoEventDomainList(),
@@ -158,7 +163,6 @@ class FishStoryRepository(
             for (trip in exportData.trips) tripDao.insertTrip(trip.toEntity())
             for (event in exportData.events) eventDao.insertEvent(event.toEntity())
             for (fish in exportData.fish) fishDao.insertFish(fish.toEntity())
-            for (note in exportData.notes) noteDao.insertNote(note.toEntity())
             for (photo in exportData.photos) photoDao.insertPhoto(photo.toEntity())
 
             // 6. Insert All Cross-Reference / Join Tables Last
@@ -180,9 +184,37 @@ class FishStoryRepository(
             for (item in exportData.eventLimits) limitDao.insertEventLimit(item.toEntity())
             for (item in exportData.eventTargetSpecies) speciesDao.upsertEventTargetSpecies(item.toEntity())
 
-            for (item in exportData.notesEvent) noteDao.upsertEventNote(item.toEntity())
-            for (item in exportData.notesFish) noteDao.upsertFishNote(item.toEntity())
-            for (item in exportData.notesTrip) noteDao.upsertTripNote(item.toEntity())
+            val notesMap = exportData.notes.associateBy { it.id }
+            val newEventNotes = exportData.notesEvent.mapNotNull { xref ->
+                val note = notesMap[xref.noteId] ?: return@mapNotNull null
+                EventNoteEntity(
+                    id = note.id,
+                    content = note.content,
+                    timestamp = note.timestamp,
+                    parentId = xref.eventId
+                )
+            }
+            newEventNotes.forEach { noteDao.upsertEventNote(it) }
+            val newFishNotes = exportData.notesFish.mapNotNull { xref ->
+                val note = notesMap[xref.noteId] ?: return@mapNotNull null
+                FishNoteEntity(
+                    id = note.id,
+                    content = note.content,
+                    timestamp = note.timestamp,
+                    parentId = xref.fishId
+                )
+            }
+            newFishNotes.forEach { noteDao.upsertFishNote(it) }
+            val newTripNotes = exportData.notesTrip.mapNotNull { xref ->
+                val note = notesMap[xref.noteId] ?: return@mapNotNull null
+                TripNoteEntity(
+                    id = note.id,
+                    content = note.content,
+                    timestamp = note.timestamp,
+                    parentId = xref.tripId
+                )
+            }
+            newTripNotes.forEach { noteDao.upsertTripNote(it) }
 
             for (item in exportData.photosBait) photoDao.addBaitPhoto(item.toEntity())
             for (item in exportData.photosBodyOfWater) photoDao.addBodyOfWaterPhoto(item.toEntity())

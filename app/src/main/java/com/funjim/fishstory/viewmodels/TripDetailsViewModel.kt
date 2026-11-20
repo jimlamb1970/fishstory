@@ -560,13 +560,13 @@ class TripDetailsViewModel(
             if (noteId == null) {
                 noteRepo.addNoteToTrip(tripId, content)
             } else {
-                noteRepo.updateNote(noteId, content)
+                noteRepo.updateTripNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            noteRepo.deleteNote(noteId)
+            noteRepo.deleteTripNote(noteId)
         }
     }
 

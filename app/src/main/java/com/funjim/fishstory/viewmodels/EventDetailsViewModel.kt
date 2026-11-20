@@ -501,13 +501,13 @@ class EventDetailsViewModel(
             if (noteId == null) {
                 noteRepo.addNoteToEvent(eventId, content)
             } else {
-                noteRepo.updateNote(noteId, content)
+                noteRepo.updateEventNote(noteId, content)
             }
         }
     }
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            noteRepo.deleteNote(noteId)
+            noteRepo.deleteEventNote(noteId)
         }
     }
 
@@ -719,7 +719,8 @@ class EventDetailsViewModel(
                     limits = fishRepo.getAllLimitsForEvent(eventId),
                     lures = lureRepo.getAllLuresForEvent(eventId),
                     lureColors = lureRepo.getAllLureColorsForEvent(eventId),
-                    notes = noteRepo.getAllNotesForEvent(eventId),
+                    eventNotes = noteRepo.getEventNotes(eventId),
+                    fishNotes = noteRepo.getFishNotesForEvent(eventId),
                     species = fishRepo.getAllSpeciesForEvent(eventId),
                     skyConditions = envRepo.getAllSkyConditionsForEvent(eventId),
                     tackleBoxes = fishermanRepo.getAllTackleBoxesForEvent(eventId),
@@ -736,8 +737,6 @@ class EventDetailsViewModel(
                     lurePrimaryColors = lureRepo.getLurePrimaryColorsForEvent(eventId),
                     lureSecondaryColors = lureRepo.getLureSecondaryColorsForEvent(eventId),
                     lureGlowColors = lureRepo.getLureGlowColorsForEvent(eventId),
-                    notesEvent = noteRepo.getEventNotesForEvent(eventId),
-                    notesFish = noteRepo.getFishNotesForEvent(eventId),
                     tackleBoxLures = fishermanRepo.getTackleBoxLuresForEvent(eventId)
                 )
 

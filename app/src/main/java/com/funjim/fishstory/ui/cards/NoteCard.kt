@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.BaseNote
 import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.getCardBorderColor
@@ -43,12 +44,12 @@ import java.util.Locale
 
 @Composable
 fun NoteCard(
-    item: Note,
+    item: BaseNote,
     modifier: Modifier = Modifier,
     index: Int = 0,
     totalItems: Int = 0,
-    onEdit: (Note) -> Unit,
-    onDelete: (Note) -> Unit
+    onEdit: (BaseNote) -> Unit,
+    onDelete: (BaseNote) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 

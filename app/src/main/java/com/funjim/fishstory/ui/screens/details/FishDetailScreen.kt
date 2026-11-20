@@ -61,6 +61,7 @@ import java.util.Locale
 import kotlin.math.absoluteValue
 import androidx.core.net.toUri
 import com.funjim.fishstory.model.Fish
+import com.funjim.fishstory.model.FishNote
 import com.funjim.fishstory.ui.utils.BadgeCount
 
 // Helper function to invoke the native share sheet
@@ -397,7 +398,7 @@ This cannot be undone."""
 private fun FishDetailContent(
     fish: FishWithDetails,
     fishThumbnailFlow: Flow<ByteArray?>,
-    fishNoteFlow: Flow<List<Note>>,
+    fishNoteFlow: Flow<List<FishNote>>,
     fishPhotoFlow: Flow<List<Photo>>,
     baitThumbnailFlow: Flow<ByteArray?>,
     bodyOfWaterThumbnailFlow: Flow<ByteArray?>,
@@ -428,9 +429,9 @@ private fun FishDetailContent(
     }
 
     var showAddNoteDialog by remember { mutableStateOf(false) }
-    var noteToEdit by remember { mutableStateOf<Note?>(null) }
+    var noteToEdit by remember { mutableStateOf<FishNote?>(null) }
     var showEditNoteDialog by remember { mutableStateOf(false) }
-    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+    var noteToDelete by remember { mutableStateOf<FishNote?>(null) }
     var showDeleteNoteDialog by remember { mutableStateOf(false) }
 
     val baitThumbnail by baitThumbnailFlow.collectAsState(initial = null)
@@ -886,11 +887,11 @@ private fun FishDetailContent(
                         helpText = "Notes help you remember specific details about this fish.",
                         onAdd = { showAddNoteDialog = true },
                         onEdit = {
-                            noteToEdit = it
+                            noteToEdit = it as FishNote?
                             showEditNoteDialog = true
                         },
                         onDelete = {
-                            noteToDelete = it
+                            noteToDelete = it as FishNote?
                             showDeleteNoteDialog = true
                         },
                         onToggleHelp = onToggleHelp,
@@ -955,12 +956,12 @@ private fun FishDetailContent(
     if (showEditNoteDialog) {
         noteToEdit?.let { note ->
             EditNoteDialog(
-                item = note,
+                content = note.content,
                 onDismiss = {
                     showEditNoteDialog = !showEditNoteDialog
                 },
-                onConfirm = { note ->
-                    onAddNote(note.id, note.content)
+                onConfirm = { content ->
+                    onAddNote(note.id, content)
                     showEditNoteDialog = !showEditNoteDialog
                 }
             )

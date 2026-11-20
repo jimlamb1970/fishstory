@@ -27,8 +27,10 @@ import com.funjim.fishstory.database.entity.EventEntity
 import com.funjim.fishstory.database.entity.EventEntityDetailedSummary
 import com.funjim.fishstory.database.entity.EventFishermanEntity
 import com.funjim.fishstory.database.entity.EventLimitEntity
+import com.funjim.fishstory.database.entity.EventNoteEntity
 import com.funjim.fishstory.database.entity.EventTargetSpeciesEntity
 import com.funjim.fishstory.database.entity.FishEntity
+import com.funjim.fishstory.database.entity.FishNoteEntity
 import com.funjim.fishstory.database.entity.FishermanEntity
 import com.funjim.fishstory.database.entity.LimitEntity
 import com.funjim.fishstory.database.entity.LimitSpeciesEntity
@@ -59,6 +61,7 @@ import com.funjim.fishstory.database.entity.TackleBoxLureEntity
 import com.funjim.fishstory.database.entity.TripBaitEntity
 import com.funjim.fishstory.database.entity.TripBodyOfWaterEntity
 import com.funjim.fishstory.database.entity.TripEntity
+import com.funjim.fishstory.database.entity.TripNoteEntity
 import com.funjim.fishstory.database.entity.TripEntityDetailedSummary
 import com.funjim.fishstory.database.entity.TripFishermanEntity
 import com.funjim.fishstory.database.entity.TripLimitEntity
@@ -73,7 +76,9 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         BaitEntity::class,
         BodyOfWaterEntity::class,
         EventEntity::class,
+        EventNoteEntity::class,
         FishEntity::class,
+        FishNoteEntity::class,
         FishermanEntity::class,
         LimitEntity::class,
         LureEntity::class,
@@ -84,6 +89,7 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         SpeciesEntity::class,
         TackleBoxEntity::class,
         TripEntity::class,
+        TripNoteEntity::class,
         WaterEntity::class,
         WaterClarityEntity::class,
         WeatherEntity::class,
