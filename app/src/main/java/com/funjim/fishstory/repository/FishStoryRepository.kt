@@ -141,31 +141,35 @@ class FishStoryRepository(
         db.withTransaction {
             db.clearAllTables()
 
-            // 2. Insert Independent & Dependent Lookups
+            // 1. Insert Independent & Dependent Lookups
             for (color in exportData.colors) lureDao.insertLureColor(color.toEntity())
             for (species in exportData.species) speciesDao.insertSpecies(species.toEntity())
             for (condition in exportData.skyConditions) weatherDao.insertSkyCondition(condition.toEntity())
             for (clarity in exportData.waterClarities) waterDao.insertWaterClarity(clarity.toEntity())
             for (bait in exportData.baits) baitDao.insertBait(bait.toEntity())
 
-            // 3. Insert Environmental Conditions & Core Entities
+            // 2. Insert Environmental Conditions & Core Entities
             for (water in exportData.waterConditions) waterDao.insertWater(water.toEntity())
             for (weather in exportData.weatherConditions) weatherDao.insertWeather(weather.toEntity())
             for (bow in exportData.bodiesOfWater) bodyOfWaterDao.insertBodyOfWater(bow.toEntity())
             for (fisherman in exportData.fishermen) fishermanDao.insertFisherman(fisherman.toEntity())
             for (tackleBox in exportData.tackleboxes) tackleBoxDao.insertTackleBox(tackleBox.toEntity())
 
-            // 4. Insert Lures & Limits
+            // 3. Insert Lures & Limits
             for (lure in exportData.lures) lureDao.insertLure(lure.toEntity())
             for (limit in exportData.limits) limitDao.insertLimit(limit.toEntity())
 
-            // 5. Insert Trips, Events, & Transactional Data (Fish, Notes, Photos)
+            // 4. Insert Trips, Events, & Transactional Data (Fish, Notes, Photos)
             for (trip in exportData.trips) tripDao.insertTrip(trip.toEntity())
             for (event in exportData.events) eventDao.insertEvent(event.toEntity())
             for (fish in exportData.fish) fishDao.insertFish(fish.toEntity())
             for (photo in exportData.photos) photoDao.insertPhoto(photo.toEntity())
 
-            // 6. Insert All Cross-Reference / Join Tables Last
+            for (note in exportData.eventNotes) noteDao.insertEventNote(note.toEntity())
+            for (note in exportData.fishNotes) noteDao.insertFishNote(note.toEntity())
+            for (note in exportData.tripNotes) noteDao.insertTripNote(note.toEntity())
+
+            // 5. Insert All Cross-Reference / Join Tables Last
             for (item in exportData.lurePrimaryColors) lureDao.upsertLurePrimaryColor(item.toEntity())
             for (item in exportData.lureSecondaryColors) lureDao.upsertLureSecondaryColor(item.toEntity())
             for (item in exportData.lureGlowColors) lureDao.upsertLureGlowColor(item.toEntity())
@@ -183,38 +187,6 @@ class FishStoryRepository(
             for (item in exportData.eventFishermen) fishermanDao.insertEventFisherman(item.toEntity())
             for (item in exportData.eventLimits) limitDao.insertEventLimit(item.toEntity())
             for (item in exportData.eventTargetSpecies) speciesDao.upsertEventTargetSpecies(item.toEntity())
-
-            val notesMap = exportData.notes.associateBy { it.id }
-            val newEventNotes = exportData.notesEvent.mapNotNull { xref ->
-                val note = notesMap[xref.noteId] ?: return@mapNotNull null
-                EventNoteEntity(
-                    id = note.id,
-                    content = note.content,
-                    timestamp = note.timestamp,
-                    parentId = xref.eventId
-                )
-            }
-            newEventNotes.forEach { noteDao.upsertEventNote(it) }
-            val newFishNotes = exportData.notesFish.mapNotNull { xref ->
-                val note = notesMap[xref.noteId] ?: return@mapNotNull null
-                FishNoteEntity(
-                    id = note.id,
-                    content = note.content,
-                    timestamp = note.timestamp,
-                    parentId = xref.fishId
-                )
-            }
-            newFishNotes.forEach { noteDao.upsertFishNote(it) }
-            val newTripNotes = exportData.notesTrip.mapNotNull { xref ->
-                val note = notesMap[xref.noteId] ?: return@mapNotNull null
-                TripNoteEntity(
-                    id = note.id,
-                    content = note.content,
-                    timestamp = note.timestamp,
-                    parentId = xref.tripId
-                )
-            }
-            newTripNotes.forEach { noteDao.upsertTripNote(it) }
 
             for (item in exportData.photosBait) photoDao.addBaitPhoto(item.toEntity())
             for (item in exportData.photosBodyOfWater) photoDao.addBodyOfWaterPhoto(item.toEntity())

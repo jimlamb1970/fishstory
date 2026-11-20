@@ -449,66 +449,12 @@ class ImportViewModel(
         return withContext(Dispatchers.IO) {
             try {
                 val allData = repository.exportAllData()
-/*
-                val allData = FishStoryData(
-                    // Main Databases (17)
-                    baits = lureRepo.getAllBaitsList(),                             /* main DB */
-                    bodiesOfWater = envRepo.getAllBodiesOfWaterList(),              /* main DB */
-                    colors = lureRepo.getAllLureColorsList(),                       /* main DB */
-                    skyConditions = envRepo.getAllSkyConditionsList(),              /* main DB */
-                    species = fishRepo.getAllSpeciesList(),                         /* main DB */
-                    waterClarities = envRepo.getAllWaterClarityList(),              /* main DB */
-                    fishermen = fishermanRepo.getAllFishermenList(),                /* main DB */
-                    lures = lureRepo.getAllLuresList(),                             /* main DB */
-                    tackleboxes = fishermanRepo.getAllTackleBoxesList(),            /* main DB */
-                    trips = tripRepo.getAllTripsList(),                             /* main DB */
-                    events = tripRepo.getAllEventsList(),                           /* main DB */
-                    waterConditions = envRepo.getAllWaterConditionsList(),          /* main DB */
-                    weatherConditions = envRepo.getAllWeatherConditionsList(),      /* main DB */
-                    limits = fishRepo.getAllLimitsList(),                           /* main DB */
-                    fish = fishRepo.getAllFishList(),                               /* main DB */
-                    notes = tripRepo.getAllNotesList(),                             /* main DB */
-                    photos = photoRepo.getAllPhotosList(),                          /* main DB */
-                    // Lure and Tackle Box Cross References (4) (21)
-                    lurePrimaryColors = lureRepo.getAllLurePrimaryColorsList(),
-                    lureSecondaryColors = lureRepo.getAllLureSecondaryColorsList(),
-                    lureGlowColors = lureRepo.getAllLureGlowColorsList(),
-                    tackleBoxLures = fishermanRepo.getAllTackleBoxLuresList(),
-                    // Limit Cross References (1) (22)
-                    limitSpecies = fishRepo.getAllLimitSpeciesList(),
-                    // Trip Cross References (5) (27)
-                    tripBaits = lureRepo.getAllTripBaitsList(),
-                    tripBodiesOfWater = envRepo.getAllTripBodiesOfWaterList(),
-                    tripFishermen = fishermanRepo.getAllTripFishermenList(),
-                    tripLimits = fishRepo.getAllTripLimitsList(),
-                    tripTargetSpecies = fishRepo.getAllTripTargetSpeciesList(),
-                    // Event Cross References (5) (32)
-                    eventBaits = lureRepo.getAllEventBaitsList(),
-                    eventBodiesOfWater = envRepo.getAllEventBodiesOfWaterList(),
-                    eventFishermen = fishermanRepo.getAllEventFishermenList(),
-                    eventLimits = fishRepo.getAllEventLimitsList(),
-                    eventTargetSpecies = fishRepo.getAllEventTargetSpeciesList(),
-                    // Note Cross References (3) (35)
-                    notesEvent = tripRepo.getAllNotesEventList(),
-                    notesFish = tripRepo.getAllNotesFishList(),
-                    notesTrip = tripRepo.getAllNotesTripList(),
-                    // Photo Cross References (10) (45)
-                    photosBait = photoRepo.getAllPhotosForBaitList(),
-                    photosBodyOfWater = photoRepo.getAllPhotosForBodiesOfWaterList(),
-                    photosEvent = photoRepo.getAllPhotosForEventsList(),
-                    photosFish = photoRepo.getAllPhotosForFishList(),
-                    photosFisherman = photoRepo.getAllPhotosForFishermenList(),
-                    photosLure = photoRepo.getAllPhotosForLuresList(),
-                    photosSkyCondition = photoRepo.getAllPhotosForSkyConditionsList(),
-                    photosSpecies = photoRepo.getAllPhotosForSpeciesList(),
-                    photosTrip = photoRepo.getAllPhotosForTripsList(),
-                    photosWaterClarity = photoRepo.getAllPhotosForWaterClarityList()
-                )
-*/
                 val jsonString = json.encodeToString(allData)
+
                 context.contentResolver.openOutputStream(uri)?.use {
                     it.write(jsonString.toByteArray())
                 }
+
                 _snackBarMessage.emit("Database backed up successfully!")
                 true
             } catch (e: Exception) {
