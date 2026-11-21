@@ -550,39 +550,48 @@ class PhotoRepository(
         database.withTransaction {
             val existingPhoto = photoDao.getBaitPhoto(id)
 
-            if (existingPhoto != null) {
-                photoDao.deleteBaitPhoto(existingPhoto)
-            }
-
             val metadata = getPhotoMetadata(uri)
 
-            val photo = BaitPhotoEntity(
-                uri = "bait_thumb_${id}_${System.currentTimeMillis()}",
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = id
-            )
-            photoDao.insertBaitPhoto(photo)
+            if (existingPhoto != null) {
+                val photo = existingPhoto.copy(
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail
+                )
+                photoDao.upsertBaitPhoto(photo)
+            } else {
+                val photo = BaitPhotoEntity(
+                    uri = "bait_thumb_${id}_${System.currentTimeMillis()}",
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = id
+                )
+                photoDao.insertBaitPhoto(photo)
+            }
         }
     }
 
+    // For thumbnail only items -- use a 'dummy' uri.  Nothing goes on storage
     suspend fun updateBodyOfWaterThumbnail(id: String, uri: Uri) = withContext(Dispatchers.IO) {
         database.withTransaction {
             val existingPhoto = photoDao.getBodyOfWaterPhoto(id)
 
-            if (existingPhoto != null) {
-                photoDao.deleteBodyOfWaterPhoto(existingPhoto)
-            }
-
             val metadata = getPhotoMetadata(uri)
 
-            val photo = BodyOfWaterPhotoEntity(
-                uri = "body_of_water_thumb_${id}_${System.currentTimeMillis()}",
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = id
-            )
-            photoDao.insertBodyOfWaterPhoto(photo)
+            if (existingPhoto != null) {
+                val photo = existingPhoto.copy(
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail
+                )
+                photoDao.upsertBodyOfWaterPhoto(photo)
+            } else {
+                val photo = BodyOfWaterPhotoEntity(
+                    uri = "body_of_water_thumb_${id}_${System.currentTimeMillis()}",
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = id
+                )
+                photoDao.insertBodyOfWaterPhoto(photo)
+            }
         }
     }
 
@@ -590,19 +599,23 @@ class PhotoRepository(
         database.withTransaction {
             val existingPhoto = photoDao.getSpeciesPhoto(speciesId)
 
-            if (existingPhoto != null) {
-                photoDao.deleteSpeciesPhoto(existingPhoto)
-            }
-
             val metadata = getPhotoMetadata(uri)
 
-            val photo = SpeciesPhotoEntity(
-                uri = "species_thumb_${speciesId}_${System.currentTimeMillis()}",
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = speciesId
-            )
-            photoDao.insertSpeciesPhoto(photo)
+            if (existingPhoto != null) {
+                val photo = existingPhoto.copy(
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail
+                )
+                photoDao.upsertSpeciesPhoto(photo)
+            } else {
+                val photo = SpeciesPhotoEntity(
+                    uri = "species_thumb_${speciesId}_${System.currentTimeMillis()}",
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = speciesId
+                )
+                photoDao.insertSpeciesPhoto(photo)
+            }
         }
     }
 
@@ -610,20 +623,23 @@ class PhotoRepository(
         database.withTransaction {
             val existingPhoto = photoDao.getSkyConditionPhoto(id)
 
-            if (existingPhoto != null) {
-                photoDao.deleteSkyConditionPhoto(existingPhoto)
-            }
-
             val metadata = getPhotoMetadata(uri)
 
-            // 3) Create a new entry for the photo table
-            val photo = SkyConditionPhotoEntity(
-                uri = "sky_condition_thumb_${id}_${System.currentTimeMillis()}",
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = id
-            )
-            photoDao.insertSkyConditionPhoto(photo)
+            if (existingPhoto != null) {
+                val photo = existingPhoto.copy(
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail
+                )
+                photoDao.upsertSkyConditionPhoto(photo)
+            } else {
+                val photo = SkyConditionPhotoEntity(
+                    uri = "sky_condition_thumb_${id}_${System.currentTimeMillis()}",
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = id
+                )
+                photoDao.insertSkyConditionPhoto(photo)
+            }
         }
     }
 
@@ -631,19 +647,23 @@ class PhotoRepository(
         database.withTransaction {
             val existingPhoto = photoDao.getWaterClarityPhoto(id)
 
-            if (existingPhoto != null) {
-                photoDao.deleteWaterClarityPhoto(existingPhoto)
-            }
-
             val metadata = getPhotoMetadata(uri)
 
-            val photo = WaterClarityPhotoEntity(
-                uri = "water_clarity_thumb_${id}_${System.currentTimeMillis()}",
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = id
-            )
-            photoDao.insertWaterClarityPhoto(photo)
+            if (existingPhoto != null) {
+                val photo = existingPhoto.copy(
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail
+                )
+                photoDao.upsertWaterClarityPhoto(photo)
+            } else {
+                val photo = WaterClarityPhotoEntity(
+                    uri = "water_clarity_thumb_${id}_${System.currentTimeMillis()}",
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = id
+                )
+                photoDao.insertWaterClarityPhoto(photo)
+            }
         }
     }
 }
