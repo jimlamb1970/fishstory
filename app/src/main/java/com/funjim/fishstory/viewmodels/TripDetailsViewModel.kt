@@ -398,8 +398,8 @@ class TripDetailsViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteEventPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(photoId) }
+    fun deleteEventPhoto(photo: EventPhoto) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(photo) }
     }
     fun getEventPhotos(eventId: String): Flow<List<EventPhoto>> {
         return photoRepo.getPhotosForEvent(eventId)
@@ -420,8 +420,8 @@ class TripDetailsViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
+    fun deleteFishermanPhoto(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photo) }
     }
     fun getFishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
@@ -462,8 +462,8 @@ class TripDetailsViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteTripPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
+    fun deleteTripPhoto(photo: TripPhoto) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photo) }
     }
     fun getTripThumbnail(): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)

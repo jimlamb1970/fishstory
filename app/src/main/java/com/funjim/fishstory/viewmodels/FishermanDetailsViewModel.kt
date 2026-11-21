@@ -145,8 +145,8 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { photoRepo.setFishermanThumbnail(photo) }
     }
 
-    fun deleteFishermanPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
+    fun deleteFishermanPhoto(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photo) }
     }
 
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {

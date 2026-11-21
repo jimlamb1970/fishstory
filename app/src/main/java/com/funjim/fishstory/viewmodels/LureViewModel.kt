@@ -174,9 +174,7 @@ class LureViewModel(
     }
 
     fun deleteLurePhoto(photo: LurePhoto) {
-        viewModelScope.launch {
-            photoRepo.deleteLurePhoto(photo.id)
-        }
+        viewModelScope.launch { photoRepo.deleteLurePhoto(photo) }
     }
 
     private val _selectedFisherman = MutableStateFlow<Fisherman?>(null)

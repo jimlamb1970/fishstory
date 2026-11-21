@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 import com.funjim.fishstory.database.entity.BaitPhotoEntity
 import com.funjim.fishstory.database.entity.BodyOfWaterPhotoEntity
 import com.funjim.fishstory.database.entity.EventPhotoEntity
@@ -90,8 +91,12 @@ interface PhotoDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertBaitPhoto(photo: BaitPhotoEntity): Long
+    @Upsert
+    suspend fun upsertBaitPhoto(photo: BaitPhotoEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertBodyOfWaterPhoto(photo: BodyOfWaterPhotoEntity): Long
+    @Upsert
+    suspend fun upsertBodyOfWaterPhoto(photo: BodyOfWaterPhotoEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEventPhoto(photo: EventPhotoEntity): Long
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
@@ -102,12 +107,19 @@ interface PhotoDao {
     suspend fun insertLurePhoto(photo: LurePhotoEntity): Long
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertSkyConditionPhoto(photo: SkyConditionPhotoEntity): Long
+    @Upsert
+    suspend fun upsertSkyConditionPhoto(photo: SkyConditionPhotoEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertSpeciesPhoto(photo: SpeciesPhotoEntity): Long
+    @Upsert
+    suspend fun upsertSpeciesPhoto(photo: SpeciesPhotoEntity)
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertTripPhoto(photo: TripPhotoEntity): Long
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertWaterClarityPhoto(photo: WaterClarityPhotoEntity): Long
+    @Upsert
+    suspend fun upsertWaterClarityPhoto(photo: WaterClarityPhotoEntity)
+
 
     @Query("SELECT id FROM bait_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
     suspend fun getBaitPhotoIdByHash(hashcode: String, parentId: String): String?
@@ -348,4 +360,29 @@ interface PhotoDao {
     suspend fun updatePrimaryLurePhoto(lureId: String, photoId: String)
     @Query("UPDATE trip_photo_table SET isPrimary = 1 WHERE parentId = :tripId AND id = :photoId")
     suspend fun updatePrimaryTripPhoto(tripId: String, photoId: String)
+
+    @Query("""
+        SELECT SUM(cnt) FROM (
+            SELECT COUNT(*) as cnt FROM bait_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM body_of_water_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM event_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM fish_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM fisherman_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM lure_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM sky_condition_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM species_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM trip_photo_table WHERE uri = :uri
+            UNION ALL
+            SELECT COUNT(*) FROM water_clarity_photo_table WHERE uri = :uri
+        )
+    """)
+    suspend fun countPhotosByUri(uri: String): Int
 }

@@ -462,28 +462,87 @@ class PhotoRepository(
     suspend fun setTripThumbnail(photo: TripPhoto) =
         photoDao.setPrimaryTripPhoto(photo.toEntity())
 
-    suspend fun deleteEventPhoto(photoId: String) =
-        photoDao.deleteEventPhotoById(photoId)
-    suspend fun deleteFishPhoto(photoId: String) =
-        photoDao.deleteFishPhotoById(photoId)
-    suspend fun deleteFishPhotos(photos: List<FishPhoto>) {
-        photos.forEach { photo ->
-            photoDao.deleteFishPhotoById(photo.id)
+    suspend fun deleteEventPhoto(photo: EventPhoto) {
+        database.withTransaction {
+            val referenceCount = photoDao.countPhotosByUri(photo.uri)
+
+            photoDao.deleteEventPhoto(photo.toEntity())
+
+            if (referenceCount <= 1 && photo.uri.startsWith("/")) {
+                val file = File(photo.uri)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
         }
     }
-    suspend fun deleteFishermanPhoto(photoId: String) =
-        photoDao.deleteFishermanPhotoById(photoId)
-    suspend fun deleteLurePhoto(photoId: String) {
-        photoDao.deleteLurePhotoById(photoId)
+
+    suspend fun deleteFishPhoto(photo: FishPhoto) {
+        database.withTransaction {
+            val referenceCount = photoDao.countPhotosByUri(photo.uri)
+
+            photoDao.deleteFishPhoto(photo.toEntity())
+
+            if (referenceCount <= 1 && photo.uri.startsWith("/")) {
+                val file = File(photo.uri)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+    }
+    suspend fun deleteFishPhotos(photos: List<FishPhoto>) {
+        photos.forEach { photo ->
+            photoDao.deleteFishPhoto(photo.toEntity())
+        }
+    }
+    suspend fun deleteFishermanPhoto(photo: FishermanPhoto) {
+        database.withTransaction {
+            val referenceCount = photoDao.countPhotosByUri(photo.uri)
+
+            photoDao.deleteFishermanPhoto(photo.toEntity())
+
+            if (referenceCount <= 1 && photo.uri.startsWith("/")) {
+                val file = File(photo.uri)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+    }
+    suspend fun deleteLurePhoto(photo: LurePhoto) {
+        database.withTransaction {
+            val referenceCount = photoDao.countPhotosByUri(photo.uri)
+
+            photoDao.deleteLurePhoto(photo.toEntity())
+
+            if (referenceCount <= 1 && photo.uri.startsWith("/")) {
+                val file = File(photo.uri)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
     }
     suspend fun deleteLurePhotos(photos: List<LurePhoto>) {
         photos.forEach { photo ->
-            photoDao.deleteLurePhotoById(photo.id)
+            photoDao.deleteLurePhoto(photo.toEntity())
         }
     }
-    suspend fun deleteTripPhoto(photoId: String) =
-        photoDao.deleteTripPhotoById(photoId)
+    suspend fun deleteTripPhoto(photo: TripPhoto) {
+        database.withTransaction {
+            val referenceCount = photoDao.countPhotosByUri(photo.uri)
 
+            photoDao.deleteTripPhoto(photo.toEntity())
+
+            if (referenceCount <= 1 && photo.uri.startsWith("/")) {
+                val file = File(photo.uri)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+    }
     suspend fun deleteBaitThumbnail(id: String) {
         val existingPhoto = photoDao.getBaitPhoto(id)
         if (existingPhoto != null) {

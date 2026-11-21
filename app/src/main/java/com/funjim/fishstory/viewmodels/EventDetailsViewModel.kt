@@ -439,9 +439,9 @@ class EventDetailsViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(photoId: String) {
+    fun deleteFishermanPhoto(photo: FishermanPhoto) {
         viewModelScope.launch {
-            photoRepo.deleteFishermanPhoto(photoId)
+            photoRepo.deleteFishermanPhoto(photo)
         }
     }
 
@@ -664,8 +664,8 @@ class EventDetailsViewModel(
         viewModelScope.launch { photoRepo.setEventThumbnail(photo) }
     }
 
-    fun deleteEventPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(photoId) }
+    fun deleteEventPhoto(photo: EventPhoto) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(photo) }
     }
 
     suspend fun updateBodyOfWaterForEvent(eventId: String, newBodyOfWaterId: String?) {

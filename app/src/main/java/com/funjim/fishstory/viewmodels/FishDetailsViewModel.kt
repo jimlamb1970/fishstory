@@ -195,8 +195,8 @@ class FishDetailsViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishPhoto(photoId) }
+    fun deleteFishPhoto(photo: FishPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishPhoto(photo) }
     }
     fun setFishThumbnail(photo: FishPhoto) {
         viewModelScope.launch { photoRepo.setFishThumbnail(photo) }
@@ -204,12 +204,12 @@ class FishDetailsViewModel(
 
     fun baitThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchBaitThumbnail(id)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+            .flowOn(Dispatchers.IO)
     }
 
     fun bodyOfWaterThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchBodyOfWaterThumbnail(id)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+            .flowOn(Dispatchers.IO)
     }
 
     fun eventThumbnail(eventId: String): Flow<ByteArray?> {

@@ -350,8 +350,8 @@ class DashboardViewModel(
         viewModelScope.launch { photoRepo.setTripThumbnail(photo) }
     }
 
-    fun deleteTripPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
+    fun deleteTripPhoto(photo: TripPhoto) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photo) }
     }
 
     fun toggleImperialUnits() {

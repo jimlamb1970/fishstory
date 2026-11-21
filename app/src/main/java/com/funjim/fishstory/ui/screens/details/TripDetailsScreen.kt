@@ -849,7 +849,7 @@ fun TripDetailsScreen(
                                             viewModel.setTripThumbnail(photo as TripPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
-                                            viewModel.deleteTripPhoto(photo.id)
+                                            viewModel.deleteTripPhoto(photo as TripPhoto)
                                         }
                                     )
 
@@ -1083,7 +1083,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                             viewModel.setEventThumbnail(photo)
                                                         },
                                                         onPhotoDeleted = { photo ->
-                                                            viewModel.deleteEventPhoto(photo.id)
+                                                            viewModel.deleteEventPhoto(photo)
                                                         },
                                                         onDelete = {
                                                             eventToDelete = eventSummary
@@ -1202,7 +1202,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     )
                                                 },
                                                 onPhotoDeleted = { photo ->
-                                                    viewModel.deleteFishermanPhoto(photo.id)
+                                                    viewModel.deleteFishermanPhoto(photo)
                                                 },
                                                 onPhotoTaken = { fisherman, uri ->
                                                     viewModel.addFishermanPhoto(

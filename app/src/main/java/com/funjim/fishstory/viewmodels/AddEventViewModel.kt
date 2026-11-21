@@ -334,8 +334,8 @@ class AddEventViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
+    fun deleteFishermanPhoto(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photo) }
     }
     fun getFishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)

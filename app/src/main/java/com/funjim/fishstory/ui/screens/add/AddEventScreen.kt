@@ -713,7 +713,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 )
                                             },
                                             onPhotoDeleted = { photo ->
-                                                viewModel.deleteFishermanPhoto(photo.id)
+                                                viewModel.deleteFishermanPhoto(photo)
                                             },
                                             onPhotoTaken = { fisherman, uri ->
                                                 viewModel.addFishermanPhoto(

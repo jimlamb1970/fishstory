@@ -335,8 +335,10 @@ interface BasePhoto {
         )
     ],
     indices = [
-        Index("parentId")
-            ]
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
+    ]
 )
 data class BaitPhotoEntity(
     @PrimaryKey override val id: String = UUID.randomUUID().toString(),
@@ -389,7 +391,9 @@ data class BaitPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class BodyOfWaterPhotoEntity(
@@ -443,7 +447,9 @@ data class BodyOfWaterPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class EventPhotoEntity(
@@ -497,7 +503,9 @@ data class EventPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class FishPhotoEntity(
@@ -551,7 +559,9 @@ data class FishPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class FishermanPhotoEntity(
@@ -605,7 +615,9 @@ data class FishermanPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class LurePhotoEntity(
@@ -659,7 +671,9 @@ data class LurePhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class SkyConditionPhotoEntity(
@@ -713,7 +727,9 @@ data class SkyConditionPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class SpeciesPhotoEntity(
@@ -767,7 +783,9 @@ data class SpeciesPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class TripPhotoEntity(
@@ -821,7 +839,9 @@ data class TripPhotoEntity(
         )
     ],
     indices = [
-        Index("parentId")
+        Index("parentId"),
+        Index("uri"),
+        Index("hashcode")
     ]
 )
 data class WaterClarityPhotoEntity(

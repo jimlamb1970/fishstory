@@ -91,18 +91,18 @@ class TripListViewModel(
         viewModelScope.launch { photoRepo.setTripThumbnail(photo) }
     }
 
-    fun deleteTripPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
+    fun deleteTripPhoto(photo: TripPhoto) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photo) }
     }
 
     fun tripPhotos(tripId: String): Flow<List<TripPhoto>> {
         return photoRepo.getPhotosForTrip(tripId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+            .flowOn(Dispatchers.IO)
     }
 
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+            .flowOn(Dispatchers.IO)
     }
 
     fun updateScrollbarOnLeft() {

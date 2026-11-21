@@ -349,7 +349,7 @@ fun TripListScreen(
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onSetThumbnail = { photo -> viewModel.setTripThumbnail(photo) },
-                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -381,7 +381,7 @@ fun TripListScreen(
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onSetThumbnail = { photo -> viewModel.setTripThumbnail(photo) },
-                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }
@@ -413,7 +413,7 @@ fun TripListScreen(
                                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it) },
                                     onSetThumbnail = { photo -> viewModel.setTripThumbnail(photo) },
-                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo.id) },
+                                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo) },
                                     onAction = onAction,
                                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                                     onMenuDismiss = { showMenu = false }

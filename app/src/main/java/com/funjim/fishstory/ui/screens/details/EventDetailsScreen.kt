@@ -892,7 +892,7 @@ fun EventDetailsScreen(
                                             viewModel.setEventThumbnail(photo as EventPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
-                                            viewModel.deleteEventPhoto(photo.id)
+                                            viewModel.deleteEventPhoto(photo as EventPhoto)
                                         }
                                     )
 
@@ -1059,7 +1059,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     )
                                                 },
                                                 onPhotoDeleted = { photo ->
-                                                    viewModel.deleteFishermanPhoto(photo.id)
+                                                    viewModel.deleteFishermanPhoto(photo)
                                                 },
                                                 onPhotoTaken = { fisherman, uri ->
                                                     viewModel.addFishermanPhoto(

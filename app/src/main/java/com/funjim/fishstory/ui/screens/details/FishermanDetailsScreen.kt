@@ -260,7 +260,7 @@ fun FishermanDetailsScreen(
                                             viewModel.setFishermanThumbnail(photo as FishermanPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
-                                            viewModel.deleteFishermanPhoto(photo.id)
+                                            viewModel.deleteFishermanPhoto(photo as FishermanPhoto)
                                         }
                                     )
 

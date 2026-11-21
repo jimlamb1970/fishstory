@@ -91,15 +91,15 @@ class FishermanListViewModel(
         return photoRepo.fetchFishermanThumbnail(fishermanId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
         viewModelScope.launch {
             photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
+    fun deleteFishermanPhoto(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photo) }
     }
     fun setFishermanThumbnail(photo: FishermanPhoto) {
         viewModelScope.launch { photoRepo.setFishermanThumbnail(photo) }

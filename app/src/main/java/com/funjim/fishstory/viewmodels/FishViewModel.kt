@@ -412,8 +412,8 @@ class FishViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishPhoto(photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishPhoto(photoId) }
+    fun deleteFishPhoto(photo: FishPhoto) {
+        viewModelScope.launch { photoRepo.deleteFishPhoto(photo) }
     }
     fun setFishThumbnail(photo: FishPhoto) {
         viewModelScope.launch { photoRepo.setFishThumbnail(photo) }
