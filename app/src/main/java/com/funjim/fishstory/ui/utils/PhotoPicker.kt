@@ -61,11 +61,10 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.funjim.fishstory.model.Photo
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.core.net.toUri
+import com.funjim.fishstory.model.BasePhoto
 
 fun createPublicImageUri(context: Context): Uri? {
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -82,39 +81,25 @@ fun createPublicImageUri(context: Context): Uri? {
     )
 }
 
-private fun doesUriExist(context: Context, uriString: String?): Boolean {
-    if (uriString.isNullOrBlank()) return false
-    return try {
-        val uri = uriString.toUri()
-        if (uri.scheme == "file") {
-            java.io.File(uri.path ?: return false).exists()
-        } else {
-            context.contentResolver.openInputStream(uri)?.use { true } ?: false
-        }
-    } catch (_: Exception) {
-        false
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoPickerRow(
-    photos: List<Photo>,
+    photos: List<BasePhoto>,
     modifier: Modifier = Modifier,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: ((Photo) -> Unit)? = null,
-    onPhotoDeleted: (Photo) -> Unit
+    onSetThumbnail: ((BasePhoto) -> Unit)? = null,
+    onPhotoDeleted: (BasePhoto) -> Unit
 ) {
     val context = LocalContext.current
     var tempUri by remember { mutableStateOf<Uri?>(null) }
 
     var showFullScreenPhoto by remember { mutableStateOf(false) }
-    var selectedPhotoForFullscreen by remember { mutableStateOf<Photo?>(null) }
+    var selectedPhotoForFullscreen by remember { mutableStateOf<BasePhoto?>(null) }
 
     var showDeletePhotoDialog by remember { mutableStateOf(false) }
-    var photoToDelete by remember { mutableStateOf<Photo?>(null) }
-    var photoForMenu by remember { mutableStateOf<Photo?>(null) }
+    var photoToDelete by remember { mutableStateOf<BasePhoto?>(null) }
+    var photoForMenu by remember { mutableStateOf<BasePhoto?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),

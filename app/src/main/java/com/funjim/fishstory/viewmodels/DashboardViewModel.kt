@@ -15,6 +15,7 @@ import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary
+import com.funjim.fishstory.model.TripPhoto
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
@@ -262,7 +263,7 @@ class DashboardViewModel(
         initialValue = emptyList()
     )
 
-    fun tripPhotos(tripId: String): Flow<List<Photo>> {
+    fun tripPhotos(tripId: String): Flow<List<TripPhoto>> {
         return photoRepo.getPhotosForTrip(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
@@ -337,9 +338,9 @@ class DashboardViewModel(
         }
     }
 
-    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
+    fun addTripPhoto(tripId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri, selected)
+            photoRepo.addTripPhoto(tripId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -349,8 +350,8 @@ class DashboardViewModel(
         viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
     }
 
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    fun deleteTripPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
     }
 
     fun toggleImperialUnits() {

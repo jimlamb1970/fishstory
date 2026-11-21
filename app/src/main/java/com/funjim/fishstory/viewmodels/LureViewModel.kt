@@ -156,14 +156,14 @@ class LureViewModel(
         return photoRepo.getPhotoMetadata(uri)
     }
 
-    fun lurePhotos(lureId: String): Flow<List<Photo>> {
+    fun lurePhotos(lureId: String): Flow<List<LurePhoto>> {
         return photoRepo.getPhotosForLure(lureId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addLurePhoto(lureId, uri, selected)
+            photoRepo.addLurePhoto(lureId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -173,9 +173,9 @@ class LureViewModel(
         viewModelScope.launch { photoRepo.setLureThumbnail(lureId, photoId) }
     }
 
-    fun deleteLurePhoto(lureId: String, photo: Photo) {
+    fun deleteLurePhoto(photo: LurePhoto) {
         viewModelScope.launch {
-            photoRepo.deleteLurePhoto(lureId, photo)
+            photoRepo.deleteLurePhoto(photo.id)
         }
     }
 
@@ -252,7 +252,7 @@ class LureViewModel(
         secondaryColors: List<LureColor>,
         glowColors: List<LureColor>,
         originalLure: LureWithDetails?,
-        currentPhotos: List<Photo>,
+        currentPhotos: List<LurePhoto>,
         onComplete: () -> Unit
     ) {
         viewModelScope.launch {
@@ -301,7 +301,7 @@ class LureViewModel(
                 photoRepo.addLurePhotos(id, newPhotos)
             }
             if (deletedPhotos.isNotEmpty()) {
-                photoRepo.deleteLurePhotos(id, deletedPhotos)
+                photoRepo.deleteLurePhotos(deletedPhotos)
             }
 
             onComplete()

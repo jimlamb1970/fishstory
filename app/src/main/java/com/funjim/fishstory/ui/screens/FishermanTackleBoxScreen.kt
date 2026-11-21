@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -421,7 +422,7 @@ fun FishermanTackleBoxScreen(
                                         photoId = photo.id)
                                 },
                                 onPhotoDeleted = { photo ->
-                                    viewModel.deleteLurePhoto(item.lure.id, photo)
+                                    viewModel.deleteLurePhoto(photo)
                                 },
                                 onCheckedChange = { checked ->
                                     scope.launch {
@@ -518,15 +519,15 @@ private fun LureTackleBoxItem(
     item: LureWithColorsSummary,
     verbose: Boolean,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<LurePhoto>>,
     index: Int = 0,
     totalItems: Int = 0,
     inTackleBox: Boolean,
     onEdit: () -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: (Photo) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onSetThumbnail: (LurePhoto) -> Unit,
+    onPhotoDeleted: (LurePhoto) -> Unit,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -677,8 +678,8 @@ private fun LureTackleBoxItem(
                         photos = photos,
                         onPhotoSelected = { uri -> onPhotoAdded(uri) },
                         onPhotoTaken = { uri -> onPhotoTaken(uri) },
-                        onSetThumbnail = { photo -> onSetThumbnail(photo) },
-                        onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                        onSetThumbnail = { photo -> onSetThumbnail(photo as LurePhoto) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(photo as LurePhoto) }
                     )
                 }
             }

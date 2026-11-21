@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBoxSummary
+import com.funjim.fishstory.model.TripPhoto
 import com.funjim.fishstory.model.TripSummary
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
@@ -68,7 +69,7 @@ fun TripCardWithMenu(
     modifier: Modifier = Modifier,
     hasLocationPermission: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<TripPhoto>>,
     onNavigateToDetails: (String, CategoryType) -> Unit,
     onThumbnailLongClick: (() -> Unit)? = null,
     onEventClick: (() -> Unit)? = null,
@@ -76,8 +77,8 @@ fun TripCardWithMenu(
     onFishermanClick: (() -> Unit)? = null,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: (Photo) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onSetThumbnail: (TripPhoto) -> Unit,
+    onPhotoDeleted: (TripPhoto) -> Unit,
     onAction: (TripAction) -> Unit,
     showMenu: Boolean,
     onMenuDismiss: () -> Unit
@@ -215,7 +216,7 @@ fun TripCard(
     totalItems: Int = 0,
     tackleBoxSummary: Flow<TackleBoxSummary?> = flowOf(null),
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<TripPhoto>>,
     allowPhotos: Boolean = false,
     showPhotos: Boolean = false,
     onClick: () -> Unit,
@@ -227,8 +228,8 @@ fun TripCard(
     onPhotoClick: (() -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
-    onSetThumbnail: ((Photo) -> Unit)? = null,
-    onPhotoDeleted: ((Photo) -> Unit)? = null,
+    onSetThumbnail: ((TripPhoto) -> Unit)? = null,
+    onPhotoDeleted: ((TripPhoto) -> Unit)? = null,
     onAction: (TripAction) -> Unit,
     actions: @Composable () -> Unit = {}
 ) {
@@ -603,8 +604,8 @@ fun TripCard(
                         photos = photos,
                         onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
                         onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
-                        onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
-                        onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+                        onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo as TripPhoto) },
+                        onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo as TripPhoto) }
                     )
                 }
             }

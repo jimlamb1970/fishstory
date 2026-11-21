@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.repository.ConfigurationRepository
@@ -82,7 +83,7 @@ class FishermanListViewModel(
         }
     }
 
-    fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+    fun fishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
@@ -92,13 +93,13 @@ class FishermanListViewModel(
     }
     fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+            photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
     }
     fun setFishermanThumbnail(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }

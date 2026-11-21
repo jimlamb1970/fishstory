@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureWithColors
@@ -77,13 +78,13 @@ fun FishermanItem(
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<FishermanPhoto>>,
     onClick: () -> Unit,
     onFishClick: (String, Boolean) -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: (Photo) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onSetThumbnail: (FishermanPhoto) -> Unit,
+    onPhotoDeleted: (FishermanPhoto) -> Unit,
     onDelete: () -> Unit
 ) {
     val thumbnail by thumbnailFlow.collectAsState(initial = null)
@@ -281,8 +282,8 @@ fun FishermanItem(
                         photos = photos,
                         onPhotoSelected = { uri -> onPhotoAdded(uri) },
                         onPhotoTaken = { uri -> onPhotoTaken(uri) },
-                        onSetThumbnail = { photo -> onSetThumbnail(photo) },
-                        onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                        onSetThumbnail = { photo -> onSetThumbnail(photo as FishermanPhoto) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(photo as FishermanPhoto) }
                     )
                 }
             }
@@ -298,7 +299,7 @@ fun FishermanSummaryCard(
     index: Int = 0,
     totalItems: Int = 0,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<FishermanPhoto>>,
     selectedTackleBoxId: String?,
     availableBoxes: List<TackleBox>,
     tackleBoxSummary: Flow<TackleBoxSummary>,
@@ -309,8 +310,8 @@ fun FishermanSummaryCard(
     onFishClick: (Fisherman, Lure?, Boolean) -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: (Photo) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onSetThumbnail: (FishermanPhoto) -> Unit,
+    onPhotoDeleted: (FishermanPhoto) -> Unit,
     onDelete: ((Fisherman) -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -676,8 +677,8 @@ fun FishermanSummaryCard(
                     photos = photos,
                     onPhotoSelected = { uri -> onPhotoAdded(uri) },
                     onPhotoTaken = { uri -> onPhotoTaken(uri) },
-                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
-                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                    onSetThumbnail = { photo -> onSetThumbnail(photo as FishermanPhoto) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo as FishermanPhoto) }
                 )
             }
         }

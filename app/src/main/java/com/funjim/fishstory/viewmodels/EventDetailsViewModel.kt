@@ -428,20 +428,20 @@ class EventDetailsViewModel(
     }
 
     // Photo functions
-    fun fishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+    fun fishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
             .flowOn(Dispatchers.IO)
     }
-    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+            photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
+    fun deleteFishermanPhoto(photoId: String) {
         viewModelScope.launch {
-            photoRepo.deleteFishermanPhoto(fishermanId, photoId)
+            photoRepo.deleteFishermanPhoto(photoId)
         }
     }
 
@@ -652,9 +652,9 @@ class EventDetailsViewModel(
         }
     }
 
-    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
+    fun addEventPhoto(eventId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addEventPhoto(eventId, uri, selected)
+            photoRepo.addEventPhoto(eventId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -664,8 +664,8 @@ class EventDetailsViewModel(
         viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
     }
 
-    fun deleteEventPhoto(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
+    fun deleteEventPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(photoId) }
     }
 
     suspend fun updateBodyOfWaterForEvent(eventId: String, newBodyOfWaterId: String?) {

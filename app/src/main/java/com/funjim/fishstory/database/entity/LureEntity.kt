@@ -132,7 +132,7 @@ data class LureEntityWithPhotos(
             entityColumn = "photoId"
         )
     )
-    val photos: List<PhotoEntity>
+    val photos: List<LurePhotoEntity>
 )
 
 data class LureEntityWithColors(
@@ -223,7 +223,7 @@ data class LureEntityWithDetails(
             entityColumn = "photoId"
         )
     )
-    val photos: List<PhotoEntity>
+    val photos: List<LurePhotoEntity>
 )
 
 data class LureEntityWithColorsSummary(

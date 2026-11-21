@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureWithColors
@@ -47,7 +48,7 @@ fun FishermanSummarySection(
     emptyText: String = "No fishermen are selected.",
     helpText: String = "You need help.",
     thumbnailFlow: (Fisherman) -> Flow<ByteArray?> = { flowOf(null) },
-    photosFlow: (Fisherman) -> Flow<List<Photo>> = { flowOf(emptyList()) },
+    photosFlow: (Fisherman) -> Flow<List<FishermanPhoto>> = { flowOf(emptyList()) },
     tackleBoxSelections: Map<String, String?>,
     getTackleBoxesForFisherman: @Composable (fishermanId: String) -> List<TackleBox>,
     getTackleBoxSummary: @Composable (fishermanId: String) -> Flow<TackleBoxSummary>,
@@ -58,9 +59,9 @@ fun FishermanSummarySection(
     onDelete: ((Fisherman) -> Unit)? = null,
     onFishClick: (Fisherman, Lure?, Boolean) -> Unit = { _, _, _ -> },
     onPhotoAdded: (Fisherman, Uri) -> Unit = { _, _ -> },
-    onPhotoDeleted: (Fisherman, Photo) -> Unit = { _, _ -> },
+    onPhotoDeleted: (FishermanPhoto) -> Unit = { _ -> },
     onPhotoTaken: (Fisherman, Uri) -> Unit = { _, _ -> },
-    onSetThumbnail: (Fisherman, Photo) -> Unit,
+    onSetThumbnail: (Fisherman, FishermanPhoto) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onToggleHelp: (() -> Unit)? = null
 ) {
@@ -156,7 +157,7 @@ fun FishermanSummarySection(
                         onPhotoAdded = { uri -> onPhotoAdded(item.fisherman, uri) },
                         onPhotoTaken = { uri -> onPhotoTaken(item.fisherman, uri) },
                         onSetThumbnail = { photo -> onSetThumbnail(item.fisherman, photo) },
-                        onPhotoDeleted = { photo -> onPhotoDeleted(item.fisherman, photo) },
+                        onPhotoDeleted = { photo -> onPhotoDeleted(photo) },
                         onDelete = onDelete
                     )
                 }

@@ -155,7 +155,7 @@ fun List<FishEntityWithDetails>.toFishWithDetailsDomainList(): List<FishWithDeta
 fun FishEntityWithPhotos.toDomain(): FishWithPhotos {
     return FishWithPhotos(
         fish = fish.toDomain(),
-        photos = photos.toPhotoDomainList()
+        photos = photos.toFishPhotoDomainList()
     )
 }
 

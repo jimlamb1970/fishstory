@@ -180,8 +180,7 @@ fun DashboardScreen(
                 selectedTrip?.let { trip ->
                     viewModel.addTripPhoto(
                         tripId = trip.trip.id,
-                        uri = uri,
-                        selected = true
+                        uri = uri
                     )
                 }
             }
@@ -197,8 +196,7 @@ fun DashboardScreen(
                     selectedTrip?.let { trip ->
                         viewModel.addTripPhoto(
                             tripId = trip.trip.id,
-                            uri = it,
-                            selected = false
+                            uri = it
                         )
                     }
                 }
@@ -474,10 +472,10 @@ fun DashboardScreen(
                         val category = CategoryType.FISHERMEN
                         onNavigate("trip_details/${trip.trip.id}?category=${category.name}")
                     },
-                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it, true) },
-                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it, false) },
+                    onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it) },
+                    onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it) },
                     onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
-                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(trip.trip.id, photo.id) },
+                    onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo.id) },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,
                     onMenuDismiss = { showMenu = false }

@@ -391,17 +391,17 @@ class TripDetailsViewModel(
         }
     }
     // Event Thumbnails and Photos
-    fun addEventPhoto(eventId: String, uri: Uri, selected: Boolean) {
+    fun addEventPhoto(eventId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addEventPhoto(eventId, uri, selected)
+            photoRepo.addEventPhoto(eventId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteEventPhoto(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteEventPhoto(eventId, photoId) }
+    fun deleteEventPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteEventPhoto(photoId) }
     }
-    fun getEventPhotos(eventId: String): Flow<List<Photo>> {
+    fun getEventPhotos(eventId: String): Flow<List<EventPhoto>> {
         return photoRepo.getPhotosForEvent(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
@@ -413,17 +413,17 @@ class TripDetailsViewModel(
         viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
     }
     // Fisherman Thumbnails and Photos
-    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+            photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+    fun deleteFishermanPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
     }
-    fun getFishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+    fun getFishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
@@ -455,15 +455,15 @@ class TripDetailsViewModel(
         }
     }
     // Trip Thumbnails and Photos
-    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
+    fun addTripPhoto(tripId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri, selected)
+            photoRepo.addTripPhoto(tripId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    fun deleteTripPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
     }
     fun getTripThumbnail(): Flow<ByteArray?> {
         return photoRepo.fetchTripThumbnail(tripId)

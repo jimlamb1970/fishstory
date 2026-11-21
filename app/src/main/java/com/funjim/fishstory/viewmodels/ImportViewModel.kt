@@ -10,22 +10,28 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.funjim.fishstory.model.Bait
+import com.funjim.fishstory.model.BaitPhoto
 import com.funjim.fishstory.model.BodyOfWater
+import com.funjim.fishstory.model.BodyOfWaterPhoto
 import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.EventBait
 import com.funjim.fishstory.model.EventBodyOfWater
 import com.funjim.fishstory.model.EventFisherman
 import com.funjim.fishstory.model.EventLimit
 import com.funjim.fishstory.model.EventNote
+import com.funjim.fishstory.model.EventPhoto
 import com.funjim.fishstory.model.EventTargetSpecies
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishNote
+import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.model.Fisherman
+import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.Limit
 import com.funjim.fishstory.model.LimitSpecies
 import com.funjim.fishstory.model.Lure
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureGlowColor
+import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LurePrimaryColor
 import com.funjim.fishstory.model.LureSecondaryColor
 import com.funjim.fishstory.model.Note
@@ -44,7 +50,9 @@ import com.funjim.fishstory.model.PhotoSpecies
 import com.funjim.fishstory.model.PhotoTrip
 import com.funjim.fishstory.model.PhotoWaterClarity
 import com.funjim.fishstory.model.SkyCondition
+import com.funjim.fishstory.model.SkyConditionPhoto
 import com.funjim.fishstory.model.Species
+import com.funjim.fishstory.model.SpeciesPhoto
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxLure
 import com.funjim.fishstory.model.Trip
@@ -53,9 +61,11 @@ import com.funjim.fishstory.model.TripBodyOfWater
 import com.funjim.fishstory.model.TripFisherman
 import com.funjim.fishstory.model.TripLimit
 import com.funjim.fishstory.model.TripNote
+import com.funjim.fishstory.model.TripPhoto
 import com.funjim.fishstory.model.TripTargetSpecies
 import com.funjim.fishstory.model.Water
 import com.funjim.fishstory.model.WaterClarity
+import com.funjim.fishstory.model.WaterClarityPhoto
 import com.funjim.fishstory.model.Weather
 import com.funjim.fishstory.repository.EnvironmentRepository
 import com.funjim.fishstory.repository.FishRepository
@@ -144,10 +154,11 @@ data class FishStoryData(
     val weatherConditions: List<Weather> = emptyList(),
     val limits: List<Limit> = emptyList(),
     val fish: List<Fish> = emptyList(),
-    val notes: List<Note> = emptyList(),
+
     val eventNotes: List<EventNote> = emptyList(),
     val fishNotes: List<FishNote> = emptyList(),
     val tripNotes: List<TripNote> = emptyList(),
+
     val photos: List<Photo> = emptyList(),
     // Lure and Tackle Box Cross References (4) (21)
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
@@ -168,10 +179,18 @@ data class FishStoryData(
     val eventFishermen: List<EventFisherman> = emptyList(),
     val eventLimits: List<EventLimit> = emptyList(),
     val eventTargetSpecies: List<EventTargetSpecies> = emptyList(),
-    // Note Cross References (3) (35)
-    val notesEvent: List<NoteEvent> = emptyList(),
-    val notesFish: List<NoteFish> = emptyList(),
-    val notesTrip: List<NoteTrip> = emptyList(),
+
+    val baitPhotos: List<BaitPhoto> = emptyList(),
+    val bodyOfWaterPhotos: List<BodyOfWaterPhoto> = emptyList(),
+    val eventPhotos: List<EventPhoto> = emptyList(),
+    val fishPhotos: List<FishPhoto> = emptyList(),
+    val fishermanPhotos: List<FishermanPhoto> = emptyList(),
+    val lurePhotos: List<LurePhoto> = emptyList(),
+    val skyConditionPhotos: List<SkyConditionPhoto> = emptyList(),
+    val speciesPhotos: List<SpeciesPhoto> = emptyList(),
+    val tripPhotos: List<TripPhoto> = emptyList(),
+    val waterClarityPhotos: List<WaterClarityPhoto> = emptyList(),
+
     // Photo Cross References (10) (45)
     val photosBait: List<PhotoBait> = emptyList(),
     val photosBodyOfWater: List<PhotoBodyOfWater> = emptyList(),
@@ -205,25 +224,6 @@ class ImportViewModel(
 
     private val json = Json { prettyPrint = true }
     private val jsonImport = Json { ignoreUnknownKeys = true }
-
-    fun cleanupDatabase() {
-        viewModelScope.launch {
-            try {
-                // Call your repository or DAO method that wraps the purge logic
-                val deletedCount = photoRepo.purgeOrphanedPhotos()
-
-                if (deletedCount > 0) {
-                    _snackBarMessage.emit("Successfully purged $deletedCount orphaned photo(s).")
-                } else {
-                    // Optional: You can choose to stay silent if nothing needed purging
-                    _snackBarMessage.emit("No orphaned photos found.")
-                }
-            } catch (e: Exception) {
-                Log.e("PhotoViewModel", "Error occurred while purging orphaned photos", e)
-                _snackBarMessage.emit("An error occurred while cleaning up photos.")
-            }
-        }
-    }
 
     private suspend fun processImportData(exportData: FishStoryEventData) {
         val baitMap = mutableMapOf<String, String>()

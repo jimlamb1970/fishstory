@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.EventPhoto
 import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -51,7 +52,7 @@ fun EventItem(
     verbose: Boolean,
     modifier: Modifier = Modifier,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<EventPhoto>>,
     showPhotoPicker: Boolean = false,
     index: Int = 0,
     totalItems: Int = 0,
@@ -60,8 +61,8 @@ fun EventItem(
     onFishermanClick: (() -> Unit)? = null,
     onPhotoAdded: ((Uri) -> Unit)? = null,
     onPhotoTaken: ((Uri) -> Unit)? = null,
-    onSetThumbnail: ((Photo) -> Unit)? = null,
-    onPhotoDeleted: ((Photo) -> Unit)? = null,
+    onSetThumbnail: ((EventPhoto) -> Unit)? = null,
+    onPhotoDeleted: ((EventPhoto) -> Unit)? = null,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: (() -> Unit)? = null,
     onUseTripLocation: (() -> Unit)? = null,
@@ -389,8 +390,8 @@ fun EventItem(
                         photos = photos,
                         onPhotoSelected = { uri -> if (onPhotoAdded != null) onPhotoAdded(uri) },
                         onPhotoTaken = { uri -> if (onPhotoTaken != null) onPhotoTaken(uri) },
-                        onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo) },
-                        onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo) }
+                        onSetThumbnail = { photo -> if (onSetThumbnail != null) onSetThumbnail(photo as EventPhoto) },
+                        onPhotoDeleted = { photo -> if (onPhotoDeleted != null) onPhotoDeleted(photo as EventPhoto) }
                     )
                 }
             }

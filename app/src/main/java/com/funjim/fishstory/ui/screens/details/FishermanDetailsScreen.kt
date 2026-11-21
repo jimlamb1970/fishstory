@@ -246,15 +246,13 @@ fun FishermanDetailsScreen(
                                         onPhotoSelected = { uri ->
                                             viewModel.addFishermanPhoto(
                                                 fishermanId = fishermanId,
-                                                uri,
-                                                true
+                                                uri
                                             )
                                         },
                                         onPhotoTaken = { uri ->
                                             viewModel.addFishermanPhoto(
                                                 fishermanId = fishermanId,
-                                                uri,
-                                                false
+                                                uri
                                             )
                                         },
                                         onSetThumbnail = { photo ->
@@ -264,7 +262,7 @@ fun FishermanDetailsScreen(
                                             )
                                         },
                                         onPhotoDeleted = { photo ->
-                                            viewModel.deleteFishermanPhoto(fishermanId, photo.id)
+                                            viewModel.deleteFishermanPhoto(photo.id)
                                         }
                                     )
 

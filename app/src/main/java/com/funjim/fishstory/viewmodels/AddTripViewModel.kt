@@ -237,19 +237,19 @@ class AddTripViewModel(
         }
     }
 
-    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+            photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
-    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+    fun deleteFishermanPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
     }
-    fun getFishermanPhotos(fishermanId: String): Flow<List<Photo>> {
+    fun getFishermanPhotos(fishermanId: String): Flow<List<FishermanPhoto>> {
         return photoRepo.getPhotosForFisherman(fishermanId)
-            .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
+            .flowOn(Dispatchers.IO)
     }
     fun getFishermanThumbnail(id: String): Flow<ByteArray?> {
         return photoRepo.fetchFishermanThumbnail(id)

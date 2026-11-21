@@ -68,7 +68,7 @@ data class EventEntityWithDetails(
             entityColumn = "photoId"
         )
     )
-    val photos: List<PhotoEntity>,
+    val photos: List<EventPhotoEntity>,
 
     @Relation(
         parentColumn = "id",

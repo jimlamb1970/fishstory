@@ -105,7 +105,7 @@ data class LureWithDetails(
     val primaryColors: List<LureColor>,
     val secondaryColors: List<LureColor>,
     val glowColors: List<LureColor>,
-    val photos: List<Photo>
+    val photos: List<LurePhoto>
 )
 
 data class LureWithColorsSummary(

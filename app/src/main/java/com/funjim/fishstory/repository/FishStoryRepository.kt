@@ -16,11 +16,23 @@ import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
+import com.funjim.fishstory.database.entity.BaitPhotoEntity
+import com.funjim.fishstory.database.entity.BodyOfWaterPhotoEntity
 import com.funjim.fishstory.database.entity.EventNoteEntity
+import com.funjim.fishstory.database.entity.EventPhotoEntity
 import com.funjim.fishstory.database.entity.FishNoteEntity
+import com.funjim.fishstory.database.entity.FishPhotoEntity
+import com.funjim.fishstory.database.entity.FishermanPhotoEntity
+import com.funjim.fishstory.database.entity.LurePhotoEntity
+import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
+import com.funjim.fishstory.database.entity.SpeciesPhotoEntity
 import com.funjim.fishstory.database.entity.TripNoteEntity
+import com.funjim.fishstory.database.entity.TripPhotoEntity
+import com.funjim.fishstory.database.entity.WaterClarityPhotoEntity
 import com.funjim.fishstory.database.mapper.toBaitDomainList
+import com.funjim.fishstory.database.mapper.toBaitPhotoDomainList
 import com.funjim.fishstory.database.mapper.toBodyOfWaterDomainList
+import com.funjim.fishstory.database.mapper.toBodyOfWaterPhotoDomainList
 import com.funjim.fishstory.database.mapper.toDomainList
 import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toEventBaitDomainList
@@ -29,33 +41,24 @@ import com.funjim.fishstory.database.mapper.toEventDomainList
 import com.funjim.fishstory.database.mapper.toEventFishermanDomainList
 import com.funjim.fishstory.database.mapper.toEventLimitDomainList
 import com.funjim.fishstory.database.mapper.toEventNoteDomainList
+import com.funjim.fishstory.database.mapper.toEventPhotoDomainList
 import com.funjim.fishstory.database.mapper.toEventTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toFishDomainList
 import com.funjim.fishstory.database.mapper.toFishNoteDomainList
+import com.funjim.fishstory.database.mapper.toFishPhotoDomainList
 import com.funjim.fishstory.database.mapper.toFishermanDomainList
+import com.funjim.fishstory.database.mapper.toFishermanPhotoDomainList
 import com.funjim.fishstory.database.mapper.toLimitDomainList
 import com.funjim.fishstory.database.mapper.toLimitSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toLureColorDomainList
 import com.funjim.fishstory.database.mapper.toLureDomainList
 import com.funjim.fishstory.database.mapper.toLureGlowColorDomainList
+import com.funjim.fishstory.database.mapper.toLurePhotoDomainList
 import com.funjim.fishstory.database.mapper.toLurePrimaryColorDomainList
 import com.funjim.fishstory.database.mapper.toLureSecondaryColorDomainList
-import com.funjim.fishstory.database.mapper.toNoteDomainList
-import com.funjim.fishstory.database.mapper.toNoteEventDomainList
-import com.funjim.fishstory.database.mapper.toNoteFishDomainList
-import com.funjim.fishstory.database.mapper.toNoteTripDomainList
-import com.funjim.fishstory.database.mapper.toPhotoBaitDomainList
-import com.funjim.fishstory.database.mapper.toPhotoBodyOfWaterDomainList
-import com.funjim.fishstory.database.mapper.toPhotoDomainList
-import com.funjim.fishstory.database.mapper.toPhotoEventDomainList
-import com.funjim.fishstory.database.mapper.toPhotoFishDomainList
-import com.funjim.fishstory.database.mapper.toPhotoFishermanDomainList
-import com.funjim.fishstory.database.mapper.toPhotoLureDomainList
-import com.funjim.fishstory.database.mapper.toPhotoSkyConditionDomainList
-import com.funjim.fishstory.database.mapper.toPhotoSpeciesDomainList
-import com.funjim.fishstory.database.mapper.toPhotoTripDomainList
-import com.funjim.fishstory.database.mapper.toPhotoWaterClarityDomainList
+import com.funjim.fishstory.database.mapper.toSkyConditionPhotoDomainList
 import com.funjim.fishstory.database.mapper.toSpeciesDomainList
+import com.funjim.fishstory.database.mapper.toSpeciesPhotoDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxDomainList
 import com.funjim.fishstory.database.mapper.toTackleBoxLureDomainList
 import com.funjim.fishstory.database.mapper.toTripBaitDomainList
@@ -64,9 +67,12 @@ import com.funjim.fishstory.database.mapper.toTripDomainList
 import com.funjim.fishstory.database.mapper.toTripFishermanDomainList
 import com.funjim.fishstory.database.mapper.toTripLimitDomainList
 import com.funjim.fishstory.database.mapper.toTripNoteDomainList
+import com.funjim.fishstory.database.mapper.toTripPhotoDomainList
 import com.funjim.fishstory.database.mapper.toTripTargetSpeciesDomainList
+import com.funjim.fishstory.database.mapper.toWaterClarityPhotoDomainList
 import com.funjim.fishstory.database.mapper.toWaterDomainList
 import com.funjim.fishstory.database.mapper.toWeatherDomainList
+import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.viewmodels.FishStoryData
 
 class FishStoryRepository(
@@ -107,7 +113,6 @@ class FishStoryRepository(
             eventNotes = noteDao.getAllEventNotesList().toEventNoteDomainList(),
             fishNotes = noteDao.getAllFishNotesList().toFishNoteDomainList(),
             tripNotes = noteDao.getAllTripNotesList().toTripNoteDomainList(),
-            photos = photoDao.getAllPhotosList().toPhotoDomainList(),
             // Cross Reference Tables (All of them)
             lurePrimaryColors = lureDao.getAllLurePrimaryColorsList().toLurePrimaryColorDomainList(),
             lureSecondaryColors = lureDao.getAllLureSecondaryColorsList().toLureSecondaryColorDomainList(),
@@ -124,16 +129,16 @@ class FishStoryRepository(
             eventFishermen = fishermanDao.getAllEventFishermenList().toEventFishermanDomainList(),
             eventLimits = limitDao.getAllEventLimitsList().toEventLimitDomainList(),
             eventTargetSpecies = speciesDao.getAllEventTargetSpeciesList().toEventTargetSpeciesDomainList(),
-            photosBait = photoDao.getAllPhotosForBaitList().toPhotoBaitDomainList(),
-            photosBodyOfWater = photoDao.getAllPhotosForBodiesOfWaterList().toPhotoBodyOfWaterDomainList(),
-            photosEvent = photoDao.getAllPhotosForEventsList().toPhotoEventDomainList(),
-            photosFish = photoDao.getAllPhotosForFishList().toPhotoFishDomainList(),
-            photosFisherman = photoDao.getAllPhotosForFishermenList().toPhotoFishermanDomainList(),
-            photosLure = photoDao.getAllPhotosForLuresList().toPhotoLureDomainList(),
-            photosSkyCondition = photoDao.getAllPhotosForSkyConditionsList().toPhotoSkyConditionDomainList(),
-            photosSpecies = photoDao.getAllPhotosForSpeciesList().toPhotoSpeciesDomainList(),
-            photosTrip = photoDao.getAllPhotosForTripsList().toPhotoTripDomainList(),
-            photosWaterClarity = photoDao.getAllPhotosForWaterClarityList().toPhotoWaterClarityDomainList()
+            baitPhotos = photoDao.getAllBaitPhotosList().toBaitPhotoDomainList(),
+            bodyOfWaterPhotos = photoDao.getAllBodyOfWaterPhotosList().toBodyOfWaterPhotoDomainList(),
+            eventPhotos = photoDao.getAllEventPhotosList().toEventPhotoDomainList(),
+            fishPhotos = photoDao.getAllFishPhotosList().toFishPhotoDomainList(),
+            fishermanPhotos = photoDao.getAllFishermanPhotosList().toFishermanPhotoDomainList(),
+            lurePhotos = photoDao.getAllLurePhotosList().toLurePhotoDomainList(),
+            skyConditionPhotos = photoDao.getAllSkyConditionPhotosList().toSkyConditionPhotoDomainList(),
+            speciesPhotos = photoDao.getAllSpeciesPhotosList().toSpeciesPhotoDomainList(),
+            tripPhotos = photoDao.getAllTripPhotosList().toTripPhotoDomainList(),
+            waterClarityPhotos = photoDao.getAllWaterClarityPhotosList().toWaterClarityPhotoDomainList()
         )
     }
 
@@ -163,11 +168,161 @@ class FishStoryRepository(
             for (trip in exportData.trips) tripDao.insertTrip(trip.toEntity())
             for (event in exportData.events) eventDao.insertEvent(event.toEntity())
             for (fish in exportData.fish) fishDao.insertFish(fish.toEntity())
-            for (photo in exportData.photos) photoDao.insertPhoto(photo.toEntity())
 
             for (note in exportData.eventNotes) noteDao.insertEventNote(note.toEntity())
             for (note in exportData.fishNotes) noteDao.insertFishNote(note.toEntity())
             for (note in exportData.tripNotes) noteDao.insertTripNote(note.toEntity())
+
+            val photosMap = exportData.photos.associateBy { it.id }
+            val newBaitPhotos = exportData.photosBait.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                BaitPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.baitId
+                )
+            }
+            newBaitPhotos.forEach { photoDao.insertBaitPhoto(it) }
+
+            val newBodyOfWaterPhotos = exportData.photosBodyOfWater.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                BodyOfWaterPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.bodyOfWaterId
+                )
+            }
+            newBodyOfWaterPhotos.forEach { photoDao.insertBodyOfWaterPhoto(it) }
+
+            val newEventPhotos = exportData.photosEvent.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                EventPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.eventId
+                )
+            }
+            newEventPhotos.forEach { photoDao.insertEventPhoto(it) }
+
+            val newFishPhotos = exportData.photosFish.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                FishPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.fishId
+                )
+            }
+            newFishPhotos.forEach { photoDao.insertFishPhoto(it) }
+
+            val newFishermanPhotos = exportData.photosFisherman.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                FishermanPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.fishermanId
+                )
+            }
+            newFishermanPhotos.forEach { photoDao.insertFishermanPhoto(it) }
+
+            val newLurePhotos = exportData.photosLure.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                LurePhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.lureId
+                )
+            }
+            newLurePhotos.forEach { photoDao.insertLurePhoto(it) }
+
+            val newSkyConditionPhotos = exportData.photosSkyCondition.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                SkyConditionPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.skyConditionId
+                )
+            }
+            newSkyConditionPhotos.forEach { photoDao.insertSkyConditionPhoto(it) }
+
+            val newSpeciesPhotos = exportData.photosSpecies.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                SpeciesPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.speciesId
+                )
+            }
+            newSpeciesPhotos.forEach { photoDao.insertSpeciesPhoto(it) }
+
+            val newTripPhotos = exportData.photosTrip.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                TripPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.tripId
+                )
+            }
+            newTripPhotos.forEach { photoDao.insertTripPhoto(it) }
+
+            val newWaterClarityPhotos = exportData.photosWaterClarity.mapNotNull { xref ->
+                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
+                WaterClarityPhotoEntity(
+                    id = photo.id,
+                    uri = photo.uri,
+                    hashcode = photo.hashcode,
+                    thumbnail = photo.thumbnail,
+                    timestamp = photo.timestamp,
+                    caption = photo.caption,
+                    isPrimary = xref.isPrimary,
+                    parentId = xref.waterClarityId
+                )
+            }
+            newWaterClarityPhotos.forEach { photoDao.insertWaterClarityPhoto(it) }
 
             // 5. Insert All Cross-Reference / Join Tables Last
             for (item in exportData.lurePrimaryColors) lureDao.upsertLurePrimaryColor(item.toEntity())
@@ -187,17 +342,6 @@ class FishStoryRepository(
             for (item in exportData.eventFishermen) fishermanDao.insertEventFisherman(item.toEntity())
             for (item in exportData.eventLimits) limitDao.insertEventLimit(item.toEntity())
             for (item in exportData.eventTargetSpecies) speciesDao.upsertEventTargetSpecies(item.toEntity())
-
-            for (item in exportData.photosBait) photoDao.addBaitPhoto(item.toEntity())
-            for (item in exportData.photosBodyOfWater) photoDao.addBodyOfWaterPhoto(item.toEntity())
-            for (item in exportData.photosEvent) photoDao.addEventPhoto(item.toEntity())
-            for (item in exportData.photosFish) photoDao.addFishPhoto(item.toEntity())
-            for (item in exportData.photosFisherman) photoDao.addFishermanPhoto(item.toEntity())
-            for (item in exportData.photosLure) photoDao.addLurePhoto(item.toEntity())
-            for (item in exportData.photosSkyCondition) photoDao.addSkyConditionPhoto(item.toEntity())
-            for (item in exportData.photosSpecies) photoDao.addSpeciesPhoto(item.toEntity())
-            for (item in exportData.photosTrip) photoDao.addTripPhoto(item.toEntity())
-            for (item in exportData.photosWaterClarity) photoDao.addWaterClarityPhoto(item.toEntity())
         }
     }
 }

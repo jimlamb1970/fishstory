@@ -79,9 +79,9 @@ class TripListViewModel(
         }
     }
 
-    fun addTripPhoto(tripId: String, uri: Uri, selected: Boolean) {
+    fun addTripPhoto(tripId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addTripPhoto(tripId, uri, selected)
+            photoRepo.addTripPhoto(tripId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -91,11 +91,11 @@ class TripListViewModel(
         viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
     }
 
-    fun deleteTripPhoto(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteTripPhoto(tripId, photoId) }
+    fun deleteTripPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteTripPhoto(photoId) }
     }
 
-    fun tripPhotos(tripId: String): Flow<List<Photo>> {
+    fun tripPhotos(tripId: String): Flow<List<TripPhoto>> {
         return photoRepo.getPhotosForTrip(tripId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }

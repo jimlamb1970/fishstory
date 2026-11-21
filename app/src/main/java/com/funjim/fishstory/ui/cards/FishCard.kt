@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
 import com.funjim.fishstory.model.Photo
@@ -57,14 +58,14 @@ fun FishCard(
     includeFisherman: Boolean = false,
     useImperial: Boolean = true,
     thumbnailFlow: Flow<ByteArray?>,
-    photosFlow: Flow<List<Photo>>,
+    photosFlow: Flow<List<FishPhoto>>,
     onClick: () -> Unit,
     onThumbnailLongClick: (() -> Unit)? = null,
     onEdit: () -> Unit,
     onPhotoAdded: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onSetThumbnail: (Photo) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onSetThumbnail: (FishPhoto) -> Unit,
+    onPhotoDeleted: (FishPhoto) -> Unit,
     onDelete: () -> Unit,
     onSetLocation: (() -> Unit)? = null,
     onSelectLocation: () -> Unit,
@@ -356,8 +357,8 @@ fun FishCard(
                     photos = photos,
                     onPhotoSelected = { uri -> onPhotoAdded(uri) },
                     onPhotoTaken = { uri -> onPhotoTaken(uri) },
-                    onSetThumbnail = { photo -> onSetThumbnail(photo) },
-                    onPhotoDeleted = { photo -> onPhotoDeleted(photo) }
+                    onSetThumbnail = { photo -> onSetThumbnail(photo as FishPhoto) },
+                    onPhotoDeleted = { photo -> onPhotoDeleted(photo as FishPhoto) }
                 )
             }
         }

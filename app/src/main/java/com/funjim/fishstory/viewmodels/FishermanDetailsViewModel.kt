@@ -98,7 +98,7 @@ class FishermanDetailsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val fishermanPhotos: StateFlow<List<Photo>> = _selectedFishermanId
+    val fishermanPhotos: StateFlow<List<FishermanPhoto>> = _selectedFishermanId
         .filterNotNull()
         .flatMapLatest { photoRepo.getPhotosForFisherman(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -127,9 +127,9 @@ class FishermanDetailsViewModel(
         }
     }
 
-    fun addFishermanPhoto(fishermanId: String, uri: Uri, selected: Boolean) {
+    fun addFishermanPhoto(fishermanId: String, uri: Uri) {
         viewModelScope.launch {
-            photoRepo.addFishermanPhoto(fishermanId, uri, selected)
+            photoRepo.addFishermanPhoto(fishermanId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
@@ -145,8 +145,8 @@ class FishermanDetailsViewModel(
         viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
     }
 
-    fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishermanPhoto(fishermanId, photoId) }
+    fun deleteFishermanPhoto(photoId: String) {
+        viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
     }
 
     fun tripThumbnail(tripId: String): Flow<ByteArray?> {

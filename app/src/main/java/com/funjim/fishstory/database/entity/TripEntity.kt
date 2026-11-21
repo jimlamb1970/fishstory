@@ -112,7 +112,7 @@ data class TripEntityWithDetails(
             entityColumn = "photoId"
         )
     )
-    val photos: List<PhotoEntity>,
+    val photos: List<TripPhotoEntity>,
 
     @Relation(
         parentColumn = "id",

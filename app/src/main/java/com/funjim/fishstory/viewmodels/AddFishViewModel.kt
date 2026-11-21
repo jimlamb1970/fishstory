@@ -64,16 +64,9 @@ class AddFishViewModel(
     private val _selectedFishId = MutableStateFlow<String?>(null)
     private val _selectedFishermanId = MutableStateFlow<String?>(null)
     private val _selectedTackleBoxId = MutableStateFlow<String?>(null)
-    private val _selectedLureId = MutableStateFlow<String?>(null)
 
     // Exposed State for the UI
     val species = fishRepo.allSpecies
-
-    val selectedTripId = _selectedTripId.asStateFlow()
-    val selectedEventId = _selectedEventId.asStateFlow()
-    val selectedFishermanId = _selectedFishermanId.asStateFlow()
-    val selectedTackleBoxId = _selectedTackleBoxId.asStateFlow()
-    val selectedLureId = _selectedLureId.asStateFlow()
 
     val allBaits: StateFlow<List<Bait>> = lureRepo.allBaits
         .stateIn(
@@ -83,13 +76,6 @@ class AddFishViewModel(
         )
 
     val allBodiesOfWater: StateFlow<List<BodyOfWater>> = envRepo.allBodiesOfWater
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    val allLures: StateFlow<List<LureWithColors>> = lureRepo.getAllLures()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -253,18 +239,9 @@ class AddFishViewModel(
     fun selectTackleBox(id: String?) {
         _selectedTackleBoxId.value = id
     }
-    fun selectLure(id: String?) {
-        _selectedLureId.value = id
-    }
 
     suspend fun getPhotoMetadata(uri: Uri): PhotoMetadata {
         return photoRepo.getPhotoMetadata(uri)
-    }
-
-    fun upsertFish(fish: Fish) {
-        viewModelScope.launch {
-            fishRepo.upsertFish(fish)
-        }
     }
 
     fun addSpecies(
@@ -292,7 +269,7 @@ class AddFishViewModel(
     }
     private val _draftFish = MutableStateFlow<Fish?>(null)
     val draftFish = _draftFish.asStateFlow()
-    private val _fishPhotos = MutableStateFlow<List<Photo>>(emptyList())
+    private val _fishPhotos = MutableStateFlow<List<FishPhoto>>(emptyList())
     val fishPhotos = _fishPhotos.asStateFlow()
 
     val hasChanges: Flow<Boolean> = combine(
@@ -342,7 +319,7 @@ class AddFishViewModel(
         holeNumber: Int?,
         waterId: String?,
         weatherId: String?,
-        photos: List<Photo> = emptyList()
+        photos: List<FishPhoto> = emptyList()
     ) {
         // If fish is null, create a default "new" fish
         _draftFish.value = fish ?: Fish(
@@ -492,23 +469,17 @@ class AddFishViewModel(
         }
     }
 
-    fun addPhoto(photo: Photo) {
+    fun addPhoto(photo: FishPhoto) {
         _fishPhotos.update { current -> current + photo }
     }
 
-    fun deletePhoto(photo: Photo) {
+    fun deletePhoto(photo: FishPhoto) {
         _fishPhotos.update { current -> current - photo }
-    }
-
-    fun updateDraftFish(transform: (Fish) -> Fish) {
-        _draftFish.value?.let { current ->
-            _draftFish.value = transform(current)
-        }
     }
 
     fun saveFish(
         fish: Fish,
-        currentPhotos: List<Photo>,
+        currentPhotos: List<FishPhoto>,
         onComplete: () -> Unit
     ) {
         viewModelScope.launch {
@@ -527,7 +498,7 @@ class AddFishViewModel(
                 photoRepo.addFishPhotos(fish.id, newPhotos)
             }
             if (deletedPhotos.isNotEmpty()) {
-                photoRepo.deleteFishPhotos(fish.id, deletedPhotos)
+                photoRepo.deleteFishPhotos(deletedPhotos)
             }
 
             onComplete()

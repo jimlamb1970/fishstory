@@ -6,486 +6,345 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Upsert
-import com.funjim.fishstory.database.entity.PhotoBaitEntity
-import com.funjim.fishstory.database.entity.PhotoBodyOfWaterEntity
-import com.funjim.fishstory.database.entity.PhotoEntity
-import com.funjim.fishstory.database.entity.PhotoEventEntity
-import com.funjim.fishstory.database.entity.PhotoFishEntity
-import com.funjim.fishstory.database.entity.PhotoFishermanEntity
-import com.funjim.fishstory.database.entity.PhotoLureEntity
-import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
-import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
-import com.funjim.fishstory.database.entity.PhotoTripEntity
-import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
+import com.funjim.fishstory.database.entity.BaitPhotoEntity
+import com.funjim.fishstory.database.entity.BodyOfWaterPhotoEntity
+import com.funjim.fishstory.database.entity.EventPhotoEntity
+import com.funjim.fishstory.database.entity.FishPhotoEntity
+import com.funjim.fishstory.database.entity.FishermanPhotoEntity
+import com.funjim.fishstory.database.entity.LurePhotoEntity
+import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
+import com.funjim.fishstory.database.entity.SpeciesPhotoEntity
+import com.funjim.fishstory.database.entity.TripPhotoEntity
+import com.funjim.fishstory.database.entity.WaterClarityPhotoEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PhotoDao {
-    @Query("SELECT * FROM photo_table")
-    fun getAllPhotos(): Flow<List<PhotoEntity>>
+    @Query("SELECT * FROM bait_photo_table")
+    fun getAllBaitPhotos(): Flow<List<BaitPhotoEntity>>
+    @Query("SELECT * FROM bait_photo_table")
+    suspend fun getAllBaitPhotosList(): List<BaitPhotoEntity>
 
-    @Query("SELECT * FROM photo_table")
-    suspend fun getAllPhotosList(): List<PhotoEntity>
+    @Query("SELECT * FROM body_of_water_photo_table")
+    fun getAllBodyOfWaterPhotos(): Flow<List<BodyOfWaterPhotoEntity>>
+    @Query("SELECT * FROM body_of_water_photo_table")
+    suspend fun getAllBodyOfWaterPhotosList(): List<BodyOfWaterPhotoEntity>
 
-    @Query("SELECT * FROM photo_bait")
-    fun getAllPhotosForBait(): Flow<List<PhotoBaitEntity>>
+    @Query("SELECT * FROM event_photo_table")
+    fun getAllEventPhotos(): Flow<List<EventPhotoEntity>>
+    @Query("SELECT * FROM event_photo_table")
+    suspend fun getAllEventPhotosList(): List<EventPhotoEntity>
 
-    @Query("SELECT * FROM photo_bait")
-    suspend fun getAllPhotosForBaitList(): List<PhotoBaitEntity>
+    @Query("SELECT * FROM fish_photo_table")
+    fun getAllFishPhotos(): Flow<List<FishPhotoEntity>>
+    @Query("SELECT * FROM fish_photo_table")
+    suspend fun getAllFishPhotosList(): List<FishPhotoEntity>
 
-    @Query("SELECT * FROM photo_body_of_water")
-    fun getAllPhotosForBodiesOfWater(): Flow<List<PhotoBodyOfWaterEntity>>
+    @Query("SELECT * FROM fisherman_photo_table")
+    fun getAllFishermanPhotos(): Flow<List<FishermanPhotoEntity>>
+    @Query("SELECT * FROM fisherman_photo_table")
+    suspend fun getAllFishermanPhotosList(): List<FishermanPhotoEntity>
 
-    @Query("SELECT * FROM photo_body_of_water")
-    suspend fun getAllPhotosForBodiesOfWaterList(): List<PhotoBodyOfWaterEntity>
+    @Query("SELECT * FROM lure_photo_table")
+    fun getAllLurePhotos(): Flow<List<LurePhotoEntity>>
+    @Query("SELECT * FROM lure_photo_table")
+    suspend fun getAllLurePhotosList(): List<LurePhotoEntity>
 
-    @Query("SELECT * FROM photo_event")
-    fun getAllPhotosForEvents(): Flow<List<PhotoEventEntity>>
+    @Query("SELECT * FROM sky_condition_photo_table")
+    suspend fun getAllSkyConditionPhotosList(): List<SkyConditionPhotoEntity>
 
-    @Query("SELECT * FROM photo_event")
-    suspend fun getAllPhotosForEventsList(): List<PhotoEventEntity>
+    @Query("SELECT * FROM species_photo_table")
+    fun getAllSpeciesPhotos(): Flow<List<SpeciesPhotoEntity>>
+    @Query("SELECT * FROM species_photo_table")
+    suspend fun getAllSpeciesPhotosList(): List<SpeciesPhotoEntity>
 
-    @Query("SELECT * FROM photo_fish")
-    fun getAllPhotosForFish(): Flow<List<PhotoFishEntity>>
+    @Query("SELECT * FROM trip_photo_table")
+    fun getAllTripPhotos(): Flow<List<TripPhotoEntity>>
+    @Query("SELECT * FROM trip_photo_table")
+    suspend fun getAllTripPhotosList(): List<TripPhotoEntity>
 
-    @Query("SELECT * FROM photo_fish")
-    suspend fun getAllPhotosForFishList(): List<PhotoFishEntity>
+    @Query("SELECT * FROM water_clarity_photo_table")
+    suspend fun getAllWaterClarityPhotosList(): List<WaterClarityPhotoEntity>
 
-    @Query("SELECT * FROM photo_fisherman")
-    fun getAllPhotosForFishermen(): Flow<List<PhotoFishermanEntity>>
-
-    @Query("SELECT * FROM photo_fisherman")
-    suspend fun getAllPhotosForFishermenList(): List<PhotoFishermanEntity>
-
-    @Query("SELECT * FROM photo_lure")
-    fun getAllPhotosForLures(): Flow<List<PhotoLureEntity>>
-
-    @Query("SELECT * FROM photo_lure")
-    suspend fun getAllPhotosForLuresList(): List<PhotoLureEntity>
-
-    @Query("SELECT * FROM photo_sky_condition")
-    suspend fun getAllPhotosForSkyConditionsList(): List<PhotoSkyConditionEntity>
-
-    @Query("SELECT * FROM photo_species")
-    fun getAllPhotosForSpecies(): Flow<List<PhotoSpeciesEntity>>
-
-    @Query("SELECT * FROM photo_species")
-    suspend fun getAllPhotosForSpeciesList(): List<PhotoSpeciesEntity>
-
-    @Query("SELECT * FROM photo_trip")
-    fun getAllPhotosForTrips(): Flow<List<PhotoTripEntity>>
-
-    @Query("SELECT * FROM photo_trip")
-    suspend fun getAllPhotosForTripsList(): List<PhotoTripEntity>
-
-    @Query("SELECT * FROM photo_water_clarity")
-    suspend fun getAllPhotosForWaterClarityList(): List<PhotoWaterClarityEntity>
-
-    @Query("DELETE FROM photo_table")
-    suspend fun deleteAllPhotos()
-
-    @Query("DELETE FROM photo_bait")
-    suspend fun deleteAllPhotosForBait()
-
-    @Query("DELETE FROM photo_body_of_water")
-    suspend fun deleteAllPhotosForBodiesOfWater()
-
-    @Query("DELETE FROM photo_event")
-    suspend fun deleteAllPhotosForEvents()
-
-    @Query("DELETE FROM photo_fish")
-    suspend fun deleteAllPhotosForFish()
-
-    @Query("DELETE FROM photo_fisherman")
-    suspend fun deleteAllPhotosForFishermen()
-
-    @Query("DELETE FROM photo_lure")
-    suspend fun deleteAllPhotosForLures()
-
-    @Query("DELETE FROM photo_species")
-    suspend fun deleteAllPhotosForSpecies()
-
-    @Query("DELETE FROM photo_trip")
-    suspend fun deleteAllPhotosForTrips()
-
+    @Query("DELETE FROM bait_photo_table")
+    suspend fun deleteAllBaitPhotos()
+    @Query("DELETE FROM body_of_water_photo_table")
+    suspend fun deleteAllBodyOfWaterPhotos()
+    @Query("DELETE FROM event_photo_table")
+    suspend fun deleteAllEventPhotos()
+    @Query("DELETE FROM fish_photo_table")
+    suspend fun deleteAllFishPhotos()
+    @Query("DELETE FROM fisherman_photo_table")
+    suspend fun deleteAllFishermanPhotos()
+    @Query("DELETE FROM lure_photo_table")
+    suspend fun deleteAllLurePhotos()
+    @Query("DELETE FROM sky_condition_photo_table")
+    suspend fun deleteAllSkyConditionPhotos()
+    @Query("DELETE FROM species_photo_table")
+    suspend fun deleteAllSpeciesPhotos()
+    @Query("DELETE FROM trip_photo_table")
+    suspend fun deleteAllTripPhotos()
+    @Query("DELETE FROM water_clarity_photo_table")
+    suspend fun deleteAllWaterClarityPhotos()
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
-    suspend fun insertPhoto(photo: PhotoEntity): Long
+    suspend fun insertBaitPhoto(photo: BaitPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertBodyOfWaterPhoto(photo: BodyOfWaterPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertEventPhoto(photo: EventPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertFishPhoto(photo: FishPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertFishermanPhoto(photo: FishermanPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertLurePhoto(photo: LurePhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertSkyConditionPhoto(photo: SkyConditionPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertSpeciesPhoto(photo: SpeciesPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertTripPhoto(photo: TripPhotoEntity): Long
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    suspend fun insertWaterClarityPhoto(photo: WaterClarityPhotoEntity): Long
 
-    @Query("SELECT id FROM photo_table WHERE uri = :uri LIMIT 1")
-    suspend fun getPhotoIdByUri(uri: String): String?
-
-    @Query("SELECT id FROM photo_table WHERE hashcode = :hashcode LIMIT 1")
-    suspend fun getPhotoIdByHash(hashcode: String): String?
+    @Query("SELECT id FROM bait_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getBaitPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM body_of_water_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getBodyOfWaterPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM event_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getEventPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM fish_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getFishPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM fisherman_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getFishermanPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM lure_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getLurePhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM sky_condition_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getSkyConditionPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM species_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getSpeciesPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM trip_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getTripPhotoIdByHash(hashcode: String, parentId: String): String?
+    @Query("SELECT id FROM water_clarity_photo_table WHERE hashcode = :hashcode AND parentId = :parentId LIMIT 1")
+    suspend fun getWaterClarityPhotoIdByHash(hashcode: String, parentId: String): String?
 
     @Delete
-    suspend fun deletePhoto(photo: PhotoEntity)
-
-    @Upsert
-    suspend fun addBaitPhoto(crossRef: PhotoBaitEntity)
+    suspend fun deleteBaitPhoto(photo: BaitPhotoEntity)
+    @Query("DELETE FROM bait_photo_table WHERE id = :id")
+    suspend fun deleteBaitPhotoById(id: String)
     @Delete
-    suspend fun deleteBaitPhoto(crossRef: PhotoBaitEntity)
-
-    @Upsert
-    suspend fun addBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
+    suspend fun deleteBodyOfWaterPhoto(photo: BodyOfWaterPhotoEntity)
+    @Query("DELETE FROM body_of_water_photo_table WHERE id = :id")
+    suspend fun deleteBodyOfWaterPhotoById(id: String)
     @Delete
-    suspend fun deleteBodyOfWaterPhoto(crossRef: PhotoBodyOfWaterEntity)
-
-    @Upsert
-    suspend fun addTripPhoto(crossRef: PhotoTripEntity)
+    suspend fun deleteEventPhoto(photo: EventPhotoEntity)
+    @Query("DELETE FROM event_photo_table WHERE id = :id")
+    suspend fun deleteEventPhotoById(id: String)
     @Delete
-    suspend fun deleteTripPhoto(crossRef: PhotoTripEntity)
-
-    @Upsert
-    suspend fun addEventPhoto(crossRef: PhotoEventEntity)
+    suspend fun deleteFishPhoto(photo: FishPhotoEntity)
+    @Query("DELETE FROM fish_photo_table WHERE id = :id")
+    suspend fun deleteFishPhotoById(id: String)
     @Delete
-    suspend fun deleteEventPhoto(crossRef: PhotoEventEntity)
-
-    @Upsert
-    suspend fun addFishermanPhoto(crossRef: PhotoFishermanEntity)
+    suspend fun deleteFishermanPhoto(photo: FishermanPhotoEntity)
+    @Query("DELETE FROM fisherman_photo_table WHERE id = :id")
+    suspend fun deleteFishermanPhotoById(id: String)
     @Delete
-    suspend fun deleteFishermanPhoto(crossRef: PhotoFishermanEntity)
-
-    @Upsert
-    suspend fun addLurePhoto(crossRef: PhotoLureEntity)
+    suspend fun deleteLurePhoto(photo: LurePhotoEntity)
+    @Query("DELETE FROM lure_photo_table WHERE id = :id")
+    suspend fun deleteLurePhotoById(id: String)
     @Delete
-    suspend fun deleteLurePhoto(crossRef: PhotoLureEntity)
-
-    @Upsert
-    suspend fun addFishPhoto(crossRef: PhotoFishEntity)
+    suspend fun deleteSkyConditionPhoto(photo: SkyConditionPhotoEntity)
+    @Query("DELETE FROM sky_condition_photo_table WHERE id = :id")
+    suspend fun deleteSkyConditionPhotoById(id: String)
     @Delete
-    suspend fun deleteFishPhoto(crossRef: PhotoFishEntity)
-
-    @Upsert
-    suspend fun addSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
+    suspend fun deleteSpeciesPhoto(photo: SpeciesPhotoEntity)
+    @Query("DELETE FROM species_photo_table WHERE id = :id")
+    suspend fun deleteSpeciesPhotoById(id: String)
     @Delete
-    suspend fun deleteSkyConditionPhoto(crossRef: PhotoSkyConditionEntity)
-
-    @Upsert
-    suspend fun addSpeciesPhoto(crossRef: PhotoSpeciesEntity)
+    suspend fun deleteTripPhoto(photo: TripPhotoEntity)
+    @Query("DELETE FROM trip_photo_table WHERE id = :id")
+    suspend fun deleteTripPhotoById(id: String)
     @Delete
-    suspend fun deleteSpeciesPhoto(crossRef: PhotoSpeciesEntity)
+    suspend fun deleteWaterClarityPhoto(photo: WaterClarityPhotoEntity)
+    @Query("DELETE FROM water_clarity_photo_table WHERE id = :id")
+    suspend fun deleteWaterClarityPhotoById(id: String)
 
-    @Upsert
-    suspend fun addWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
-    @Delete
-    suspend fun deleteWaterClarityPhoto(crossRef: PhotoWaterClarityEntity)
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_trip ON photo_table.id = photo_trip.photoId
-    WHERE photo_trip.tripId = :tripId
-"""
-    )
-    fun getPhotosForTrip(tripId: String): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_event ON photo_table.id = photo_event.photoId
-    WHERE photo_event.eventId = :eventId
-"""
-    )
-    fun getPhotosForEvent(eventId: String): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
-    WHERE photo_lure.lureId = :lureId
-"""
-    )
-    fun getPhotosForLure(lureId: String): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table 
-    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
-"""
-    )
-    fun getAllLurePhotos(): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
-    WHERE photo_fish.fishId = :fishId
-"""
-    )
-    fun getPhotosForFish(fishId: String): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
-"""
-    )
-    fun getAllFishPhotos(): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-    SELECT photo_table.* FROM photo_table
-    INNER JOIN photo_fisherman ON photo_table.id = photo_fisherman.photoId
-    WHERE photo_fisherman.fishermanId = :fishermanId
-"""
-    )
-    fun getPhotosForFisherman(fishermanId: String): Flow<List<PhotoEntity>>
-
-    @Query(
-        """
-        SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_bait ON photo_table.id = photo_bait.photoId
-        WHERE photo_bait.baitId = :id
+    @Query("""
+        SELECT bait_photo_table.* FROM bait_photo_table
+        WHERE parentId = :id
         LIMIT 1
-    """
-    )
-    suspend fun getPhotoForBait(id: String): PhotoEntity?
-
+    """)
+    suspend fun getBaitPhoto(id: String): BaitPhotoEntity?
     @Query(
         """
-        SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_body_of_water ON photo_table.id = photo_body_of_water.photoId
-        WHERE photo_body_of_water.bodyOfWaterId = :id
+        SELECT body_of_water_photo_table.* FROM body_of_water_photo_table
+        WHERE parentId = :id
         LIMIT 1
-    """
-    )
-    suspend fun getPhotoForBodyOfWater(id: String): PhotoEntity?
-
-    @Query(
-        """
-        SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_sky_condition ON photo_table.id = photo_sky_condition.photoId
-        WHERE photo_sky_condition.skyConditionId = :id
+    """)
+    suspend fun getBodyOfWaterPhoto(id: String): BodyOfWaterPhotoEntity?
+    @Query("""
+        SELECT sky_condition_photo_table.* FROM sky_condition_photo_table
+        WHERE parentId = :id
         LIMIT 1
-    """
-    )
-    suspend fun getPhotoForSkyCondition(id: String): PhotoEntity?
-
-    @Query(
-        """
-        SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_species ON photo_table.id = photo_species.photoId
-        WHERE photo_species.speciesId = :speciesId
+    """)
+    suspend fun getSkyConditionPhoto(id: String): SkyConditionPhotoEntity?
+    @Query("""
+        SELECT species_photo_table.* FROM species_photo_table
+        WHERE parentId = :id
         LIMIT 1
-    """
-    )
-    suspend fun getPhotoForSpecies(speciesId: String): PhotoEntity?
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_trip ON photo_table.id = photo_trip.photoId
-    WHERE tripId = :tripId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForTrip(tripId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-        SELECT photo_table.* FROM photo_table
-        INNER JOIN photo_water_clarity ON photo_table.id = photo_water_clarity.photoId
-        WHERE photo_water_clarity.waterClarityId = :id
+    """)
+    suspend fun getSpeciesPhoto(id: String): SpeciesPhotoEntity?
+    @Query("""
+        SELECT water_clarity_photo_table.* FROM water_clarity_photo_table
+        WHERE parentId = :id
         LIMIT 1
-    """
-    )
-    suspend fun getPhotoForWaterClarity(id: String): PhotoEntity?
+    """)
+    suspend fun getWaterClarityPhoto(id: String): WaterClarityPhotoEntity?
 
+    @Query("""
+        SELECT event_photo_table.* FROM event_photo_table
+        WHERE parentId = :eventId
+    """)
+    fun getEventPhotos(eventId: String): Flow<List<EventPhotoEntity>>
+    @Query("""
+        SELECT fish_photo_table.* FROM fish_photo_table
+        WHERE parentId = :fishId
+    """)
+    fun getFishPhotos(fishId: String): Flow<List<FishPhotoEntity>>
+    @Query("""
+        SELECT fisherman_photo_table.* FROM fisherman_photo_table
+        WHERE parentId = :fishermanId
+    """)
+    fun getFishermanPhotos(fishermanId: String): Flow<List<FishermanPhotoEntity>>
+    @Query("""
+        SELECT lure_photo_table.*  FROM lure_photo_table
+        WHERE parentId = :lureId
+    """)
+    fun getLurePhotos(lureId: String): Flow<List<LurePhotoEntity>>
+    @Query("""
+        SELECT trip_photo_table.* FROM trip_photo_table
+        WHERE parentId = :tripId
+    """)
+    fun getTripPhotos(tripId: String): Flow<List<TripPhotoEntity>>
 
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_bait ON photo_table.id = photo_bait.photoId
-    WHERE baitId = :id 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForBait(id: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_body_of_water ON photo_table.id = photo_body_of_water.photoId
-    WHERE bodyOfWaterId = :bodyOfWaterId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForBodyOfWater(bodyOfWaterId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_event ON photo_table.id = photo_event.photoId
-    WHERE eventId = :eventId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForEvent(eventId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_fish ON photo_table.id = photo_fish.photoId
-    WHERE fishId = :fishId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForFish(fishId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_fisherman ON photo_table.id = photo_fisherman.photoId
-    WHERE fishermanId = :fishermanId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForFisherman(fishermanId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_lure ON photo_table.id = photo_lure.photoId
-    WHERE lureId = :lureId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForLure(lureId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_sky_condition ON photo_table.id = photo_sky_condition.photoId
-    WHERE skyConditionId = :id 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForSkyCondition(id: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_species ON photo_table.id = photo_species.photoId
-    WHERE speciesId = :speciesId 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForSpecies(speciesId: String): Flow<ByteArray?>
-
-    @Query(
-        """
-    SELECT thumbnail FROM photo_table 
-    INNER JOIN photo_water_clarity ON photo_table.id = photo_water_clarity.photoId
-    WHERE waterClarityId = :id 
-    ORDER BY isPrimary DESC, timestamp ASC 
-    LIMIT 1
-"""
-    )
-    fun getThumbnailForWaterClarity(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM bait_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getBaitThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM body_of_water_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getBodyOfWaterThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM event_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getEventThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM fish_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getFishThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM fisherman_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getFishermanThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM lure_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getLureThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM sky_condition_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getSkyConditionThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM species_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getSpeciesThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM trip_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getTripThumbnail(id: String): Flow<ByteArray?>
+    @Query("""
+        SELECT thumbnail FROM water_clarity_photo_table 
+        WHERE parentId = :id 
+        ORDER BY isPrimary DESC, timestamp ASC 
+        LIMIT 1
+    """)
+    fun getWaterClarityThumbnail(id: String): Flow<ByteArray?>
 
 
     @Transaction
-    suspend fun setPrimaryPhotoForEvent(eventId: String, photoId: String) {
-        clearPrimaryPhotoForEvent(eventId)
-        setPhotoAsPrimaryForEvent(eventId, photoId)
+    suspend fun setPrimaryEventPhoto(eventId: String, photoId: String) {
+        clearPrimaryEventPhoto(eventId)
+        updatePrimaryEventPhoto(eventId, photoId)
     }
-
-    @Query("UPDATE photo_event SET isPrimary = 0 WHERE eventId = :eventId")
-    suspend fun clearPrimaryPhotoForEvent(eventId: String)
-
-    @Query("UPDATE photo_event SET isPrimary = 1 WHERE eventId = :eventId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForEvent(eventId: String, photoId: String)
-
     @Transaction
-    suspend fun setPrimaryPhotoForFish(fishId: String, photoId: String) {
-        clearPrimaryPhotoForFish(fishId)
-        setPhotoAsPrimaryForFish(fishId, photoId)
+    suspend fun setPrimaryFishPhoto(fishId: String, photoId: String) {
+        clearPrimaryFishPhoto(fishId)
+        updatePrimaryFishPhoto(fishId, photoId)
     }
-
-    @Query("UPDATE photo_fish SET isPrimary = 0 WHERE fishId = :fishId")
-    suspend fun clearPrimaryPhotoForFish(fishId: String)
-
-    @Query("UPDATE photo_fish SET isPrimary = 1 WHERE fishId = :fishId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForFish(fishId: String, photoId: String)
-
     @Transaction
-    suspend fun setPrimaryPhotoForFisherman(fishermanId: String, photoId: String) {
-        clearPrimaryPhotoForFisherman(fishermanId)
-        setPhotoAsPrimaryForFisherman(fishermanId, photoId)
+    suspend fun setPrimaryFishermanPhoto(fishermanId: String, photoId: String) {
+        clearPrimaryFishermanPhoto(fishermanId)
+        updatePrimaryFishermanPhoto(fishermanId, photoId)
     }
-
-    @Query("UPDATE photo_fisherman SET isPrimary = 0 WHERE fishermanId = :fishermanId")
-    suspend fun clearPrimaryPhotoForFisherman(fishermanId: String)
-
-    @Query("UPDATE photo_fisherman SET isPrimary = 1 WHERE fishermanId = :fishermanId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForFisherman(fishermanId: String, photoId: String)
-
     @Transaction
-    suspend fun setPrimaryPhotoForLure(lureId: String, photoId: String) {
-        clearPrimaryPhotoForLure(lureId)
-        setPhotoAsPrimaryForLure(lureId, photoId)
+    suspend fun setPrimaryLurePhoto(lureId: String, photoId: String) {
+        clearPrimaryLurePhoto(lureId)
+        updatePrimaryLurePhoto(lureId, photoId)
     }
-
-    @Query("UPDATE photo_lure SET isPrimary = 0 WHERE lureId = :lureId")
-    suspend fun clearPrimaryPhotoForLure(lureId: String)
-
-    @Query("UPDATE photo_lure SET isPrimary = 1 WHERE lureId = :lureId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForLure(lureId: String, photoId: String)
-
     @Transaction
-    suspend fun setPrimaryPhotoForTrip(tripId: String, photoId: String) {
-        clearPrimaryPhotoForTrip(tripId)
-        setPhotoAsPrimaryForTrip(tripId, photoId)
+    suspend fun setPrimaryTripPhoto(tripId: String, photoId: String) {
+        clearPrimaryTripPhoto(tripId)
+        updatePrimaryTripPhoto(tripId, photoId)
     }
 
-    @Query("UPDATE photo_trip SET isPrimary = 0 WHERE tripId = :tripId")
-    suspend fun clearPrimaryPhotoForTrip(tripId: String)
+    @Query("UPDATE event_photo_table SET isPrimary = 0 WHERE parentId = :eventId")
+    suspend fun clearPrimaryEventPhoto(eventId: String)
+    @Query("UPDATE fish_photo_table SET isPrimary = 0 WHERE parentId = :fishId")
+    suspend fun clearPrimaryFishPhoto(fishId: String)
+    @Query("UPDATE fisherman_photo_table SET isPrimary = 0 WHERE parentId = :fishermanId")
+    suspend fun clearPrimaryFishermanPhoto(fishermanId: String)
+    @Query("UPDATE lure_photo_table SET isPrimary = 0 WHERE parentId = :lureId")
+    suspend fun clearPrimaryLurePhoto(lureId: String)
+    @Query("UPDATE trip_photo_table SET isPrimary = 0 WHERE parentId = :tripId")
+    suspend fun clearPrimaryTripPhoto(tripId: String)
 
-    @Query("UPDATE photo_trip SET isPrimary = 1 WHERE tripId = :tripId AND photoId = :photoId")
-    suspend fun setPhotoAsPrimaryForTrip(tripId: String, photoId: String)
-
-    @Query(
-        """
-        SELECT * FROM photo_table 
-        WHERE NOT EXISTS (SELECT 1 FROM photo_bait WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_body_of_water WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_event WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_fish WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_fisherman WHERE photoId = photo_table.id)
-          And NOT EXISTS (SELECT 1 FROM photo_lure WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_sky_condition WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_species WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_trip WHERE photoId = photo_table.id)
-          AND NOT EXISTS (SELECT 1 FROM photo_water_clarity WHERE photoId = photo_table.id)
-    """
-    )
-    suspend fun getOrphanedPhotos(): List<PhotoEntity>
-
-    @Query(
-        """
-    DELETE FROM photo_table 
-    WHERE NOT EXISTS (SELECT 1 FROM photo_bait WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_body_of_water WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_event WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_fish WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_fisherman WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_lure WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_sky_condition WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_species WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_trip WHERE photoId = photo_table.id)
-      AND NOT EXISTS (SELECT 1 FROM photo_water_clarity WHERE photoId = photo_table.id)
-"""
-    )
-    suspend fun deleteOrphanedPhotos(): Int
+    @Query("UPDATE event_photo_table SET isPrimary = 1 WHERE parentId = :eventId AND id = :photoId")
+    suspend fun updatePrimaryEventPhoto(eventId: String, photoId: String)
+    @Query("UPDATE fish_photo_table SET isPrimary = 1 WHERE parentId = :fishId AND id = :photoId")
+    suspend fun updatePrimaryFishPhoto(fishId: String, photoId: String)
+    @Query("UPDATE fisherman_photo_table SET isPrimary = 1 WHERE parentId = :fishermanId AND id = :photoId")
+    suspend fun updatePrimaryFishermanPhoto(fishermanId: String, photoId: String)
+    @Query("UPDATE lure_photo_table SET isPrimary = 1 WHERE parentId = :lureId AND id = :photoId")
+    suspend fun updatePrimaryLurePhoto(lureId: String, photoId: String)
+    @Query("UPDATE trip_photo_table SET isPrimary = 1 WHERE parentId = :tripId AND id = :photoId")
+    suspend fun updatePrimaryTripPhoto(tripId: String, photoId: String)
 }

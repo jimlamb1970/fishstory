@@ -879,15 +879,13 @@ fun EventDetailsScreen(
                                         onPhotoSelected = { uri ->
                                             viewModel.addEventPhoto(
                                                 eventId = eventId,
-                                                uri = uri,
-                                                true
+                                                uri = uri
                                             )
                                         },
                                         onPhotoTaken = { uri ->
                                             viewModel.addEventPhoto(
                                                 eventId = eventId,
-                                                uri = uri,
-                                                false
+                                                uri = uri
                                             )
                                         },
                                         onSetThumbnail = { photo ->
@@ -897,7 +895,7 @@ fun EventDetailsScreen(
                                             )
                                         },
                                         onPhotoDeleted = { photo ->
-                                            viewModel.deleteEventPhoto(eventId, photo.id)
+                                            viewModel.deleteEventPhoto(photo.id)
                                         }
                                     )
 
@@ -1060,21 +1058,16 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                 onPhotoAdded = { fisherman, uri ->
                                                     viewModel.addFishermanPhoto(
                                                         fisherman.id,
-                                                        uri,
-                                                        true
+                                                        uri
                                                     )
                                                 },
-                                                onPhotoDeleted = { fisherman, photo ->
-                                                    viewModel.deleteFishermanPhoto(
-                                                        fisherman.id,
-                                                        photo.id
-                                                    )
+                                                onPhotoDeleted = { photo ->
+                                                    viewModel.deleteFishermanPhoto(photo.id)
                                                 },
                                                 onPhotoTaken = { fisherman, uri ->
                                                     viewModel.addFishermanPhoto(
                                                         fisherman.id,
-                                                        uri,
-                                                        false
+                                                        uri
                                                     )
                                                 },
                                                 onSetThumbnail = { fisherman, photo ->

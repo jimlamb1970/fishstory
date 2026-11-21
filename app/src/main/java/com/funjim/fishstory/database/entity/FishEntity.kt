@@ -116,7 +116,7 @@ data class FishEntityWithPhotos(
             entityColumn = "photoId"
         )
     )
-    val photos: List<PhotoEntity>
+    val photos: List<FishPhotoEntity>
 )
 
 data class FishEntityWithDetails(

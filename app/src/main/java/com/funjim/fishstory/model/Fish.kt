@@ -29,7 +29,7 @@ data class Fish(
 
 data class FishWithPhotos(
     val fish: Fish,
-    val photos: List<Photo>
+    val photos: List<FishPhoto>
 )
 
 data class FishWithDetails(

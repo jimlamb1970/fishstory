@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureColor
+import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LureWithDetails
 import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -49,7 +50,7 @@ fun AddLureScreen(
     var name by remember { mutableStateOf("") }
     var hookCount by remember { mutableIntStateOf(1) }
     var glows by remember { mutableStateOf(false) }
-    var photos by remember { mutableStateOf<List<Photo>>(emptyList()) }
+    var photos by remember { mutableStateOf<List<LurePhoto>>(emptyList()) }
 
     var selectedPrimaryColors by remember { mutableStateOf<List<LureColor>>(emptyList()) }
     var selectedSecondaryColors by remember { mutableStateOf<List<LureColor>>(emptyList()) }
@@ -292,24 +293,28 @@ fun AddLureScreen(
                 photos = photos,
                 onPhotoSelected = { uri ->
                     scope.launch {
+                        // TODO - see if metadata can be removed
                         val metadata = viewModel.getPhotoMetadata(uri)
                         val exists = photos.find { it.hashcode == metadata.hashcode }
                         if (exists == null) {
-                            photos = photos + (Photo(
+                            photos = photos + (LurePhoto(
                                 uri = uri.toString(),
                                 hashcode = metadata.hashcode,
-                                thumbnail = metadata.thumbnail
+                                thumbnail = metadata.thumbnail,
+                                parentId = ""
                             ))
                         }
                     }
                 },
                 onPhotoTaken = { uri ->
                     scope.launch {
+                        // TODO - get rid of meta data -- not needed
                         val metadata = viewModel.getPhotoMetadata(uri)
-                        photos = photos + (Photo(
+                        photos = photos + (LurePhoto(
                             uri = uri.toString(),
                             hashcode = metadata.hashcode,
-                            thumbnail = metadata.thumbnail
+                            thumbnail = metadata.thumbnail,
+                            parentId = ""
                         ))
                     }
                 },

@@ -400,20 +400,20 @@ class FishViewModel(
         }
     }
 
-    fun fishPhotos(fishId: String): Flow<List<Photo>> {
+    fun fishPhotos(fishId: String): Flow<List<FishPhoto>> {
         return photoRepo.getPhotosForFish(fishId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
     fun addFishPhoto(fishId: String, uri: Uri, selected: Boolean) {
         viewModelScope.launch {
-            photoRepo.addFishPhoto(fishId, uri, selected)
+            photoRepo.addFishPhoto(fishId, uri) {}
                 .onSuccess {  }
                 .onFailure {  }
         }
     }
     fun deleteFishPhoto(fishId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.deleteFishPhoto(fishId, photoId) }
+        viewModelScope.launch { photoRepo.deleteFishPhoto(photoId) }
     }
     fun setFishThumbnail(fishId: String, photoId: String) {
         viewModelScope.launch { photoRepo.setFishThumbnail(fishId, photoId) }

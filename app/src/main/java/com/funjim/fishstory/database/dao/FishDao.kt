@@ -61,8 +61,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            (SELECT COUNT(*) FROM fish_note AS nf WHERE nf.fishId = f.id) AS noteCount,
-            (SELECT COUNT(*) FROM photo_fish AS pf WHERE pf.fishId = f.id) AS photoCount
+            (SELECT COUNT(*) FROM fish_note_table AS nf WHERE nf.parentId = f.id) AS noteCount,
+            (SELECT COUNT(*) FROM fish_photo_table AS pf WHERE pf.parentId = f.id) AS photoCount
         FROM fish_table AS f
         LEFT JOIN lure_table AS l ON f.lureId = l.id
         WHERE (:bodyOfWaterId IS NULL OR f.bodyOfWaterId = :bodyOfWaterId)
@@ -99,8 +99,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            (SELECT COUNT(*) FROM fish_note AS nf WHERE nf.fishId = f.id) AS noteCount,
-            (SELECT COUNT(*) FROM photo_fish AS pf WHERE pf.fishId = f.id) AS photoCount
+            (SELECT COUNT(*) FROM fish_note_table AS nf WHERE nf.parentId = f.id) AS noteCount,
+            (SELECT COUNT(*) FROM fish_photo_table AS pf WHERE pf.parentId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.tripId = :tripId
         ORDER BY f.timestamp DESC
@@ -113,8 +113,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            (SELECT COUNT(*) FROM fish_note AS nf WHERE nf.fishId = f.id) AS noteCount,
-            (SELECT COUNT(*) FROM photo_fish AS pf WHERE pf.fishId = f.id) AS photoCount
+            (SELECT COUNT(*) FROM fish_note_table AS nf WHERE nf.parentId = f.id) AS noteCount,
+            (SELECT COUNT(*) FROM fish_photo_table AS pf WHERE pf.parentId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.fishermanId = :fishermanId
         ORDER BY f.timestamp DESC
@@ -127,8 +127,8 @@ interface FishDao {
         """
         SELECT 
             f.*, 
-            (SELECT COUNT(*) FROM fish_note AS nf WHERE nf.fishId = f.id) AS noteCount,
-            (SELECT COUNT(*) FROM photo_fish AS pf WHERE pf.fishId = f.id) AS photoCount
+            (SELECT COUNT(*) FROM fish_note_table AS nf WHERE nf.parentId = f.id) AS noteCount,
+            (SELECT COUNT(*) FROM fish_photo_table AS pf WHERE pf.parentId = f.id) AS photoCount
         FROM fish_table AS f
         WHERE f.eventId = :eventId
         ORDER BY f.timestamp DESC

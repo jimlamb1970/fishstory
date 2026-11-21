@@ -62,6 +62,7 @@ import kotlin.math.absoluteValue
 import androidx.core.net.toUri
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishNote
+import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.ui.utils.BadgeCount
 
 // Helper function to invoke the native share sheet
@@ -311,10 +312,10 @@ fun FishDetailScreen(
                         viewModel.deleteNote(noteId)
                     },
                     onPhotoSelected = { uri ->
-                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri, true)
+                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
                     },
                     onPhotoTaken = { uri ->
-                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri, false)
+                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
                     },
                     onPhotoDeleted = { photo ->
                         viewModel.deleteFishPhoto(fishId = fish.fish.id, photo.id)
@@ -399,7 +400,7 @@ private fun FishDetailContent(
     fish: FishWithDetails,
     fishThumbnailFlow: Flow<ByteArray?>,
     fishNoteFlow: Flow<List<FishNote>>,
-    fishPhotoFlow: Flow<List<Photo>>,
+    fishPhotoFlow: Flow<List<FishPhoto>>,
     baitThumbnailFlow: Flow<ByteArray?>,
     bodyOfWaterThumbnailFlow: Flow<ByteArray?>,
     eventThumbnailFlow: Flow<ByteArray?>,
@@ -413,7 +414,7 @@ private fun FishDetailContent(
     onDeleteNote: (noteId: String) -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
-    onPhotoDeleted: (Photo) -> Unit,
+    onPhotoDeleted: (FishPhoto) -> Unit,
     onToggleImperialUnits: (() -> Unit)? = null,
     onToggleHelp: (() -> Unit)? = null,
     onToggleShowHole: (() -> Unit)? = null
@@ -849,7 +850,9 @@ private fun FishDetailContent(
             photos = fishPhotos,
             onPhotoSelected = onPhotoSelected,
             onPhotoTaken = onPhotoTaken,
-            onPhotoDeleted = onPhotoDeleted
+            onPhotoDeleted = { photo ->
+                onPhotoDeleted(photo as FishPhoto)
+            }
         )
 
         HorizontalDivider(

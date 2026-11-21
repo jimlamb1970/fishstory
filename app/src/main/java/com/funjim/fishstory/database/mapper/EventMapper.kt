@@ -53,7 +53,7 @@ fun EventEntityWithDetails.toDomain(): EventWithDetails {
         trip = trip.toDomain(),
         fishermen = fishermen.toFishermanDomainList(),
         notes = notes.toEventNoteDomainList(),
-        photos = photos.toPhotoDomainList(),
+        photos = photos.toEventPhotoDomainList(),
         targetSpecies = targetSpecies.toSpeciesDomainList(),
         baits = baits.toBaitDomainList(),
         bodiesOfWater = bodiesOfWater.toBodyOfWaterDomainList(),

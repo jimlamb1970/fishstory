@@ -62,6 +62,7 @@ import java.time.ZoneOffset
 import kotlin.math.floor
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
+import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.ui.utils.cmToStorage
 import com.funjim.fishstory.ui.crud.NewBaitDialog
 import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
@@ -726,10 +727,11 @@ fun AddFishScreen(
                                     val exists = photos.find { it.hashcode == metadata.hashcode }
                                     if (exists == null) {
                                         viewModel.addPhoto(
-                                            Photo(
+                                            FishPhoto(
                                                 uri = uri.toString(),
                                                 hashcode = metadata.hashcode,
-                                                thumbnail = metadata.thumbnail
+                                                thumbnail = metadata.thumbnail,
+                                                parentId = fish.id
                                             )
                                         )
                                     }
@@ -739,16 +741,17 @@ fun AddFishScreen(
                                 scope.launch {
                                     val metadata = viewModel.getPhotoMetadata(uri)
                                     viewModel.addPhoto(
-                                        Photo(
+                                        FishPhoto(
                                             uri = uri.toString(),
                                             hashcode = metadata.hashcode,
-                                            thumbnail = metadata.thumbnail
+                                            thumbnail = metadata.thumbnail,
+                                            parentId = fish.id
                                         )
                                     )
                                 }
                             },
                             onPhotoDeleted = { photo ->
-                                viewModel.deletePhoto(photo)
+                                viewModel.deletePhoto(photo as FishPhoto)
                             }
                         )
                     }

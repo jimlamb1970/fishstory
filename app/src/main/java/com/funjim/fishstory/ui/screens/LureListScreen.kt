@@ -284,7 +284,7 @@ fun LureListScreen(
                                         photoId = photo.id)
                                 },
                                 onPhotoDeleted = { photo ->
-                                    viewModel.deleteLurePhoto(item.lure.id, photo)
+                                    viewModel.deleteLurePhoto(photo)
                                 },
                                 onFishClick = { lureId, targetOnly ->
                                     navigateToFishList(lureId, targetOnly)
