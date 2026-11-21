@@ -141,8 +141,8 @@ class FishermanDetailsViewModel(
         return photoRepo.fetchFishermanThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
+    fun setFishermanThumbnail(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.setFishermanThumbnail(photo) }
     }
 
     fun deleteFishermanPhoto(photoId: String) {

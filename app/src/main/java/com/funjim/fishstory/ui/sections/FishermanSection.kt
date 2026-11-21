@@ -25,9 +25,6 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureWithColors
-import com.funjim.fishstory.model.LureWithColorsSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.ui.cards.FishermanSummaryCard
@@ -61,7 +58,7 @@ fun FishermanSummarySection(
     onPhotoAdded: (Fisherman, Uri) -> Unit = { _, _ -> },
     onPhotoDeleted: (FishermanPhoto) -> Unit = { _ -> },
     onPhotoTaken: (Fisherman, Uri) -> Unit = { _, _ -> },
-    onSetThumbnail: (Fisherman, FishermanPhoto) -> Unit,
+    onSetThumbnail: (FishermanPhoto) -> Unit,
     onTackleBoxSelected: (Fisherman, String?) -> Unit,
     onToggleHelp: (() -> Unit)? = null
 ) {
@@ -156,7 +153,7 @@ fun FishermanSummarySection(
                         onFishClick= onFishClick,
                         onPhotoAdded = { uri -> onPhotoAdded(item.fisherman, uri) },
                         onPhotoTaken = { uri -> onPhotoTaken(item.fisherman, uri) },
-                        onSetThumbnail = { photo -> onSetThumbnail(item.fisherman, photo) },
+                        onSetThumbnail = { photo -> onSetThumbnail(photo) },
                         onPhotoDeleted = { photo -> onPhotoDeleted(photo) },
                         onDelete = onDelete
                     )

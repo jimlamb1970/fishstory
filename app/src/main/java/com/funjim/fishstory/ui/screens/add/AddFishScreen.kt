@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.Bait
 import com.funjim.fishstory.model.BodyOfWater
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.PhotoPickerRow

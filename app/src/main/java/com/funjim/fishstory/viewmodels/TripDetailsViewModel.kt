@@ -409,8 +409,8 @@ class TripDetailsViewModel(
         return photoRepo.fetchEventThumbnail(eventId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-    fun setEventThumbnail(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
+    fun setEventThumbnail(photo: EventPhoto) {
+        viewModelScope.launch { photoRepo.setEventThumbnail(photo) }
     }
     // Fisherman Thumbnails and Photos
     fun addFishermanPhoto(fishermanId: String, uri: Uri) {
@@ -431,8 +431,8 @@ class TripDetailsViewModel(
         return photoRepo.fetchFishermanThumbnail(fishermanId)
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
+    fun setFishermanThumbnail(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.setFishermanThumbnail(photo) }
     }
 
     // Sky Condition Thumbnails and Photos
@@ -469,8 +469,8 @@ class TripDetailsViewModel(
         return photoRepo.fetchTripThumbnail(tripId)
             .flowOn(Dispatchers.IO)
     }
-    fun setTripThumbnail(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    fun setTripThumbnail(photo: TripPhoto) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(photo) }
     }
 
     // Water Thumbnails

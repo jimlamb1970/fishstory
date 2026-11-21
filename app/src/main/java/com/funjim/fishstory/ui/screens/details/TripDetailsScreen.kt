@@ -100,6 +100,7 @@ import java.util.Locale
 import androidx.core.net.toUri
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.model.TripNote
+import com.funjim.fishstory.model.TripPhoto
 import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
 import com.funjim.fishstory.ui.selection.LimitSelection
@@ -845,10 +846,7 @@ fun TripDetailsScreen(
                                             )
                                         },
                                         onSetThumbnail = { photo ->
-                                            viewModel.setTripThumbnail(
-                                                tripId = tripId,
-                                                photoId = photo.id
-                                            )
+                                            viewModel.setTripThumbnail(photo as TripPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
                                             viewModel.deleteTripPhoto(photo.id)
@@ -1082,10 +1080,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                             )
                                                         },
                                                         onSetThumbnail = { photo ->
-                                                            viewModel.setEventThumbnail(
-                                                                eventSummary.event.id,
-                                                                photo.id
-                                                            )
+                                                            viewModel.setEventThumbnail(photo)
                                                         },
                                                         onPhotoDeleted = { photo ->
                                                             viewModel.deleteEventPhoto(photo.id)
@@ -1215,11 +1210,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                         uri
                                                     )
                                                 },
-                                                onSetThumbnail = { fisherman, photo ->
-                                                    viewModel.setFishermanThumbnail(
-                                                        fisherman.id,
-                                                        photo.id
-                                                    )
+                                                onSetThumbnail = { photo ->
+                                                    viewModel.setFishermanThumbnail(photo)
                                                 },
                                                 onTackleBoxSelected = { fisherman, tackleBoxId ->
                                                     viewModel.updateTripFisherman(

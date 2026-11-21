@@ -412,11 +412,11 @@ class FishViewModel(
                 .onFailure {  }
         }
     }
-    fun deleteFishPhoto(fishId: String, photoId: String) {
+    fun deleteFishPhoto(photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishPhoto(photoId) }
     }
-    fun setFishThumbnail(fishId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setFishThumbnail(fishId, photoId) }
+    fun setFishThumbnail(photo: FishPhoto) {
+        viewModelScope.launch { photoRepo.setFishThumbnail(photo) }
     }
 
     fun bodyOfWaterThumbnail(bodyOfWaterId: String): Flow<ByteArray?> {

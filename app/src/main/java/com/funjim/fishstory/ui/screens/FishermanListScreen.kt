@@ -208,9 +208,7 @@ fun FishermanListScreen(
                                 viewModel.addFishermanPhoto(fisherman.fisherman.id, it, false)
                             },
                             onSetThumbnail = { photo ->
-                                viewModel.setFishermanThumbnail(
-                                    fishermanId = fisherman.fisherman.id,
-                                    photoId = photo.id)
+                                viewModel.setFishermanThumbnail(photo)
                             },
                             onPhotoDeleted = { photo ->
                                 viewModel.deleteFishermanPhoto(fisherman.fisherman.id, photo.id)

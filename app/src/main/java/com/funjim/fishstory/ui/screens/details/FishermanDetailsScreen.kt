@@ -56,6 +56,7 @@ import com.funjim.fishstory.viewmodels.FishermanDetailsViewModel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import com.funjim.fishstory.model.FishermanPhoto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -256,10 +257,7 @@ fun FishermanDetailsScreen(
                                             )
                                         },
                                         onSetThumbnail = { photo ->
-                                            viewModel.setFishermanThumbnail(
-                                                fishermanId = fishermanId,
-                                                photoId = photo.id
-                                            )
+                                            viewModel.setFishermanThumbnail(photo as FishermanPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
                                             viewModel.deleteFishermanPhoto(photo.id)

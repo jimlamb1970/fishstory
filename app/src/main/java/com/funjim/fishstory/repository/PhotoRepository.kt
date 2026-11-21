@@ -11,7 +11,6 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.util.Size
 import com.funjim.fishstory.database.dao.PhotoDao
-import com.funjim.fishstory.model.Photo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -29,62 +28,21 @@ import com.funjim.fishstory.database.entity.EventPhotoEntity
 import com.funjim.fishstory.database.entity.FishPhotoEntity
 import com.funjim.fishstory.database.entity.FishermanPhotoEntity
 import com.funjim.fishstory.database.entity.LurePhotoEntity
-import com.funjim.fishstory.database.entity.PhotoBaitEntity
-import com.funjim.fishstory.database.entity.PhotoBodyOfWaterEntity
-import com.funjim.fishstory.database.entity.PhotoEntity
-import com.funjim.fishstory.database.entity.PhotoEventEntity
-import com.funjim.fishstory.database.entity.PhotoFishEntity
-import com.funjim.fishstory.database.entity.PhotoFishermanEntity
-import com.funjim.fishstory.database.entity.PhotoLureEntity
-import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
-import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
-import com.funjim.fishstory.database.entity.PhotoTripEntity
-import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
 import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
 import com.funjim.fishstory.database.entity.SpeciesPhotoEntity
 import com.funjim.fishstory.database.entity.TripPhotoEntity
 import com.funjim.fishstory.database.entity.WaterClarityPhotoEntity
-import com.funjim.fishstory.database.mapper.toBaitPhotoDomainList
-import com.funjim.fishstory.database.mapper.toBodyOfWaterPhotoDomainList
+import com.funjim.fishstory.database.mapper.toEntity
 import com.funjim.fishstory.database.mapper.toEventPhotoDomainList
 import com.funjim.fishstory.database.mapper.toFishPhotoDomainList
 import com.funjim.fishstory.database.mapper.toFishermanPhotoDomainList
 import com.funjim.fishstory.database.mapper.toLurePhotoDomainList
-import com.funjim.fishstory.database.mapper.toPhotoBaitDomainList
-import com.funjim.fishstory.database.mapper.toPhotoBodyOfWaterDomainList
-import com.funjim.fishstory.database.mapper.toPhotoDomainList
-import com.funjim.fishstory.database.mapper.toPhotoEventDomainList
-import com.funjim.fishstory.database.mapper.toPhotoFishDomainList
-import com.funjim.fishstory.database.mapper.toPhotoFishermanDomainList
-import com.funjim.fishstory.database.mapper.toPhotoLureDomainList
-import com.funjim.fishstory.database.mapper.toPhotoSkyConditionDomainList
-import com.funjim.fishstory.database.mapper.toPhotoSpeciesDomainList
-import com.funjim.fishstory.database.mapper.toPhotoTripDomainList
-import com.funjim.fishstory.database.mapper.toPhotoWaterClarityDomainList
-import com.funjim.fishstory.database.mapper.toSkyConditionPhotoDomainList
-import com.funjim.fishstory.database.mapper.toSpeciesPhotoDomainList
 import com.funjim.fishstory.database.mapper.toTripPhotoDomainList
-import com.funjim.fishstory.database.mapper.toWaterClarityPhotoDomainList
-import com.funjim.fishstory.model.BaitPhoto
-import com.funjim.fishstory.model.BodyOfWaterPhoto
 import com.funjim.fishstory.model.EventPhoto
 import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.LurePhoto
-import com.funjim.fishstory.model.PhotoBait
-import com.funjim.fishstory.model.PhotoBodyOfWater
-import com.funjim.fishstory.model.PhotoEvent
-import com.funjim.fishstory.model.PhotoFish
-import com.funjim.fishstory.model.PhotoFisherman
-import com.funjim.fishstory.model.PhotoLure
-import com.funjim.fishstory.model.PhotoSkyCondition
-import com.funjim.fishstory.model.PhotoSpecies
-import com.funjim.fishstory.model.PhotoTrip
-import com.funjim.fishstory.model.PhotoWaterClarity
-import com.funjim.fishstory.model.SkyConditionPhoto
-import com.funjim.fishstory.model.SpeciesPhoto
 import com.funjim.fishstory.model.TripPhoto
-import com.funjim.fishstory.model.WaterClarityPhoto
 import kotlinx.coroutines.flow.map
 
 data class PhotoMetadata(
@@ -117,37 +75,6 @@ class PhotoRepository(
     private val context: Context,
     private val photoDao: PhotoDao
 ) {
-    suspend fun getAllBaitPhotosList(): List<BaitPhoto> {
-        return photoDao.getAllBaitPhotosList().toBaitPhotoDomainList()
-    }
-    suspend fun getAllBodyOfWaterPhotosList(): List<BodyOfWaterPhoto> {
-        return photoDao.getAllBodyOfWaterPhotosList().toBodyOfWaterPhotoDomainList()
-    }
-    suspend fun getAllEventPhotosList(): List<EventPhoto> {
-        return photoDao.getAllEventPhotosList().toEventPhotoDomainList()
-    }
-    suspend fun getAllFishPhotosList(): List<FishPhoto> {
-        return photoDao.getAllFishPhotosList().toFishPhotoDomainList()
-    }
-    suspend fun getAllFishermanPhotosList(): List<FishermanPhoto> {
-        return photoDao.getAllFishermanPhotosList().toFishermanPhotoDomainList()
-    }
-    suspend fun getAllLurePhotosList(): List<LurePhoto> {
-        return photoDao.getAllLurePhotosList().toLurePhotoDomainList()
-    }
-    suspend fun getAllSkyConditionPhotosList(): List<SkyConditionPhoto> {
-        return photoDao.getAllSkyConditionPhotosList().toSkyConditionPhotoDomainList()
-    }
-    suspend fun getAllSpeciesPhotosList(): List<SpeciesPhoto> {
-        return photoDao.getAllSpeciesPhotosList().toSpeciesPhotoDomainList()
-    }
-    suspend fun getAllTripPhotosList(): List<TripPhoto> {
-        return photoDao.getAllTripPhotosList().toTripPhotoDomainList()
-    }
-    suspend fun getAllWaterClarityPhotosList(): List<WaterClarityPhoto> {
-        return photoDao.getAllWaterClarityPhotosList().toWaterClarityPhotoDomainList()
-    }
-
     private fun getRotationAngle(uri: Uri): Float {
         context.contentResolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
@@ -177,7 +104,7 @@ class PhotoRepository(
             } else {
                 decodeScaledBitmap(uri)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Fall back to manual decode for cloud URIs
             decodeScaledBitmap(uri)
         }
@@ -256,7 +183,7 @@ class PhotoRepository(
         // Fetch the thumbnail safely (SDK 29+)
         val thumbnail = try {
             generateThumbnail(uri)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
 
@@ -325,60 +252,6 @@ class PhotoRepository(
         return photoDao.getLurePhotos(id).map { list -> list.toLurePhotoDomainList() }
     }
 
-    suspend fun addBaitPhoto(
-        baitId: String,
-        uri: Uri,
-        onPhotoReady: suspend (photoId: String) -> Unit
-    ): Result<Unit> {
-        return try {
-            val metadata = getPhotoMetadata(uri)
-            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
-
-            val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
-                ?: throw IOException("Could not save scaled photo for URI: $uri")
-
-            val photo = BaitPhotoEntity(
-                uri = scaledPath,
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = baitId
-            )
-            photoDao.insertBaitPhoto(photo)
-
-            onPhotoReady(photo.id)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun addBodyOfWaterPhoto(
-        bodyOfWaterId: String,
-        uri: Uri,
-        onPhotoReady: suspend (photoId: String) -> Unit
-    ): Result<Unit> {
-        return try {
-            val metadata = getPhotoMetadata(uri)
-            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
-
-            val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
-                ?: throw IOException("Could not save scaled photo for URI: $uri")
-
-            val photo = BodyOfWaterPhotoEntity(
-                uri = scaledPath,
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = bodyOfWaterId
-            )
-            photoDao.insertBodyOfWaterPhoto(photo)
-
-            onPhotoReady(photo.id)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        }
-    }
-
     suspend fun addEventPhoto(
         eventId: String,
         uri: Uri,
@@ -391,15 +264,25 @@ class PhotoRepository(
             val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
                 ?: throw IOException("Could not save scaled photo for URI: $uri")
 
-            val photo = EventPhotoEntity(
-                uri = scaledPath,
+            val existingId = photoDao.getEventPhotoIdByHash(
                 hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
                 parentId = eventId
             )
-            photoDao.insertEventPhoto(photo)
 
-            onPhotoReady(photo.id)
+            val photoId = if (existingId != null) {
+                existingId
+            } else {
+                val photo = EventPhotoEntity(
+                    uri = scaledPath,
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = eventId
+                )
+                photoDao.insertEventPhoto(photo)
+                photo.id
+            }
+
+            onPhotoReady(photoId)
             Result.success(Unit)
         } catch (e: IOException) {
             Result.failure(e)
@@ -418,15 +301,25 @@ class PhotoRepository(
             val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
                 ?: throw IOException("Could not save scaled photo for URI: $uri")
 
-            val photo = FishPhotoEntity(
-                uri = scaledPath,
+            val existingId = photoDao.getFishPhotoIdByHash(
                 hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
                 parentId = fishId
             )
-            photoDao.insertFishPhoto(photo)
 
-            onPhotoReady(photo.id)
+            val photoId = if (existingId != null) {
+                existingId
+            } else {
+                val photo = FishPhotoEntity(
+                    uri = scaledPath,
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = fishId
+                )
+                photoDao.insertFishPhoto(photo)
+                photo.id
+            }
+
+            onPhotoReady(photoId)
             Result.success(Unit)
         } catch (e: IOException) {
             Result.failure(e)
@@ -444,15 +337,25 @@ class PhotoRepository(
             val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
                 ?: throw IOException("Could not save scaled photo for URI: $uri")
 
-            val photo = FishermanPhotoEntity(
-                uri = scaledPath,
+            val existingId = photoDao.getFishermanPhotoIdByHash(
                 hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
                 parentId = fishermanId
             )
-            photoDao.insertFishermanPhoto(photo)
 
-            onPhotoReady(photo.id)
+            val photoId = if (existingId != null) {
+                existingId
+            } else {
+                val photo = FishermanPhotoEntity(
+                    uri = scaledPath,
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = fishermanId
+                )
+                photoDao.insertFishermanPhoto(photo)
+                photo.id
+            }
+
+            onPhotoReady(photoId)
             Result.success(Unit)
         } catch (e: IOException) {
             Result.failure(e)
@@ -479,7 +382,6 @@ class PhotoRepository(
             val photoId = if (existingId != null) {
                 existingId
             } else {
-
                 val photo = LurePhotoEntity(
                     uri = scaledPath,
                     hashcode = metadata.hashcode,
@@ -491,60 +393,6 @@ class PhotoRepository(
             }
 
             onPhotoReady(photoId)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun addSkyConditionPhoto(
-        skyConditionId: String,
-        uri: Uri,
-        onPhotoReady: suspend (photoId: String) -> Unit
-    ): Result<Unit> {
-        return try {
-            val metadata = getPhotoMetadata(uri)
-            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
-
-            val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
-                ?: throw IOException("Could not save scaled photo for URI: $uri")
-
-            val photo = SkyConditionPhotoEntity(
-                uri = scaledPath,
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = skyConditionId
-            )
-            photoDao.insertSkyConditionPhoto(photo)
-
-            onPhotoReady(photo.id)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun addSpeciesPhoto(
-        speciesId: String,
-        uri: Uri,
-        onPhotoReady: suspend (photoId: String) -> Unit
-    ): Result<Unit> {
-        return try {
-            val metadata = getPhotoMetadata(uri)
-            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
-
-            val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
-                ?: throw IOException("Could not save scaled photo for URI: $uri")
-
-            val photo = SpeciesPhotoEntity(
-                uri = scaledPath,
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = speciesId
-            )
-            photoDao.insertSpeciesPhoto(photo)
-
-            onPhotoReady(photo.id)
             Result.success(Unit)
         } catch (e: IOException) {
             Result.failure(e)
@@ -563,42 +411,25 @@ class PhotoRepository(
             val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
                 ?: throw IOException("Could not save scaled photo for URI: $uri")
 
-            val photo = TripPhotoEntity(
-                uri = scaledPath,
+            val existingId = photoDao.getTripPhotoIdByHash(
                 hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
                 parentId = tripId
             )
-            photoDao.insertTripPhoto(photo)
 
-            onPhotoReady(photo.id)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        }
-    }
+            val photoId = if (existingId != null) {
+                existingId
+            } else {
+                val photo = TripPhotoEntity(
+                    uri = scaledPath,
+                    hashcode = metadata.hashcode,
+                    thumbnail = metadata.thumbnail,
+                    parentId = tripId
+                )
+                photoDao.insertTripPhoto(photo)
+                photo.id
+            }
 
-    suspend fun addWaterClarityPhoto(
-        waterClarityId: String,
-        uri: Uri,
-        onPhotoReady: suspend (photoId: String) -> Unit
-    ): Result<Unit> {
-        return try {
-            val metadata = getPhotoMetadata(uri)
-            Log.d("PhotoRepository", "Photo metadata: ${metadata.hashcode}")
-
-            val scaledPath = saveScaledPhoto(uri, metadata.hashcode)
-                ?: throw IOException("Could not save scaled photo for URI: $uri")
-
-            val photo = WaterClarityPhotoEntity(
-                uri = scaledPath,
-                hashcode = metadata.hashcode,
-                thumbnail = metadata.thumbnail,
-                parentId = waterClarityId
-            )
-            photoDao.insertWaterClarityPhoto(photo)
-
-            onPhotoReady(photo.id)
+            onPhotoReady(photoId)
             Result.success(Unit)
         } catch (e: IOException) {
             Result.failure(e)
@@ -620,16 +451,16 @@ class PhotoRepository(
         }
     }
 
-    suspend fun setEventThumbnail(eventId: String, photoId: String) =
-        photoDao.setPrimaryEventPhoto(eventId = eventId, photoId = photoId)
-    suspend fun setFishThumbnail(fishId: String, photoId: String) =
-        photoDao.setPrimaryFishPhoto(fishId = fishId, photoId = photoId)
-    suspend fun setFishermanThumbnail(fishermanId: String, photoId: String) =
-        photoDao.setPrimaryFishermanPhoto(fishermanId = fishermanId, photoId = photoId)
-    suspend fun setLureThumbnail(lureId: String, photoId: String) =
-        photoDao.setPrimaryLurePhoto(lureId = lureId, photoId = photoId)
-    suspend fun setTripThumbnail(tripId: String, photoId: String) =
-        photoDao.setPrimaryTripPhoto(tripId = tripId, photoId = photoId)
+    suspend fun setEventThumbnail(photo: EventPhoto) =
+        photoDao.setPrimaryEventPhoto(photo.toEntity())
+    suspend fun setFishThumbnail(photo: FishPhoto) =
+        photoDao.setPrimaryFishPhoto(photo.toEntity())
+    suspend fun setFishermanThumbnail(photo: FishermanPhoto) =
+        photoDao.setPrimaryFishermanPhoto(photo.toEntity())
+    suspend fun setLureThumbnail(photo: LurePhoto) =
+        photoDao.setPrimaryLurePhoto(photo.toEntity())
+    suspend fun setTripThumbnail(photo: TripPhoto) =
+        photoDao.setPrimaryTripPhoto(photo.toEntity())
 
     suspend fun deleteEventPhoto(photoId: String) =
         photoDao.deleteEventPhotoById(photoId)
@@ -643,7 +474,7 @@ class PhotoRepository(
     suspend fun deleteFishermanPhoto(photoId: String) =
         photoDao.deleteFishermanPhotoById(photoId)
     suspend fun deleteLurePhoto(photoId: String) {
-        photoDao.deleteLurePhotoById(String())
+        photoDao.deleteLurePhotoById(photoId)
     }
     suspend fun deleteLurePhotos(photos: List<LurePhoto>) {
         photos.forEach { photo ->

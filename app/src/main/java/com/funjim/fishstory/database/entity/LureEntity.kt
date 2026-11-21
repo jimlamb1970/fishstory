@@ -34,9 +34,7 @@ data class LureEntity(
     val glows: Boolean = false,
     val isLocked: Boolean = false,
     val isFavorite: Boolean = false
-) {
-}
-
+)
 @Serializable
 @Entity(
     tableName = "lure_primary_color",
@@ -124,13 +122,8 @@ data class LureGlowColorEntity(
 data class LureEntityWithPhotos(
     @Embedded val lure: LureEntity,
     @Relation(
-        parentColumn = "id",        // Lure ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoLureEntity::class,
-            parentColumn = "lureId",
-            entityColumn = "photoId"
-        )
+        parentColumn = "id",
+        entityColumn = "parentId"
     )
     val photos: List<LurePhotoEntity>
 )
@@ -215,13 +208,8 @@ data class LureEntityWithDetails(
     val glowColors: List<LureColorEntity>,
 
     @Relation(
-        parentColumn = "id",        // Lure ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoLureEntity::class,
-            parentColumn = "lureId",
-            entityColumn = "photoId"
-        )
+        parentColumn = "id",
+        entityColumn = "parentId"
     )
     val photos: List<LurePhotoEntity>
 )

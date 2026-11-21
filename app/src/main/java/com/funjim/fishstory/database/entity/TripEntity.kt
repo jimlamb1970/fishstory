@@ -104,13 +104,8 @@ data class TripEntityWithDetails(
     val notes: List<TripNoteEntity>,
 
     @Relation(
-        parentColumn = "id",        // Trip ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoTripEntity::class,
-            parentColumn = "tripId",
-            entityColumn = "photoId"
-        )
+        parentColumn = "id",
+        entityColumn = "parentId"
     )
     val photos: List<TripPhotoEntity>,
 

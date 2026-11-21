@@ -161,7 +161,7 @@ class LureViewModel(
             .flowOn(Dispatchers.IO) // Ensures DB work stays off main thread
     }
 
-    fun addLurePhoto(lureId: String, uri: Uri, selected: Boolean) {
+    fun addLurePhoto(lureId: String, uri: Uri) {
         viewModelScope.launch {
             photoRepo.addLurePhoto(lureId, uri) {}
                 .onSuccess {  }
@@ -169,8 +169,8 @@ class LureViewModel(
         }
     }
 
-    fun setLureThumbnail(lureId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setLureThumbnail(lureId, photoId) }
+    fun setLureThumbnail(photo: LurePhoto) {
+        viewModelScope.launch { photoRepo.setLureThumbnail(photo) }
     }
 
     fun deleteLurePhoto(photo: LurePhoto) {
@@ -253,55 +253,64 @@ class LureViewModel(
         glowColors: List<LureColor>,
         originalLure: LureWithDetails?,
         currentPhotos: List<LurePhoto>,
+        updateLure: Boolean,
+        updatePhotos: Boolean,
         onComplete: () -> Unit
     ) {
         viewModelScope.launch {
             val id = lureId ?: UUID.randomUUID().toString()
-            val newLure = Lure(
-                id = id,
-                name = name,
-                hookCount = hookCount,
-                glows = glows
-            )
-
-            if (lureRepo.lureExists(newLure, primaryColors, secondaryColors, glowColors)) {
-                _toastMessage.emit("Lure '${name}' with selected colors already exists.")
-                return@launch
-            }
-
-            lureRepo.upsertLure(newLure)
-
-            lureRepo.deleteLureColors(id)
-            primaryColors.forEach { primaryColor ->
-                lureRepo.upsertLurePrimaryColor(
-                    LurePrimaryColor(id, primaryColor.id)
+            if (updateLure) {
+                val newLure = Lure(
+                    id = id,
+                    name = name,
+                    hookCount = hookCount,
+                    glows = glows
                 )
-            }
-            secondaryColors.forEach { secondaryColor ->
-                lureRepo.upsertLureSecondaryColor(
-                    LureSecondaryColor(id, secondaryColor.id)
-                )
-            }
-            glowColors.forEach { glowColor ->
-                lureRepo.upsertLureGlowColor(
-                    LureGlowColor(id, glowColor.id)
-                )
+
+                if (lureRepo.lureExists(newLure, primaryColors, secondaryColors, glowColors)) {
+                    _toastMessage.emit("Lure '${name}' with selected colors already exists.")
+                    return@launch
+                }
+
+                lureRepo.upsertLure(newLure)
+
+                lureRepo.deleteLureColors(id)
+                primaryColors.forEach { primaryColor ->
+                    lureRepo.upsertLurePrimaryColor(
+                        LurePrimaryColor(id, primaryColor.id)
+                    )
+                }
+                secondaryColors.forEach { secondaryColor ->
+                    lureRepo.upsertLureSecondaryColor(
+                        LureSecondaryColor(id, secondaryColor.id)
+                    )
+                }
+                glowColors.forEach { glowColor ->
+                    lureRepo.upsertLureGlowColor(
+                        LureGlowColor(id, glowColor.id)
+                    )
+                }
             }
 
-            // Identify photo additions and deletions
-            val originalPhotos = originalLure?.photos ?: emptyList()
-            val newPhotos = currentPhotos.filter { current ->
-                originalPhotos.none { it.id == current.id }
-            }
-            val deletedPhotos = originalPhotos.filter { original ->
-                currentPhotos.none { it.id == original.id }
-            }
+            if (updatePhotos) {
+                // This should never happen, but just in case
+                if (lureId == null) return@launch
 
-            if (newPhotos.isNotEmpty()) {
-                photoRepo.addLurePhotos(id, newPhotos)
-            }
-            if (deletedPhotos.isNotEmpty()) {
-                photoRepo.deleteLurePhotos(deletedPhotos)
+                // Identify photo additions and deletions
+                val originalPhotos = originalLure?.photos ?: emptyList()
+                val newPhotos = currentPhotos.filter { current ->
+                    originalPhotos.none { it.id == current.id }
+                }
+                val deletedPhotos = originalPhotos.filter { original ->
+                    currentPhotos.none { it.id == original.id }
+                }
+
+                if (newPhotos.isNotEmpty()) {
+                    photoRepo.addLurePhotos(id, newPhotos)
+                }
+                if (deletedPhotos.isNotEmpty()) {
+                    photoRepo.deleteLurePhotos(deletedPhotos)
+                }
             }
 
             onComplete()

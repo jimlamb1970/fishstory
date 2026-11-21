@@ -108,13 +108,8 @@ data class FishEntity(
 data class FishEntityWithPhotos(
     @Embedded val fish: FishEntity,
     @Relation(
-        parentColumn = "id",        // Fish ID
-        entityColumn = "id",        // Photo ID
-        associateBy = Junction(
-            value = PhotoFishEntity::class,
-            parentColumn = "fishId",
-            entityColumn = "photoId"
-        )
+        parentColumn = "id",
+        entityColumn = "parentId"
     )
     val photos: List<FishPhotoEntity>
 )

@@ -411,9 +411,9 @@ class EventDetailsViewModel(
             photoRepo.deleteSpeciesThumbnail(speciesId)
         }
     }
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
+    fun setFishermanThumbnail(photo: FishermanPhoto) {
         viewModelScope.launch {
-            photoRepo.setFishermanThumbnail(fishermanId, photoId)
+            photoRepo.setFishermanThumbnail(photo)
         }
     }
     fun updateBodyOfWaterThumbnail(id: String, uri: Uri) {
@@ -660,8 +660,8 @@ class EventDetailsViewModel(
         }
     }
 
-    fun setEventThumbnail(eventId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setEventThumbnail(eventId, photoId) }
+    fun setEventThumbnail(photo: EventPhoto) {
+        viewModelScope.launch { photoRepo.setEventThumbnail(photo) }
     }
 
     fun deleteEventPhoto(photoId: String) {

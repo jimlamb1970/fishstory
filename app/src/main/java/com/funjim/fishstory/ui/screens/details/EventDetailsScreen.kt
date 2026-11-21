@@ -44,7 +44,6 @@ import com.funjim.fishstory.model.Event
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
-import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBox
@@ -99,6 +98,7 @@ import java.util.Locale
 import androidx.core.net.toUri
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.model.EventNote
+import com.funjim.fishstory.model.EventPhoto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +113,7 @@ fun EventDetailsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
+    val snackBarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -214,7 +214,7 @@ fun EventDetailsScreen(
             scope.launch {
                 viewModel.exportDatabaseAsJson(context, uri).let { success ->
                     val message = if (success) "Event exported as JSON successfully!" else "Database export failed."
-                    snackbarHostState.showSnackbar(message)
+                    snackBarHostState.showSnackbar(message)
                 }
             }
         }
@@ -788,7 +788,7 @@ fun EventDetailsScreen(
                         }
                     )
                 },
-                snackbarHost = { SnackbarHost(snackbarHostState) }
+                snackbarHost = { SnackbarHost(snackBarHostState) }
             ) { padding ->
                 Column(
                     modifier = Modifier.padding(padding).fillMaxSize(),
@@ -889,10 +889,7 @@ fun EventDetailsScreen(
                                             )
                                         },
                                         onSetThumbnail = { photo ->
-                                            viewModel.setEventThumbnail(
-                                                eventId = eventId,
-                                                photoId = photo.id
-                                            )
+                                            viewModel.setEventThumbnail(photo as EventPhoto)
                                         },
                                         onPhotoDeleted = { photo ->
                                             viewModel.deleteEventPhoto(photo.id)
@@ -1070,11 +1067,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                         uri
                                                     )
                                                 },
-                                                onSetThumbnail = { fisherman, photo ->
-                                                    viewModel.setFishermanThumbnail(
-                                                        fisherman.id,
-                                                        photo.id
-                                                    )
+                                                onSetThumbnail = { photo ->
+                                                    viewModel.setFishermanThumbnail(photo)
                                                 },
                                                 onTackleBoxSelected = { fisherman, tackleBoxId ->
                                                     viewModel.updateEventFisherman(
@@ -1583,7 +1577,7 @@ Selecting them places those species at the top of the list when logging catches 
                            } else {
                                 showLimitSelection = !showLimitSelection
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(
+                                    snackBarHostState.showSnackbar(
                                         message = "Unable to remove (unselect) trip assigned limit.",
                                         actionLabel = "Dismiss",
                                         duration = SnackbarDuration.Long

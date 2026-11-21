@@ -16,6 +16,7 @@ import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
 import com.funjim.fishstory.database.entity.SpeciesPhotoEntity
 import com.funjim.fishstory.database.entity.TripPhotoEntity
 import com.funjim.fishstory.database.entity.WaterClarityPhotoEntity
+import com.funjim.fishstory.model.FishermanPhoto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -301,29 +302,29 @@ interface PhotoDao {
 
 
     @Transaction
-    suspend fun setPrimaryEventPhoto(eventId: String, photoId: String) {
-        clearPrimaryEventPhoto(eventId)
-        updatePrimaryEventPhoto(eventId, photoId)
+    suspend fun setPrimaryEventPhoto(photo: EventPhotoEntity) {
+        clearPrimaryEventPhoto(photo.parentId)
+        updatePrimaryEventPhoto(photo.parentId, photo.id)
     }
     @Transaction
-    suspend fun setPrimaryFishPhoto(fishId: String, photoId: String) {
-        clearPrimaryFishPhoto(fishId)
-        updatePrimaryFishPhoto(fishId, photoId)
+    suspend fun setPrimaryFishPhoto(photo: FishPhotoEntity) {
+        clearPrimaryFishPhoto(photo.parentId)
+        updatePrimaryFishPhoto(photo.parentId, photo.id)
     }
     @Transaction
-    suspend fun setPrimaryFishermanPhoto(fishermanId: String, photoId: String) {
-        clearPrimaryFishermanPhoto(fishermanId)
-        updatePrimaryFishermanPhoto(fishermanId, photoId)
+    suspend fun setPrimaryFishermanPhoto(photo: FishermanPhotoEntity) {
+        clearPrimaryFishermanPhoto(photo.parentId)
+        updatePrimaryFishermanPhoto(photo.parentId, photo.id)
     }
     @Transaction
-    suspend fun setPrimaryLurePhoto(lureId: String, photoId: String) {
-        clearPrimaryLurePhoto(lureId)
-        updatePrimaryLurePhoto(lureId, photoId)
+    suspend fun setPrimaryLurePhoto(photo: LurePhotoEntity) {
+        clearPrimaryLurePhoto(photo.parentId)
+        updatePrimaryLurePhoto(photo.parentId, photo.id)
     }
     @Transaction
-    suspend fun setPrimaryTripPhoto(tripId: String, photoId: String) {
-        clearPrimaryTripPhoto(tripId)
-        updatePrimaryTripPhoto(tripId, photoId)
+    suspend fun setPrimaryTripPhoto(photo: TripPhotoEntity) {
+        clearPrimaryTripPhoto(photo.parentId)
+        updatePrimaryTripPhoto(photo.parentId, photo.id)
     }
 
     @Query("UPDATE event_photo_table SET isPrimary = 0 WHERE parentId = :eventId")

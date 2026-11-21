@@ -474,7 +474,7 @@ fun DashboardScreen(
                     },
                     onPhotoAdded = { viewModel.addTripPhoto(trip.trip.id, it) },
                     onPhotoTaken = { viewModel.addTripPhoto(trip.trip.id, it) },
-                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(trip.trip.id, photo.id) },
+                    onSetThumbnail = { photo -> viewModel.setTripThumbnail(photo) },
                     onPhotoDeleted = { photo -> viewModel.deleteTripPhoto(photo.id) },
                     onAction = onAction,
                     showMenu = showMenu && selectedTrip?.trip?.id == trip.trip.id,

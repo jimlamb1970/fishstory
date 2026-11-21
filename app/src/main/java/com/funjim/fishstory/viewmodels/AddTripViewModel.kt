@@ -255,9 +255,9 @@ class AddTripViewModel(
         return photoRepo.fetchFishermanThumbnail(id)
             .flowOn(Dispatchers.IO)
     }
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
+    fun setFishermanThumbnail(photo: FishermanPhoto) {
         viewModelScope.launch {
-            photoRepo.setFishermanThumbnail(fishermanId, photoId)
+            photoRepo.setFishermanThumbnail(photo)
         }
     }
 

@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LureWithDetails
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.LureColorComposition
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
@@ -68,9 +67,16 @@ fun AddLureScreen(
                         glows != original.lure.glows ||
                         selectedPrimaryColors != original.primaryColors ||
                         selectedSecondaryColors != original.secondaryColors ||
-                        selectedGlowColors != original.glowColors ||
-                        photos != original.photos
-            } ?: name.isNotBlank() // If lureId is null, check if it's a valid new lure
+                        selectedGlowColors != original.glowColors
+            } ?: name.isNotBlank()
+        }
+    }
+
+    val hasUpdatedPhotos = remember(photos) {
+        derivedStateOf {
+            originalLure?.let { original ->
+                photos != original.photos
+            } ?: false
         }
     }
 
@@ -126,10 +132,12 @@ fun AddLureScreen(
                                 glowColors = selectedGlowColors,
                                 originalLure = originalLure,
                                 currentPhotos = photos,
+                                updateLure = hasChanges,
+                                updatePhotos = hasUpdatedPhotos.value,
                                 onComplete = onNavigateBack
                             )
                         },
-                        enabled = name.isNotBlank() && hasChanges
+                        enabled = name.isNotBlank() && (hasChanges || hasUpdatedPhotos.value)
                     ) {
                         Icon(
                             imageVector = AppIcons.Default.Save,
@@ -163,11 +171,13 @@ fun AddLureScreen(
                                 glowColors = selectedGlowColors,
                                 originalLure = originalLure,
                                 currentPhotos = photos,
+                                updateLure = hasChanges,
+                                updatePhotos = hasUpdatedPhotos.value,
                                 onComplete = onNavigateBack
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = name.isNotBlank() && hasChanges
+                        enabled = name.isNotBlank() && (hasChanges || hasUpdatedPhotos.value)
                     ) {
                         Text("Save")
                     }
@@ -323,19 +333,6 @@ fun AddLureScreen(
         }
     }
 
-    // Step 1: Name dialog — collect the color name, then advance to hex picker
-    if (showAddColorDialog != null && !showColorPickerForNew) {
-        NewColorDialog(
-            onConfirm = {
-                newColorName = it
-                showColorPickerForNew = true
-            },
-            onDismiss = {
-                showAddColorDialog = null
-            }
-        )
-    }
-
     // Step 2: Hex picker — reuse AdvancedColorPickerDialog from ManageColorsScreen
     if (showColorPickerForNew) {
         AdvancedColorPickerDialog(
@@ -358,6 +355,19 @@ fun AddLureScreen(
                     showColorPickerForNew = !showColorPickerForNew
                     showAddColorDialog = null
                 }
+            }
+        )
+    }
+
+    // Step 1: Name dialog — collect the color name, then advance to hex picker
+    if (showAddColorDialog != null && !showColorPickerForNew) {
+        NewColorDialog(
+            onConfirm = {
+                newColorName = it
+                showColorPickerForNew = true
+            },
+            onDismiss = {
+                showAddColorDialog = null
             }
         )
     }

@@ -721,11 +721,8 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     uri
                                                 )
                                             },
-                                            onSetThumbnail = { fisherman, photo ->
-                                                viewModel.setFishermanThumbnail(
-                                                    fisherman.id,
-                                                    photo.id
-                                                )
+                                            onSetThumbnail = { photo ->
+                                                viewModel.setFishermanThumbnail(photo)
                                             },
                                             onTackleBoxSelected = { fisherman, tackleBoxId ->
                                                 viewModel.updateEventTackleBoxMap(

@@ -267,21 +267,17 @@ fun LureListScreen(
                                 onPhotoAdded = { uri ->
                                     viewModel.addLurePhoto(
                                         lureId = item.lure.id,
-                                        uri = uri,
-                                        selected = true
+                                        uri = uri
                                     )
                                 },
                                 onPhotoTaken = { uri ->
                                     viewModel.addLurePhoto(
                                         lureId = item.lure.id,
-                                        uri = uri,
-                                        selected = false
+                                        uri = uri
                                     )
                                 },
                                 onSetThumbnail = { photo ->
-                                    viewModel.setLureThumbnail(
-                                        lureId = item.lure.id,
-                                        photoId = photo.id)
+                                    viewModel.setLureThumbnail(photo)
                                 },
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteLurePhoto(photo)

@@ -36,8 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.Note
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.sections.NoteSection
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CategoryChipConfig
@@ -318,7 +316,7 @@ fun FishDetailScreen(
                         viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
                     },
                     onPhotoDeleted = { photo ->
-                        viewModel.deleteFishPhoto(fishId = fish.fish.id, photo.id)
+                        viewModel.deleteFishPhoto(photo.id)
                     },
                     onToggleHelp = { viewModel.toggleHelp() },
                     onToggleImperialUnits = {

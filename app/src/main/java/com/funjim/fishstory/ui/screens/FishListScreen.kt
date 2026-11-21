@@ -389,10 +389,10 @@ fun FishListScreen(
                                         selected = false)
                                 },
                                 onSetThumbnail = { photo ->
-                                    viewModel.setFishThumbnail(fishDetails.fish.id, photo.id)
+                                    viewModel.setFishThumbnail(photo)
                                 },
                                 onPhotoDeleted = { photo ->
-                                    viewModel.deleteFishPhoto(fishDetails.fish.id, photo.id)
+                                    viewModel.deleteFishPhoto(photo.id)
                                 },
                                 onDelete = { fishToDelete = fishDetails.fish },
                                 onSetLocation = if (hasLocationPermission) {

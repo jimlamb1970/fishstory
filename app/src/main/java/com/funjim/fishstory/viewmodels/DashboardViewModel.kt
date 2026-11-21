@@ -346,8 +346,8 @@ class DashboardViewModel(
         }
     }
 
-    fun setTripThumbnail(tripId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setTripThumbnail(tripId, photoId) }
+    fun setTripThumbnail(photo: TripPhoto) {
+        viewModelScope.launch { photoRepo.setTripThumbnail(photo) }
     }
 
     fun deleteTripPhoto(photoId: String) {

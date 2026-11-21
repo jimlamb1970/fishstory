@@ -101,8 +101,8 @@ class FishermanListViewModel(
     fun deleteFishermanPhoto(fishermanId: String, photoId: String) {
         viewModelScope.launch { photoRepo.deleteFishermanPhoto(photoId) }
     }
-    fun setFishermanThumbnail(fishermanId: String, photoId: String) {
-        viewModelScope.launch { photoRepo.setFishermanThumbnail(fishermanId, photoId) }
+    fun setFishermanThumbnail(photo: FishermanPhoto) {
+        viewModelScope.launch { photoRepo.setFishermanThumbnail(photo) }
     }
 
     fun updateScrollbarOnLeft() {
