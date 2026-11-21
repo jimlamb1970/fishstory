@@ -316,7 +316,10 @@ fun FishDetailScreen(
                         viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
                     },
                     onPhotoDeleted = { photo ->
-                        viewModel.deleteFishPhoto(photo.id)
+                        viewModel.deleteFishPhoto(photo)
+                    },
+                    onSetThumbnail = { photo ->
+                        viewModel.setFishThumbnail(photo)
                     },
                     onToggleHelp = { viewModel.toggleHelp() },
                     onToggleImperialUnits = {
@@ -413,6 +416,7 @@ private fun FishDetailContent(
     onPhotoSelected: (Uri) -> Unit,
     onPhotoTaken: (Uri) -> Unit,
     onPhotoDeleted: (FishPhoto) -> Unit,
+    onSetThumbnail: (FishPhoto) -> Unit,
     onToggleImperialUnits: (() -> Unit)? = null,
     onToggleHelp: (() -> Unit)? = null,
     onToggleShowHole: (() -> Unit)? = null
@@ -850,6 +854,9 @@ private fun FishDetailContent(
             onPhotoTaken = onPhotoTaken,
             onPhotoDeleted = { photo ->
                 onPhotoDeleted(photo as FishPhoto)
+            },
+            onSetThumbnail = { photo ->
+                onSetThumbnail(photo as FishPhoto)
             }
         )
 
