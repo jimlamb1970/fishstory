@@ -173,156 +173,16 @@ class FishStoryRepository(
             for (note in exportData.fishNotes) noteDao.insertFishNote(note.toEntity())
             for (note in exportData.tripNotes) noteDao.insertTripNote(note.toEntity())
 
-            val photosMap = exportData.photos.associateBy { it.id }
-            val newBaitPhotos = exportData.photosBait.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                BaitPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.baitId
-                )
-            }
-            newBaitPhotos.forEach { photoDao.insertBaitPhoto(it) }
-
-            val newBodyOfWaterPhotos = exportData.photosBodyOfWater.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                BodyOfWaterPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.bodyOfWaterId
-                )
-            }
-            newBodyOfWaterPhotos.forEach { photoDao.insertBodyOfWaterPhoto(it) }
-
-            val newEventPhotos = exportData.photosEvent.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                EventPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.eventId
-                )
-            }
-            newEventPhotos.forEach { photoDao.insertEventPhoto(it) }
-
-            val newFishPhotos = exportData.photosFish.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                FishPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.fishId
-                )
-            }
-            newFishPhotos.forEach { photoDao.insertFishPhoto(it) }
-
-            val newFishermanPhotos = exportData.photosFisherman.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                FishermanPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.fishermanId
-                )
-            }
-            newFishermanPhotos.forEach { photoDao.insertFishermanPhoto(it) }
-
-            val newLurePhotos = exportData.photosLure.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                LurePhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.lureId
-                )
-            }
-            newLurePhotos.forEach { photoDao.insertLurePhoto(it) }
-
-            val newSkyConditionPhotos = exportData.photosSkyCondition.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                SkyConditionPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.skyConditionId
-                )
-            }
-            newSkyConditionPhotos.forEach { photoDao.insertSkyConditionPhoto(it) }
-
-            val newSpeciesPhotos = exportData.photosSpecies.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                SpeciesPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.speciesId
-                )
-            }
-            newSpeciesPhotos.forEach { photoDao.insertSpeciesPhoto(it) }
-
-            val newTripPhotos = exportData.photosTrip.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                TripPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.tripId
-                )
-            }
-            newTripPhotos.forEach { photoDao.insertTripPhoto(it) }
-
-            val newWaterClarityPhotos = exportData.photosWaterClarity.mapNotNull { xref ->
-                val photo = photosMap[xref.photoId] ?: return@mapNotNull null
-                WaterClarityPhotoEntity(
-                    id = photo.id,
-                    uri = photo.uri,
-                    hashcode = photo.hashcode,
-                    thumbnail = photo.thumbnail,
-                    timestamp = photo.timestamp,
-                    caption = photo.caption,
-                    isPrimary = xref.isPrimary,
-                    parentId = xref.waterClarityId
-                )
-            }
-            newWaterClarityPhotos.forEach { photoDao.insertWaterClarityPhoto(it) }
+            for (photo in exportData.baitPhotos) photoDao.insertBaitPhoto(photo.toEntity())
+            for (photo in exportData.bodyOfWaterPhotos) photoDao.insertBodyOfWaterPhoto(photo.toEntity())
+            for (photo in exportData.eventPhotos) photoDao.insertEventPhoto(photo.toEntity())
+            for (photo in exportData.fishPhotos) photoDao.insertFishPhoto(photo.toEntity())
+            for (photo in exportData.fishermanPhotos) photoDao.insertFishermanPhoto(photo.toEntity())
+            for (photo in exportData.lurePhotos) photoDao.insertLurePhoto(photo.toEntity())
+            for (photo in exportData.skyConditionPhotos) photoDao.insertSkyConditionPhoto(photo.toEntity())
+            for (photo in exportData.speciesPhotos) photoDao.insertSpeciesPhoto(photo.toEntity())
+            for (photo in exportData.tripPhotos) photoDao.insertTripPhoto(photo.toEntity())
+            for (photo in exportData.waterClarityPhotos) photoDao.insertWaterClarityPhoto(photo.toEntity())
 
             // 5. Insert All Cross-Reference / Join Tables Last
             for (item in exportData.lurePrimaryColors) lureDao.upsertLurePrimaryColor(item.toEntity())
