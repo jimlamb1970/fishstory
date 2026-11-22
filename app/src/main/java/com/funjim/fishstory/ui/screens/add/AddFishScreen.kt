@@ -189,9 +189,6 @@ fun AddFishScreen(
     var showAddBodyOfWaterDialog by remember { mutableStateOf(false) }
     var showAddSpeciesDialog by remember { mutableStateOf(false) }
 
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-
     when (val state = uiState) {
         is AddFishUiState.Loading -> {
             Box(
@@ -243,107 +240,8 @@ fun AddFishScreen(
 
             val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle(initialValue = false)
 
-            if (showDatePicker) {
-                val datePickerState = rememberDatePickerState(
-                    initialSelectedDateMillis = draftFish?.timestamp?.toUtcMidnight(),
-                    selectableDates = object : SelectableDates {
-                        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                            val startMidnight = startTime.toUtcMidnight()
-                            val endMidnight = endTime.toUtcMidnight()
-                            return utcTimeMillis in startMidnight..endMidnight
-                        }
-
-                        override fun isSelectableYear(year: Int): Boolean {
-                            val startYear =
-                                Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).year
-                            val endYear = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault()).year
-                            return year in startYear..endYear
-                        }
-                    }
-                )
-
-                DatePickerDialog(
-                    onDismissRequest = { showDatePicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let {
-                                val newDate = updateDate(timestamp, it)
-                                viewModel.updateTimestamp(
-                                    newDate,
-                                    startTime,
-                                    endTime,
-                                    onClamped = { toStart ->
-                                        if (toStart) {
-                                            Toast.makeText(
-                                                context,
-                                                "Catch time auto-adjusted to event start time.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                        else {
-                                            Toast.makeText(
-                                                context,
-                                                "Catch time auto-adjusted to event end time.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                )
-                            }
-                            showDatePicker = false
-                        }) { Text("OK") }
-                    }
-                ) { DatePicker(state = datePickerState) }
-            }
-
-
-            if (showTimePicker) {
-                val localDateTime = timestamp.toLocalDateTime()
-                val timePickerState = rememberTimePickerState(
-                    initialHour = localDateTime.hour,
-                    initialMinute = localDateTime.minute,
-                    is24Hour = false
-                )
-
-                AlertDialog(
-                    onDismissRequest = { showTimePicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            val newTime = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
-                            viewModel.updateTimestamp(
-                                newTime,
-                                startTime,
-                                endTime,
-                                onClamped = { toStart ->
-                                    if (toStart)
-                                        Toast.makeText(
-                                            context,
-                                            "Catch time auto-adjusted to event start time.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    else
-                                        Toast.makeText(
-                                            context,
-                                            "Catch time auto-adjusted to event end time.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                }
-                            )
-                            showTimePicker = false
-                        }) { Text("OK") }
-                    },
-                    text = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            TimePicker(state = timePickerState)
-                        }
-                    }
-                )
-            }
+            var showDatePicker by remember { mutableStateOf(false) }
+            var showTimePicker by remember { mutableStateOf(false) }
 
             Scaffold(
                 topBar = {
@@ -397,7 +295,7 @@ fun AddFishScreen(
                             Box(
                                 modifier = Modifier
                                     .navigationBarsPadding()
-                                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                                    .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                                     .fillMaxWidth()
                             ) {
                                 Button(
@@ -426,7 +324,7 @@ fun AddFishScreen(
                     Column(
                         modifier = Modifier
                             .padding(padding)
-                            .padding(16.dp)
+                            .padding(8.dp)
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -755,6 +653,106 @@ fun AddFishScreen(
                         )
                     }
                 }
+            }
+
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = draftFish?.timestamp?.toUtcMidnight(),
+                    selectableDates = object : SelectableDates {
+                        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                            val startMidnight = startTime.toUtcMidnight()
+                            val endMidnight = endTime.toUtcMidnight()
+                            return utcTimeMillis in startMidnight..endMidnight
+                        }
+
+                        override fun isSelectableYear(year: Int): Boolean {
+                            val startYear =
+                                Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).year
+                            val endYear = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault()).year
+                            return year in startYear..endYear
+                        }
+                    }
+                )
+
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = !showDatePicker },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let {
+                                val newDate = updateDate(timestamp, it)
+                                viewModel.updateTimestamp(
+                                    newDate,
+                                    startTime,
+                                    endTime,
+                                    onClamped = { toStart ->
+                                        if (toStart) {
+                                            Toast.makeText(
+                                                context,
+                                                "Catch time auto-adjusted to event start time.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        else {
+                                            Toast.makeText(
+                                                context,
+                                                "Catch time auto-adjusted to event end time.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
+                            }
+                            showDatePicker = !showDatePicker
+                        }) { Text("OK") }
+                    }
+                ) { DatePicker(state = datePickerState) }
+            }
+            if (showTimePicker) {
+                val localDateTime = timestamp.toLocalDateTime()
+                val timePickerState = rememberTimePickerState(
+                    initialHour = localDateTime.hour,
+                    initialMinute = localDateTime.minute,
+                    is24Hour = false
+                )
+
+                AlertDialog(
+                    onDismissRequest = { showTimePicker = !showTimePicker },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val newTime = updateTime(timestamp, timePickerState.hour, timePickerState.minute)
+                            viewModel.updateTimestamp(
+                                newTime,
+                                startTime,
+                                endTime,
+                                onClamped = { toStart ->
+                                    if (toStart)
+                                        Toast.makeText(
+                                            context,
+                                            "Catch time auto-adjusted to event start time.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    else
+                                        Toast.makeText(
+                                            context,
+                                            "Catch time auto-adjusted to event end time.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                }
+                            )
+                            showTimePicker = !showTimePicker
+                        }) { Text("OK") }
+                    },
+                    text = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            TimePicker(state = timePickerState)
+                        }
+                    }
+                )
             }
         }
     }

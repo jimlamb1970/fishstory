@@ -156,7 +156,7 @@ fun AddLureScreen(
                 Box(
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth()
                 ) {
                     Button(
@@ -188,7 +188,7 @@ fun AddLureScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(8.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
