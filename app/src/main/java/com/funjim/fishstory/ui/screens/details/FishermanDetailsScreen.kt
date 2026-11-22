@@ -213,7 +213,7 @@ fun FishermanDetailsScreen(
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
                             Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -229,13 +229,13 @@ fun FishermanDetailsScreen(
                                     text = details.fisherman.fullName,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
@@ -265,7 +265,7 @@ fun FishermanDetailsScreen(
                                     )
 
                                     HorizontalDivider(
-                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                        modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                                         thickness = 1.dp,
                                         color = getOnMainColor()
                                     )
@@ -280,7 +280,7 @@ fun FishermanDetailsScreen(
                             }
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
@@ -289,7 +289,7 @@ fun FishermanDetailsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { tackleBoxesExpanded = !tackleBoxesExpanded }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -416,8 +416,8 @@ fun FishermanDetailsScreen(
                                         index = index,
                                         totalItems = totalTackleBoxes,
                                         modifier = Modifier.padding(
-                                            start = 16.dp,
-                                            end = 16.dp,
+                                            start = 8.dp,
+                                            end = 8.dp,
                                             bottom = if (index == details.tackleBoxesWithLures.lastIndex) 8.dp else 0.dp
                                         ),
                                         onEdit = {
@@ -437,13 +437,13 @@ fun FishermanDetailsScreen(
 
                         item {
                             HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
 
                             Row(
-                                modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
@@ -467,7 +467,7 @@ fun FishermanDetailsScreen(
                         item {
                             if (state.upcomingTrips.isNotEmpty()) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
@@ -485,7 +485,7 @@ fun FishermanDetailsScreen(
 
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     items(state.upcomingTrips) { trip ->
                                         UpcomingTripChip(
@@ -500,7 +500,7 @@ fun FishermanDetailsScreen(
                         if (state.activeTrips.isNotEmpty()) {
                             item {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
@@ -523,7 +523,7 @@ fun FishermanDetailsScreen(
                                     verbose = appSettings.display.verboseCards,
                                     index = index,
                                     totalItems = totalActiveItems,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
@@ -556,7 +556,7 @@ fun FishermanDetailsScreen(
                         if (state.recentTrips.isNotEmpty()) {
                             item {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
@@ -585,7 +585,7 @@ fun FishermanDetailsScreen(
                                     index = index,
                                     totalItems = tripsSize,
                                     tackleBoxSummary = tackleBoxSummary,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     thumbnailFlow = viewModel.tripThumbnail(trip.trip.id),
                                     photosFlow = flowOf(emptyList()),
                                     onClick = { navigateToTripDetails(trip.trip.id) },
@@ -618,7 +618,7 @@ fun FishermanDetailsScreen(
                         }
                     }
                 } ?: run {
-                    Text("Loading...", modifier = Modifier.padding(16.dp))
+                    Text("Loading...", modifier = Modifier.padding(8.dp))
                 }
             }
 
@@ -773,7 +773,7 @@ fun TackleBoxCard(
         border = BorderStroke(1.dp, color = borderColor),
         elevation = CardDefaults.cardElevation()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -786,7 +786,7 @@ fun TackleBoxCard(
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         tackleBoxWithLures.tackleBox.name,

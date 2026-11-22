@@ -96,14 +96,14 @@ fun TargetSpeciesSection(
                 text = emptyText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         } else {
             val species = items.sortedBy { it.name }
@@ -200,14 +200,14 @@ fun SpeciesSummarySection(
                 text = emptyText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = getOnSecondaryColor(),
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         } else {
             if (showHelp) {
@@ -215,7 +215,7 @@ fun SpeciesSummarySection(
                     text = helpText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
 

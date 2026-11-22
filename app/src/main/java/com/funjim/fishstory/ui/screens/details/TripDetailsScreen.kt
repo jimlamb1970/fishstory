@@ -760,7 +760,7 @@ fun TripDetailsScreen(
                     LazyColumn(horizontalAlignment = Alignment.Start) {
                         item {
                             Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -781,7 +781,7 @@ fun TripDetailsScreen(
                             }
 
                             Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
@@ -826,7 +826,7 @@ fun TripDetailsScreen(
                             }
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
@@ -854,7 +854,7 @@ fun TripDetailsScreen(
 
                                     HorizontalDivider(
                                         modifier = Modifier
-                                            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                                            .padding(start = 8.dp, end = 8.dp, top = 8.dp),
                                         thickness = 1.dp,
                                         color = getOnMainColor()
                                     )
@@ -884,7 +884,7 @@ fun TripDetailsScreen(
                                 )
 
                                 HorizontalDivider(
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                    modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                                     thickness = 1.dp,
                                     color = getOnMainColor()
                                 )
@@ -897,7 +897,7 @@ fun TripDetailsScreen(
                             )
 
                             HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                                 thickness = 1.dp,
                                 color = getOnMainColor()
                             )
@@ -915,7 +915,7 @@ fun TripDetailsScreen(
                                             showHelp = appSettings.display.showHelp,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
-                                                horizontal = 16.dp
+                                                horizontal = 8.dp
                                             ),
                                             emptyText = "No bodies of water selected.",
                                             helpText = """Bodies of water are where you're actively fishing. 
@@ -957,7 +957,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                         Column {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth()
-                                                    .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                                                    .padding(top = 8.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
@@ -1007,7 +1007,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             val totalItems = eventSummaries.size
                                             if (totalItems == 0) {
                                                 Column(
-                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
                                                 ) {
                                                     Text(
                                                         text = """No events created.
@@ -1016,7 +1016,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                     """.trimMargin(),
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                                        modifier = Modifier.padding(horizontal = 8.dp)
                                                     )
                                                 }
                                             } else {
@@ -1025,7 +1025,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                         text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 32.dp)
+                                                        modifier = Modifier.padding(horizontal = 16.dp)
                                                     )
                                                 }
                                                 eventSummaries.forEachIndexed { index, eventSummary ->
@@ -1033,7 +1033,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                         item = eventSummary,
                                                         verbose = appSettings.display.verboseCards,
                                                         modifier = Modifier.padding(
-                                                            horizontal = 16.dp,
+                                                            horizontal = 8.dp,
                                                             vertical = 4.dp
                                                         ),
                                                         index = index,
@@ -1149,7 +1149,7 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 showHelp = appSettings.display.showHelp,
                                                 modifier = Modifier.padding(
                                                     vertical = 8.dp,
-                                                    horizontal = 16.dp
+                                                    horizontal = 8.dp
                                                 ),
                                                 emptyText = "No fishermen selected.",
                                                 helpText = """At least one participant must be added to this trip.
@@ -1235,7 +1235,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
-                                                horizontal = 16.dp
+                                                horizontal = 8.dp
                                             ),
                                             eventThumbnailProvider = { event ->
                                                 val thumbnailFlow = remember(event.id) {
@@ -1304,7 +1304,7 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
 Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,
-                                                horizontal = 16.dp
+                                                horizontal = 8.dp
                                             ),
                                             thumbnailFlow = { species ->
                                                 viewModel.getSpeciesThumbnail(species.id)

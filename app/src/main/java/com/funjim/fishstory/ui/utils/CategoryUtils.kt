@@ -49,7 +49,7 @@ fun CategoryCarousel(
     modifier: Modifier = Modifier
 ) {
     LazyRow(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -113,7 +113,7 @@ fun CategoryRow(
     selectedCategory: CategoryType,
     onCategorySelected: (CategoryType) -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
 ) {
     FlowRow(
         modifier = modifier

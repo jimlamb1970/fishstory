@@ -55,7 +55,7 @@ fun EventHighlightCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(),
             contentColor = getOnCardColor()
@@ -226,7 +226,7 @@ fun FishermanHighlightCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(),
@@ -420,7 +420,7 @@ fun TripHighlightCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = getCardColor(),
             contentColor = getOnCardColor()

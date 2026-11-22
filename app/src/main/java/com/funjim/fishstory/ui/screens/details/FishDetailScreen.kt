@@ -336,7 +336,7 @@ fun FishDetailScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -524,7 +524,7 @@ private fun FishDetailContent(
     ) {
         // Placed the Chip and Share button on the same horizontal line
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 8.dp, top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -559,12 +559,12 @@ private fun FishDetailContent(
         }
 
         HorizontalDivider(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp),
             thickness = 1.dp,
             color = getOnMainColor()
         )
 
-        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
+        Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -759,7 +759,7 @@ private fun FishDetailContent(
         }
 
         HorizontalDivider(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp),
             thickness = 1.dp,
             color = getOnMainColor()
         )
@@ -842,7 +842,7 @@ private fun FishDetailContent(
 
         if (fish.lure != null || fish.bait != null) {
             HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                 thickness = 1.dp,
                 color = getOnMainColor()
             )
@@ -861,7 +861,7 @@ private fun FishDetailContent(
         )
 
         HorizontalDivider(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp),
             thickness = 1.dp,
             color = getOnMainColor()
         )
@@ -875,7 +875,7 @@ private fun FishDetailContent(
                 }
             )
             HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                 thickness = 1.dp,
                 color = getOnMainColor()
             )
@@ -908,7 +908,7 @@ private fun FishDetailContent(
                 CategoryType.WATER -> {
                     if (fish.water != null) {
                         Column(modifier = Modifier
-                            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                         ) {
                             WaterCard(
                                 water = fish.water,
@@ -921,7 +921,7 @@ private fun FishDetailContent(
                 CategoryType.WEATHER -> {
                     if (fish.weather != null) {
                         Column(modifier = Modifier
-                            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                         ) {
                             WeatherCard(
                                 weather = fish.weather,
