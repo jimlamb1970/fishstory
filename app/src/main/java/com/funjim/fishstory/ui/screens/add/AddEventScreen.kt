@@ -16,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -75,7 +74,7 @@ fun AddEventScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
+    val snackBarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
@@ -115,8 +114,6 @@ fun AddEventScreen(
     }
 
     val eventTackleBoxMap by viewModel.eventTackleBoxMap.collectAsState()
-
-    var isDraftInitialized by rememberSaveable { mutableStateOf(false) }
 
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -216,7 +213,7 @@ fun AddEventScreen(
         is AddEventUiState.Success -> {
             val trip = state.trip
 
-            if (!isDraftInitialized) {
+            if (!viewModel.draftInitialized) {
                 viewModel.updateEventDraft {
                     it.copy(
                         name = "",
@@ -232,8 +229,6 @@ fun AddEventScreen(
                 viewModel.updateEventBodiesOfWater(trip.bodiesOfWater)
                 viewModel.updateEventTackleBoxMap(state.tripTackleBoxMap)
                 viewModel.updateEventTargetSpecies(trip.targetSpecies)
-
-                isDraftInitialized = true
             }
 
             Scaffold(
@@ -433,7 +428,7 @@ fun AddEventScreen(
                         Box(
                             modifier = Modifier
                                 .navigationBarsPadding()
-                                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                                .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                                 .fillMaxWidth()
                         ) {
                             Button(
@@ -446,13 +441,13 @@ fun AddEventScreen(
                         }
                     }
                 },
-                snackbarHost = { SnackbarHost(snackbarHostState) }
+                snackbarHost = { SnackbarHost(snackBarHostState) }
             ) { padding ->
                 LazyColumn(
                     modifier = Modifier
                         .padding(padding)
                         .fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     item {
@@ -538,7 +533,7 @@ fun AddEventScreen(
                                 when {
                                     newStartTime < trip.trip.startDate -> {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(
+                                            snackBarHostState.showSnackbar(
                                                 message = "Event start cannot be before trip start.  Please adjust accordingly.",
                                                 actionLabel = "Dismiss",
                                                 duration = SnackbarDuration.Long
@@ -547,7 +542,7 @@ fun AddEventScreen(
                                     }
                                     newStartTime > trip.trip.endDate -> {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(
+                                            snackBarHostState.showSnackbar(
                                                 message = "Event start cannot be after trip end.  Please adjust accordingly.",
                                                 actionLabel = "Dismiss",
                                                 duration = SnackbarDuration.Long
@@ -668,7 +663,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                         FishermanSummary(fisherman = fisherman)
                                     }.sortedBy { it.fisherman.fullName }
 
-                                    Column() {
+                                    Column {
                                         FishermanSummarySection(
                                             list = fishermanSummaries,
                                             verbose = false,

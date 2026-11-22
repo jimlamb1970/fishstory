@@ -2,6 +2,9 @@ package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -66,9 +69,13 @@ class AddEventViewModel(
     private val _eventDraft = MutableStateFlow(Event(id = UUID.randomUUID().toString(), name = "", tripId = ""))
     val eventDraft = _eventDraft.asStateFlow()
 
+    var draftInitialized: Boolean by mutableStateOf(false)
+        private set
+
     fun updateEventDraft(update: (Event) -> Event) {
         _eventDraft.update(update)
         _selectedEventId.value = _eventDraft.value.id
+        draftInitialized = true
     }
 
     private val _eventBodiesOfWater = MutableStateFlow<List<BodyOfWater>>(emptyList())

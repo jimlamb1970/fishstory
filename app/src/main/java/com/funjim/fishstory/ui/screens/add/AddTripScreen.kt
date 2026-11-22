@@ -75,7 +75,7 @@ fun AddTripScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val snackbarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
+    val snackBarHostState = rememberCoroutineScope().let { remember { SnackbarHostState() } }
 
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
@@ -388,7 +388,7 @@ fun AddTripScreen(
                 Box(
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                        .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                         .fillMaxWidth()
                 ) {
                     Button(
@@ -401,13 +401,13 @@ fun AddTripScreen(
                 }
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
@@ -586,7 +586,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                 FishermanSummary(fisherman = fisherman)
                             }.sortedBy { it.fisherman.fullName }
 
-                            Column() {
+                            Column {
                                 FishermanSummarySection(
                                     list = fishermanSummaries,
                                     verbose = false,
