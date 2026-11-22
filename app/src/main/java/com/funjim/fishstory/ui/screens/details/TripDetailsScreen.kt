@@ -922,7 +922,6 @@ fun TripDetailsScreen(
                                             ),
                                             emptyText = "No bodies of water selected.",
                                             helpText = """Bodies of water are where you're actively fishing. 
-
 Selecting them places those bodies of water at the top of the list when logging catches for quicker entry.""",
                                             thumbnailFlow = { bodyOfWater ->
                                                 viewModel.getBodyOfWaterThumbnail(bodyOfWater.id)
@@ -957,12 +956,19 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     }
 
                                     CategoryType.EVENTS -> {
-                                        Column {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(
+                                                    vertical = 8.dp,
+                                                    horizontal = 8.dp
+                                                ),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
                                             Row(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .padding(top = 8.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
+                                                modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
+                                                verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
@@ -1013,132 +1019,138 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
                                                 ) {
                                                     Text(
-                                                        text = """No events created.
-
-Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.
-                                                    """.trimMargin(),
+                                                        text = "No events created.",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = getOnSecondaryColor(),
+                                                        modifier = Modifier.padding(horizontal = 8.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(
+                                                        text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = getOnSecondaryColor(),
                                                         modifier = Modifier.padding(horizontal = 8.dp)
                                                     )
                                                 }
                                             } else {
-                                                if (appSettings.display.showHelp) {
-                                                    Text(
-                                                        text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 16.dp)
-                                                    )
-                                                }
-                                                eventSummaries.forEachIndexed { index, eventSummary ->
-                                                    EventItem(
-                                                        item = eventSummary,
-                                                        verbose = appSettings.display.verboseCards,
-                                                        modifier = Modifier.padding(
-                                                            horizontal = 8.dp,
-                                                            vertical = 4.dp
-                                                        ),
-                                                        index = index,
-                                                        totalItems = totalItems,
-                                                        thumbnailFlow = viewModel.getEventThumbnail(
-                                                            eventSummary.event.id
-                                                        ),
-                                                        photosFlow = viewModel.getEventPhotos(
-                                                            eventSummary.event.id
-                                                        ),
-                                                        showPhotoPicker = true,
-                                                        onClick = {
-                                                            navigateToEventDetails(
-                                                                eventSummary.event.id,
-                                                                CategoryType.TARGET_SPECIES
-                                                            )
-                                                        },
-                                                        onFishClick = { _, _, targetOnly ->
-                                                            navigateToFishList(
-                                                                FishFilter(
-                                                                    tripId = trip.id,
-                                                                    eventId = eventSummary.event.id,
-                                                                    targetOnly = targetOnly
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    if (appSettings.display.showHelp) {
+                                                        Text(
+                                                            text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = getOnSecondaryColor(),
+                                                            modifier = Modifier.padding(horizontal = 8.dp)
+                                                        )
+                                                    }
+                                                    eventSummaries.forEachIndexed { index, eventSummary ->
+                                                        EventItem(
+                                                            item = eventSummary,
+                                                            verbose = appSettings.display.verboseCards,
+                                                            modifier = Modifier.padding(vertical = 4.dp),
+                                                            index = index,
+                                                            totalItems = totalItems,
+                                                            thumbnailFlow = viewModel.getEventThumbnail(
+                                                                eventSummary.event.id
+                                                            ),
+                                                            photosFlow = viewModel.getEventPhotos(
+                                                                eventSummary.event.id
+                                                            ),
+                                                            showPhotoPicker = true,
+                                                            onClick = {
+                                                                navigateToEventDetails(
+                                                                    eventSummary.event.id,
+                                                                    CategoryType.TARGET_SPECIES
                                                                 )
-                                                            )
-                                                        },
-                                                        onFishermanClick = {
-                                                            navigateToEventDetails(
-                                                                eventSummary.event.id,
-                                                                CategoryType.FISHERMEN
-                                                            )
-                                                        },
-                                                        onPhotoAdded = {
-                                                            viewModel.addEventPhoto(
-                                                                eventSummary.event.id,
-                                                                it
-                                                            )
-                                                        },
-                                                        onPhotoTaken = {
-                                                            viewModel.addEventPhoto(
-                                                                eventSummary.event.id,
-                                                                it
-                                                            )
-                                                        },
-                                                        onSetThumbnail = { photo ->
-                                                            viewModel.setEventThumbnail(photo)
-                                                        },
-                                                        onPhotoDeleted = { photo ->
-                                                            viewModel.deleteEventPhoto(photo)
-                                                        },
-                                                        onDelete = {
-                                                            eventToDelete = eventSummary
-                                                            showDeleteEventDialog = true
-                                                        },
-                                                        onSetLocation = if (hasLocationPermission) {
-                                                            {
-                                                                scope.launch {
-                                                                    val location =
-                                                                        viewModel.fetchLocation()
-                                                                    if (location != null) {
-                                                                        viewModel.upsertEvent(
-                                                                            eventSummary.event.copy(
-                                                                                latitude = location.latitude,
-                                                                                longitude = location.longitude
+                                                            },
+                                                            onFishClick = { _, _, targetOnly ->
+                                                                navigateToFishList(
+                                                                    FishFilter(
+                                                                        tripId = trip.id,
+                                                                        eventId = eventSummary.event.id,
+                                                                        targetOnly = targetOnly
+                                                                    )
+                                                                )
+                                                            },
+                                                            onFishermanClick = {
+                                                                navigateToEventDetails(
+                                                                    eventSummary.event.id,
+                                                                    CategoryType.FISHERMEN
+                                                                )
+                                                            },
+                                                            onPhotoAdded = {
+                                                                viewModel.addEventPhoto(
+                                                                    eventSummary.event.id,
+                                                                    it
+                                                                )
+                                                            },
+                                                            onPhotoTaken = {
+                                                                viewModel.addEventPhoto(
+                                                                    eventSummary.event.id,
+                                                                    it
+                                                                )
+                                                            },
+                                                            onSetThumbnail = { photo ->
+                                                                viewModel.setEventThumbnail(photo)
+                                                            },
+                                                            onPhotoDeleted = { photo ->
+                                                                viewModel.deleteEventPhoto(photo)
+                                                            },
+                                                            onDelete = {
+                                                                eventToDelete = eventSummary
+                                                                showDeleteEventDialog = true
+                                                            },
+                                                            onSetLocation = if (hasLocationPermission) {
+                                                                {
+                                                                    scope.launch {
+                                                                        val location =
+                                                                            viewModel.fetchLocation()
+                                                                        if (location != null) {
+                                                                            viewModel.upsertEvent(
+                                                                                eventSummary.event.copy(
+                                                                                    latitude = location.latitude,
+                                                                                    longitude = location.longitude
+                                                                                )
                                                                             )
-                                                                        )
-                                                                        Toast.makeText(
-                                                                            context,
-                                                                            "Location updated",
-                                                                            Toast.LENGTH_SHORT
-                                                                        ).show()
+                                                                            Toast.makeText(
+                                                                                context,
+                                                                                "Location updated",
+                                                                                Toast.LENGTH_SHORT
+                                                                            ).show()
+                                                                        }
                                                                     }
                                                                 }
-                                                            }
-                                                        } else null,
-                                                        onSelectLocation = {
-                                                            eventToUpdateLocation = eventSummary
-                                                            locationPickerEvent.openPicker()
-                                                        },
-                                                        onUseTripLocation = if (details.trip.latitude != null) {
-                                                            {
+                                                            } else null,
+                                                            onSelectLocation = {
+                                                                eventToUpdateLocation = eventSummary
+                                                                locationPickerEvent.openPicker()
+                                                            },
+                                                            onUseTripLocation = if (details.trip.latitude != null) {
+                                                                {
+                                                                    scope.launch {
+                                                                        viewModel.upsertEvent(
+                                                                            eventSummary.event.copy(
+                                                                                latitude = details.trip.latitude,
+                                                                                longitude = details.trip.longitude
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                }
+                                                            } else null,
+                                                            onClearLocation = {
                                                                 scope.launch {
                                                                     viewModel.upsertEvent(
                                                                         eventSummary.event.copy(
-                                                                            latitude = details.trip.latitude,
-                                                                            longitude = details.trip.longitude
+                                                                            latitude = null,
+                                                                            longitude = null
                                                                         )
                                                                     )
                                                                 }
                                                             }
-                                                        } else null,
-                                                        onClearLocation = {
-                                                            scope.launch {
-                                                                viewModel.upsertEvent(
-                                                                    eventSummary.event.copy(
-                                                                        latitude = null,
-                                                                        longitude = null
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    )
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -1156,7 +1168,6 @@ Events mark the times you are actively fishing, allowing caught fish to be logge
                                                 ),
                                                 emptyText = "No fishermen selected.",
                                                 helpText = """At least one participant must be added to this trip.
-
 Logging catches will be restricted to the selected fishermen. You can assign a tackle box to each fisherman to filter available lures, or leave it unassigned to make all lures accessible.""",
                                                 thumbnailFlow = { fisherman ->
                                                     viewModel.getFishermanThumbnail(fisherman.id)
@@ -1233,7 +1244,6 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             useImperial = appSettings.display.useImperialUnits,
                                             emptyText = "No limits created.",
                                             helpText = """Limits track your total catches to help ensure compliance with local fishing regulations.
-                                                |
                                                 |Limits set here automatically apply to all events on this trip.""".trimMargin(),
                                             scope = LimitScope.TRIP,
                                             modifier = Modifier.padding(
@@ -1303,7 +1313,6 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                             showHelp = appSettings.display.showHelp,
                                             emptyText = "No target species selected.",
                                             helpText = """Target species are what you're actively fishing for. 
-
 Selecting them places those species at the top of the list when logging catches for quicker entry.""",
                                             modifier = Modifier.padding(
                                                 vertical = 8.dp,

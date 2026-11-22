@@ -202,7 +202,6 @@ fun SpeciesSummarySection(
                 color = getOnSecondaryColor(),
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
