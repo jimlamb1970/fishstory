@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LureColor
-import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxWithLures

@@ -618,7 +618,7 @@ private fun LureTackleBoxItem(
                     }
                 }
 
-                Box(modifier = Modifier.size(32.dp)) {
+                Box(modifier = Modifier.size(40.dp)) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,

@@ -229,7 +229,6 @@ fun ManageBodiesOfWaterScreen(
                                 onLongClick = { menuExpanded = true }
                             ),
                         leadingContent = {
-                            // Wrapped in a Box with combinedClickable for long-press registration
                             Box(
                                 modifier = Modifier.combinedClickable(
                                     onClick = { /* Do nothing */ },
