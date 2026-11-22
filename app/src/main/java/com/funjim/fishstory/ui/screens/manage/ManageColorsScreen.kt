@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.manage
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -171,7 +171,7 @@ fun ManageColorsScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it.trimStart() },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 placeholder = { Text("Search or add new color ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -211,7 +211,7 @@ fun ManageColorsScreen(
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
                                 .border(
                                     width = 1.dp,
                                     color = borderColor,

@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.manage
 
 import android.net.Uri
 import android.widget.Toast
@@ -249,7 +249,7 @@ fun FishermanTackleBoxScreen(
                 onValueChange = { searchQuery = it.trimStart() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp),
                 placeholder = { Text("Search lures...") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Search Icon")
@@ -268,7 +268,7 @@ fun FishermanTackleBoxScreen(
             // Summary chip
             Surface(
                 modifier = Modifier
-                    .padding(top = 0.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 0.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
                 shape = MaterialTheme.shapes.small,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
@@ -286,7 +286,7 @@ fun FishermanTackleBoxScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
+                        .padding(top = 8.dp, bottom = 0.dp, start = 8.dp, end = 8.dp),
                 ) {
                     LureFilterOption.entries.forEach { option ->
                         SortChip(
@@ -300,7 +300,7 @@ fun FishermanTackleBoxScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                        .padding(top = 8.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
@@ -542,7 +542,7 @@ private fun LureTackleBoxItem(
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .animateContentSize()
             .combinedClickable(
                 onClick = { onCheckedChange(!inTackleBox) },
@@ -557,7 +557,7 @@ private fun LureTackleBoxItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

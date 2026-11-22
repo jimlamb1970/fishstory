@@ -21,7 +21,7 @@ import androidx.core.graphics.toColorInt
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColorsSummary
 import com.funjim.fishstory.model.LureWithColors
-import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
+import com.funjim.fishstory.ui.screens.manage.MultiColorCirclePreview
 import com.funjim.fishstory.viewmodels.LureSortOrder
 
 @Composable

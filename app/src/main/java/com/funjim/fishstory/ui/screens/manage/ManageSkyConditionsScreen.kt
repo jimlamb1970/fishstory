@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.manage
 
 import android.net.Uri
 import android.widget.Toast
@@ -65,7 +65,6 @@ import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
-import com.funjim.fishstory.ui.utils.getOnCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
 import com.funjim.fishstory.ui.crud.NewSkyConditionDialog
 import com.funjim.fishstory.ui.crud.EditSkyConditionDialog
@@ -89,6 +88,7 @@ fun ManageSkyConditionsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<SkyCondition?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<SkyCondition?>(null) }
@@ -172,7 +172,7 @@ fun ManageSkyConditionsScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it.trimStart() },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 placeholder = { Text("Search or add new sky condition ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -208,12 +208,11 @@ fun ManageSkyConditionsScreen(
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
-                    val contentColor = getOnCardColor()
 
                     ListItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                             .border(
                                 width = 1.dp,
                                 color = borderColor,
@@ -380,6 +379,7 @@ fun ManageSkyConditionsScreen(
                                                     Toast.LENGTH_SHORT).show()
                                             } else {
                                                 itemToDelete = item
+                                                showDeleteDialog = true
                                             }
                                         },
                                         leadingIcon = {
@@ -402,32 +402,38 @@ fun ManageSkyConditionsScreen(
         }
     }
 
-    // DELETE CONFIRMATION
-    itemToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete Sky Condition?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+    if (showDeleteDialog) {
+        itemToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Sky Condition?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone."""
-            ) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteSkyCondition(item)
-                        itemToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteSkyCondition(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = !showDeleteDialog }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
     if (showAddDialog) {

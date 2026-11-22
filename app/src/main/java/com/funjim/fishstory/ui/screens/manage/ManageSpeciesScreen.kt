@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.manage
 
 import android.net.Uri
 import android.widget.Toast
@@ -98,6 +98,7 @@ fun ManageSpeciesScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var speciesToDelete by remember { mutableStateOf<Species?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
     var speciesToEdit by remember { mutableStateOf<Species?>(null) }
@@ -188,7 +189,7 @@ fun ManageSpeciesScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it.trimStart() },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 placeholder = { Text("Search or add new species ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -238,7 +239,7 @@ fun ManageSpeciesScreen(
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
                                 .border(
                                     width = 1.dp,
                                     color = borderColor,
@@ -422,6 +423,7 @@ fun ManageSpeciesScreen(
                                                     ).show()
                                                 } else {
                                                     speciesToDelete = species
+                                                    showDeleteDialog = true
                                                 }
                                             },
                                             leadingIcon = {
@@ -457,32 +459,38 @@ fun ManageSpeciesScreen(
         }
     }
 
-    // DELETE CONFIRMATION
-    speciesToDelete?.let { species ->
-        AlertDialog(
-            onDismissRequest = { speciesToDelete = null },
-            title = { Text("Delete Species?") },
-            text = { Text("""Are you sure you want to delete '${species.name}'?
+    if (showDeleteDialog) {
+        speciesToDelete?.let { species ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Species?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${species.name}'?
 
 This cannot be undone."""
-            ) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteSpecies(species)
-                        speciesToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteSpecies(species)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = !showDeleteDialog }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { speciesToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
     if (showAddDialog) {

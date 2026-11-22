@@ -53,7 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LureColor
 import com.funjim.fishstory.model.LureWithColors
-import com.funjim.fishstory.ui.screens.MultiColorCirclePreview
+import com.funjim.fishstory.ui.screens.manage.MultiColorCirclePreview
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.LureColorComposition

@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.manage
 
 import android.net.Uri
 import android.widget.Toast
@@ -60,58 +60,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.funjim.fishstory.model.BodyOfWater
+import com.funjim.fishstory.model.WaterClarity
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeCount
-import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.NewBodyOfWaterDialog
-import com.funjim.fishstory.ui.crud.EditBodyOfWaterDialog
-import com.funjim.fishstory.ui.utils.getOnCardSecondaryColor
-import com.funjim.fishstory.viewmodels.BodyOfWaterViewModel
+import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
+import com.funjim.fishstory.ui.crud.EditWaterClarityDialog
+import com.funjim.fishstory.viewmodels.WaterClarityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ManageBodiesOfWaterScreen(
-    viewModel: BodyOfWaterViewModel,
-    navigateToFishList: (String, Boolean) -> Unit,
+fun ManageWaterClarityScreen(
+    viewModel: WaterClarityViewModel,
     navigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
-    val verbose = appSettings.display.verboseCards
-
-    val allItems by viewModel.bodyOfWaterSummaries.collectAsStateWithLifecycle(initialValue = emptyList())
-    var addItem by remember { mutableStateOf(false) }
-
-    var searchQuery by remember { mutableStateOf("") }
-    var itemToDelete by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    var showEditDialog by remember { mutableStateOf(false) }
-    var itemToEdit by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    var currentItemForPhoto by remember { mutableStateOf<BodyOfWater?>(null) }
-
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        val item = currentItemForPhoto
-        if (uri != null && item != null) {
-            viewModel.updateBodyOfWaterThumbnail(item.id, uri)
-        }
-        currentItemForPhoto = null
-    }
-
-    val filteredItems = remember(searchQuery, allItems) {
-        allItems.filter {
-            it.bodyOfWater.name.contains(searchQuery, ignoreCase = true)
-        }.sortedBy { it.bodyOfWater.name }
-    }
-
-    val showAddButton = searchQuery.isNotBlank() &&
-                allItems.none { it.bodyOfWater.name.equals(searchQuery.trim(), ignoreCase = true) }
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -119,12 +84,42 @@ fun ManageBodiesOfWaterScreen(
         }
     }
 
+    val allItems by viewModel.allWaterClarity.collectAsStateWithLifecycle(initialValue = emptyList())
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<WaterClarity?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var itemToEdit by remember { mutableStateOf<WaterClarity?>(null) }
+
+    var currentItemForPhoto by remember { mutableStateOf<WaterClarity?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val item = currentItemForPhoto
+        if (uri != null && item != null) {
+            viewModel.updateWaterClarityThumbnail(item.id, uri)
+        }
+        currentItemForPhoto = null
+    }
+
+    val filteredItems = remember(searchQuery, allItems) {
+        allItems.filter {
+            it.name.contains(searchQuery, ignoreCase = true)
+        }.sortedBy { it.name }
+    }
+
+    val showAddButton = searchQuery.isNotBlank() &&
+                allItems.none { it.name.equals(searchQuery.trim(), ignoreCase = true) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Bodies of Water")
+                        Text("Water Clarity")
                         val total = allItems.size
                         BadgeCount(
                             count = total,
@@ -147,13 +142,12 @@ fun ManageBodiesOfWaterScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = { addItem = true }) {
+                    IconButton(onClick = { showAddDialog = true }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                AppIcons.Default.BodyOfWater,
+                                AppIcons.Default.WaterSet,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp))
-
                             Surface(
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primary,
@@ -163,7 +157,7 @@ fun ManageBodiesOfWaterScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Add Body of Water",
+                                    contentDescription = "Add Water Clarity",
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -171,7 +165,6 @@ fun ManageBodiesOfWaterScreen(
                         }
                     }
                 }
-
             )
         }
     ) { padding ->
@@ -179,20 +172,20 @@ fun ManageBodiesOfWaterScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it.trimStart() },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                placeholder = { Text("Search or add new body of water ...") },
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                placeholder = { Text("Search or add new water clarity ...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (showAddButton) {
                         IconButton(onClick = {
-                            viewModel.addBodyOfWater(BodyOfWater(name = searchQuery.trim())) {
+                            viewModel.addWaterClarity(WaterClarity(name = searchQuery.trim())) {
                                 // Do nothing on success
                             }
                             searchQuery = ""
                         }) {
                             Icon(
                                 Icons.Default.AddCircle,
-                                contentDescription = "Add Body of Water",
+                                contentDescription = "Add Water Clarity",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -203,13 +196,15 @@ fun ManageBodiesOfWaterScreen(
 
             LazyColumn(modifier = Modifier.weight(1f)) {
                 val filteredSize = filteredItems.size
-                itemsIndexed(filteredItems, key = { _, s -> s.bodyOfWater.id }) { index, item ->
-                    val thumbnail by viewModel.bodyOfWaterThumbnail(item.bodyOfWater.id).collectAsStateWithLifecycle(initialValue = null)
+                itemsIndexed(filteredItems, key = { _, s -> s.id }) { index, item ->
+                    val thumbnail by viewModel.waterClarityThumbnail(item.id).collectAsStateWithLifecycle(initialValue = null)
 
                     var menuExpanded by remember { mutableStateOf(false) }
                     var thumbnailMenuExpanded by remember { mutableStateOf(false) }
 
-                    val preventDelete = item.fishCaught > 0 || item.fishKept > 0
+                    // TODO - support fish caught/kept with water clarity
+                    //val preventDelete = item.fishCaught > 0 || item.fishKept > 0
+                    val preventDelete = false
 
                     val backgroundColor = getCardColor(index, filteredSize)
                     val borderColor = getCardBorderColor(index, filteredSize)
@@ -217,7 +212,7 @@ fun ManageBodiesOfWaterScreen(
                     ListItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                             .border(
                                 width = 1.dp,
                                 color = borderColor,
@@ -233,14 +228,14 @@ fun ManageBodiesOfWaterScreen(
                                 modifier = Modifier.combinedClickable(
                                     onClick = { /* Do nothing */ },
                                     onLongClick = {
-                                        currentItemForPhoto = item.bodyOfWater
+                                        currentItemForPhoto = item
                                         thumbnailMenuExpanded = true
                                     }
                                 )
                             ) {
                                 ThumbnailBox(
                                     thumbnail = thumbnail,
-                                    imageVector = AppIcons.Default.BodyOfWater,
+                                    imageVector = AppIcons.Default.WaterSet,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 DropdownMenu(
@@ -253,7 +248,7 @@ fun ManageBodiesOfWaterScreen(
                                             else Text("Select Thumbnail")
                                         },
                                         onClick = {
-                                            currentItemForPhoto = item.bodyOfWater
+                                            currentItemForPhoto = item
                                             thumbnailMenuExpanded = false
                                             photoPickerLauncher.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -272,7 +267,7 @@ fun ManageBodiesOfWaterScreen(
                                             onClick = {
                                                 thumbnailMenuExpanded = false
                                                 // Save out a null reference to clear
-                                                viewModel.deleteBodyOfWaterThumbnail(item.bodyOfWater.id)
+                                                viewModel.deleteWaterClarityThumbnail(item.id)
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -288,14 +283,14 @@ fun ManageBodiesOfWaterScreen(
                         },
                         headlineContent = {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(item.bodyOfWater.name)
+                                Text(item.name)
+                                /*
                                 if (item.fishCaught > 0) {
                                     FishCaughtItem(
                                         icon = AppIcons.Default.LeapingFishWithFins,
                                         caughtCount = item.fishCaught,
                                         keptCount = item.fishKept,
-                                        extraText = if (verbose) "fish" else "",
-                                        onClick = { navigateToFishList(item.bodyOfWater.id, false) },
+                                        onFishClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }
@@ -304,11 +299,11 @@ fun ManageBodiesOfWaterScreen(
                                         icon = AppIcons.Default.TargetFish,
                                         caughtCount = item.targetFishCaught,
                                         keptCount = item.targetFishKept,
-                                        extraText = if (verbose) "target fish" else "",
-                                        onClick = { navigateToFishList(item.bodyOfWater.id, true) },
+                                        onFishClick = null,
                                         contentColor = getOnCardSecondaryColor()
                                     )
                                 }
+                                */
                             }
                         },
                         supportingContent = {
@@ -330,7 +325,7 @@ fun ManageBodiesOfWaterScreen(
                                         text = { Text("Rename") },
                                         onClick = {
                                             menuExpanded = false
-                                            itemToEdit = item.bodyOfWater
+                                            itemToEdit = item
                                             showEditDialog = true
                                         },
                                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
@@ -341,7 +336,7 @@ fun ManageBodiesOfWaterScreen(
                                             else Text("Select Thumbnail")
                                         },
                                         onClick = {
-                                            currentItemForPhoto = item.bodyOfWater
+                                            currentItemForPhoto = item
                                             menuExpanded = false
                                             photoPickerLauncher.launch(
                                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -362,7 +357,7 @@ fun ManageBodiesOfWaterScreen(
                                             onClick = {
                                                 menuExpanded = false
                                                 // Save out a null reference to clear
-                                                viewModel.deleteBodyOfWaterThumbnail(item.bodyOfWater.id)
+                                                viewModel.deleteWaterClarityThumbnail(item.id)
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -380,16 +375,17 @@ fun ManageBodiesOfWaterScreen(
                                             if (preventDelete) {
                                                 Toast.makeText(
                                                     context,
-                                                    "Can't delete this body of water. There are fish logged for it.",
+                                                    "Can't delete this water clarity. There are fish logged for it.",
                                                     Toast.LENGTH_SHORT).show()
                                             } else {
-                                                itemToDelete = item.bodyOfWater
+                                                itemToDelete = item
+                                                showDeleteDialog = true
                                             }
                                         },
                                         leadingIcon = {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Delete Body of Water",
+                                                contentDescription = "Delete Water Clarity",
                                                 tint =
                                                     if (!preventDelete) MaterialTheme.colorScheme.error
                                                     else MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
@@ -406,52 +402,59 @@ fun ManageBodiesOfWaterScreen(
         }
     }
 
-    // DELETE CONFIRMATION
-    itemToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { itemToDelete = null },
-            title = { Text("Delete Body of Water?") },
-            text = { Text("""Are you sure you want to delete '${item.name}'?
+    if (showDeleteDialog) {
+        itemToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Water Clarity?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone."""
-            ) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteBodyOfWater(item)
-                        itemToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteWaterClarity(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = !showDeleteDialog }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
-    if (addItem) {
-        NewBodyOfWaterDialog(
-            onDismiss = { addItem = !addItem },
+    if (showAddDialog) {
+        NewWaterClarityDialog(
+            onDismiss = { showAddDialog = !showAddDialog },
             onConfirm = { name ->
-                viewModel.addBodyOfWater(BodyOfWater(name = name)) {
-                    addItem = !addItem
+                viewModel.addWaterClarity(WaterClarity(name = name)) {
+                    showAddDialog = !showAddDialog
                 }
             }
         )
     }
 
+    // EDIT DIALOG
     if (showEditDialog) {
         itemToEdit?.let { item ->
-            EditBodyOfWaterDialog(
+            EditWaterClarityDialog(
                 item = item,
                 onDismiss = { showEditDialog = !showEditDialog },
-                onConfirm = { item ->
-                    viewModel.updateBodyOfWater(item) {
+                onConfirm = { confirmedItem ->
+                    viewModel.updateWaterClarity(confirmedItem) {
                         showEditDialog = !showEditDialog
                     }
                 }
