@@ -96,7 +96,7 @@ fun WaterClaritySelectionField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -131,7 +131,7 @@ fun WaterClaritySelectionField(
 
             Column(modifier = Modifier
                 .fillMaxHeight(0.8f)
-                .padding(start = 16.dp, end = 16.dp)
+                .padding(start = 8.dp, end = 8.dp)
             ) {
                 OutlinedTextField(
                     value = searchQuery,

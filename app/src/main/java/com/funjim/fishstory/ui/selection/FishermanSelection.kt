@@ -98,7 +98,7 @@ fun FishermanSelectionField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -133,7 +133,7 @@ fun FishermanSelectionField(
 
             Column(modifier = Modifier
                 .fillMaxHeight(0.8f)
-                .padding(start = 16.dp, end = 16.dp)
+                .padding(start = 8.dp, end = 8.dp)
             ) {
                 OutlinedTextField(
                     value = searchQuery,
@@ -344,7 +344,7 @@ fun FishermanSelection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -379,7 +379,7 @@ fun FishermanSelection(
             }
 
             Column(modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp)
+                .padding(start = 8.dp, end = 8.dp)
                 .fillMaxHeight(0.8f)
             ) {
                 OutlinedTextField(
