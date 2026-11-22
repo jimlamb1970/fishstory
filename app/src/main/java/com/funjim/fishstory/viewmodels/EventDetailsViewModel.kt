@@ -675,22 +675,6 @@ class EventDetailsViewModel(
         )
     }
 
-    fun insertTackleBox(
-        tackleBox: TackleBox,
-        onSuccess: (TackleBox) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                fishermanRepo.insertTackleBox(tackleBox)
-                onSuccess(tackleBox)
-            } catch (_: SQLiteConstraintException) {
-                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
-            } catch (_: Exception) {
-                _toastMessage.emit("An error occurred while adding tackle box.")
-            }
-        }
-    }
-
     fun toggleHelp() {
         viewModelScope.launch {
             configRepo.updateShowHelp(appSettings.value.display.showHelp.not())

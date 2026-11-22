@@ -42,7 +42,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ExpandLess
@@ -114,10 +113,10 @@ import com.funjim.fishstory.ui.crud.NewWaterClarityDialog
 import com.funjim.fishstory.ui.crud.WaterDialog
 import com.funjim.fishstory.ui.crud.WeatherDialog
 import com.funjim.fishstory.ui.utils.GumballStatus
-import com.funjim.fishstory.ui.utils.ReportsRoute
 import com.funjim.fishstory.ui.utils.getMainButtonColor
 import com.funjim.fishstory.ui.utils.getOnMainButtonColor
 import com.funjim.fishstory.ui.utils.rememberGumballStatus
+import androidx.core.net.toUri
 
 private data class GridParams(
     val text: String,
@@ -132,7 +131,6 @@ private data class GridParams(
 fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onFishListNavigate: (FishListRoute) -> Unit,
-    onReportsNavigate: (ReportsRoute) -> Unit,
     viewModel: DashboardViewModel
 ) {
     val hasLocationPermission by viewModel.hasLocationPermission.collectAsStateWithLifecycle()
@@ -143,6 +141,7 @@ fun DashboardScreen(
     val activeTripEvents by viewModel.activeTripEvents.collectAsStateWithLifecycle()
 
     // State to keep track of which trip we are currently modifying
+    var showTripToDeleteDialog by remember { mutableStateOf(false) }
     var tripToDelete by remember { mutableStateOf<TripSummary?>(null) }
     var selectedTrip by remember { mutableStateOf<TripSummary?>(null) }
     var showMenu by remember { mutableStateOf(false) }
@@ -174,7 +173,7 @@ fun DashboardScreen(
                         it,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // This can happen if the provider doesn't support persistable permissions
                 }
                 selectedTrip?.let { trip ->
@@ -225,11 +224,11 @@ fun DashboardScreen(
             }
             is TripAction.OpenMap -> {
                 val mapUri =
-                    Uri.parse("https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}")
+                    "https://www.google.com/maps/search/?api=1&query=${action.lat},${action.lng}".toUri()
                 val intent = Intent(Intent.ACTION_VIEW, mapUri)
                 try {
                     context.startActivity(intent)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Toast.makeText(
                         context,
                         "Could not open map",
@@ -295,6 +294,7 @@ fun DashboardScreen(
             is TripAction.Delete -> {
                 showMenu = false
                 tripToDelete = action.tripSummary
+                showTripToDeleteDialog = true
             }
         }
     }
@@ -302,15 +302,14 @@ fun DashboardScreen(
     // Scaffold automatically calculates the "Safe Area" for the Top Bar and Bottom Bar
     Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) { innerPadding -> // This 'innerPadding' contains the safe area values
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding), // Apply the safe padding here!
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 1. ACTIVE TRIP (The Hero)
             item {
                 if (state.activeTrips.isNotEmpty() && activeTripEvents.active.isNotEmpty()) {
                     ActiveTripCard(
@@ -485,12 +484,13 @@ fun DashboardScreen(
         }
     }
     // DELETE CONFIRMATION
-    tripToDelete?.let { item ->
-        DeleteDialog(
-            title = "Delete Trip",
-            message =
-                if ((item.fishCaught > 0) || (item.eventCount > 0))
-                    """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
+    if (showTripToDeleteDialog) {
+        tripToDelete?.let { item ->
+            DeleteDialog(
+                title = "Delete Trip",
+                message =
+                    if ((item.fishCaught > 0) || (item.eventCount > 0))
+                        """There ${if (item.fishCaught == 1) "is" else "are"} currently ${item.fishCaught} fish associated with this trip.
                         |
                         |There ${if (item.eventCount == 1) "is" else "are"} currently ${item.eventCount} ${if (item.eventCount == 1) "event" else "events"} associated with this trip
                         |
@@ -498,17 +498,18 @@ fun DashboardScreen(
                         |
                         |Are you sure you want to proceed?
                     """.trimMargin()
-                else
-                    """Are you sure you want to delete this trip? 
+                    else
+                        """Are you sure you want to delete this trip? 
                         |
                         |No fish or events are currently associated with this trip.
                         """.trimMargin(),
-            onConfirm = {
-                viewModel.deleteTrip(item.trip)
-                tripToDelete = null
-            },
-            onDismiss = { tripToDelete = null }
-        )
+                onConfirm = {
+                    viewModel.deleteTrip(item.trip)
+                    showTripToDeleteDialog = !showTripToDeleteDialog
+                },
+                onDismiss = { showTripToDeleteDialog = !showTripToDeleteDialog }
+            )
+        }
     }
 }
 
@@ -530,7 +531,6 @@ fun ActiveTripCard(
     onSwipe: (String, String) -> Unit,
     onLogFish: (String, String) -> Unit
 ) {
-    // todo -- can probably get away from activeTrips and activeEvents.
     var currentIndex by remember { mutableIntStateOf(0) }
     var tripExpanded by remember { mutableStateOf(false) }
     val currentEvent = activeEvents.getOrNull(currentIndex) ?: return
@@ -551,12 +551,10 @@ fun ActiveTripCard(
     val allWaterClarity by viewModel.allWaterClarity.collectAsStateWithLifecycle()
     var showAddWaterDialog by remember { mutableStateOf(false) }
     var showAddWaterClarityDialog by remember { mutableStateOf(false) }
-    var pendingWaterClarityId by remember { mutableStateOf<String?>(null) }
 
     val allSkyConditions by viewModel.allSkyConditions.collectAsStateWithLifecycle()
     var showAddWeatherDialog by remember { mutableStateOf(false) }
     var showAddSkyConditionDialog by remember { mutableStateOf(false) }
-    var pendingSkyConditionId by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
@@ -962,7 +960,7 @@ fun ActiveTripCard(
             initialDepth = sortedWaterList.firstOrNull()?.water?.depth,
             initialClarity = sortedWaterList.firstOrNull()?.water?.clarityId,
             allClarity = allWaterClarity,
-            pendingClarity = pendingWaterClarityId,
+            pendingClarity = viewModel.pendingWaterClarityId,
             useImperial = useImperial,
             title = if (sortedWaterList.isEmpty()) { "Set Water Conditions" } else {"Update Water Conditions"} ,
             thumbnailProvider = { clarity ->
@@ -978,7 +976,7 @@ fun ActiveTripCard(
                 )
             },
             onToggleImperialUnits = { onToggleImperialUnits() },
-            onDismiss = { showAddWaterDialog = false },
+            onDismiss = { showAddWaterDialog = !showAddWaterDialog },
             onConfirm = { temp, depth, clarity ->
                 val newWater = Water(
                     tripId = currentEvent.event.tripId,
@@ -989,7 +987,7 @@ fun ActiveTripCard(
                 )
 
                 viewModel.addWater(newWater)
-                showAddWaterDialog = false
+                showAddWaterDialog = !showAddWaterDialog
             },
             onAddWaterClarity = { showAddWaterClarityDialog = true }
         )
@@ -1003,7 +1001,7 @@ fun ActiveTripCard(
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
-                    pendingWaterClarityId = newWaterClarity.id
+                    viewModel.onPendingWaterClarityId(newWaterClarity.id)
                     showAddWaterClarityDialog = !showAddWaterClarityDialog
                 }
             }
@@ -1016,7 +1014,7 @@ fun ActiveTripCard(
             onConfirm = { name ->
                 val newSkyCondition = SkyCondition(name = name)
                 viewModel.addSkyCondition(newSkyCondition) {
-                    pendingSkyConditionId = newSkyCondition.id
+                    viewModel.onPendingSkyConditionId(newSkyCondition.id)
                     showAddSkyConditionDialog = !showAddSkyConditionDialog
                 }
             }
@@ -1037,7 +1035,7 @@ fun ActiveTripCard(
             initialAirVisibility = sortedWeatherList.firstOrNull()?.weather?.airVisibility,
             initialAirHumidity = sortedWeatherList.firstOrNull()?.weather?.airHumidity,
             allSkyConditions = allSkyConditions,
-            pendingSkyCondition = pendingSkyConditionId,
+            pendingSkyCondition = viewModel.pendingSkyConditionId,
             useImperial = useImperial,
             title = if (sortedWeatherList.isEmpty()) { "Set Weather Conditions" } else {"Update Weather Conditions"} ,
             thumbnailProvider = { skyCondition ->
@@ -1054,8 +1052,8 @@ fun ActiveTripCard(
             },
             onToggleImperialUnits = { onToggleImperialUnits() },
             onAddSkyCondition = {
+                viewModel.onPendingSkyConditionId(null)
                 showAddSkyConditionDialog = true
-                pendingSkyConditionId = null
             },
             onConfirm = { temp, skyCondition, windDirection, windSpeed, atmosphericPressure, airVisibility, airHumidity ->
                 viewModel.addWeather(
@@ -1070,8 +1068,8 @@ fun ActiveTripCard(
                         airVisibility = airVisibility,
                         airHumidity = airHumidity)
                 )
+                viewModel.onPendingSkyConditionId(null)
                 showAddWeatherDialog = !showAddWeatherDialog
-                pendingSkyConditionId = null
             },
             onDismiss = { showAddWeatherDialog = !showAddWeatherDialog }
         )
@@ -1207,7 +1205,7 @@ private fun GridItem(
                             .offset(
                                 x = (12).dp,
                                 y = (-4).dp
-                            ) // Changed y offset so it sits properly on the top-right corner
+                            )
                     ) {
                         Box(
                             modifier = Modifier
@@ -1353,46 +1351,6 @@ fun UpcomingEventChip(
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Composable
-fun TripHistoryRow(trip: Trip) {
-    val dateRange = java.text.SimpleDateFormat("MM/dd/yy", LocalLocale.current.platformLocale)
-        .format(java.util.Date(trip.startDate))
-
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = trip.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = dateRange,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // A small Maize "chevron" or icon to indicate you can view details
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.primary
             )
         }
     }

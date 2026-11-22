@@ -253,7 +253,6 @@ fun AppNavigation(
             DashboardScreen(
                 onNavigate = { route -> navController.navigate(route) },
                 onFishListNavigate = { route -> navController.navigate(route) },
-                onReportsNavigate = { route -> navController.navigate(route) },
                 viewModel = viewModel
             )
         }

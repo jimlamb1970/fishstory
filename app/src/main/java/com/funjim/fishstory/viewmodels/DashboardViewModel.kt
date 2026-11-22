@@ -2,6 +2,9 @@ package com.funjim.fishstory.viewmodels
 
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -62,6 +65,18 @@ class DashboardViewModel(
             emit(System.currentTimeMillis())
             delay(60_000)
         }
+    }
+
+    var pendingSkyConditionId: String? by mutableStateOf(null)
+        private set
+    var pendingWaterClarityId: String? by mutableStateOf(null)
+        private set
+
+    fun onPendingSkyConditionId(id: String?) {
+        pendingSkyConditionId = id
+    }
+    fun onPendingWaterClarityId(id: String?) {
+        pendingWaterClarityId = id
     }
 
     val appSettings: StateFlow<AppSettings> = configRepo.appSettings
