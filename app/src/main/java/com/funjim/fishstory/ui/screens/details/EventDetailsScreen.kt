@@ -627,9 +627,12 @@ fun EventDetailsScreen(
                                     }
                                 }
                             }
-                            Box {
+                            Box(modifier = Modifier.size(32.dp)) {
                                 IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = "More")
+                                    Icon(
+                                        Icons.Default.MoreVert,
+                                        contentDescription = "More"
+                                    )
                                 }
                                 DropdownMenu(
                                     expanded = menuExpanded,

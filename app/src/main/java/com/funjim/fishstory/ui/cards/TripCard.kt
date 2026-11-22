@@ -107,7 +107,7 @@ fun TripCardWithMenu(
         onPhotoDeleted = onPhotoDeleted,
         onAction = onAction,
         actions = {
-            Box {
+            Box(modifier = Modifier.size(24.dp)) {
                 IconButton(onClick = { onAction(TripAction.Menu(tripSummary)) }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,

@@ -220,7 +220,7 @@ fun FishermanItem(
 
                 }
 
-                Box {
+                Box(modifier = Modifier.size(24.dp)) {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -478,7 +478,7 @@ fun FishermanSummaryCard(
                     }
                 }
 
-                Box {
+                Box(modifier = Modifier.size(24.dp)) {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,

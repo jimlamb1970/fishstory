@@ -284,7 +284,7 @@ fun ManageColorsScreen(
                             },
                             headlineContent = { Text(item.name) },
                             trailingContent = {
-                                Box {
+                                Box(modifier = Modifier.size(24.dp)) {
                                     IconButton(onClick = { menuExpanded = true }) {
                                         Icon(
                                             imageVector = Icons.Default.MoreVert,

@@ -226,7 +226,7 @@ fun FishCard(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box {
+                Box(modifier = Modifier.size(32.dp)) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,

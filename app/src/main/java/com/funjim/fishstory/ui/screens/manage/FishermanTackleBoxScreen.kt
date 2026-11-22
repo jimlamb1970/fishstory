@@ -197,9 +197,12 @@ fun FishermanTackleBoxScreen(
                             }
                         }
                     }
-                    Box {
+                    Box(modifier = Modifier.size(32.dp)) {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "More"
+                            )
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -615,7 +618,7 @@ private fun LureTackleBoxItem(
                     }
                 }
 
-                Box {
+                Box(modifier = Modifier.size(32.dp)) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,

@@ -93,7 +93,7 @@ fun WeatherCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -244,7 +244,7 @@ fun WeatherCard(
             }
 
             if (onEdit != null || onDelete != null) {
-                Box {
+                Box(modifier = Modifier.size(24.dp)) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -336,7 +336,7 @@ fun WeatherSummaryCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -513,7 +513,7 @@ fun WeatherSummaryCard(
                 }
             }
 
-            Box {
+            Box(modifier = Modifier.size(24.dp)) {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,

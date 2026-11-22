@@ -214,7 +214,7 @@ fun LimitCard(
                     }
                 }
 
-                Box(modifier = Modifier.size(24.dp)) {
+                Box(modifier = Modifier.size(32.dp)) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -463,7 +463,7 @@ fun LimitSummaryCard(
                 }
 
                 if (allowMenu) {
-                    Box {
+                    Box(modifier = Modifier.size(32.dp)) {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
