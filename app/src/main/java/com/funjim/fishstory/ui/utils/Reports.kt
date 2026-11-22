@@ -79,44 +79,40 @@ fun ReportsList(
     var reportExpanded by remember { mutableStateOf(false) }
     var selectedReport by remember { mutableStateOf(ReportType.SPECIES) }
 
+    ExposedDropdownMenuBox(
+        expanded = reportExpanded,
+        onExpandedChange = { reportExpanded = !reportExpanded }
+    ) {
+        OutlinedTextField(
+            value = selectedReport.label,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Report Type") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = reportExpanded) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = reportExpanded,
+            onDismissRequest = { reportExpanded = false }
+        ) {
+            ReportType.entries.forEach { report ->
+                DropdownMenuItem(
+                    text = { Text(report.label) },
+                    onClick = {
+                        selectedReport = report
+                        reportExpanded = false
+                    }
+                )
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Report type dropdown
-        item {
-            ExposedDropdownMenuBox(
-                expanded = reportExpanded,
-                onExpandedChange = { reportExpanded = !reportExpanded }
-            ) {
-                OutlinedTextField(
-                    value = selectedReport.label,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Report Type") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = reportExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                )
-                ExposedDropdownMenu(
-                    expanded = reportExpanded,
-                    onDismissRequest = { reportExpanded = false }
-                ) {
-                    ReportType.entries.forEach { report ->
-                        DropdownMenuItem(
-                            text = { Text(report.label) },
-                            onClick = {
-                                selectedReport = report
-                                reportExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // Chart
         item {
             when (selectedReport) {
                 ReportType.SPECIES -> SpeciesBarChart(fishList)
@@ -133,7 +129,7 @@ fun ReportsList(
 @Composable
 fun SpeciesBarChart(fishList: List<FishWithDetails>) {
     val speciesCounts = remember(fishList) {
-        fishList.groupingBy { it.species?.name }.eachCount()
+        fishList.groupingBy { it.species.name }.eachCount()
     }
 
     val labels = remember(speciesCounts) { speciesCounts.keys.toList() }
@@ -162,7 +158,7 @@ fun SpeciesBarChart(fishList: List<FishWithDetails>) {
     }
 
     if (isSyncing) {
-
+        // TODO - add spinner
     } else {
         CartesianChartHost(
             rememberCartesianChart(
@@ -185,7 +181,7 @@ fun FishermanBarChart(
     fishList: List<FishWithDetails>
 ) {
     val fishermanCounts = remember(fishList) {
-        fishList.groupingBy { it.fisherman?.fullName }.eachCount()
+        fishList.groupingBy { it.fisherman.fullName }.eachCount()
     }
     val labels = remember(fishermanCounts) { fishermanCounts.keys.toList() }
     val values = remember(fishermanCounts) { fishermanCounts.values.map { it.toFloat() } }
@@ -237,7 +233,7 @@ fun FishermanBarChart(
 @Composable
 fun FishermanPieChart(fishList: List<FishWithDetails>) {
     val fishermanCounts = remember(fishList) {
-        fishList.groupingBy { it.fisherman?.fullName }.eachCount()
+        fishList.groupingBy { it.fisherman.fullName }.eachCount()
             .entries
             .sortedByDescending { it.value }
     }
@@ -335,20 +331,20 @@ private val SPECIES_COLORS = listOf(
 fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
     // All unique species, sorted for a stable legend order
     val allSpecies = remember(fishList) {
-        fishList.map { it.species?.name ?: "" }.distinct().sorted()
+        fishList.map { it.species.name }.distinct().sorted()
     }
 
     // All unique fishermen, sorted for stable x-axis order
     val allFishermen = remember(fishList) {
-        fishList.map { it.fisherman?.fullName ?: "" }.distinct().sorted()
+        fishList.map { it.fisherman.fullName }.distinct().sorted()
     }
 
     // For each species (one series per species), build a list of counts
     // indexed by fisherman position. Missing combinations = 0.
     val seriesData: List<List<Float>> = remember(fishList, allSpecies, allFishermen) {
-        val countMap = fishList.groupBy { it.fisherman?.fullName }
+        val countMap = fishList.groupBy { it.fisherman.fullName }
             .mapValues { (_, catches) ->
-                catches.groupingBy { it.species?.name }.eachCount()
+                catches.groupingBy { it.species.name }.eachCount()
             }
         allSpecies.map { species ->
             allFishermen.map { fisherman ->
@@ -382,7 +378,7 @@ fun FishermanStackedBarChart(fishList: List<FishWithDetails>) {
     }
 
     // One colored column component per species
-    val columnComponents = allSpecies.mapIndexed { index, _ ->
+    val columnComponents = List(allSpecies.size) { index ->
         rememberLineComponent(
             fill = Fill(SPECIES_COLORS[index % SPECIES_COLORS.size]),
             thickness = 16.dp,
