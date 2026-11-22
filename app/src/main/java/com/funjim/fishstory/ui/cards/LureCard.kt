@@ -42,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LureWithColorsSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.FishCaughtItem

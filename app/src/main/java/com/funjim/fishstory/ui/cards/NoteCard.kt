@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BaseNote
-import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
@@ -62,7 +61,6 @@ fun NoteCard(
     val backgroundColor = getCardColor(index, totalItems)
     val borderColor = getCardBorderColor(index, totalItems)
     val contentColor = getOnCardColor()
-    val secondaryContentColor = getOnCardSecondaryColor()
 
     OutlinedCard(
         modifier = modifier

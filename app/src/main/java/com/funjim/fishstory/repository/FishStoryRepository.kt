@@ -16,19 +16,6 @@ import com.funjim.fishstory.database.dao.TackleBoxDao
 import com.funjim.fishstory.database.dao.TripDao
 import com.funjim.fishstory.database.dao.WaterDao
 import com.funjim.fishstory.database.dao.WeatherDao
-import com.funjim.fishstory.database.entity.BaitPhotoEntity
-import com.funjim.fishstory.database.entity.BodyOfWaterPhotoEntity
-import com.funjim.fishstory.database.entity.EventNoteEntity
-import com.funjim.fishstory.database.entity.EventPhotoEntity
-import com.funjim.fishstory.database.entity.FishNoteEntity
-import com.funjim.fishstory.database.entity.FishPhotoEntity
-import com.funjim.fishstory.database.entity.FishermanPhotoEntity
-import com.funjim.fishstory.database.entity.LurePhotoEntity
-import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
-import com.funjim.fishstory.database.entity.SpeciesPhotoEntity
-import com.funjim.fishstory.database.entity.TripNoteEntity
-import com.funjim.fishstory.database.entity.TripPhotoEntity
-import com.funjim.fishstory.database.entity.WaterClarityPhotoEntity
 import com.funjim.fishstory.database.mapper.toBaitDomainList
 import com.funjim.fishstory.database.mapper.toBaitPhotoDomainList
 import com.funjim.fishstory.database.mapper.toBodyOfWaterDomainList
@@ -72,7 +59,6 @@ import com.funjim.fishstory.database.mapper.toTripTargetSpeciesDomainList
 import com.funjim.fishstory.database.mapper.toWaterClarityPhotoDomainList
 import com.funjim.fishstory.database.mapper.toWaterDomainList
 import com.funjim.fishstory.database.mapper.toWeatherDomainList
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.viewmodels.FishStoryData
 
 class FishStoryRepository(
@@ -113,7 +99,7 @@ class FishStoryRepository(
             eventNotes = noteDao.getAllEventNotesList().toEventNoteDomainList(),
             fishNotes = noteDao.getAllFishNotesList().toFishNoteDomainList(),
             tripNotes = noteDao.getAllTripNotesList().toTripNoteDomainList(),
-            // Cross Reference Tables (All of them)
+            // Cross-Reference Tables (All of them)
             lurePrimaryColors = lureDao.getAllLurePrimaryColorsList().toLurePrimaryColorDomainList(),
             lureSecondaryColors = lureDao.getAllLureSecondaryColorsList().toLureSecondaryColorDomainList(),
             lureGlowColors = lureDao.getAllLureGlowColorsList().toLureGlowColorDomainList(),

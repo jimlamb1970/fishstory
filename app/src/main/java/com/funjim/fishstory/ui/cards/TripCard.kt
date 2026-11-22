@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.model.TripPhoto
 import com.funjim.fishstory.model.TripSummary

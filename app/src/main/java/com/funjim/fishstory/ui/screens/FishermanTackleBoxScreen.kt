@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LureWithColorsSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.BadgeSelected
 import com.funjim.fishstory.ui.utils.CardItemWithValue

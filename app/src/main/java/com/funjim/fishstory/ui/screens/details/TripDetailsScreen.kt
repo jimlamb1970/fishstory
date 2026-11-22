@@ -42,7 +42,6 @@ import com.funjim.fishstory.model.EventWithInfo
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.LimitWithSpecies
 import com.funjim.fishstory.model.LimitScope
-import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Species
 import com.funjim.fishstory.model.TackleBox

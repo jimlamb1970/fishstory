@@ -11,7 +11,6 @@ import com.funjim.fishstory.model.EventSummary
 import com.funjim.fishstory.model.LimitEventSummary
 import com.funjim.fishstory.model.LimitScope
 import com.funjim.fishstory.model.LimitSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.Trip
 import com.funjim.fishstory.model.TripDetailedSummary

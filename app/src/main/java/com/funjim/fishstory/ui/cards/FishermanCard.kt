@@ -49,9 +49,6 @@ import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
 import com.funjim.fishstory.model.Lure
-import com.funjim.fishstory.model.LureWithColors
-import com.funjim.fishstory.model.LureWithColorsSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.model.TackleBox
 import com.funjim.fishstory.model.TackleBoxSummary
 import com.funjim.fishstory.ui.theme.AppIcons
@@ -60,7 +57,6 @@ import com.funjim.fishstory.ui.utils.FishCaughtItem
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
 import com.funjim.fishstory.ui.utils.PhotoPickerRow
 import com.funjim.fishstory.ui.utils.ThumbnailBox
-import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.utils.getCardBorderColor
 import com.funjim.fishstory.ui.utils.getCardColor
 import com.funjim.fishstory.ui.utils.getOnCardColor
@@ -409,7 +405,7 @@ fun FishermanSummaryCard(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(24.dp)
-                                .clickable() {
+                                .clickable {
                                     if ((selectedTackleBox != null) || (lureCount != 0)) {
                                         tackleBoxOpen = !tackleBoxOpen
                                         if (tackleBoxOpen) {

@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BaseNote
-import com.funjim.fishstory.model.Note
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -145,7 +144,6 @@ fun NotesDialog(
                     IconButton(
                         onClick = {
                             isCreatingNew = true
-                            textBuffer = ""
                         },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,

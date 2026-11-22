@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.EventPhoto
 import com.funjim.fishstory.model.EventSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.FishCaughtItem
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @Composable
 fun EventItem(
@@ -152,11 +152,11 @@ fun EventItem(
                                     .size(24.dp)
                                     .clickable {
                                         val mapUri =
-                                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
+                                            "https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}".toUri()
                                         val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                         try {
                                             context.startActivity(intent)
-                                        } catch (e: Exception) {
+                                        } catch (_: Exception) {
                                             Toast.makeText(
                                                 context,
                                                 "Could not open map",

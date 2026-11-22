@@ -29,9 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.FishPhoto
-import com.funjim.fishstory.model.FishSettings
 import com.funjim.fishstory.model.FishWithDetails
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.ui.theme.AppIcons
 import com.funjim.fishstory.ui.utils.CardItemWithValue
 import com.funjim.fishstory.ui.utils.LureCompositionWithColors
@@ -47,6 +45,7 @@ import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @Composable
 fun FishCard(
@@ -105,8 +104,9 @@ fun FishCard(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(IntrinsicSize.Min,
-                )
+                    .width(
+                        IntrinsicSize.Min,
+                    )
             ) {
                 if (fish.fish.keptCount > 0) {
                     ReleasedChip(fish.fish.keptCount == 0)
@@ -126,7 +126,6 @@ fun FishCard(
             val trip = fish.trip
             val event = fish.event
 
-            val eventLat = event.latitude
             val fishLat = fish.fish.latitude
 
             // Precedence logic: Use Event if it exists, otherwise use Trip
@@ -156,11 +155,11 @@ fun FishCard(
                                 .size(24.dp)
                                 .clickable {
                                     val mapUri =
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}")
+                                        "https://www.google.com/maps/search/?api=1&query=${activeLat},${activeLng}".toUri()
                                     val intent = Intent(Intent.ACTION_VIEW, mapUri)
                                     try {
                                         context.startActivity(intent)
-                                    } catch (e: Exception) {
+                                    } catch (_: Exception) {
                                         Toast.makeText(
                                             context,
                                             "Could not open map",

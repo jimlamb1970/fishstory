@@ -34,21 +34,6 @@ import com.funjim.fishstory.model.LureGlowColor
 import com.funjim.fishstory.model.LurePhoto
 import com.funjim.fishstory.model.LurePrimaryColor
 import com.funjim.fishstory.model.LureSecondaryColor
-import com.funjim.fishstory.model.Note
-import com.funjim.fishstory.model.NoteEvent
-import com.funjim.fishstory.model.NoteFish
-import com.funjim.fishstory.model.NoteTrip
-import com.funjim.fishstory.model.Photo
-import com.funjim.fishstory.model.PhotoBait
-import com.funjim.fishstory.model.PhotoBodyOfWater
-import com.funjim.fishstory.model.PhotoEvent
-import com.funjim.fishstory.model.PhotoFish
-import com.funjim.fishstory.model.PhotoFisherman
-import com.funjim.fishstory.model.PhotoLure
-import com.funjim.fishstory.model.PhotoSkyCondition
-import com.funjim.fishstory.model.PhotoSpecies
-import com.funjim.fishstory.model.PhotoTrip
-import com.funjim.fishstory.model.PhotoWaterClarity
 import com.funjim.fishstory.model.SkyCondition
 import com.funjim.fishstory.model.SkyConditionPhoto
 import com.funjim.fishstory.model.Species
@@ -159,7 +144,6 @@ data class FishStoryData(
     val fishNotes: List<FishNote> = emptyList(),
     val tripNotes: List<TripNote> = emptyList(),
 
-    val photos: List<Photo> = emptyList(),
     // Lure and Tackle Box Cross References (4) (21)
     val lurePrimaryColors: List<LurePrimaryColor> = emptyList(),
     val lureSecondaryColors: List<LureSecondaryColor> = emptyList(),
@@ -190,18 +174,6 @@ data class FishStoryData(
     val speciesPhotos: List<SpeciesPhoto> = emptyList(),
     val tripPhotos: List<TripPhoto> = emptyList(),
     val waterClarityPhotos: List<WaterClarityPhoto> = emptyList(),
-
-    // Photo Cross References (10) (45)
-    val photosBait: List<PhotoBait> = emptyList(),
-    val photosBodyOfWater: List<PhotoBodyOfWater> = emptyList(),
-    val photosEvent: List<PhotoEvent> = emptyList(),
-    val photosFish: List<PhotoFish> = emptyList(),
-    val photosFisherman: List<PhotoFisherman> = emptyList(),
-    val photosLure: List<PhotoLure> = emptyList(),
-    val photosSkyCondition: List<PhotoSkyCondition> = emptyList(),
-    val photosSpecies: List<PhotoSpecies> = emptyList(),
-    val photosTrip: List<PhotoTrip> = emptyList(),
-    val photosWaterClarity: List<PhotoWaterClarity> = emptyList(),
 )
 
 class ImportViewModel(

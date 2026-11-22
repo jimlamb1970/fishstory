@@ -9,7 +9,6 @@ import com.funjim.fishstory.model.AppSettings
 import com.funjim.fishstory.model.Fisherman
 import com.funjim.fishstory.model.FishermanPhoto
 import com.funjim.fishstory.model.FishermanSummary
-import com.funjim.fishstory.model.Photo
 import com.funjim.fishstory.repository.ConfigurationRepository
 import com.funjim.fishstory.repository.FishermanRepository
 import com.funjim.fishstory.repository.PhotoRepository

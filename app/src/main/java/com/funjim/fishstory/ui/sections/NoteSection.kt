@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.funjim.fishstory.model.BaseNote
-import com.funjim.fishstory.model.Note
 import com.funjim.fishstory.ui.cards.NoteCard
 import com.funjim.fishstory.ui.utils.BadgeCount
 import com.funjim.fishstory.ui.utils.BadgeHelp
@@ -49,7 +48,7 @@ fun NoteSection(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    Column() {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
