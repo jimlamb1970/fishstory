@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.list
 
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -104,6 +104,7 @@ fun FishListScreen(
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var fishToDelete by remember { mutableStateOf<Fish?>(null) }
 
     var fishToUpdateLocation by remember { mutableStateOf<FishWithDetails?>(null) }
@@ -197,7 +198,7 @@ fun FishListScreen(
             Column(modifier = Modifier.padding(padding).fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Column(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp)
                 ) {
                     displayItems.forEachIndexed { index, (text, iconVector, isLure) ->
                         Row(
@@ -240,7 +241,7 @@ fun FishListScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(modifier = Modifier
@@ -340,7 +341,7 @@ fun FishListScreen(
                 ) {
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)
                     ) {
                         val totalItems = fishForScope.size
                         itemsIndexed(
@@ -394,7 +395,10 @@ fun FishListScreen(
                                 onPhotoDeleted = { photo ->
                                     viewModel.deleteFishPhoto(photo)
                                 },
-                                onDelete = { fishToDelete = fishDetails.fish },
+                                onDelete = {
+                                    fishToDelete = fishDetails.fish
+                                    showDeleteDialog = true
+                                },
                                 onSetLocation = if (hasLocationPermission) {
                                     {
                                         scope.launch {
@@ -455,30 +459,37 @@ fun FishListScreen(
         }
     }
 
-    // DELETE CONFIRMATION
-    fishToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { fishToDelete = null },
-            title = { Text("Delete Fish?") },
-            text = { Text("""Are you sure you want to delete this fish?
+    if (showDeleteDialog) {
+        fishToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Fish?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete this fish?
 
-This cannot be undone.""") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteFish(item)
-                        fishToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+This cannot be undone."""
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteFish(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = !showDeleteDialog }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { fishToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }

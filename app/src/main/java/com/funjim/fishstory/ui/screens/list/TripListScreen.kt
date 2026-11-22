@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.list
 
 import com.funjim.fishstory.ui.dialogs.DeleteDialog
 import android.Manifest
@@ -279,7 +279,7 @@ fun TripListScreen(
             .padding(padding)
             .fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(modifier = Modifier
@@ -322,7 +322,7 @@ fun TripListScreen(
             val listState = rememberLazyListState()
 
             Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 16.dp)
+                LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     when (filter) {
                         TripListFilter.UPCOMING -> {

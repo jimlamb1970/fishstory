@@ -1,7 +1,6 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.list
 
 import android.widget.Toast
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -21,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,8 +56,6 @@ fun FishermanListScreen(
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
-
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.toastMessage.collect { message ->
@@ -125,7 +121,7 @@ fun FishermanListScreen(
             .fillMaxSize()) {
             // Sort Buttons
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(modifier = Modifier
@@ -184,7 +180,7 @@ fun FishermanListScreen(
             ) {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)
                 ) {
                     val totalItems = fishermanSummaries.size
                     itemsIndexed(fishermanSummaries) { index, fisherman ->
@@ -235,24 +231,23 @@ fun FishermanListScreen(
             }
         }
 
-        if (showAddDialog) {
-            NewFishermanDialog(
-                onDismiss = { showAddDialog = !showAddDialog },
-                onAdd = { first, last, nick ->
-                    val fisherman = Fisherman(
-                        firstName = first.trim(),
-                        lastName = last.trim(),
-                        nickname = nick.trim()
-                    )
-                    viewModel.addFisherman(fisherman) {
-                        showAddDialog = !showAddDialog
-                    }
-                }
-            )
-        }
     }
 
-    // DELETE CONFIRMATION
+    if (showAddDialog) {
+        NewFishermanDialog(
+            onDismiss = { showAddDialog = !showAddDialog },
+            onAdd = { first, last, nick ->
+                val fisherman = Fisherman(
+                    firstName = first.trim(),
+                    lastName = last.trim(),
+                    nickname = nick.trim()
+                )
+                viewModel.addFisherman(fisherman) {
+                    showAddDialog = !showAddDialog
+                }
+            }
+        )
+    }
     if (showDeleteDialog) {
         fishermanToDelete?.let { item ->
             AlertDialog(
@@ -291,27 +286,5 @@ Tackle boxes and fish (${item.fishCaught}) logged for ${item.fisherman.fullName}
                 }
             )
         }
-    }
-}
-
-
-@Composable
-fun SortingArrow(
-    isReversed: Boolean,
-    onClick: () -> Unit
-) {
-    // 1. Calculate the rotation angle based on the boolean state
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isReversed) 180f else 0f,
-        label = "ArrowRotation"
-    )
-
-    IconButton(onClick = onClick) {
-        Icon(
-            imageVector = Icons.Default.ArrowDownward, // Use a single base icon
-            contentDescription = "Toggle Sort Direction",
-            modifier = Modifier.rotate(rotationAngle), // 2. Apply the rotation
-            tint = MaterialTheme.colorScheme.primary
-        )
     }
 }

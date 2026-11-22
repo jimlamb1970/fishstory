@@ -1,4 +1,4 @@
-package com.funjim.fishstory.ui.screens
+package com.funjim.fishstory.ui.screens.list
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -46,8 +46,10 @@ fun LureListScreen(
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
     val allLures by viewModel.luresWithDisplay.collectAsState(initial = emptyList())
-    var lureToDelete by remember { mutableStateOf<Lure?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var lureToDelete by remember { mutableStateOf<Lure?>(null) }
 
     val currentOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
     val reversed by viewModel.isReversed.collectAsStateWithLifecycle()
@@ -139,7 +141,7 @@ fun LureListScreen(
                 onValueChange = { searchQuery = it.trimStart() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 placeholder = { Text("Search lures...") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Search Icon")
@@ -159,7 +161,7 @@ fun LureListScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -250,7 +252,7 @@ fun LureListScreen(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 8.dp)
                     ) {
                         val totalItems = filteredLures.size
                         itemsIndexed(
@@ -286,7 +288,10 @@ fun LureListScreen(
                                     navigateToFishList(lureId, targetOnly)
                                 },
                                 onEdit = { onEdit(item.lure.id) },
-                                onDelete = { lureToDelete = item.lure }
+                                onDelete = {
+                                    lureToDelete = item.lure
+                                    showDeleteDialog = true
+                                }
                             )
                         }
                     }
@@ -309,13 +314,14 @@ fun LureListScreen(
 
     // TODO - get fish counts and tackle box counts for lures
     // DELETE CONFIRMATION
-    lureToDelete?.let { item ->
-        AlertDialog(
-            onDismissRequest = { lureToDelete = null },
-            title = { Text("Delete Lure?") },
-            text = {
-                Text(
-                    """Are you sure you want to delete '${item.name}'?
+    if (showDeleteDialog) {
+        lureToDelete?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = !showDeleteDialog },
+                title = { Text("Delete Lure?") },
+                text = {
+                    Text(
+                        """Are you sure you want to delete '${item.name}'?
 
 This cannot be undone.
 
@@ -323,24 +329,27 @@ If you delete this lure, it will be removed from all fish that were caught with 
 
 It will also be removed from all tackle boxes that contain it.
 """
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteLure(item)
-                        lureToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteLure(item)
+                            showDeleteDialog = !showDeleteDialog
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = !showDeleteDialog }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { lureToDelete = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
