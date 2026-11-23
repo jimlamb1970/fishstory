@@ -967,11 +967,17 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     }
 
                                     CategoryType.EVENTS -> {
-                                        Column {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(
+                                                    vertical = 8.dp,
+                                                    horizontal = 8.dp
+                                                ),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
                                             Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(top = 8.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
+                                                modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
@@ -991,6 +997,8 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     }
                                                 }
 
+                                                Spacer(modifier = Modifier.weight(1f))
+
                                                 BadgeHelp(
                                                     selected = appSettings.display.showHelp,
                                                     badgeColor = getMainButtonColor(),
@@ -1000,7 +1008,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     onClick = { viewModel.toggleHelp() }
                                                 )
 
-                                                Spacer(modifier = Modifier.weight(1f))
+                                                Spacer(modifier = Modifier.width(8.dp))
 
                                                 IconButton(
                                                     onClick = {
@@ -1020,27 +1028,22 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             }
                                             val totalItems = eventSummaries.size
                                             if (totalItems == 0) {
-                                                Column(
-                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "No events created.",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 8.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.height(4.dp))
-                                                    Text(
-                                                        text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = getOnSecondaryColor(),
-                                                        modifier = Modifier.padding(horizontal = 8.dp)
-                                                    )
-                                                }
+                                                Text(
+                                                    text = "No events created.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = getOnSecondaryColor(),
+                                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                                )
+                                                Text(
+                                                    text = "Events mark the times you are actively fishing, allowing caught fish to be logged and linked to specific fishing sessions.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = getOnSecondaryColor(),
+                                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                                )
                                             } else {
                                                 Column(
-                                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                    modifier = Modifier.fillMaxWidth()
                                                 ) {
                                                     if (appSettings.display.showHelp) {
                                                         Text(
@@ -1054,7 +1057,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                         EventItem(
                                                             item = eventSummary,
                                                             verbose = appSettings.display.verboseCards,
-                                                            modifier = Modifier.padding(vertical = 4.dp),
+//                                                            modifier = Modifier.padding(vertical = 4.dp),
                                                             index = index,
                                                             totalItems = totalItems,
                                                             thumbnailFlow = viewModel.getEventThumbnail(
