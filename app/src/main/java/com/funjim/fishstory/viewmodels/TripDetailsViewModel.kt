@@ -818,6 +818,11 @@ class TripDetailsViewModel(
             configRepo.updateUseImperialUnits(appSettings.value.display.useImperialUnits.not())
         }
     }
+    fun toggleShowAllCategories() {
+        viewModelScope.launch {
+            configRepo.updateShowAllCategories(appSettings.value.display.showAllCategories.not())
+        }
+    }
 }
 
 sealed interface TripDetailsUiState {

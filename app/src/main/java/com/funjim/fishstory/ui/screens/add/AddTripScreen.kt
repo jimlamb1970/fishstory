@@ -411,7 +411,7 @@ fun AddTripScreen(
                 .padding(padding)
                 .fillMaxSize(),
             contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             item {
                 Row(
@@ -542,7 +542,7 @@ fun AddTripScreen(
                 )
             }
 
-            item { HorizontalDivider() }
+            item { HorizontalDivider(modifier = Modifier.padding(bottom = 4.dp)) }
 
             item {
                 Crossfade(

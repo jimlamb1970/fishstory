@@ -20,6 +20,7 @@ interface ConfigurationRepository {
     suspend fun updateColorTheme(colorTheme: String)
     suspend fun updateScrollBarOnLeft(onLeft: Boolean)
     suspend fun updateShowHelp(show: Boolean)
+    suspend fun updateShowAllCategories(showAll: Boolean)
     suspend fun updateUseImperialUnits(useImperial: Boolean)
     suspend fun updateVerboseCards(verbose: Boolean)
 
@@ -42,6 +43,7 @@ class ConfigurationRepositoryImpl(
                     colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
                     scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
                     showHelp = preferences[PreferencesKeys.SHOW_HELP] ?: false,
+                    showAllCategories = preferences[PreferencesKeys.SHOW_ALL_CATEGORIES] ?: false,
                     useImperialUnits = preferences[PreferencesKeys.USE_IMPERIAL_UNITS] ?: true,
                     verboseCards = preferences[PreferencesKeys.VERBOSE_CARDS] ?: true,
                 ),
@@ -74,6 +76,12 @@ class ConfigurationRepositoryImpl(
     override suspend fun updateShowHelp(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_HELP] = show
+        }
+    }
+
+    override suspend fun updateShowAllCategories(showAll: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SHOW_ALL_CATEGORIES] = showAll
         }
     }
 

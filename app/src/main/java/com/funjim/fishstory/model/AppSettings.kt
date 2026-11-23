@@ -12,6 +12,7 @@ object PreferencesKeys {
     val CAUTION_BLINK_INTERVAL = longPreferencesKey("caution_blink_interval")
     val COLOR_THEME = stringPreferencesKey("color_theme")
     val SCROLLBAR_ON_LEFT = booleanPreferencesKey("scrollbar_on_left")
+    val SHOW_ALL_CATEGORIES = booleanPreferencesKey("show_all_categories")
     val SHOW_HELP = booleanPreferencesKey("show_help")
     val SHOW_LOCATION_MAP = booleanPreferencesKey("show_location_map")
     val USE_IMPERIAL_UNITS = booleanPreferencesKey("use_imperial_units")
@@ -33,6 +34,7 @@ data class DisplaySettings(
     val cautionBlinkInterval: Long = 1000L,
     val colorTheme: String = "App Default",
     val scrollbarOnLeft: Boolean = false,
+    val showAllCategories: Boolean = false,
     val showHelp: Boolean = false,
     val useImperialUnits: Boolean = true,
     val verboseCards: Boolean = true,

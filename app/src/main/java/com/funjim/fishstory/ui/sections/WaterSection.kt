@@ -48,7 +48,7 @@ fun WaterSection(
 ) {
     var isWaterSectionExpanded by remember { mutableStateOf(false) }
 
-    Column() {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -173,7 +173,7 @@ fun WaterSummarySection(
 ) {
     var isWaterSectionExpanded by remember { mutableStateOf(false) }
 
-    Column() {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -686,6 +686,12 @@ class EventDetailsViewModel(
         }
     }
 
+    fun toggleShowAllCategories() {
+        viewModelScope.launch {
+            configRepo.updateShowAllCategories(appSettings.value.display.showAllCategories.not())
+        }
+    }
+
     private val json = Json { prettyPrint = true }
 
     suspend fun exportDatabaseAsJson(context: Context, uri: Uri): Boolean {

@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -451,7 +452,7 @@ fun AddEventScreen(
                         .padding(padding)
                         .fillMaxSize(),
                     contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     item {
                         Row(
@@ -619,7 +620,7 @@ fun AddEventScreen(
                         )
                     }
 
-                    item { HorizontalDivider() }
+                    item { HorizontalDivider(modifier = Modifier.padding(bottom = 4.dp)) }
 
                     item {
                         Crossfade(

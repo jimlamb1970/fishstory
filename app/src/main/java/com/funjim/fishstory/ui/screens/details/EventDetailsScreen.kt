@@ -99,6 +99,7 @@ import androidx.core.net.toUri
 import com.funjim.fishstory.database.entity.TackleBoxStatus
 import com.funjim.fishstory.model.EventNote
 import com.funjim.fishstory.model.EventPhoto
+import com.funjim.fishstory.ui.utils.CategoryCarousel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -939,11 +940,21 @@ fun EventDetailsScreen(
                                 )
                             }
 
-                            CategoryRow(
-                                categories = categoryConfigs,
-                                selectedCategory = selectedCategory,
-                                onCategorySelected = viewModel::onCategorySelected
-                            )
+                            if (!appSettings.display.showAllCategories) {
+                                CategoryCarousel(
+                                    categories = categoryConfigs,
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = viewModel::onCategorySelected,
+                                    onExpand = { viewModel.toggleShowAllCategories() }
+                                )
+                            } else {
+                                CategoryRow(
+                                    categories = categoryConfigs,
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = viewModel::onCategorySelected,
+                                    onCollapse = { viewModel.toggleShowAllCategories() }
+                                )
+                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),

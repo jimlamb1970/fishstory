@@ -104,6 +104,7 @@ import com.funjim.fishstory.ui.crud.NewTackleBox
 import com.funjim.fishstory.ui.dialogs.GeneralDialog
 import com.funjim.fishstory.ui.selection.LimitSelection
 import com.funjim.fishstory.ui.utils.BadgeHelp
+import com.funjim.fishstory.ui.utils.CategoryCarousel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -893,11 +894,21 @@ fun TripDetailsScreen(
                                 )
                             }
 
-                            CategoryRow(
-                                categories = categoryConfigs,
-                                selectedCategory = selectedCategory,
-                                onCategorySelected = viewModel::onCategorySelected
-                            )
+                            if (!appSettings.display.showAllCategories) {
+                                CategoryCarousel(
+                                    categories = categoryConfigs,
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = viewModel::onCategorySelected,
+                                    onExpand = { viewModel.toggleShowAllCategories() }
+                                )
+                            } else {
+                                CategoryRow(
+                                    categories = categoryConfigs,
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = viewModel::onCategorySelected,
+                                    onCollapse = { viewModel.toggleShowAllCategories() }
+                                )
+                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),
@@ -956,23 +967,16 @@ Selecting them places those bodies of water at the top of the list when logging 
                                     }
 
                                     CategoryType.EVENTS -> {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(
-                                                    vertical = 8.dp,
-                                                    horizontal = 8.dp
-                                                ),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
+                                        Column {
                                             Row(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 8.dp, bottom = 4.dp, start = 8.dp, end = 8.dp),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.weight(1f)
+                                                    verticalAlignment = Alignment.CenterVertically
                                                 ) {
                                                     Text(
                                                         text = "Events",
@@ -995,7 +999,8 @@ Selecting them places those bodies of water at the top of the list when logging 
                                                     size = 24.dp,
                                                     onClick = { viewModel.toggleHelp() }
                                                 )
-                                                Spacer(modifier = Modifier.width(8.dp))
+
+                                                Spacer(modifier = Modifier.weight(1f))
 
                                                 IconButton(
                                                     onClick = {
@@ -1035,7 +1040,7 @@ Selecting them places those bodies of water at the top of the list when logging 
                                             } else {
                                                 Column(
                                                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                                                    modifier = Modifier.fillMaxWidth()
+                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                                                 ) {
                                                     if (appSettings.display.showHelp) {
                                                         Text(
