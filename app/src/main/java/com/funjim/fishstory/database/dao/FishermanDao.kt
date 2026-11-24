@@ -25,7 +25,7 @@ interface FishermanDao {
     suspend fun deleteFisherman(fisherman: FishermanEntity)
     @Query("DELETE FROM fisherman_table WHERE id = :id")
     suspend fun deleteFishermanById(id: String)
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertFisherman(fisherman: FishermanEntity)
     @Upsert
     suspend fun upsertFisherman(fisherman: FishermanEntity)
@@ -36,7 +36,7 @@ interface FishermanDao {
     // CRUD operations for Trip Cross-References
     @Query("DELETE FROM trip_fisherman WHERE tripId = :tripId AND fishermanId = :fishermanId")
     suspend fun deleteTripFisherman(tripId: String, fishermanId: String)
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTripFisherman(crossRef: TripFishermanEntity)
     @Upsert
     suspend fun upsertTripFisherman(crossRef: TripFishermanEntity)
@@ -47,14 +47,14 @@ interface FishermanDao {
     // CRUD operations for Event Cross-References
     @Delete
     suspend fun deleteEventFisherman(crossRef: EventFishermanEntity)
-    @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertEventFisherman(crossRef: EventFishermanEntity)
     @Upsert
     suspend fun upsertEventFisherman(crossRef: EventFishermanEntity)
 
     @Query("DELETE FROM event_fisherman")
     suspend fun deleteAllEventFishermen()
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertEventFishermen(crossRefs: List<EventFishermanEntity>)
     @Query("""
     DELETE FROM event_fisherman 
@@ -664,8 +664,21 @@ interface FishermanDao {
     FROM trip_fisherman 
     WHERE tripId = :tripId
 """)
-    fun getTripFishermenTackleBoxIds(tripId: String): Flow<Map<
+    fun getTripTackleBoxMap(tripId: String): Flow<Map<
+            @MapColumn(columnName = "fishermanId") String,
+            @MapColumn(columnName = "tackleBoxId") String?
+            >>
+
+    @Query(
+        """
+    SELECT fishermanId, tackleBoxId 
+    FROM event_fisherman 
+    WHERE eventId = :eventId
+"""
+    )
+    fun getEventTackleBoxMap(eventId: String): Flow<Map<
             @MapColumn(columnName = "fishermanId") String,
             @MapColumn(columnName = "tackleBoxId") String?
             >>
 }
+

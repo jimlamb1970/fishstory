@@ -175,18 +175,6 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-    @Query(
-        """
-    SELECT fishermanId, tackleBoxId 
-    FROM event_fisherman 
-    WHERE eventId = :eventId
-"""
-    )
-    fun getFishermanTackleBoxMapping(eventId: String): Flow<Map<
-            @MapColumn(columnName = "fishermanId") String,
-            @MapColumn(columnName = "tackleBoxId") String?
-            >>
-
     @Query("""
         SELECT event_table.* FROM event_table 
         INNER JOIN fish_table ON event_table.id = fish_table.eventId

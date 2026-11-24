@@ -208,9 +208,9 @@ class TripRepository(
     }
 
     fun getTackleBoxMapForTrip(tripId: String): Flow<Map<String, String?>> =
-        fishermanDao.getTripFishermenTackleBoxIds(tripId)
+        fishermanDao.getTripTackleBoxMap(tripId)
     fun getTackleBoxMapForEvent(eventId: String): Flow<Map<String, String?>> =
-        eventDao.getFishermanTackleBoxMapping(eventId)
+        fishermanDao.getEventTackleBoxMap(eventId)
 
     fun getTripFishermen(tripId: String): Flow<List<Fisherman>> {
         return fishermanDao.getFishermenForTrip(tripId)

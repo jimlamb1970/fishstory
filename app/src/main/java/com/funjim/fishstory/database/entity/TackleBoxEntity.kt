@@ -22,7 +22,8 @@ import java.util.UUID
         )
     ],
     indices = [
-        Index(value = ["name", "fishermanId"], unique = true)
+        Index(value = ["name", "fishermanId"], unique = true),
+        Index(value = ["fishermanId"]),
     ]
 )
 data class TackleBoxEntity(

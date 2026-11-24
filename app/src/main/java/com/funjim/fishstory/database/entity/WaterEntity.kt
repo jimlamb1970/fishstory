@@ -31,6 +31,7 @@ import java.util.UUID
     ],
     indices = [
         Index(value = ["eventId"]),
+        Index(value = ["tripId"]),
         Index(value = ["clarityId"])
     ]
 )
