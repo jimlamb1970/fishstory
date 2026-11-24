@@ -192,7 +192,9 @@ fun TripDetailsScreen(
     var showNotesDialog by remember { mutableStateOf(false) }
 
     var showAddTackleBoxDialog by remember { mutableStateOf(false) }
+    var showSelectTackleBoxDialog by remember { mutableStateOf(false) }
     var selectedFisherman by remember { mutableStateOf<Fisherman?>(null) }
+    var selectedTackleBox by remember { mutableStateOf<String?>(null) }
 
     val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle()
     val locationPicker = rememberLocationPickerState(
@@ -1235,10 +1237,17 @@ Logging catches will be restricted to the selected fishermen. You can assign a t
                                                     viewModel.setFishermanThumbnail(photo)
                                                 },
                                                 onTackleBoxSelected = { fisherman, tackleBoxId ->
-                                                    viewModel.updateTripFisherman(
-                                                        fisherman.id,
-                                                        tackleBoxId
-                                                    )
+                                                    if (eventSummaries.isEmpty()) {
+                                                        viewModel.updateTripFisherman(
+                                                            fisherman.id,
+                                                            selectedTackleBox,
+                                                            false
+                                                        )
+                                                    } else {
+                                                        selectedFisherman = fisherman
+                                                        selectedTackleBox = tackleBoxId
+                                                        showSelectTackleBoxDialog = true
+                                                    }
                                                 },
                                                 onToggleHelp = { viewModel.toggleHelp() }
                                             )
@@ -1609,7 +1618,7 @@ Selecting them places those species at the top of the list when logging catches 
                         },
                         onToggleImperialUnits = { viewModel.toggleImperialUnits() },
                         onDismiss = {
-                            viewModel.onPendingSkyConditionId(null)
+                            viewModel.onPendingWaterClarityId(null)
                             showEditWaterDialog = !showEditWaterDialog
                         },
                         onConfirm = { temp, depth, clarity ->
@@ -1620,7 +1629,7 @@ Selecting them places those species at the top of the list when logging catches 
                                     clarityId = clarity?.id
                                 )
                             )
-                            viewModel.onPendingSkyConditionId(null)
+                            viewModel.onPendingWaterClarityId(null)
                             showEditWaterDialog = !showEditWaterDialog
                         },
                         onAddWaterClarity = { showAddWaterClarityDialog = true }
@@ -1943,6 +1952,33 @@ Selecting them places those species at the top of the list when logging catches 
                     }
                 }
             }
+
+            if (showSelectTackleBoxDialog) {
+                selectedFisherman?.let { fisherman ->
+                    GeneralDialog(
+                        title = "Update Event Tackle Boxes",
+                        message = "Do you want to update all the events to have the same tackle box assignment?",
+                        onDismiss = {
+                            viewModel.updateTripFisherman(
+                                fisherman.id,
+                                selectedTackleBox,
+                                false
+                            )
+                            showSelectTackleBoxDialog = !showSelectTackleBoxDialog
+                        },
+                        onConfirm = {
+                            viewModel.updateTripFisherman(
+                                fisherman.id,
+                                selectedTackleBox,
+                                true
+                            )
+                            showSelectTackleBoxDialog = !showSelectTackleBoxDialog
+                        },
+                        confirmButtonText = "Yes",
+                        dismissButtonText = "No"
+                    )
+                }
+            }
         }
     }
 
@@ -2057,7 +2093,7 @@ Selecting them places those species at the top of the list when logging catches 
             onConfirm = { name ->
                 val newWaterClarity = WaterClarity(name = name)
                 viewModel.addWaterClarity(newWaterClarity) {
-                    viewModel.onPendingSkyConditionId(newWaterClarity.id)
+                    viewModel.onPendingWaterClarityId(newWaterClarity.id)
                     showAddWaterClarityDialog = !showAddWaterClarityDialog
                 }
             }
@@ -2070,7 +2106,7 @@ Selecting them places those species at the top of the list when logging catches 
                 viewModel.onDismissSmartTackleBoxPrompt(TackleBoxStatus.PENDING, false)
             },
             title = {
-                Text("Convert to Smart Tackle Boxes?")
+                Text("Convert to <Smart Tackle Boxes>?")
             },
             text = {
                 Column {

@@ -597,11 +597,13 @@ class TripDetailsViewModel(
 
     fun updateTripFisherman(
         fishermanId: String,
-        tackleBoxId: String?
+        tackleBoxId: String?,
+        includeEvents: Boolean
     ) {
         viewModelScope.launch {
-            tripRepo.upsertTripFisherman(
-                TripFisherman(tripId, fishermanId, tackleBoxId)
+            tripRepo.updateTripFisherman(
+                TripFisherman(tripId, fishermanId, tackleBoxId),
+                includeEvents
             )
         }
     }
@@ -614,22 +616,6 @@ class TripDetailsViewModel(
         }
     }
 
-    fun insertTackleBox(
-        tackleBox: TackleBox,
-        onSuccess: (TackleBox) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                fishermanRepo.insertTackleBox(tackleBox)
-                onSuccess(tackleBox)
-            } catch (_: SQLiteConstraintException) {
-                _toastMessage.emit("Tackle box '${tackleBox.name}' already exists.")
-            } catch (_: Exception) {
-                _toastMessage.emit("An error occurred while adding tackle box.")
-            }
-        }
-    }
-
     fun createAndAssignTackleBox(
         tackleBox: TackleBox,
         onSuccess: (TackleBox) -> Unit
@@ -637,7 +623,7 @@ class TripDetailsViewModel(
         viewModelScope.launch {
             try {
                 fishermanRepo.insertTackleBox(tackleBox)
-                tripRepo.upsertTripFisherman(
+                tripRepo.updateTripFisherman(
                     TripFisherman(
                         tripId,
                         tackleBox.fishermanId,

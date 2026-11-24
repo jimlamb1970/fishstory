@@ -139,6 +139,26 @@ interface FishermanDao {
         }
     }
     @Transaction
+    suspend fun updateTripFisherman(
+        tripFisherman: TripFishermanEntity,
+        includeEvents: Boolean = false
+    ) {
+        upsertTripFisherman(tripFisherman)
+
+        val eventIds = getEventIdsForTrip(tripFisherman.tripId)
+        if (eventIds.isNotEmpty()) {
+            eventIds.forEach { eventId ->
+                val eventFisherman = EventFishermanEntity(
+                    eventId = eventId,
+                    fishermanId = tripFisherman.fishermanId,
+                    tackleBoxId = tripFisherman.tackleBoxId
+                )
+                upsertEventFisherman(eventFisherman)
+            }
+        }
+    }
+
+    @Transaction
     suspend fun removeFishermanFromTrip(tripId: String, fishermanId: String) {
         deleteTripFisherman(tripId, fishermanId)
         deleteFishermanFromEvents(tripId, fishermanId)

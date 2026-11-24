@@ -155,8 +155,11 @@ class TripRepository(
     }
 
     // Fishermen and TackleBox Operations
-    suspend fun upsertTripFisherman(crossRef: TripFisherman) {
-        fishermanDao.upsertTripFisherman(crossRef.toEntity())
+    suspend fun updateTripFisherman(
+        item: TripFisherman,
+        includeEvents: Boolean = false
+    ) {
+        fishermanDao.updateTripFisherman(item.toEntity(), includeEvents)
     }
     suspend fun updateEventFisherman(crossRef: EventFisherman) {
         fishermanDao.upsertEventFisherman(crossRef.toEntity())

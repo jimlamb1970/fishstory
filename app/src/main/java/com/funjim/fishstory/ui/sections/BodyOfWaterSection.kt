@@ -70,7 +70,6 @@ fun BodyOfWaterSummarySection(
                     style = MaterialTheme.typography.titleMedium,
                     color = getOnMainColor()
                 )
-
                 if (list.size > 1) {
                     BadgeCount(
                         count = list.size,

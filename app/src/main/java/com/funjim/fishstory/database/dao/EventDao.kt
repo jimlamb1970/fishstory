@@ -175,8 +175,6 @@ ORDER BY s.startTime DESC"""
     @Query("SELECT * FROM v_event_detailed_summary WHERE id = :eventId ORDER BY startTime DESC")
     fun getEventDetailedSummary(eventId: String): Flow<EventEntityDetailedSummary?>
 
-
-
     @Query(
         """
     SELECT fishermanId, tackleBoxId 
