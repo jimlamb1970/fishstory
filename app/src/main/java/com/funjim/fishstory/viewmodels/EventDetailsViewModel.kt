@@ -675,6 +675,12 @@ class EventDetailsViewModel(
         )
     }
 
+    fun toggleExpandHighlightCards() {
+        viewModelScope.launch {
+            configRepo.updateExpandHighlightCards(appSettings.value.display.expandHighlightCards.not())
+        }
+    }
+
     fun toggleHelp() {
         viewModelScope.launch {
             configRepo.updateShowHelp(appSettings.value.display.showHelp.not())

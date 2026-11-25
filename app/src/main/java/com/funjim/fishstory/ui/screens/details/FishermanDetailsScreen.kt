@@ -276,10 +276,15 @@ fun FishermanDetailsScreen(
 
                             FishermanHighlightCard(
                                 stats!!,
-                                useImperial = appSettings.display.useImperialUnits
-                            ) {
-                                navigateToFishList(fishermanId, null, null, false)
-                            }
+                                expanded = appSettings.display.expandHighlightCards,
+                                useImperial = appSettings.display.useImperialUnits,
+                                onClick = {
+                                    navigateToFishList(fishermanId, null, null, false)
+                                },
+                                onToggleExpanded = {
+                                    viewModel.toggleExpandHighlightCards()
+                                }
+                            )
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(start = 8.dp, end = 8.dp),

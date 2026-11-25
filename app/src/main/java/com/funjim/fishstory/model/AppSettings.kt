@@ -11,6 +11,7 @@ val Context.dataStore by preferencesDataStore(name = "app_display_settings")
 object PreferencesKeys {
     val CAUTION_BLINK_INTERVAL = longPreferencesKey("caution_blink_interval")
     val COLOR_THEME = stringPreferencesKey("color_theme")
+    val EXPAND_HIGHLIGHT_CARDS = booleanPreferencesKey("expand_highlight_cards")
     val SCROLLBAR_ON_LEFT = booleanPreferencesKey("scrollbar_on_left")
     val SHOW_ALL_CATEGORIES = booleanPreferencesKey("show_all_categories")
     val SHOW_HELP = booleanPreferencesKey("show_help")
@@ -33,6 +34,7 @@ data class AppSettings(
 data class DisplaySettings(
     val cautionBlinkInterval: Long = 1000L,
     val colorTheme: String = "App Default",
+    val expandHighlightCards: Boolean = true,
     val scrollbarOnLeft: Boolean = false,
     val showAllCategories: Boolean = false,
     val showHelp: Boolean = false,

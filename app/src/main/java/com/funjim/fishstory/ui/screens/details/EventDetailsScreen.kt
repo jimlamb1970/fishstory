@@ -912,6 +912,7 @@ fun EventDetailsScreen(
                             if (eventSummary.fishCaught != 0 || now >= event.startTime) {
                                 EventHighlightCard(
                                     summary = eventSummary,
+                                    expanded = appSettings.display.expandHighlightCards,
                                     useImperial = appSettings.display.useImperialUnits,
                                     onClick = {
                                         navigateToFishList(FishFilter(
@@ -931,6 +932,9 @@ fun EventDetailsScreen(
                                             eventId = event.id,
                                             targetOnly = true)
                                         )
+                                    },
+                                    onToggleExpanded = {
+                                        viewModel.toggleExpandHighlightCards()
                                     }
                                 )
                                 HorizontalDivider(

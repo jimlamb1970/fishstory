@@ -870,6 +870,7 @@ fun TripDetailsScreen(
                             if (summary.fishCaught != 0 || now >= trip.startDate) {
                                 TripHighlightCard(
                                     summary = summary,
+                                    expanded = appSettings.display.expandHighlightCards,
                                     useImperial = appSettings.display.useImperialUnits,
                                     onClick = {
                                         navigateToFishList(FishFilter(
@@ -886,6 +887,9 @@ fun TripDetailsScreen(
                                             tripId = trip.id,
                                             targetOnly = true)
                                         )
+                                    },
+                                    onToggleExpanded = {
+                                        viewModel.toggleExpandHighlightCards()
                                     }
                                 )
 

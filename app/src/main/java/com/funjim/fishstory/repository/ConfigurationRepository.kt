@@ -18,6 +18,7 @@ interface ConfigurationRepository {
 
     suspend fun updateCautionBlinkInterval(intervalMs: Long)
     suspend fun updateColorTheme(colorTheme: String)
+    suspend fun updateExpandHighlightCards(expand: Boolean)
     suspend fun updateScrollBarOnLeft(onLeft: Boolean)
     suspend fun updateShowHelp(show: Boolean)
     suspend fun updateShowAllCategories(showAll: Boolean)
@@ -41,6 +42,7 @@ class ConfigurationRepositoryImpl(
                 display = DisplaySettings(
                     cautionBlinkInterval = preferences[PreferencesKeys.CAUTION_BLINK_INTERVAL] ?: 1000L,
                     colorTheme = preferences[PreferencesKeys.COLOR_THEME] ?: "App Default",
+                    expandHighlightCards = preferences[PreferencesKeys.EXPAND_HIGHLIGHT_CARDS] ?: true,
                     scrollbarOnLeft = preferences[PreferencesKeys.SCROLLBAR_ON_LEFT] ?: false,
                     showHelp = preferences[PreferencesKeys.SHOW_HELP] ?: false,
                     showAllCategories = preferences[PreferencesKeys.SHOW_ALL_CATEGORIES] ?: false,
@@ -66,6 +68,11 @@ class ConfigurationRepositoryImpl(
     override suspend fun updateColorTheme(colorTheme: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.COLOR_THEME] = colorTheme
+        }
+    }
+    override suspend fun updateExpandHighlightCards(expand: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXPAND_HIGHLIGHT_CARDS] = expand
         }
     }
     override suspend fun updateScrollBarOnLeft(onLeft: Boolean) {

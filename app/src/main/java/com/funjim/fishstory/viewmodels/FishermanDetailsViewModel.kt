@@ -90,14 +90,6 @@ class FishermanDetailsViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tripSummaries: StateFlow<List<TripSummary>> = _selectedFishermanId
-        .flatMapLatest { id ->
-            if (id == null) flowOf(emptyList())
-            else fishermanRepo.getTripSummariesForFisherman(id)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val fishermanPhotos: StateFlow<List<FishermanPhoto>> = _selectedFishermanId
         .filterNotNull()
         .flatMapLatest { photoRepo.getPhotosForFisherman(it) }
@@ -205,11 +197,10 @@ class FishermanDetailsViewModel(
         }
     }
 
-    fun getTripTackleBox(tripId: String, fishermanId: String): Flow<TackleBox?> {
-        return fishermanRepo.getTripTackleBoxForFisherman(
-            fishermanId = fishermanId,
-            tripId = tripId
-        )
+    fun toggleExpandHighlightCards() {
+        viewModelScope.launch {
+            configRepo.updateExpandHighlightCards(appSettings.value.display.expandHighlightCards.not())
+        }
     }
 }
 
