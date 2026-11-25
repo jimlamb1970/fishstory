@@ -6,10 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,8 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,12 +54,12 @@ import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.absoluteValue
 import androidx.core.net.toUri
 import com.funjim.fishstory.model.Fish
 import com.funjim.fishstory.model.FishNote
 import com.funjim.fishstory.model.FishPhoto
 import com.funjim.fishstory.ui.utils.BadgeCount
+import kotlinx.coroutines.launch
 
 // Helper function to invoke the native share sheet
 fun shareContent(context: Context, textToShare: String) {
@@ -83,34 +81,31 @@ fun FishDetailScreen(
     navigateBack: () -> Unit
 ) {
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
-
     val fishList by viewModel.fishForScope.collectAsStateWithLifecycle()
 
-    var currentIndex by rememberSaveable { mutableIntStateOf(-1) }
+    // 1. Set up PagerState instead of custom float dragOffset state
+    val pagerState = rememberPagerState(pageCount = { fishList.size })
+    var isInitialized by rememberSaveable { mutableStateOf(false) }
 
-    var menuExpanded by remember { mutableStateOf(false) }
-
+    // Initialize pager position to the matching fish ID once list loads
     LaunchedEffect(fishList) {
-        if (fishList.isNotEmpty()) {
-            if (currentIndex == -1) {
-                val foundIndex = fishList.indexOfFirst { it.fish.id == initialFishId }
-                currentIndex = if (foundIndex != -1) foundIndex else 0
-            } else {
-                currentIndex = currentIndex.coerceIn(0, fishList.lastIndex)
+        if (fishList.isNotEmpty() && !isInitialized) {
+            val foundIndex = fishList.indexOfFirst { it.fish.id == initialFishId }
+            if (foundIndex != -1) {
+                pagerState.scrollToPage(foundIndex)
             }
+            isInitialized = true
         }
     }
 
+    val currentIndex = pagerState.currentPage
     val fish = if (fishList.isNotEmpty() && currentIndex in fishList.indices) {
         fishList[currentIndex]
     } else null
 
     var fishToDelete by remember { mutableStateOf<Fish?>(null) }
     var showDeleteFishDialog by remember { mutableStateOf(false) }
-
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    val animatedOffset by animateFloatAsState(targetValue = dragOffset, label = "swipe")
-    val swipeThreshold = 120f
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -153,10 +148,7 @@ fun FishDetailScreen(
                     if (fish != null) {
                         Box(modifier = Modifier.size(32.dp)) {
                             IconButton(onClick = { menuExpanded = true }) {
-                                Icon(
-                                    Icons.Default.MoreVert,
-                                    contentDescription = "More"
-                                )
+                                Icon(Icons.Default.MoreVert, contentDescription = "More")
                             }
                             DropdownMenu(
                                 expanded = menuExpanded,
@@ -166,18 +158,9 @@ fun FishDetailScreen(
                                     text = { Text("Edit") },
                                     onClick = {
                                         menuExpanded = false
-                                        onEditFish(
-                                            fish.trip.id,
-                                            fish.event.id,
-                                            fish.fish.id
-                                        )
+                                        onEditFish(fish.trip.id, fish.event.id, fish.fish.id)
                                     },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.Edit,
-                                            contentDescription = "Edit Fish"
-                                        )
-                                    }
+                                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = "Edit Fish") }
                                 )
                                 DropdownMenuItem(
                                     text = { Text("Delete") },
@@ -201,7 +184,7 @@ fun FishDetailScreen(
             )
         }
     ) { padding ->
-        if (fish == null) {
+        if (fishList.isEmpty() || fish == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -213,88 +196,35 @@ fun FishDetailScreen(
             return@Scaffold
         }
 
-        val fishPhotos = remember(fish.fish.id) {
-            viewModel.fishPhotos(fish.fish.id)
-        }
-        val fishNotes = remember(fish.fish.id) {
-            viewModel.fishNotes(fish.fish.id)
-        }
-        val baitThumbnailFlow = remember(fish.fish.baitId) {
-            viewModel.baitThumbnail(fish.fish.baitId ?: "")
-        }
-        val bodyOfWaterThumbnailFlow = remember(fish.fish.bodyOfWaterId) {
-            viewModel.bodyOfWaterThumbnail(fish.fish.bodyOfWaterId ?: "")
-        }
-        val eventThumbnailFlow = remember(fish.fish.eventId) {
-            viewModel.eventThumbnail(fish.fish.eventId)
-        }
-        val fishThumbnailFlow = remember(fish.fish.id) {
-            viewModel.fishThumbnail(fish.fish.id)
-        }
-        val fishermanThumbnailFlow = remember(fish.fish.fishermanId) {
-            viewModel.fishermanThumbnail(fish.fish.fishermanId)
-        }
-        val lureThumbnailFlow = remember(fish.fish.lureId) {
-            viewModel.lureThumbnail(fish.fish.lureId ?: "")
-        }
-        val speciesThumbnailFlow = remember(fish.species.id) {
-            viewModel.speciesThumbnail(fish.species.id)
-        }
-        val tripThumbnailFlow = remember(fish.fish.tripId) {
-            viewModel.tripThumbnail(fish.fish.tripId)
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Swipeable content area
-            Box(
+            // 2. Replace manual pointerInput Box with HorizontalPager
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .pointerInput(fishList.size) {
-                        detectHorizontalDragGestures(
-                            onDragEnd = {
-                                when {
-                                    dragOffset < -swipeThreshold && currentIndex < fishList.size - 1 -> {
-                                        currentIndex++
-                                    }
+            ) { pageIndex ->
+                val currentFish = fishList[pageIndex]
 
-                                    dragOffset > swipeThreshold && currentIndex > 0 -> {
-                                        currentIndex--
-                                    }
-                                }
-                                dragOffset = 0f
-                            },
-                            onDragCancel = { dragOffset = 0f },
-                            onHorizontalDrag = { _, dragAmount ->
-                                val newOffset = dragOffset + dragAmount
-                                // Resist dragging at edges
-                                val atStart = currentIndex == 0 && newOffset > 0
-                                val atEnd = currentIndex == fishList.size - 1 && newOffset < 0
-                                dragOffset = when {
-                                    atStart -> newOffset * 0.2f
-                                    atEnd -> newOffset * 0.2f
-                                    else -> newOffset
-                                }
-                            }
-                        )
-                    }
-                    .graphicsLayer {
-                        translationX = animatedOffset
-                        alpha = 1f - (animatedOffset.absoluteValue / (swipeThreshold * 4)).coerceIn(
-                            0f,
-                            0.4f
-                        )
-                    }
-            ) {
+                // Retrieve flows for the current page item
+                val fishPhotos = remember(currentFish.fish.id) { viewModel.fishPhotos(currentFish.fish.id) }
+                val fishNotes = remember(currentFish.fish.id) { viewModel.fishNotes(currentFish.fish.id) }
+                val baitThumbnailFlow = remember(currentFish.fish.baitId) { viewModel.baitThumbnail(currentFish.fish.baitId ?: "") }
+                val bodyOfWaterThumbnailFlow = remember(currentFish.fish.bodyOfWaterId) { viewModel.bodyOfWaterThumbnail(currentFish.fish.bodyOfWaterId ?: "") }
+                val eventThumbnailFlow = remember(currentFish.fish.eventId) { viewModel.eventThumbnail(currentFish.fish.eventId) }
+                val fishThumbnailFlow = remember(currentFish.fish.id) { viewModel.fishThumbnail(currentFish.fish.id) }
+                val fishermanThumbnailFlow = remember(currentFish.fish.fishermanId) { viewModel.fishermanThumbnail(currentFish.fish.fishermanId) }
+                val lureThumbnailFlow = remember(currentFish.fish.lureId) { viewModel.lureThumbnail(currentFish.fish.lureId ?: "") }
+                val speciesThumbnailFlow = remember(currentFish.species.id) { viewModel.speciesThumbnail(currentFish.species.id) }
+                val tripThumbnailFlow = remember(currentFish.fish.tripId) { viewModel.tripThumbnail(currentFish.fish.tripId) }
+
                 FishDetailContent(
-                    fish = fish,
-                    fishThumbnailFlow =
-                        if (fish.photoCount == 0) speciesThumbnailFlow
-                        else fishThumbnailFlow,
+                    fish = currentFish,
+                    fishThumbnailFlow = if (currentFish.photoCount == 0) speciesThumbnailFlow else fishThumbnailFlow,
                     fishNoteFlow = fishNotes,
                     fishPhotoFlow = fishPhotos,
                     baitThumbnailFlow = baitThumbnailFlow,
@@ -306,35 +236,21 @@ fun FishDetailScreen(
                     showHelp = appSettings.display.showHelp,
                     useImperial = appSettings.display.useImperialUnits,
                     fishSettings = appSettings.fish,
-                    onAddNote = { noteId, content ->
-                        viewModel.addNote(fish.fish.id, noteId, content)
-                    },
-                    onDeleteNote = { noteId ->
-                        viewModel.deleteNote(noteId)
-                    },
-                    onPhotoSelected = { uri ->
-                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
-                    },
-                    onPhotoTaken = { uri ->
-                        viewModel.addFishPhoto(fishId = fish.fish.id, uri = uri)
-                    },
-                    onPhotoDeleted = { photo ->
-                        viewModel.deleteFishPhoto(photo)
-                    },
-                    onSetThumbnail = { photo ->
-                        viewModel.setFishThumbnail(photo)
-                    },
+                    onAddNote = { noteId, content -> viewModel.addNote(currentFish.fish.id, noteId, content) },
+                    onDeleteNote = { noteId -> viewModel.deleteNote(noteId) },
+                    onPhotoSelected = { uri -> viewModel.addFishPhoto(currentFish.fish.id, uri) },
+                    onPhotoTaken = { uri -> viewModel.addFishPhoto(currentFish.fish.id, uri) },
+                    onPhotoDeleted = { photo -> viewModel.deleteFishPhoto(photo) },
+                    onSetThumbnail = { photo -> viewModel.setFishThumbnail(photo) },
                     onToggleHelp = { viewModel.toggleHelp() },
-                    onToggleImperialUnits = {
-                        viewModel.toggleImperialUnits()
-                    },
-                    onToggleShowHole = {
-                        viewModel.toggleShowHole()
-                    }
+                    onToggleImperialUnits = { viewModel.toggleImperialUnits() },
+                    onToggleShowHole = { viewModel.toggleShowHole() }
                 )
             }
 
+            // Optional Bottom Navigation Controls Bar
             if (fishList.size > 1) {
+                val coroutineScope = rememberCoroutineScope()
                 HorizontalDivider()
                 Row(
                     modifier = Modifier
@@ -344,8 +260,12 @@ fun FishDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { if (currentIndex > 0) currentIndex-- },
-                        enabled = currentIndex > 0
+                        onClick = {
+                            if (pagerState.currentPage > 0) {
+                                coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                            }
+                        },
+                        enabled = pagerState.currentPage > 0
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous fish")
                     }
@@ -357,8 +277,12 @@ fun FishDetailScreen(
                     )
 
                     IconButton(
-                        onClick = { if (currentIndex < fishList.size - 1) currentIndex++ },
-                        enabled = currentIndex < fishList.size - 1
+                        onClick = {
+                            if (pagerState.currentPage < fishList.size - 1) {
+                                coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            }
+                        },
+                        enabled = pagerState.currentPage < fishList.size - 1
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next fish")
                     }
@@ -366,18 +290,13 @@ fun FishDetailScreen(
             }
         }
     }
+
     if (showDeleteFishDialog) {
         fishToDelete?.let { fishToDelete ->
             AlertDialog(
                 onDismissRequest = { showDeleteFishDialog = !showDeleteFishDialog },
                 title = { Text("Delete Fish?") },
-                text = {
-                    Text(
-                        """Are you sure you want to delete this fish?
-
-This cannot be undone."""
-                    )
-                },
+                text = { Text("Are you sure you want to delete this fish?\n\nThis cannot be undone.") },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -398,7 +317,6 @@ This cannot be undone."""
         }
     }
 }
-
 @Composable
 private fun FishDetailContent(
     fish: FishWithDetails,
