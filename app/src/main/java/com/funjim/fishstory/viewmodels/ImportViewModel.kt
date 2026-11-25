@@ -64,26 +64,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.max
 import kotlin.math.min
 
+enum class EventImportResolution {
+    SKIP,
+    REPLACE,
+    MERGE
+}
 sealed interface ImportConflict {
     data class ExistingEvent(
         val eventName: String,
-        val onResolve: (resolution: EventResolution) -> Unit
-    ) : ImportConflict
-
-    data class ExistingTrip(
-        val tripName: String,
-        val onResolve: (resolution: TripResolution) -> Unit
-    ) : ImportConflict
-}
-
-enum class EventResolution { OVERWRITE, KEEP_BOTH, SKIP }
-enum class TripResolution { CREATE_NEW, LINK_EXISTING, SKIP }
+        val onResolve: (resolution: EventImportResolution) -> Unit
+    ) : ImportConflict}
 
 @Serializable
 data class FishStoryEventData(
@@ -197,7 +194,10 @@ class ImportViewModel(
     private val json = Json { prettyPrint = true }
     private val jsonImport = Json { ignoreUnknownKeys = true }
 
-    private suspend fun processImportData(exportData: FishStoryEventData) {
+    var currentConflict by mutableStateOf<ImportConflict?>(value = null)
+        private set
+
+    private suspend fun processImportData(exportData: FishStoryEventData): Boolean {
         val baitMap = mutableMapOf<String, String>()
         val bodyOfWaterMap = mutableMapOf<String, String>()
         val fishermanMap = mutableMapOf<String, String>()
@@ -211,14 +211,40 @@ class ImportViewModel(
         val waterMap = mutableMapOf<String, String>()
         val weatherMap = mutableMapOf<String, String>()
 
-        // Trip is just a 'stub' but need to make sure that if a trip already exists,
-        // that its dates are updated to cover the event.
+        val existingEvent = tripRepo.getEventById(exportData.event.id)
+        if (existingEvent != null) {
+            val resolution = suspendCancellableCoroutine { continuation ->
+                currentConflict = ImportConflict.ExistingEvent(
+                    eventName = exportData.event.name,
+                    onResolve = { selectedResolution ->
+                        currentConflict = null
+                        if (continuation.isActive) {
+                            continuation.resume(selectedResolution) { _, _, _ ->
+                            }
+                        }
+                    }
+                )
+                continuation.invokeOnCancellation {
+                    currentConflict = null
+                }
+            }
+
+            when (resolution) {
+                EventImportResolution.SKIP -> return false
+                EventImportResolution.REPLACE -> {
+                    // Delete the existing event before importing
+                    tripRepo.deleteEventById(exportData.event.id)
+                }
+                EventImportResolution.MERGE -> {
+                    // Do not delete the existing event
+                }
+            }
+        }
+
         val tripResult = tripRepo.findOrCreateTrip(exportData.trip)
         val startTime = min(tripResult.item.startDate, exportData.event.startTime)
         val endTime = max(tripResult.item.endDate, exportData.event.endTime)
         tripRepo.upsertTrip(tripResult.item.copy(startDate = startTime, endDate = endTime))
-
-        // Always update the event
         tripRepo.upsertEvent(exportData.event)
 
         // Import and keep track of new/existing id
@@ -396,6 +422,7 @@ class ImportViewModel(
         for (note in exportData.fishNotes) {
             noteRepo.findOrCreateFishNote(note)
         }
+        return true
     }
 
     fun importEvent(
@@ -410,9 +437,13 @@ class ImportViewModel(
             val exportData = jsonImport.decodeFromString<FishStoryEventData>(jsonString)
 
             if (exportData.fileType == "FishStoryEventData") {
-                processImportData(exportData)
+                if (processImportData(exportData)) {
+                    _snackBarMessage.emit("Event successfully imported!")
+                } else {
+                    _snackBarMessage.emit("Event not imported.")
+                }
             } else {
-                // Handle error
+                _snackBarMessage.emit("Invalid event import data.")
             }
         }
     }
@@ -430,7 +461,7 @@ class ImportViewModel(
                 _snackBarMessage.emit("Database backed up successfully!")
                 true
             } catch (e: Exception) {
-                Log.e("ImportViewModel", "Failed to export database", e)
+                Log.e("ImportViewModel", "Failed to backup database", e)
                 false
             }
         }

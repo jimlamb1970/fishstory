@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funjim.fishstory.ui.theme.themeMap
 import com.funjim.fishstory.ui.selection.ThemeSelectionField
+import com.funjim.fishstory.viewmodels.EventImportResolution
+import com.funjim.fishstory.viewmodels.ImportConflict
 import com.funjim.fishstory.viewmodels.ImportViewModel
 import com.funjim.fishstory.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -38,6 +41,8 @@ fun SettingsScreen(
     val hostState = remember { SnackbarHostState() }
 
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+
+    val conflict = importViewModel.currentConflict
 
     LaunchedEffect(Unit) {
         importViewModel.snackBarMessage.collect { message ->
@@ -127,7 +132,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    // Trigger the file picker to select a JSON database file for import
                     pickEventFileLauncher.launch(arrayOf("application/json"))
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -175,5 +179,85 @@ fun SettingsScreen(
                 }
             )
         }
+    }
+
+    when (conflict) {
+        is ImportConflict.ExistingEvent -> {
+            var selectedOption by remember { mutableIntStateOf(2) }
+
+            val options = listOf(
+                "Do not import this event",
+                "Merge with the existing exist",
+                "Replace the existing event"
+            )
+
+            AlertDialog(
+                onDismissRequest = {
+                    conflict.onResolve(EventImportResolution.SKIP)
+                },
+                title = {
+                    Text(
+                        text = "Event Already Exists",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = """The event '${conflict.eventName}' already exists.
+                            |
+                            |How would you like to proceed with the import?""".trimMargin(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        options.forEachIndexed { index, optionText ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedOption = index }
+                            ) {
+                                RadioButton(
+                                    selected = (selectedOption == index),
+                                    onClick = { selectedOption = index }
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(
+                                    text = optionText,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            when (selectedOption) {
+                                0 -> {
+                                    conflict.onResolve(EventImportResolution.SKIP)
+                                }
+                                1 -> {
+                                    conflict.onResolve(EventImportResolution.MERGE)
+                                }
+                                2 -> {
+                                    conflict.onResolve(EventImportResolution.REPLACE)
+                                }
+                            }
+                        }
+                    ) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { conflict.onResolve(EventImportResolution.SKIP) }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+        else -> { /* No-op or handle other conflicts */ }
     }
 }
