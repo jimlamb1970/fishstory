@@ -45,17 +45,6 @@ import com.funjim.fishstory.database.entity.LurePhotoEntity
 import com.funjim.fishstory.database.entity.LureGlowColorEntity
 import com.funjim.fishstory.database.entity.LurePrimaryColorEntity
 import com.funjim.fishstory.database.entity.LureSecondaryColorEntity
-import com.funjim.fishstory.database.entity.PhotoBaitEntity
-import com.funjim.fishstory.database.entity.PhotoBodyOfWaterEntity
-import com.funjim.fishstory.database.entity.PhotoEntity
-import com.funjim.fishstory.database.entity.PhotoEventEntity
-import com.funjim.fishstory.database.entity.PhotoFishEntity
-import com.funjim.fishstory.database.entity.PhotoFishermanEntity
-import com.funjim.fishstory.database.entity.PhotoLureEntity
-import com.funjim.fishstory.database.entity.PhotoSkyConditionEntity
-import com.funjim.fishstory.database.entity.PhotoSpeciesEntity
-import com.funjim.fishstory.database.entity.PhotoTripEntity
-import com.funjim.fishstory.database.entity.PhotoWaterClarityEntity
 import com.funjim.fishstory.database.entity.SkyConditionEntity
 import com.funjim.fishstory.database.entity.SkyConditionPhotoEntity
 import com.funjim.fishstory.database.entity.SpeciesEntity
@@ -95,7 +84,6 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         LureEntity::class,
         LurePhotoEntity::class,
         LureColorEntity::class,
-        PhotoEntity::class,
         SkyConditionEntity::class,
         SkyConditionPhotoEntity::class,
         SpeciesEntity::class,
@@ -121,16 +109,6 @@ import com.funjim.fishstory.database.entity.WeatherEntity
         LurePrimaryColorEntity::class,
         LureSecondaryColorEntity::class,
         // Proto Cross References (10) (39)
-        PhotoBaitEntity::class,
-        PhotoBodyOfWaterEntity::class,
-        PhotoEventEntity::class,
-        PhotoFishEntity::class,
-        PhotoFishermanEntity::class,
-        PhotoLureEntity::class,
-        PhotoSkyConditionEntity::class,
-        PhotoSpeciesEntity::class,
-        PhotoTripEntity::class,
-        PhotoWaterClarityEntity::class,
         // TackleBox Cross References (1) (40)
         TackleBoxLureEntity::class,
         // Trip Cross References (5) (45)
